@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEAM
+  JURY
+  ORGANIZER
+}
+
+enum TournamentStatus {
+  DRAFT
+  REGISTRATION
+  RUNNING
+  FINISHED
+}
+
+enum RoundStatus {
+  DRAFT
+  ACTIVE
+  SUBMISSION_CLOSED
+  EVALUATED
+}
+
+enum SubmissionStatus {
+  DRAFT
+  SUBMITTED
+  LOCKED
+}
+
+model User {
+  id              String                 @id @default(cuid())
+  email           String                 @unique
+  fullName        String
+  passwordHash    String
+  role            Role                   @default(TEAM)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  createdTournaments Tournament[]        @relation("TournamentCreatedBy")
+  captainTeams    Team[]                 @relation("TeamCaptain")
+  juryAssignments EvaluationAssignment[]
+  evaluations     Evaluation[]
+}
+
+model Tournament {
+  id                 String           @id @default(cuid())
+  title              String
+  description        String?
+  startsAt           DateTime?
+  registrationOpenAt DateTime
+  registrationCloseAt DateTime
+  maxTeams           Int?
+  status             TournamentStatus @default(DRAFT)
+  createdById        String?
+  createdBy          User?            @relation("TournamentCreatedBy", fields: [createdById], references: [id])
+  teams              Team[]
+  rounds             Round[]
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+}
+
+model Team {
+  id            String       @id @default(cuid())
+  tournamentId  String
+  tournament    Tournament   @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  name          String
+  captainId     String
+  captain       User         @relation("TeamCaptain", fields: [captainId], references: [id])
+  organization  String?
+  contactHandle String?
+  members       TeamMember[]
+  submissions   Submission[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@unique([tournamentId, name])
+  @@unique([tournamentId, captainId])
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId     String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  fullName  String
+  email     String
+  createdAt DateTime @default(now())
+
+  @@unique([teamId, email])
+}
+
+model Round {
+  id          String       @id @default(cuid())
+  tournamentId String
+  tournament  Tournament   @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  sequence    Int
+  title       String
+  description String
+  mustHave    Json?
+  startsAt    DateTime
+  deadlineAt  DateTime
+  status      RoundStatus  @default(DRAFT)
+  submissions Submission[]
+  assignments EvaluationAssignment[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([tournamentId, sequence])
+}
+
+model Submission {
+  id           String           @id @default(cuid())
+  roundId      String
+  round        Round            @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  teamId       String
+  team         Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  repoUrl      String
+  demoUrl      String
+  liveDemoUrl  String?
+  shortSummary String?
+  status       SubmissionStatus @default(DRAFT)
+  submittedAt  DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  assignments  EvaluationAssignment[]
+
+  @@unique([roundId, teamId])
+}
+
+model EvaluationAssignment {
+  id           String      @id @default(cuid())
+  roundId      String
+  round        Round       @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  submissionId String
+  submission   Submission  @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  juryId       String
+  jury         User        @relation(fields: [juryId], references: [id], onDelete: Cascade)
+  evaluation   Evaluation?
+  assignedAt   DateTime    @default(now())
+
+  @@unique([submissionId, juryId])
+}
+
+model Evaluation {
+  id           String               @id @default(cuid())
+  assignmentId String               @unique
+  assignment   EvaluationAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  juryId       String
+  jury         User                 @relation(fields: [juryId], references: [id], onDelete: Cascade)
+  scores       Json
+  totalScore   Float
+  comment      String?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+}
