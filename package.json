@@ -1,0 +1,22 @@
+{
+  "name": "falconarena",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/frontend",
+    "apps/backend"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "dev:frontend": "npm run dev -w @falconarena/frontend",
+    "dev:backend": "npm run start:dev -w @falconarena/backend",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "prisma:generate": "npm run prisma:generate -w @falconarena/backend",
+    "prisma:migrate:dev": "npm run prisma:migrate:dev -w @falconarena/backend",
+    "prisma:migrate:deploy": "npm run prisma:migrate:deploy -w @falconarena/backend"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

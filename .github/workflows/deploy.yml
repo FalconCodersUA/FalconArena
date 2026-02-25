@@ -1,0 +1,63 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          script_stop: true
+          script: |
+            set -e
+            mkdir -p "${{ secrets.DEPLOY_PATH }}"
+            cd "${{ secrets.DEPLOY_PATH }}"
+
+            AUTH_REPO_URL="https://${{ secrets.GH_PULL_USERNAME }}:${{ secrets.GH_PULL_TOKEN }}@github.com/${{ github.repository }}.git"
+
+            if [ ! -d .git ]; then
+              git init
+              git remote add origin "$AUTH_REPO_URL"
+            fi
+
+            git remote set-url origin "$AUTH_REPO_URL"
+
+            if git show-ref --verify --quiet refs/heads/main; then
+              git checkout main
+              git pull --ff-only origin main
+            else
+              git fetch origin main
+              git checkout -b main FETCH_HEAD
+            fi
+
+            git remote set-url origin "https://github.com/${{ github.repository }}.git"
+
+            cat > infra/docker-compose/.env <<'EOF'
+            NODE_ENV=production
+            POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            FRONTEND_PORT=80
+            BACKEND_PORT=4000
+            VITE_API_URL=${{ secrets.VITE_API_URL || 'https://falconarena.live' }}
+            EOF
+
+            docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docker-compose/.env up -d --build --remove-orphans
+            docker image prune -f
