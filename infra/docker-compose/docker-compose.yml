@@ -6,8 +6,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-falconarena}
       POSTGRES_USER: ${POSTGRES_USER:-falcon}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-falcon}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
@@ -19,8 +17,6 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis_data:/data
@@ -47,7 +43,7 @@ services:
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:-change-me}
     ports:
-      - "${BACKEND_PORT:-4000}:4000"
+      - "127.0.0.1:${BACKEND_PORT:-4000}:4000"
 
   frontend:
     build:
@@ -58,9 +54,25 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
+
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    depends_on:
+      - frontend
+      - backend
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:-localhost}
     ports:
-      - "${FRONTEND_PORT:-8080}:80"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
 
 volumes:
   pg_data:
   redis_data:
+  caddy_data:
+  caddy_config:

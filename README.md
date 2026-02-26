@@ -61,8 +61,8 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 
 4. Open apps:
 
-- Frontend: `http://localhost:8080`
-- Backend health: `http://localhost:4000/health`
+- App entrypoint (Caddy): `http://localhost`
+- Backend health via proxy: `http://localhost/health`
 
 ## CI / CD
 
@@ -83,6 +83,8 @@ Required repository secrets for deploy:
 - `POSTGRES_PASSWORD`
 - `JWT_SECRET`
 - `VITE_API_URL` (optional, fallback supported)
+
+Production routing is handled by Caddy (`80/443`). Database and Redis are internal-only in Docker network.
 
 Quick setup for GitHub + Ubuntu + `falconarena.live` is in `docs/deploy-quickstart.md`.
 

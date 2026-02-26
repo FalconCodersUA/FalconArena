@@ -9,7 +9,7 @@ sudo apt update
 sudo apt install -y git docker.io docker-compose-plugin
 sudo systemctl enable --now docker
 sudo usermod -aG docker $USER
-mkdir -p /opt/falconarena
+mkdir -p /opt/falconarena-deploy
 ```
 
 Log out and log in again after adding user to docker group.
@@ -50,7 +50,7 @@ In `GitHub -> Repo -> Settings -> Secrets and variables -> Actions`, add:
 - `SSH_USER` = Ubuntu deploy user
 - `SSH_PRIVATE_KEY` = content of `falconarena_actions_ssh`
 - `SSH_PORT` = `22`
-- `DEPLOY_PATH` = `/opt/falconarena`
+- `DEPLOY_PATH` = `/opt/falconarena-deploy`
 - `GH_PULL_USERNAME` = GitHub username that created token
 - `GH_PULL_TOKEN` = fine-grained token from step 2
 - `POSTGRES_DB`
@@ -63,6 +63,14 @@ In `GitHub -> Repo -> Settings -> Secrets and variables -> Actions`, add:
 
 - DNS `A` record for `falconarena.live` must point to Ubuntu IP.
 - Open ports on server/security group: `22`, `80`, `443`.
+- Do not expose `5432` and `6379` publicly.
+- If port `80` is already busy from an old container, remove it before first deploy:
+
+```bash
+docker ps --format 'table {{.Names}}\t{{.Ports}}'
+docker stop caddy-caddy-1 || true
+docker rm caddy-caddy-1 || true
+```
 
 ## 6) First deploy test
 
@@ -76,5 +84,5 @@ Use this flow:
 
 After success, open:
 
-- `http://falconarena.live`
-- `http://falconarena.live:4000/health`
+- `https://falconarena.live`
+- `https://falconarena.live/health`
