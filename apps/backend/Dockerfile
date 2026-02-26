@@ -23,4 +23,4 @@ COPY --from=build /app/apps/backend/package.json ./apps/backend/package.json
 COPY --from=build /app/apps/backend/prisma ./apps/backend/prisma
 
 EXPOSE 4000
-CMD ["sh", "-c", "npx prisma db push && node apps/backend/dist/main.js"]
+CMD ["sh", "-c", "npx prisma db push --schema apps/backend/prisma/schema.prisma && node apps/backend/dist/main.js"]
