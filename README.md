@@ -87,6 +87,7 @@ Required repository secrets for deploy:
 Production routing is handled by Caddy (`80/443`). Database and Redis are internal-only in Docker network.
 
 Quick setup for GitHub + Ubuntu + `falconarena.live` is in `docs/deploy-quickstart.md`.
+MVP API smoke script is in `docs/mvp-smoke-api.md`.
 
 ## Notes
 
