@@ -113,6 +113,15 @@ Quick setup for GitHub + Ubuntu + `falconarena.live` is in `docs/deploy-quicksta
   - `POST /tournaments/:tournamentId/teams/register` (roles: `TEAM`, `ADMIN`, `ORGANIZER`)
   - `GET /tournaments/:tournamentId/teams`
   - `GET /tournaments/:tournamentId/teams/me` (roles: `TEAM`, `ADMIN`, `ORGANIZER`)
+- Round/task endpoints:
+  - `POST /tournaments/:tournamentId/rounds` (roles: `ADMIN`, `ORGANIZER`)
+  - `GET /tournaments/:tournamentId/rounds`
+  - `GET /tournaments/:tournamentId/rounds/active`
+  - `PATCH /tournaments/:tournamentId/rounds/:roundId/status` (roles: `ADMIN`, `ORGANIZER`)
+- Submission endpoints:
+  - `POST /rounds/:roundId/submissions` (role: `TEAM`)
+  - `GET /rounds/:roundId/submissions/me` (role: `TEAM`)
+  - `GET /rounds/:roundId/submissions` (roles: `ADMIN`, `ORGANIZER`, `JURY`)
 
 Optional env setting:
 
