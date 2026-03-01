@@ -123,6 +123,13 @@ MVP API smoke script is in `docs/mvp-smoke-api.md`.
   - `POST /rounds/:roundId/submissions` (role: `TEAM`)
   - `GET /rounds/:roundId/submissions/me` (role: `TEAM`)
   - `GET /rounds/:roundId/submissions` (roles: `ADMIN`, `ORGANIZER`, `JURY`)
+- Evaluation endpoints:
+  - `POST /rounds/:roundId/assignments/distribute` (roles: `ADMIN`, `ORGANIZER`)
+  - `GET /rounds/:roundId/assignments` (roles: `ADMIN`, `ORGANIZER`)
+  - `GET /rounds/:roundId/assignments/me` (role: `JURY`)
+  - `POST /rounds/:roundId/assignments/:assignmentId/evaluation` (role: `JURY`, scale `0-100`)
+- Leaderboard endpoint:
+  - `GET /tournaments/:tournamentId/leaderboard`
 
 Optional env setting:
 
