@@ -2,7 +2,7 @@
 
 Use this checklist after deployment to verify the core backend flow:
 
-`auth -> tournaments -> team registration -> rounds -> submissions`
+`auth -> tournaments -> team registration -> rounds -> submissions -> evaluation -> leaderboard`
 
 Base URL:
 
@@ -16,6 +16,7 @@ Optional helper (for unique emails):
 TS=$(date +%s)
 ADMIN_EMAIL="admin_${TS}@falconarena.live"
 TEAM_EMAIL="team_${TS}@falconarena.live"
+JURY_EMAIL="jury_${TS}@falconarena.live"
 PASSWORD="StrongPass123!"
 ```
 
@@ -35,7 +36,15 @@ curl -s -X POST "$BASE_URL/auth/register" \
   -d "{\"email\":\"$TEAM_EMAIL\",\"fullName\":\"Team Captain\",\"password\":\"$PASSWORD\",\"role\":\"TEAM\"}"
 ```
 
-## 3) Login admin and team, store tokens
+## 3) Register jury user
+
+```bash
+curl -s -X POST "$BASE_URL/auth/register" \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"$JURY_EMAIL\",\"fullName\":\"Jury User\",\"password\":\"$PASSWORD\",\"role\":\"JURY\"}"
+```
+
+## 4) Login admin, team, and jury
 
 ```bash
 ADMIN_TOKEN=$(curl -s -X POST "$BASE_URL/auth/login" \
@@ -45,9 +54,13 @@ ADMIN_TOKEN=$(curl -s -X POST "$BASE_URL/auth/login" \
 TEAM_TOKEN=$(curl -s -X POST "$BASE_URL/auth/login" \
   -H "Content-Type: application/json" \
   -d "{\"email\":\"$TEAM_EMAIL\",\"password\":\"$PASSWORD\"}" | jq -r '.accessToken')
+
+JURY_TOKEN=$(curl -s -X POST "$BASE_URL/auth/login" \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"$JURY_EMAIL\",\"password\":\"$PASSWORD\"}" | jq -r '.accessToken')
 ```
 
-## 4) Create tournament (admin)
+## 5) Create tournament (admin)
 
 ```bash
 TOURNAMENT_ID=$(curl -s -X POST "$BASE_URL/tournaments" \
@@ -62,7 +75,7 @@ TOURNAMENT_ID=$(curl -s -X POST "$BASE_URL/tournaments" \
   }' | jq -r '.id')
 ```
 
-## 5) Open registration status (admin)
+## 6) Open registration status (admin)
 
 ```bash
 curl -s -X PATCH "$BASE_URL/tournaments/$TOURNAMENT_ID/status" \
@@ -71,7 +84,7 @@ curl -s -X PATCH "$BASE_URL/tournaments/$TOURNAMENT_ID/status" \
   -d '{"status":"REGISTRATION"}'
 ```
 
-## 6) Register team in tournament (team)
+## 7) Register team in tournament (team)
 
 ```bash
 curl -s -X POST "$BASE_URL/tournaments/$TOURNAMENT_ID/teams/register" \
@@ -88,7 +101,7 @@ curl -s -X POST "$BASE_URL/tournaments/$TOURNAMENT_ID/teams/register" \
   }"
 ```
 
-## 7) Create round (admin)
+## 8) Create round (admin)
 
 ```bash
 ROUND_ID=$(curl -s -X POST "$BASE_URL/tournaments/$TOURNAMENT_ID/rounds" \
@@ -103,7 +116,7 @@ ROUND_ID=$(curl -s -X POST "$BASE_URL/tournaments/$TOURNAMENT_ID/rounds" \
   }' | jq -r '.id')
 ```
 
-## 8) Activate round (admin)
+## 9) Activate round (admin)
 
 ```bash
 curl -s -X PATCH "$BASE_URL/tournaments/$TOURNAMENT_ID/rounds/$ROUND_ID/status" \
@@ -112,7 +125,7 @@ curl -s -X PATCH "$BASE_URL/tournaments/$TOURNAMENT_ID/rounds/$ROUND_ID/status" 
   -d '{"status":"ACTIVE"}'
 ```
 
-## 9) Submit project (team)
+## 10) Submit project (team)
 
 ```bash
 curl -s -X POST "$BASE_URL/rounds/$ROUND_ID/submissions" \
@@ -126,11 +139,52 @@ curl -s -X POST "$BASE_URL/rounds/$ROUND_ID/submissions" \
   }'
 ```
 
-## 10) Read own submission (team)
+## 11) Read own submission (team)
 
 ```bash
 curl -s "$BASE_URL/rounds/$ROUND_ID/submissions/me" \
   -H "Authorization: Bearer $TEAM_TOKEN"
+```
+
+## 12) Distribute assignments (admin)
+
+```bash
+curl -s -X POST "$BASE_URL/rounds/$ROUND_ID/assignments/distribute" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"minReviewersPerSubmission":1,"resetExisting":true}'
+```
+
+## 13) List my assignments (jury)
+
+```bash
+ASSIGNMENT_ID=$(curl -s "$BASE_URL/rounds/$ROUND_ID/assignments/me" \
+  -H "Authorization: Bearer $JURY_TOKEN" | jq -r '.[0].id')
+```
+
+## 14) Submit evaluation (jury, 0-100 scale)
+
+```bash
+curl -s -X POST "$BASE_URL/rounds/$ROUND_ID/assignments/$ASSIGNMENT_ID/evaluation" \
+  -H "Authorization: Bearer $JURY_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "scores": {
+      "technicalBackend": 92,
+      "technicalDatabase": 86,
+      "technicalFrontend": 84,
+      "mustHave": 95,
+      "stability": 88,
+      "usability": 90
+    },
+    "comment": "Solid MVP submission"
+  }'
+```
+
+## 15) Read leaderboard
+
+```bash
+curl -s "$BASE_URL/tournaments/$TOURNAMENT_ID/leaderboard" | jq .
 ```
 
 ## Notes

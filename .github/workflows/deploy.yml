@@ -60,5 +60,6 @@ jobs:
             EOF
 
             docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docker-compose/.env up -d --build --remove-orphans
+            docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docker-compose/.env restart caddy
             curl -fsS --retry 20 --retry-delay 2 http://localhost/health > /dev/null
             docker image prune -f
