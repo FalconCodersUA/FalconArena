@@ -104,3 +104,22 @@ Quick setup for GitHub + Ubuntu + `falconarena.live` is in `docs/deploy-quicksta
 - Health endpoints:
   - `GET /health`
   - `GET /admin/health` (roles: `ADMIN`, `ORGANIZER`)
+- Tournament endpoints:
+  - `GET /tournaments`
+  - `GET /tournaments/:id`
+  - `POST /tournaments` (roles: `ADMIN`, `ORGANIZER`)
+  - `PATCH /tournaments/:id/status` (roles: `ADMIN`, `ORGANIZER`)
+- Team registration endpoints:
+  - `POST /tournaments/:tournamentId/teams/register` (roles: `TEAM`, `ADMIN`, `ORGANIZER`)
+  - `GET /tournaments/:tournamentId/teams`
+  - `GET /tournaments/:tournamentId/teams/me` (roles: `TEAM`, `ADMIN`, `ORGANIZER`)
+
+Optional env setting:
+
+- `MAX_TEAM_MEMBERS` (default: `8`)
+
+Optional admin seed command:
+
+```bash
+SEED_ADMIN_EMAIL=admin@falconarena.live SEED_ADMIN_PASSWORD=change_me npm run prisma:seed -w @falconarena/backend
+```

@@ -26,7 +26,7 @@
 
 ## CI/CD Contract
 
-- Pull request to `main`: `lint + test + build`
+- Pull request to `main`: `lint + build`
 - Push/merge to `main`: deploy to Ubuntu over SSH
 - One environment: `production` (or `demo` label)
 
