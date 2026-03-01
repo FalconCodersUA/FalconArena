@@ -61,5 +61,6 @@ jobs:
 
             docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docker-compose/.env up -d --build --remove-orphans
             docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docker-compose/.env restart caddy
-            curl -fsS --retry 20 --retry-delay 2 http://localhost/health > /dev/null
+            curl -fsS --retry 40 --retry-delay 2 --retry-all-errors http://127.0.0.1:4000/health > /dev/null
+            curl -fsS --retry 40 --retry-delay 2 --retry-all-errors --resolve falconarena.live:443:127.0.0.1 https://falconarena.live/health > /dev/null
             docker image prune -f
