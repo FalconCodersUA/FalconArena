@@ -104,10 +104,17 @@ async function createCoreUsers() {
     body: { email: juryEmail, password },
   });
 
+  const juryToken = juryLogin.payload.accessToken;
+  const juryMe = await request('GET', '/auth/me', {
+    token: juryToken,
+    expectedStatus: [200, 201],
+  });
+
   return {
     adminToken: adminLogin.payload.accessToken,
     teamToken: teamLogin.payload.accessToken,
-    juryToken: juryLogin.payload.accessToken,
+    juryToken,
+    juryUserId: juryMe.payload.id,
   };
 }
 
@@ -189,13 +196,14 @@ async function submitProject(teamToken, roundId, suffix) {
   });
 }
 
-async function distributeAssignments(adminToken, roundId) {
+async function distributeAssignments(adminToken, roundId, juryUserId) {
   await request('POST', `/rounds/${roundId}/assignments/distribute`, {
     token: adminToken,
     expectedStatus: [200, 201],
     body: {
       minReviewersPerSubmission: 1,
       resetExisting: true,
+      juryUserIds: [juryUserId],
     },
   });
 }
@@ -229,15 +237,15 @@ async function submitJuryEvaluation(juryToken, roundId, scoreSeed) {
 async function run() {
   console.log(`Running finish-evaluation e2e against ${baseUrl}`);
 
-  const { adminToken, teamToken, juryToken } = await createCoreUsers();
-  assert(adminToken && teamToken && juryToken, 'Missing one of tokens');
+  const { adminToken, teamToken, juryToken, juryUserId } = await createCoreUsers();
+  assert(adminToken && teamToken && juryToken && juryUserId, 'Missing one of auth values');
 
   const tournamentA = await createTournamentAndTeam(adminToken, teamToken, `A_${timestamp}`);
   const roundA = await createRound(adminToken, tournamentA, 'Round A');
 
   await activateRound(adminToken, tournamentA, roundA);
   await submitProject(teamToken, roundA, `A_${timestamp}`);
-  await distributeAssignments(adminToken, roundA);
+  await distributeAssignments(adminToken, roundA, juryUserId);
 
   await request('POST', `/rounds/${roundA}/finish-evaluation`, {
     token: adminToken,
@@ -265,7 +273,7 @@ async function run() {
 
   await activateRound(adminToken, tournamentB, roundB1);
   await submitProject(teamToken, roundB1, `B1_${timestamp}`);
-  await distributeAssignments(adminToken, roundB1);
+  await distributeAssignments(adminToken, roundB1, juryUserId);
   await submitJuryEvaluation(juryToken, roundB1, 1);
 
   await request('PATCH', `/tournaments/${tournamentB}/rounds/${roundB1}/status`, {
@@ -287,7 +295,7 @@ async function run() {
 
   await activateRound(adminToken, tournamentB, roundB2);
   await submitProject(teamToken, roundB2, `B2_${timestamp}`);
-  await distributeAssignments(adminToken, roundB2);
+  await distributeAssignments(adminToken, roundB2, juryUserId);
   await submitJuryEvaluation(juryToken, roundB2, 2);
 
   await request('PATCH', `/tournaments/${tournamentB}/rounds/${roundB2}/status`, {

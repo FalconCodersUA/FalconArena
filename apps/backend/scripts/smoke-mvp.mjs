@@ -114,6 +114,13 @@ async function run() {
   assert(teamToken, 'Missing team token');
   assert(juryToken, 'Missing jury token');
 
+  const juryMe = await request('GET', '/auth/me', {
+    token: juryToken,
+    expectedStatus: [200, 201],
+  });
+  const juryUserId = juryMe.payload.id;
+  assert(juryUserId, 'Missing jury user id');
+
   const createdTournament = await request('POST', '/tournaments', {
     token: adminToken,
     expectedStatus: [200, 201],
@@ -198,6 +205,7 @@ async function run() {
     body: {
       minReviewersPerSubmission: 1,
       resetExisting: true,
+      juryUserIds: [juryUserId],
     },
   });
 
