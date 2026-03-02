@@ -128,6 +128,7 @@ MVP API smoke script is in `docs/mvp-smoke-api.md`.
   - `GET /rounds/:roundId/assignments` (roles: `ADMIN`, `ORGANIZER`)
   - `GET /rounds/:roundId/assignments/me` (role: `JURY`)
   - `POST /rounds/:roundId/assignments/:assignmentId/evaluation` (role: `JURY`, scale `0-100`)
+  - `POST /rounds/:roundId/finish-evaluation` (roles: `ADMIN`, `ORGANIZER`, supports optional `{ "force": true }`)
 - Leaderboard endpoint:
   - `GET /tournaments/:tournamentId/leaderboard`
 
@@ -140,3 +141,8 @@ Optional admin seed command:
 ```bash
 SEED_ADMIN_EMAIL=admin@falconarena.live SEED_ADMIN_PASSWORD=change_me npm run prisma:seed -w @falconarena/backend
 ```
+
+Backend API automation scripts:
+
+- `BASE_URL=http://localhost:4000 npm run smoke:mvp -w @falconarena/backend`
+- `BASE_URL=http://localhost:4000 npm run test:e2e:finish-evaluation -w @falconarena/backend`
