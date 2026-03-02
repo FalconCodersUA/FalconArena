@@ -181,7 +181,16 @@ curl -s -X POST "$BASE_URL/rounds/$ROUND_ID/assignments/$ASSIGNMENT_ID/evaluatio
   }'
 ```
 
-## 15) Read leaderboard
+## 15) Finish evaluation (admin)
+
+```bash
+curl -s -X POST "$BASE_URL/rounds/$ROUND_ID/finish-evaluation" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"force":true}'
+```
+
+## 16) Read leaderboard
 
 ```bash
 curl -s "$BASE_URL/tournaments/$TOURNAMENT_ID/leaderboard" | jq .
@@ -192,3 +201,4 @@ curl -s "$BASE_URL/tournaments/$TOURNAMENT_ID/leaderboard" | jq .
 - Requires `jq` for token/id extraction.
 - If `jq` is missing, run each request and copy IDs/tokens manually.
 - If any step fails, save response JSON and include it in issue/PR comment.
+- Script alternative (no `jq`): `BASE_URL=https://falconarena.live npm run smoke:mvp -w @falconarena/backend`

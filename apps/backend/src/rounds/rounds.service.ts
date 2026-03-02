@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Round, RoundStatus } from '@prisma/client';
+import { Round, RoundStatus, SubmissionStatus, TournamentStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRoundDto } from './dto/create-round.dto';
 
@@ -72,12 +72,30 @@ export class RoundsService {
     roundId: string,
     status: RoundStatus,
   ) {
-    const round = await this.prisma.round.findUnique({ where: { id: roundId } });
+    const round = await this.prisma.round.findUnique({
+      where: { id: roundId },
+      include: {
+        tournament: {
+          select: {
+            id: true,
+            status: true,
+          },
+        },
+      },
+    });
     if (!round || round.tournamentId !== tournamentId) {
       throw new NotFoundException('Round not found in this tournament');
     }
 
     if (status === RoundStatus.ACTIVE) {
+      if (round.tournament.status === TournamentStatus.DRAFT) {
+        throw new BadRequestException('Cannot activate round for draft tournament');
+      }
+
+      if (round.tournament.status === TournamentStatus.FINISHED) {
+        throw new BadRequestException('Cannot activate round for finished tournament');
+      }
+
       if (Date.now() > round.deadlineAt.getTime()) {
         throw new BadRequestException('Cannot activate round after deadline');
       }
@@ -95,6 +113,29 @@ export class RoundsService {
           'Another round is already active for this tournament',
         );
       }
+
+      const [updatedRound] = await this.prisma.$transaction([
+        this.prisma.round.update({
+          where: { id: roundId },
+          data: { status },
+        }),
+        this.prisma.tournament.update({
+          where: { id: tournamentId },
+          data: { status: TournamentStatus.RUNNING },
+        }),
+      ]);
+
+      return updatedRound;
+    }
+
+    if (status === RoundStatus.EVALUATED) {
+      throw new BadRequestException(
+        'Use finish evaluation endpoint to mark round as evaluated',
+      );
+    }
+
+    if (status === RoundStatus.SUBMISSION_CLOSED) {
+      return this.closeSubmissionsAndRound(roundId);
     }
 
     return this.prisma.round.update({
@@ -113,10 +154,7 @@ export class RoundsService {
       round.status === RoundStatus.ACTIVE &&
       Date.now() > round.deadlineAt.getTime()
     ) {
-      return this.prisma.round.update({
-        where: { id: round.id },
-        data: { status: RoundStatus.SUBMISSION_CLOSED },
-      });
+      return this.closeSubmissionsAndRound(round.id);
     }
 
     return round;
@@ -130,10 +168,7 @@ export class RoundsService {
     }
 
     if (Date.now() > round.deadlineAt.getTime()) {
-      await this.prisma.round.update({
-        where: { id: round.id },
-        data: { status: RoundStatus.SUBMISSION_CLOSED },
-      });
+      await this.closeSubmissionsAndRound(round.id);
       throw new BadRequestException('Submission deadline has passed');
     }
 
@@ -152,16 +187,63 @@ export class RoundsService {
   }
 
   private async closeExpiredRounds(tournamentId: string) {
-    await this.prisma.round.updateMany({
+    const expiredRounds = await this.prisma.round.findMany({
       where: {
         tournamentId,
         status: RoundStatus.ACTIVE,
         deadlineAt: { lt: new Date() },
       },
-      data: {
-        status: RoundStatus.SUBMISSION_CLOSED,
+      select: {
+        id: true,
       },
     });
+
+    if (expiredRounds.length === 0) {
+      return;
+    }
+
+    const roundIds = expiredRounds.map((round) => round.id);
+
+    await this.prisma.$transaction([
+      this.prisma.round.updateMany({
+        where: {
+          id: { in: roundIds },
+          status: RoundStatus.ACTIVE,
+        },
+        data: {
+          status: RoundStatus.SUBMISSION_CLOSED,
+        },
+      }),
+      this.prisma.submission.updateMany({
+        where: {
+          roundId: { in: roundIds },
+          status: SubmissionStatus.SUBMITTED,
+        },
+        data: {
+          status: SubmissionStatus.LOCKED,
+        },
+      }),
+    ]);
+  }
+
+  private async closeSubmissionsAndRound(roundId: string) {
+    const [updatedRound] = await this.prisma.$transaction([
+      this.prisma.round.update({
+        where: { id: roundId },
+        data: { status: RoundStatus.SUBMISSION_CLOSED },
+      }),
+      this.prisma.submission.updateMany({
+        where: {
+          roundId,
+          status: SubmissionStatus.SUBMITTED,
+        },
+        data: {
+          status: SubmissionStatus.LOCKED,
+        },
+      }),
+    ]);
+
+    return updatedRound;
   }
 
   private validateRoundWindow(startsAt: Date, deadlineAt: Date) {

@@ -13,6 +13,7 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { DistributeAssignmentsDto } from './dto/distribute-assignments.dto';
+import { FinishEvaluationDto } from './dto/finish-evaluation.dto';
 import { EvaluationScoresDto, SubmitEvaluationDto } from './dto/submit-evaluation.dto';
 
 type JuryCandidate = {
@@ -39,6 +40,14 @@ export class EvaluationService {
 
     if (!round) {
       throw new NotFoundException('Round not found');
+    }
+
+    if (round.status === RoundStatus.DRAFT) {
+      throw new BadRequestException('Cannot distribute assignments for draft round');
+    }
+
+    if (round.status === RoundStatus.EVALUATED) {
+      throw new BadRequestException('Cannot distribute assignments for evaluated round');
     }
 
     if (round.tournament.status === TournamentStatus.DRAFT) {
@@ -273,6 +282,10 @@ export class EvaluationService {
       throw new BadRequestException('Cannot submit evaluation for draft round');
     }
 
+    if (assignment.round.status === RoundStatus.EVALUATED) {
+      throw new BadRequestException('Cannot submit evaluation for evaluated round');
+    }
+
     const totalScore = this.calculateTotalScore(dto.scores);
     const payload: Prisma.InputJsonValue = dto.scores as unknown as Prisma.InputJsonValue;
 
@@ -302,6 +315,145 @@ export class EvaluationService {
         title: assignment.round.title,
         status: assignment.round.status,
       },
+    };
+  }
+
+  async finishRoundEvaluation(roundId: string, dto: FinishEvaluationDto) {
+    const round = await this.prisma.round.findUnique({
+      where: { id: roundId },
+      select: {
+        id: true,
+        title: true,
+        deadlineAt: true,
+        status: true,
+        tournamentId: true,
+        tournament: {
+          select: {
+            id: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    if (!round) {
+      throw new NotFoundException('Round not found');
+    }
+
+    if (round.status === RoundStatus.DRAFT) {
+      throw new BadRequestException('Cannot finish evaluation for draft round');
+    }
+
+    if (round.status === RoundStatus.EVALUATED) {
+      return {
+        roundId: round.id,
+        roundStatus: round.status,
+        tournamentId: round.tournamentId,
+        tournamentStatus: round.tournament.status,
+        forced: !!dto.force,
+        alreadyEvaluated: true,
+      };
+    }
+
+    if (round.status === RoundStatus.ACTIVE) {
+      const deadlinePassed = Date.now() > round.deadlineAt.getTime();
+      if (!deadlinePassed && !dto.force) {
+        throw new BadRequestException(
+          'Round is still active; use force=true to close and finish evaluation early',
+        );
+      }
+
+      await this.prisma.$transaction([
+        this.prisma.round.update({
+          where: { id: round.id },
+          data: { status: RoundStatus.SUBMISSION_CLOSED },
+        }),
+        this.prisma.submission.updateMany({
+          where: {
+            roundId: round.id,
+            status: SubmissionStatus.SUBMITTED,
+          },
+          data: {
+            status: SubmissionStatus.LOCKED,
+          },
+        }),
+      ]);
+    }
+
+    const [assignmentsCount, evaluationsCount] = await this.prisma.$transaction([
+      this.prisma.evaluationAssignment.count({ where: { roundId: round.id } }),
+      this.prisma.evaluation.count({
+        where: {
+          assignment: {
+            roundId: round.id,
+          },
+        },
+      }),
+    ]);
+
+    const pendingAssignments = assignmentsCount - evaluationsCount;
+    if ((assignmentsCount === 0 || pendingAssignments > 0) && !dto.force) {
+      throw new BadRequestException(
+        `Evaluation is incomplete: assignments=${assignmentsCount}, completed=${evaluationsCount}, pending=${pendingAssignments}`,
+      );
+    }
+
+    await this.prisma.submission.updateMany({
+      where: {
+        roundId: round.id,
+        status: SubmissionStatus.SUBMITTED,
+      },
+      data: {
+        status: SubmissionStatus.LOCKED,
+      },
+    });
+
+    const updatedRound = await this.prisma.round.update({
+      where: { id: round.id },
+      data: { status: RoundStatus.EVALUATED },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        tournamentId: true,
+      },
+    });
+
+    const [totalRounds, evaluatedRounds] = await this.prisma.$transaction([
+      this.prisma.round.count({
+        where: {
+          tournamentId: updatedRound.tournamentId,
+        },
+      }),
+      this.prisma.round.count({
+        where: {
+          tournamentId: updatedRound.tournamentId,
+          status: RoundStatus.EVALUATED,
+        },
+      }),
+    ]);
+
+    let tournamentStatus = round.tournament.status;
+    if (totalRounds > 0 && evaluatedRounds === totalRounds) {
+      const updatedTournament = await this.prisma.tournament.update({
+        where: { id: updatedRound.tournamentId },
+        data: { status: TournamentStatus.FINISHED },
+        select: { status: true },
+      });
+      tournamentStatus = updatedTournament.status;
+    }
+
+    return {
+      roundId: updatedRound.id,
+      roundTitle: updatedRound.title,
+      roundStatus: updatedRound.status,
+      tournamentId: updatedRound.tournamentId,
+      tournamentStatus,
+      forced: !!dto.force,
+      assignmentsCount,
+      evaluationsCount,
+      pendingAssignments,
+      completedAllRounds: totalRounds > 0 && evaluatedRounds === totalRounds,
     };
   }
 
