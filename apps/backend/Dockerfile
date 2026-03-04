@@ -25,4 +25,4 @@ COPY --from=build /app/apps/backend/package.json ./apps/backend/package.json
 COPY --from=build /app/apps/backend/prisma ./apps/backend/prisma
 
 EXPOSE 4000
-CMD ["sh", "-c", "if [ \"$PRISMA_SYNC_MODE\" = \"migrate\" ]; then npx prisma migrate deploy --schema \"$PRISMA_SCHEMA_PATH\"; else npx prisma db push --schema \"$PRISMA_SCHEMA_PATH\"; fi && node apps/backend/dist/main.js"]
+CMD ["sh", "-c", "npx prisma generate --schema \"$PRISMA_SCHEMA_PATH\" && if [ \"$PRISMA_SYNC_MODE\" = \"migrate\" ]; then npx prisma migrate deploy --schema \"$PRISMA_SCHEMA_PATH\"; else npx prisma db push --schema \"$PRISMA_SCHEMA_PATH\"; fi && node apps/backend/dist/main.js"]
