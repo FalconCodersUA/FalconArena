@@ -87,6 +87,12 @@ export class RoundsService {
       throw new NotFoundException('Round not found in this tournament');
     }
 
+    this.assertStatusTransition(round.status, status);
+
+    if (round.status === status) {
+      return round;
+    }
+
     if (status === RoundStatus.ACTIVE) {
       if (round.tournament.status === TournamentStatus.DRAFT) {
         throw new BadRequestException('Cannot activate round for draft tournament');
@@ -138,10 +144,9 @@ export class RoundsService {
       return this.closeSubmissionsAndRound(roundId);
     }
 
-    return this.prisma.round.update({
-      where: { id: roundId },
-      data: { status },
-    });
+    throw new BadRequestException(
+      `Unsupported round status update: ${round.status} -> ${status}`,
+    );
   }
 
   async findById(roundId: string) {
@@ -244,6 +249,25 @@ export class RoundsService {
     ]);
 
     return updatedRound;
+  }
+
+  private assertStatusTransition(currentStatus: RoundStatus, nextStatus: RoundStatus) {
+    const allowedTransitions: Record<RoundStatus, RoundStatus[]> = {
+      [RoundStatus.DRAFT]: [RoundStatus.ACTIVE],
+      [RoundStatus.ACTIVE]: [RoundStatus.SUBMISSION_CLOSED],
+      [RoundStatus.SUBMISSION_CLOSED]: [],
+      [RoundStatus.EVALUATED]: [],
+    };
+
+    if (currentStatus === nextStatus) {
+      return;
+    }
+
+    if (!allowedTransitions[currentStatus].includes(nextStatus)) {
+      throw new BadRequestException(
+        `Invalid round status transition: ${currentStatus} -> ${nextStatus}`,
+      );
+    }
   }
 
   private validateRoundWindow(startsAt: Date, deadlineAt: Date) {

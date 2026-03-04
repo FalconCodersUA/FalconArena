@@ -98,7 +98,8 @@ MVP API smoke script is in `docs/mvp-smoke-api.md`.
 
 - Auth + RBAC base is wired in NestJS (`JWT`, `register`, `login`, `me`, role guard).
 - Current auth endpoints:
-  - `POST /auth/register`
+  - `POST /auth/register` (public, always creates `TEAM` user)
+  - `POST /auth/admin/users` (roles: `ADMIN`, `ORGANIZER`)
   - `POST /auth/login`
   - `GET /auth/me` (Bearer token)
   - `GET /auth/admin/ping` (roles: `ADMIN`, `ORGANIZER`)
@@ -142,7 +143,15 @@ Optional admin seed command:
 SEED_ADMIN_EMAIL=admin@falconarena.live SEED_ADMIN_PASSWORD=change_me npm run prisma:seed -w @falconarena/backend
 ```
 
+Database migrations:
+
+- Versioned Prisma migration files are stored in `apps/backend/prisma/migrations`.
+- Generate Prisma client: `npm run prisma:generate -w @falconarena/backend`
+- Apply tracked migrations: `npm run prisma:migrate:deploy -w @falconarena/backend`
+- For already-running databases created with `db push`, baseline once: `npm run prisma:migrate:resolve:init -w @falconarena/backend`
+- Runtime DB sync mode is controlled by `PRISMA_SYNC_MODE` (`dbpush` by default, switch to `migrate` after baseline).
+
 Backend API automation scripts:
 
-- `BASE_URL=http://localhost:4000 npm run smoke:mvp -w @falconarena/backend`
-- `BASE_URL=http://localhost:4000 npm run test:e2e:finish-evaluation -w @falconarena/backend`
+- `BASE_URL=http://localhost:4000 ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run smoke:mvp -w @falconarena/backend`
+- `BASE_URL=http://localhost:4000 ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run test:e2e:finish-evaluation -w @falconarena/backend`

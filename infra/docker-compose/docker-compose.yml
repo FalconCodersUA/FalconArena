@@ -42,6 +42,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-falcon}:${POSTGRES_PASSWORD:-falcon}@postgres:5432/${POSTGRES_DB:-falconarena}?schema=public
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:-change-me}
+      PRISMA_SYNC_MODE: ${PRISMA_SYNC_MODE:-dbpush}
     ports:
       - "127.0.0.1:${BACKEND_PORT:-4000}:4000"
 

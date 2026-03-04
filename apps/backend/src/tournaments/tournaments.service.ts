@@ -78,12 +78,43 @@ export class TournamentsService {
       );
     }
 
+    this.assertStatusTransition(existing.status, status);
+
+    if (existing.status === status) {
+      return this.mapTournamentView(existing);
+    }
+
     const tournament = await this.prisma.tournament.update({
       where: { id },
       data: { status },
     });
 
     return this.mapTournamentView(tournament);
+  }
+
+  private assertStatusTransition(
+    currentStatus: TournamentStatus,
+    nextStatus: TournamentStatus,
+  ) {
+    const allowedTransitions: Record<TournamentStatus, TournamentStatus[]> = {
+      [TournamentStatus.DRAFT]: [TournamentStatus.REGISTRATION],
+      [TournamentStatus.REGISTRATION]: [
+        TournamentStatus.RUNNING,
+        TournamentStatus.FINISHED,
+      ],
+      [TournamentStatus.RUNNING]: [TournamentStatus.FINISHED],
+      [TournamentStatus.FINISHED]: [],
+    };
+
+    if (currentStatus === nextStatus) {
+      return;
+    }
+
+    if (!allowedTransitions[currentStatus].includes(nextStatus)) {
+      throw new BadRequestException(
+        `Invalid tournament status transition: ${currentStatus} -> ${nextStatus}`,
+      );
+    }
   }
 
   private validateRegistrationWindow(openAt: Date, closeAt: Date) {

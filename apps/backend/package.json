@@ -14,7 +14,8 @@
     "prisma:db:push": "prisma db push",
     "prisma:seed": "node prisma/seed.js",
     "prisma:migrate:dev": "prisma migrate dev",
-    "prisma:migrate:deploy": "prisma migrate deploy"
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:migrate:resolve:init": "prisma migrate resolve --applied 0001_init"
   },
   "dependencies": {
     "@nestjs/jwt": "^10.2.0",

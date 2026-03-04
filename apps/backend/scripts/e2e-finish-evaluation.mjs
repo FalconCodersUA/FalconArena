@@ -1,10 +1,11 @@
 const baseUrl = process.env.BASE_URL ?? 'http://localhost:4000';
 const timestamp = Date.now().toString();
 
-const adminEmail = `admin_e2e_${timestamp}@falconarena.live`;
+const adminEmail = process.env.ADMIN_EMAIL ?? '';
+const adminPassword = process.env.ADMIN_PASSWORD ?? '';
 const teamEmail = `team_e2e_${timestamp}@falconarena.live`;
 const juryEmail = `jury_e2e_${timestamp}@falconarena.live`;
-const password = 'StrongPass123!';
+const userPassword = process.env.TEST_USER_PASSWORD ?? 'StrongPass123!';
 
 function assert(condition, message) {
   if (!condition) {
@@ -61,47 +62,47 @@ async function request(method, path, options = {}) {
 }
 
 async function createCoreUsers() {
-  await request('POST', '/auth/register', {
+  if (!adminEmail || !adminPassword) {
+    throw new Error('Set ADMIN_EMAIL and ADMIN_PASSWORD for e2e script');
+  }
+
+  const adminLogin = await request('POST', '/auth/login', {
     expectedStatus: [200, 201],
-    body: {
-      email: adminEmail,
-      fullName: 'Admin E2E',
-      password,
-      role: 'ADMIN',
-    },
+    body: { email: adminEmail, password: adminPassword },
   });
 
-  await request('POST', '/auth/register', {
+  const adminToken = adminLogin.payload.accessToken;
+  assert(adminToken, 'Missing admin token');
+
+  await request('POST', '/auth/admin/users', {
+    token: adminToken,
     expectedStatus: [200, 201],
     body: {
       email: teamEmail,
       fullName: 'Team E2E',
-      password,
+      password: userPassword,
       role: 'TEAM',
     },
   });
 
-  await request('POST', '/auth/register', {
+  await request('POST', '/auth/admin/users', {
+    token: adminToken,
     expectedStatus: [200, 201],
     body: {
       email: juryEmail,
       fullName: 'Jury E2E',
-      password,
+      password: userPassword,
       role: 'JURY',
     },
   });
 
-  const adminLogin = await request('POST', '/auth/login', {
-    expectedStatus: [200, 201],
-    body: { email: adminEmail, password },
-  });
   const teamLogin = await request('POST', '/auth/login', {
     expectedStatus: [200, 201],
-    body: { email: teamEmail, password },
+    body: { email: teamEmail, password: userPassword },
   });
   const juryLogin = await request('POST', '/auth/login', {
     expectedStatus: [200, 201],
-    body: { email: juryEmail, password },
+    body: { email: juryEmail, password: userPassword },
   });
 
   const juryToken = juryLogin.payload.accessToken;
@@ -111,7 +112,7 @@ async function createCoreUsers() {
   });
 
   return {
-    adminToken: adminLogin.payload.accessToken,
+    adminToken,
     teamToken: teamLogin.payload.accessToken,
     juryToken,
     juryUserId: juryMe.payload.id,
