@@ -1,10 +1,11 @@
 const baseUrl = process.env.BASE_URL ?? 'http://localhost:4000';
 const timestamp = Date.now().toString();
 
-const adminEmail = `admin_${timestamp}@falconarena.live`;
+const adminEmail = process.env.ADMIN_EMAIL ?? '';
+const adminPassword = process.env.ADMIN_PASSWORD ?? '';
 const teamEmail = `team_${timestamp}@falconarena.live`;
 const juryEmail = `jury_${timestamp}@falconarena.live`;
-const password = 'StrongPass123!';
+const userPassword = process.env.TEST_USER_PASSWORD ?? 'StrongPass123!';
 
 function assert(condition, message) {
   if (!condition) {
@@ -63,50 +64,48 @@ async function request(method, path, options = {}) {
 async function run() {
   console.log(`Running MVP smoke against ${baseUrl}`);
 
-  await request('POST', '/auth/register', {
-    expectedStatus: [200, 201],
-    body: {
-      email: adminEmail,
-      fullName: 'Admin User',
-      password,
-      role: 'ADMIN',
-    },
-  });
+  if (!adminEmail || !adminPassword) {
+    throw new Error('Set ADMIN_EMAIL and ADMIN_PASSWORD for smoke script');
+  }
 
-  await request('POST', '/auth/register', {
+  const adminLogin = await request('POST', '/auth/login', {
+    expectedStatus: [200, 201],
+    body: { email: adminEmail, password: adminPassword },
+  });
+  const adminToken = adminLogin.payload.accessToken;
+  assert(adminToken, 'Missing admin token');
+
+  await request('POST', '/auth/admin/users', {
+    token: adminToken,
     expectedStatus: [200, 201],
     body: {
       email: teamEmail,
       fullName: 'Team Captain',
-      password,
+      password: userPassword,
       role: 'TEAM',
     },
   });
 
-  await request('POST', '/auth/register', {
+  await request('POST', '/auth/admin/users', {
+    token: adminToken,
     expectedStatus: [200, 201],
     body: {
       email: juryEmail,
       fullName: 'Jury User',
-      password,
+      password: userPassword,
       role: 'JURY',
     },
   });
 
-  const adminLogin = await request('POST', '/auth/login', {
-    expectedStatus: [200, 201],
-    body: { email: adminEmail, password },
-  });
   const teamLogin = await request('POST', '/auth/login', {
     expectedStatus: [200, 201],
-    body: { email: teamEmail, password },
+    body: { email: teamEmail, password: userPassword },
   });
   const juryLogin = await request('POST', '/auth/login', {
     expectedStatus: [200, 201],
-    body: { email: juryEmail, password },
+    body: { email: juryEmail, password: userPassword },
   });
 
-  const adminToken = adminLogin.payload.accessToken;
   const teamToken = teamLogin.payload.accessToken;
   const juryToken = juryLogin.payload.accessToken;
 

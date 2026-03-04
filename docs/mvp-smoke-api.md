@@ -14,50 +14,49 @@ Optional helper (for unique emails):
 
 ```bash
 TS=$(date +%s)
-ADMIN_EMAIL="admin_${TS}@falconarena.live"
+ADMIN_EMAIL="admin@falconarena.live"
+ADMIN_PASSWORD="change_me"
 TEAM_EMAIL="team_${TS}@falconarena.live"
 JURY_EMAIL="jury_${TS}@falconarena.live"
-PASSWORD="StrongPass123!"
+TEST_USER_PASSWORD="StrongPass123!"
 ```
 
-## 1) Register admin user
-
-```bash
-curl -s -X POST "$BASE_URL/auth/register" \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"$ADMIN_EMAIL\",\"fullName\":\"Admin User\",\"password\":\"$PASSWORD\",\"role\":\"ADMIN\"}"
-```
-
-## 2) Register team captain user
-
-```bash
-curl -s -X POST "$BASE_URL/auth/register" \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"$TEAM_EMAIL\",\"fullName\":\"Team Captain\",\"password\":\"$PASSWORD\",\"role\":\"TEAM\"}"
-```
-
-## 3) Register jury user
-
-```bash
-curl -s -X POST "$BASE_URL/auth/register" \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"$JURY_EMAIL\",\"fullName\":\"Jury User\",\"password\":\"$PASSWORD\",\"role\":\"JURY\"}"
-```
-
-## 4) Login admin, team, and jury
+## 1) Login admin user
 
 ```bash
 ADMIN_TOKEN=$(curl -s -X POST "$BASE_URL/auth/login" \
   -H "Content-Type: application/json" \
-  -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$PASSWORD\"}" | jq -r '.accessToken')
+  -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" | jq -r '.accessToken')
+```
 
+## 2) Create team captain user (admin)
+
+```bash
+curl -s -X POST "$BASE_URL/auth/admin/users" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"$TEAM_EMAIL\",\"fullName\":\"Team Captain\",\"password\":\"$TEST_USER_PASSWORD\",\"role\":\"TEAM\"}"
+```
+
+## 3) Create jury user (admin)
+
+```bash
+curl -s -X POST "$BASE_URL/auth/admin/users" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"$JURY_EMAIL\",\"fullName\":\"Jury User\",\"password\":\"$TEST_USER_PASSWORD\",\"role\":\"JURY\"}"
+```
+
+## 4) Login team and jury
+
+```bash
 TEAM_TOKEN=$(curl -s -X POST "$BASE_URL/auth/login" \
   -H "Content-Type: application/json" \
-  -d "{\"email\":\"$TEAM_EMAIL\",\"password\":\"$PASSWORD\"}" | jq -r '.accessToken')
+  -d "{\"email\":\"$TEAM_EMAIL\",\"password\":\"$TEST_USER_PASSWORD\"}" | jq -r '.accessToken')
 
 JURY_TOKEN=$(curl -s -X POST "$BASE_URL/auth/login" \
   -H "Content-Type: application/json" \
-  -d "{\"email\":\"$JURY_EMAIL\",\"password\":\"$PASSWORD\"}" | jq -r '.accessToken')
+  -d "{\"email\":\"$JURY_EMAIL\",\"password\":\"$TEST_USER_PASSWORD\"}" | jq -r '.accessToken')
 ```
 
 ## 5) Create tournament (admin)
@@ -201,4 +200,4 @@ curl -s "$BASE_URL/tournaments/$TOURNAMENT_ID/leaderboard" | jq .
 - Requires `jq` for token/id extraction.
 - If `jq` is missing, run each request and copy IDs/tokens manually.
 - If any step fails, save response JSON and include it in issue/PR comment.
-- Script alternative (no `jq`): `BASE_URL=https://falconarena.live npm run smoke:mvp -w @falconarena/backend`
+- Script alternative (no `jq`): `BASE_URL=https://falconarena.live ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run smoke:mvp -w @falconarena/backend`

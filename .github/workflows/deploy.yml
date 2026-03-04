@@ -55,6 +55,7 @@ jobs:
             POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             BACKEND_PORT=4000
+            PRISMA_SYNC_MODE=${{ secrets.PRISMA_SYNC_MODE || 'dbpush' }}
             APP_DOMAIN=falconarena.live
             VITE_API_URL=${{ secrets.VITE_API_URL || 'https://falconarena.live' }}
             EOF
