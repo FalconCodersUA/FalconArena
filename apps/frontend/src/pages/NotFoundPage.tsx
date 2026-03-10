@@ -6,7 +6,7 @@ export default function NotFoundPage() {
       <p className="eyebrow">404</p>
       <h1>Page not found</h1>
       <p className="lead">The route does not exist in this app version.</p>
-      <Link className="button button-primary" to="/tournaments">
+      <Link className="button button-primary" to="/app/tournaments">
         Go to tournaments
       </Link>
     </article>

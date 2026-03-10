@@ -16,7 +16,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated()) {
-      navigate('/tournaments', { replace: true });
+      navigate('/app/tournaments', { replace: true });
     }
   }, [navigate]);
 
@@ -34,7 +34,7 @@ export default function LoginPage() {
         },
       });
       setToken(data.accessToken);
-      navigate('/tournaments', { replace: true });
+      navigate('/app/tournaments', { replace: true });
     } catch (requestError) {
       setError(
         requestError instanceof Error ? requestError.message : 'Login request failed',

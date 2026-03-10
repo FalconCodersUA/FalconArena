@@ -7,18 +7,18 @@ export default function AppShell() {
 
   function logout() {
     clearToken();
-    navigate('/login', { replace: true });
+    navigate('/app/login', { replace: true });
   }
 
   return (
     <div className="page">
       <header className="shell-header">
-        <Link to="/tournaments" className="brand">
+        <Link to="/app/tournaments" className="brand">
           FalconArena
         </Link>
 
         <nav className="shell-nav" aria-label="Primary">
-          <NavLink to="/tournaments" className="nav-link">
+          <NavLink to="/app/tournaments" className="nav-link">
             Tournaments
           </NavLink>
           {authed ? (
@@ -26,7 +26,7 @@ export default function AppShell() {
               Logout
             </button>
           ) : (
-            <NavLink to="/login" className="button button-primary">
+            <NavLink to="/app/login" className="button button-primary">
               Login
             </NavLink>
           )}
