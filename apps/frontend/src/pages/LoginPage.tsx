@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiRequest } from '../lib/api';
 import { isAuthenticated, setToken } from '../lib/auth';
+import { useI18n } from '../i18n/I18nProvider';
 
 type LoginResponse = {
   accessToken: string;
@@ -9,6 +10,7 @@ type LoginResponse = {
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -37,7 +39,7 @@ export default function LoginPage() {
       navigate('/app/tournaments', { replace: true });
     } catch (requestError) {
       setError(
-        requestError instanceof Error ? requestError.message : 'Login request failed',
+        requestError instanceof Error ? requestError.message : t('login.requestFailed'),
       );
     } finally {
       setSubmitting(false);
@@ -46,15 +48,13 @@ export default function LoginPage() {
 
   return (
     <article className="auth-card">
-      <p className="eyebrow">Control Panel Access</p>
-      <h1 className="auth-title">Sign in to FalconArena</h1>
-      <p className="lead">
-        Use an organizer, jury, team, or admin account to open your dashboard.
-      </p>
+      <p className="eyebrow">{t('login.eyebrow')}</p>
+      <h1 className="auth-title">{t('login.title')}</h1>
+      <p className="lead">{t('login.lead')}</p>
 
       <form className="auth-form" onSubmit={handleSubmit}>
         <label className="field" htmlFor="email">
-          <span>Email</span>
+          <span>{t('login.email')}</span>
           <input
             id="email"
             type="email"
@@ -66,7 +66,7 @@ export default function LoginPage() {
         </label>
 
         <label className="field" htmlFor="password">
-          <span>Password</span>
+          <span>{t('login.password')}</span>
           <input
             id="password"
             type="password"
@@ -80,7 +80,7 @@ export default function LoginPage() {
         {error ? <p className="form-error">{error}</p> : null}
 
         <button className="button button-primary" type="submit" disabled={submitting}>
-          {submitting ? 'Signing in...' : 'Sign in'}
+          {submitting ? t('login.submitting') : t('login.submit')}
         </button>
       </form>
     </article>

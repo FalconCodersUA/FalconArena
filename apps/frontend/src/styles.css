@@ -69,6 +69,33 @@ a {
   gap: 10px;
 }
 
+.language-switch {
+  display: inline-flex;
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 2px;
+}
+
+.lang-button {
+  min-width: 44px;
+  min-height: 34px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #38516a;
+  font-weight: 800;
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.lang-button.active {
+  background: var(--brand-soft);
+  color: var(--brand-deep);
+}
+
 .nav-link {
   min-height: 40px;
   display: inline-flex;
@@ -315,6 +342,11 @@ a {
 
   .shell-header {
     flex-wrap: wrap;
+  }
+
+  .shell-nav {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .tournaments-grid {
