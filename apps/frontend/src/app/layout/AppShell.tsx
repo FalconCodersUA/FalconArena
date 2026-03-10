@@ -1,9 +1,12 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { clearToken, isAuthenticated } from '../../lib/auth';
+import { useI18n } from '../../i18n/I18nProvider';
+import { SUPPORTED_LANGUAGES } from '../../i18n/messages';
 
 export default function AppShell() {
   const navigate = useNavigate();
   const authed = isAuthenticated();
+  const { language, setLanguage, t } = useI18n();
 
   function logout() {
     clearToken();
@@ -17,17 +20,30 @@ export default function AppShell() {
           FalconArena
         </Link>
 
-        <nav className="shell-nav" aria-label="Primary">
+        <nav className="shell-nav" aria-label={t('shell.navAria')}>
+          <div className="language-switch" role="group" aria-label={t('shell.languageAria')}>
+            {SUPPORTED_LANGUAGES.map((item) => (
+              <button
+                key={item}
+                type="button"
+                className={`lang-button${language === item ? ' active' : ''}`}
+                onClick={() => setLanguage(item)}
+              >
+                {item.toUpperCase()}
+              </button>
+            ))}
+          </div>
+
           <NavLink to="/app/tournaments" className="nav-link">
-            Tournaments
+            {t('shell.tournaments')}
           </NavLink>
           {authed ? (
             <button type="button" className="button button-soft" onClick={logout}>
-              Logout
+              {t('shell.logout')}
             </button>
           ) : (
             <NavLink to="/app/login" className="button button-primary">
-              Login
+              {t('shell.login')}
             </NavLink>
           )}
         </nav>
