@@ -13,7 +13,7 @@ export const messages: TranslationMap = {
   uk: {
     shell: {
       navAria: 'Основна навігація',
-      tournaments: 'Турніри',
+      home: 'Головна',
       login: 'Увійти',
       logout: 'Вийти',
       languageAria: 'Перемикач мови',
@@ -35,13 +35,27 @@ export const messages: TranslationMap = {
     tournaments: {
       eyebrow: 'Актуальні дані',
       title: 'Список турнірів',
+      lead: 'Відкриті, активні та завершені турніри в одному місці.',
       loading: 'Завантаження турнірів...',
       empty: 'Турніри ще не створені.',
+      emptyFiltered: 'За цим фільтром турнірів немає.',
       retry: 'Спробувати знову',
       requestFailed: 'Не вдалося завантажити турніри',
       registrationOpens: 'Початок реєстрації',
       registrationCloses: 'Завершення реєстрації',
       registrationState: 'Реєстрація команд',
+      totalLabel: 'Всього турнірів',
+      filters: {
+        all: 'Усі',
+        registrationOpen: 'Реєстрація відкрита',
+        running: 'Триває',
+        finished: 'Завершені',
+      },
+      sections: {
+        active: 'Активні',
+        upcoming: 'Майбутні',
+        finished: 'Завершені',
+      },
       available: 'доступна',
       closed: 'закрита',
       status: {
@@ -60,7 +74,7 @@ export const messages: TranslationMap = {
   en: {
     shell: {
       navAria: 'Primary navigation',
-      tournaments: 'Tournaments',
+      home: 'Home',
       login: 'Login',
       logout: 'Logout',
       languageAria: 'Language switcher',
@@ -82,13 +96,27 @@ export const messages: TranslationMap = {
     tournaments: {
       eyebrow: 'Live data',
       title: 'Tournament list',
+      lead: 'Open registration, active rounds, and finished events in one place.',
       loading: 'Loading tournaments...',
       empty: 'No tournaments are available yet.',
+      emptyFiltered: 'No tournaments match this filter.',
       retry: 'Try again',
       requestFailed: 'Could not load tournaments',
       registrationOpens: 'Registration opens',
       registrationCloses: 'Registration closes',
       registrationState: 'Team registration',
+      totalLabel: 'Total tournaments',
+      filters: {
+        all: 'All',
+        registrationOpen: 'Registration open',
+        running: 'Running',
+        finished: 'Finished',
+      },
+      sections: {
+        active: 'Active',
+        upcoming: 'Upcoming',
+        finished: 'Finished',
+      },
       available: 'available',
       closed: 'closed',
       status: {

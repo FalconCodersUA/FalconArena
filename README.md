@@ -1,5 +1,10 @@
 # FalconArena
 
+Language versions:
+
+- English: `README.md`
+- Ukrainian: `README.uk.md`
+
 FalconArena is a tournament platform where organizers run coding rounds with deadlines, teams submit results, and jury members evaluate work to build a leaderboard.
 
 ## Tech Stack
@@ -88,6 +93,12 @@ Production routing is handled by Caddy (`80/443`). Database and Redis are intern
 
 Quick setup for GitHub + Ubuntu + `falconarena.live` is in `docs/deploy-quickstart.md`.
 MVP API smoke script is in `docs/mvp-smoke-api.md`.
+
+Ukrainian docs:
+
+- `docs/deploy-quickstart.uk.md`
+- `docs/mvp-smoke-api.uk.md`
+- `docs/project-decisions.uk.md`
 
 ## Notes
 
