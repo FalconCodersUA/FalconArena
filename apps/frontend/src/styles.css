@@ -230,6 +230,17 @@ a {
   font-size: 0.86rem;
 }
 
+.form-success {
+  margin: 0;
+  border-radius: 10px;
+  background: color-mix(in srgb, #e0f6ed 78%, #fff 22%);
+  color: #176242;
+  border: 1px solid #9dd2be;
+  padding: 10px 12px;
+  font-weight: 700;
+  font-size: 0.86rem;
+}
+
 .state-card {
   padding: 22px;
   display: grid;
@@ -249,6 +260,126 @@ a {
   margin: 8px 0 0;
   font-family: 'Chakra Petch', sans-serif;
   font-size: clamp(1.5rem, 3.2vw, 2.1rem);
+}
+
+.team-dashboard {
+  display: grid;
+  gap: 12px;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.panel-card {
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.panel-card h2,
+.panel-card h3 {
+  margin: 0;
+  font-family: 'Chakra Petch', sans-serif;
+}
+
+.panel-form {
+  display: grid;
+  gap: 11px;
+}
+
+.select-input {
+  min-height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 0 10px;
+  font: inherit;
+  color: var(--ink);
+  background: #fff;
+}
+
+.status-row {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  min-height: 42px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #314c66;
+}
+
+.members-block {
+  display: grid;
+  gap: 8px;
+}
+
+.members-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.member-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+}
+
+.member-row input,
+.panel-form textarea {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 0 12px;
+  font: inherit;
+  color: var(--ink);
+  background: #fff;
+}
+
+.panel-form textarea {
+  min-height: 96px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.team-details p {
+  margin: 0;
+  color: #3d566f;
+}
+
+.members-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 5px;
+  color: #2f435a;
+}
+
+.round-summary {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.round-summary p {
+  margin: 0;
+}
+
+.inline-hint {
+  margin: 0;
+  color: #5f7288;
+  font-size: 0.84rem;
+  line-height: 1.45;
 }
 
 .filters-row {
@@ -408,6 +539,14 @@ a {
   }
 
   .tournaments-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .member-row {
     grid-template-columns: 1fr;
   }
 }
