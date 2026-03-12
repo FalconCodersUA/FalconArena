@@ -1,19 +1,13 @@
-import { ReactElement } from 'react';
 import { Navigate, createBrowserRouter } from 'react-router-dom';
-import { isAuthenticated } from '../lib/auth';
 import AppShell from './layout/AppShell';
 import LoginPage from '../pages/LoginPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import TournamentsPage from '../pages/TournamentsPage';
 
-function ProtectedRoute({ children }: { children: ReactElement }) {
-  return isAuthenticated() ? children : <Navigate to="/app/login" replace />;
-}
-
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate to="/app/tournaments" replace />,
+    element: <Navigate to="/app" replace />,
   },
   {
     path: '/app',
@@ -21,7 +15,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/app/tournaments" replace />,
+        element: <TournamentsPage />,
       },
       {
         path: 'login',
@@ -29,11 +23,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'tournaments',
-        element: (
-          <ProtectedRoute>
-            <TournamentsPage />
-          </ProtectedRoute>
-        ),
+        element: <Navigate to="/app" replace />,
       },
       {
         path: '*',
@@ -43,6 +33,6 @@ export const router = createBrowserRouter([
   },
   {
     path: '*',
-    element: <Navigate to="/app/tournaments" replace />,
+    element: <Navigate to="/app" replace />,
   },
 ]);

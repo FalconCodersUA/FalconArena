@@ -16,7 +16,7 @@ export default function AppShell() {
   return (
     <div className="page">
       <header className="shell-header">
-        <Link to="/app/tournaments" className="brand">
+        <Link to="/app" className="brand">
           FalconArena
         </Link>
 
@@ -34,8 +34,8 @@ export default function AppShell() {
             ))}
           </div>
 
-          <NavLink to="/app/tournaments" className="nav-link">
-            {t('shell.tournaments')}
+          <NavLink to="/app" end className="nav-link">
+            {t('shell.home')}
           </NavLink>
           {authed ? (
             <button type="button" className="button button-soft" onClick={logout}>

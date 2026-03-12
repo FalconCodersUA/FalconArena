@@ -9,7 +9,7 @@ export default function NotFoundPage() {
       <p className="eyebrow">404</p>
       <h1>{t('notFound.title')}</h1>
       <p className="lead">{t('notFound.lead')}</p>
-      <Link className="button button-primary" to="/app/tournaments">
+      <Link className="button button-primary" to="/app">
         {t('notFound.action')}
       </Link>
     </article>
