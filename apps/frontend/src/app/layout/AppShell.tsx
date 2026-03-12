@@ -38,6 +38,11 @@ export default function AppShell() {
             {t('shell.home')}
           </NavLink>
           {authed ? (
+            <NavLink to="/app/team" className="nav-link">
+              {t('shell.team')}
+            </NavLink>
+          ) : null}
+          {authed ? (
             <button type="button" className="button button-soft" onClick={logout}>
               {t('shell.logout')}
             </button>
