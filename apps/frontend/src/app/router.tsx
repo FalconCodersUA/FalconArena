@@ -2,6 +2,7 @@ import { ReactElement } from 'react';
 import { Navigate, createBrowserRouter } from 'react-router-dom';
 import { isAuthenticated } from '../lib/auth';
 import AppShell from './layout/AppShell';
+import JuryDashboardPage from '../pages/JuryDashboardPage';
 import LoginPage from '../pages/LoginPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import TeamDashboardPage from '../pages/TeamDashboardPage';
@@ -33,6 +34,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <TeamDashboardPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'jury',
+        element: (
+          <ProtectedRoute>
+            <JuryDashboardPage />
           </ProtectedRoute>
         ),
       },
