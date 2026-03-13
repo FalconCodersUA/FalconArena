@@ -1,6 +1,7 @@
 import { ReactElement } from 'react';
 import { Navigate, createBrowserRouter } from 'react-router-dom';
 import { isAuthenticated } from '../lib/auth';
+import AdminDashboardPage from '../pages/AdminDashboardPage';
 import AppShell from './layout/AppShell';
 import JuryDashboardPage from '../pages/JuryDashboardPage';
 import LoginPage from '../pages/LoginPage';
@@ -42,6 +43,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <JuryDashboardPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admin',
+        element: (
+          <ProtectedRoute>
+            <AdminDashboardPage />
           </ProtectedRoute>
         ),
       },
