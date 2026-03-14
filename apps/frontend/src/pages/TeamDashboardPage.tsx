@@ -43,7 +43,10 @@ type TeamProfile = {
 type ActiveRound = {
   id: string;
   title: string;
+  description: string;
+  startsAt: string;
   deadlineAt: string;
+  mustHave: string[];
   status: 'DRAFT' | 'ACTIVE' | 'SUBMISSION_CLOSED' | 'EVALUATED';
 };
 
@@ -580,9 +583,32 @@ export default function TeamDashboardPage() {
                 <strong>{activeRound.title}</strong>
               </p>
               <p>
+                {t('teamDashboard.taskStartsAt')}:{' '}
+                {formatDate(activeRound.startsAt, language)}
+              </p>
+              <p>
                 {t('teamDashboard.deadlineLabel')}:{' '}
                 {formatDate(activeRound.deadlineAt, language)}
               </p>
+              <p>
+                <strong>{t('teamDashboard.taskDescriptionLabel')}</strong>
+              </p>
+              <p>{activeRound.description || t('teamDashboard.noTaskDescription')}</p>
+
+              <div className="must-have-block">
+                <p>
+                  <strong>{t('teamDashboard.mustHaveTitle')}</strong>
+                </p>
+                {activeRound.mustHave.length === 0 ? (
+                  <p className="inline-hint">{t('teamDashboard.noMustHave')}</p>
+                ) : (
+                  <ul className="must-have-list">
+                    {activeRound.mustHave.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           ) : null}
 

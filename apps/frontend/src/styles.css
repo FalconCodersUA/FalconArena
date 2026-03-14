@@ -375,6 +375,52 @@ a {
   margin: 0;
 }
 
+.must-have-block {
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+.must-have-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 5px;
+  color: #2f465e;
+}
+
+.quick-team-card {
+  margin-bottom: 4px;
+}
+
+.quick-team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.quick-team-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  padding: 9px;
+  display: grid;
+  gap: 4px;
+}
+
+.quick-team-item span {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.quick-team-item strong {
+  color: #28465f;
+  font-size: 0.92rem;
+}
+
 .inline-hint {
   margin: 0;
   color: #5f7288;
@@ -854,6 +900,10 @@ a {
   }
 
   .scores-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-team-grid {
     grid-template-columns: 1fr;
   }
 
