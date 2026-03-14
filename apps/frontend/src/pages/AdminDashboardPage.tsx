@@ -622,7 +622,21 @@ export default function AdminDashboardPage() {
         <h2>{t('adminDashboard.roundsTitle')}</h2>
 
         {roundsLoading ? <p>{t('adminDashboard.roundsLoading')}</p> : null}
-        {roundsError ? <p className="form-error">{roundsError}</p> : null}
+        {roundsError ? (
+          <>
+            <p className="form-error">{roundsError}</p>
+            {selectedTournamentId ? (
+              <button
+                type="button"
+                className="button button-soft"
+                onClick={() => void loadRounds(selectedTournamentId)}
+              >
+                {t('adminDashboard.retry')}
+              </button>
+            ) : null}
+          </>
+        ) : null}
+        {!roundsLoading && tournaments.length === 0 ? <p>{t('adminDashboard.noTournaments')}</p> : null}
         {!roundsLoading && rounds.length === 0 ? <p>{t('adminDashboard.noRounds')}</p> : null}
 
         {rounds.length > 0 ? (
