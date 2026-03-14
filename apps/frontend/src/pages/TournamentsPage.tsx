@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { apiRequest } from '../lib/api';
+import { Link } from 'react-router-dom';
+import { isAuthenticated } from '../lib/auth';
+import { ApiError, apiRequest } from '../lib/api';
 import { useI18n } from '../i18n/I18nProvider';
 
 type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
+type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
 
 type Tournament = {
   id: string;
@@ -13,11 +16,46 @@ type Tournament = {
   canTeamRegister: boolean;
 };
 
+type AuthMe = {
+  id: string;
+  role: UserRole;
+};
+
+type TeamProfile = {
+  id: string;
+  name: string;
+};
+
+type ActiveRound = {
+  id: string;
+  title: string;
+  deadlineAt: string;
+};
+
+type TeamSubmission = {
+  id: string;
+  status: 'DRAFT' | 'SUBMITTED' | 'LOCKED';
+};
+
+type QuickTeamBlock = {
+  tournament: Tournament;
+  team: TeamProfile;
+  activeRound: ActiveRound | null;
+  submission: TeamSubmission | null;
+};
+
 type FilterType = 'all' | 'registrationOpen' | 'running' | 'finished';
 
 function formatDate(value: string, language: string) {
   return new Date(value).toLocaleString(language === 'uk' ? 'uk-UA' : 'en-US');
 }
+
+const TOURNAMENT_PRIORITY: Record<TournamentStatus, number> = {
+  RUNNING: 1,
+  REGISTRATION: 2,
+  DRAFT: 3,
+  FINISHED: 4,
+};
 
 export default function TournamentsPage() {
   const { language, t } = useI18n();
@@ -26,6 +64,92 @@ export default function TournamentsPage() {
   const [error, setError] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
 
+  const [quickRole, setQuickRole] = useState<UserRole | null>(null);
+  const [quickLoading, setQuickLoading] = useState(false);
+  const [quickError, setQuickError] = useState('');
+  const [quickData, setQuickData] = useState<QuickTeamBlock | null>(null);
+
+  async function loadQuickTeamBlock(tournaments: Tournament[]) {
+    if (!isAuthenticated()) {
+      setQuickRole(null);
+      setQuickLoading(false);
+      setQuickError('');
+      setQuickData(null);
+      return;
+    }
+
+    setQuickLoading(true);
+    setQuickError('');
+
+    try {
+      const me = await apiRequest<AuthMe>('/auth/me');
+      setQuickRole(me.role);
+
+      if (me.role !== 'TEAM') {
+        setQuickData(null);
+        return;
+      }
+
+      if (tournaments.length === 0) {
+        setQuickData(null);
+        return;
+      }
+
+      const prioritized = [...tournaments].sort(
+        (left, right) => TOURNAMENT_PRIORITY[left.status] - TOURNAMENT_PRIORITY[right.status],
+      );
+
+      let selected: { tournament: Tournament; team: TeamProfile } | null = null;
+      for (const tournament of prioritized) {
+        try {
+          const team = await apiRequest<TeamProfile>(`/tournaments/${tournament.id}/teams/me`);
+          selected = { tournament, team };
+          break;
+        } catch (requestError) {
+          if (requestError instanceof ApiError && requestError.status === 404) {
+            continue;
+          }
+
+          throw requestError;
+        }
+      }
+
+      if (!selected) {
+        setQuickData(null);
+        return;
+      }
+
+      const activeRound = await apiRequest<ActiveRound | null>(
+        `/tournaments/${selected.tournament.id}/rounds/active`,
+      );
+
+      let submission: TeamSubmission | null = null;
+      if (activeRound) {
+        try {
+          submission = await apiRequest<TeamSubmission>(`/rounds/${activeRound.id}/submissions/me`);
+        } catch (requestError) {
+          if (!(requestError instanceof ApiError && requestError.status === 404)) {
+            throw requestError;
+          }
+        }
+      }
+
+      setQuickData({
+        tournament: selected.tournament,
+        team: selected.team,
+        activeRound,
+        submission,
+      });
+    } catch (requestError) {
+      setQuickData(null);
+      setQuickError(
+        requestError instanceof Error ? requestError.message : t('tournaments.quickBlock.loadFailed'),
+      );
+    } finally {
+      setQuickLoading(false);
+    }
+  }
+
   async function loadTournaments() {
     setLoading(true);
     setError('');
@@ -33,12 +157,16 @@ export default function TournamentsPage() {
     try {
       const data = await apiRequest<Tournament[]>('/tournaments');
       setItems(data);
+      void loadQuickTeamBlock(data);
     } catch (requestError) {
       setError(
         requestError instanceof Error
           ? requestError.message
           : t('tournaments.requestFailed'),
       );
+      setQuickRole(null);
+      setQuickData(null);
+      setQuickError('');
     } finally {
       setLoading(false);
     }
@@ -120,6 +248,87 @@ export default function TournamentsPage() {
         <p className="lead">{t('tournaments.lead')}</p>
       </header>
 
+      {quickLoading || quickError || quickRole === 'TEAM' ? (
+        <article className="card panel-card quick-team-card">
+          <h2>{t('tournaments.quickBlock.title')}</h2>
+          <p className="inline-hint">{t('tournaments.quickBlock.lead')}</p>
+
+          {quickLoading ? <p>{t('tournaments.quickBlock.loading')}</p> : null}
+
+          {quickError ? (
+            <>
+              <p className="form-error">{quickError}</p>
+              <button
+                type="button"
+                className="button button-soft"
+                onClick={() => void loadQuickTeamBlock(items)}
+              >
+                {t('tournaments.retry')}
+              </button>
+            </>
+          ) : null}
+
+          {!quickLoading && !quickError && quickRole === 'TEAM' && !quickData ? (
+            <p>{t('tournaments.quickBlock.noTournament')}</p>
+          ) : null}
+
+          {!quickLoading && !quickError && quickData ? (
+            <>
+              <div className="quick-team-grid">
+                <div className="quick-team-item">
+                  <span>{t('tournaments.quickBlock.tournament')}</span>
+                  <strong>{quickData.tournament.title}</strong>
+                </div>
+                <div className="quick-team-item">
+                  <span>{t('tournaments.quickBlock.status')}</span>
+                  <strong>{t(`tournaments.status.${quickData.tournament.status}`)}</strong>
+                </div>
+                <div className="quick-team-item">
+                  <span>{t('tournaments.quickBlock.teamName')}</span>
+                  <strong>{quickData.team.name}</strong>
+                </div>
+                <div className="quick-team-item">
+                  <span>{t('tournaments.quickBlock.activeRound')}</span>
+                  <strong>
+                    {quickData.activeRound
+                      ? quickData.activeRound.title
+                      : t('tournaments.quickBlock.noActiveRound')}
+                  </strong>
+                </div>
+                <div className="quick-team-item">
+                  <span>{t('tournaments.quickBlock.deadline')}</span>
+                  <strong>
+                    {quickData.activeRound
+                      ? formatDate(quickData.activeRound.deadlineAt, language)
+                      : '-'}
+                  </strong>
+                </div>
+                <div className="quick-team-item">
+                  <span>{t('tournaments.quickBlock.submissionStatus')}</span>
+                  <strong>
+                    {quickData.submission
+                      ? t(`tournaments.quickBlock.submission.${quickData.submission.status}`)
+                      : t('tournaments.quickBlock.missingSubmission')}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="status-actions">
+                <Link to="/app/team" className="button button-primary">
+                  {t('tournaments.quickBlock.goToTeam')}
+                </Link>
+                <Link
+                  to={`/app/leaderboard?tournamentId=${quickData.tournament.id}`}
+                  className="button button-soft"
+                >
+                  {t('tournaments.quickBlock.goToLeaderboard')}
+                </Link>
+              </div>
+            </>
+          ) : null}
+        </article>
+      ) : null}
+
       <div className="filters-row" role="group" aria-label="Tournament filters">
         {filterButtons.map((item) => (
           <button
@@ -172,6 +381,13 @@ export default function TournamentsPage() {
                           ? t('tournaments.available')
                           : t('tournaments.closed')}
                       </p>
+
+                      <Link
+                        to={`/app/leaderboard?tournamentId=${tournament.id}`}
+                        className="button button-soft"
+                      >
+                        {t('tournaments.leaderboard')}
+                      </Link>
                     </article>
                   ))}
                 </div>

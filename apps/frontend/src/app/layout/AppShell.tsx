@@ -37,6 +37,9 @@ export default function AppShell() {
           <NavLink to="/app" end className="nav-link">
             {t('shell.home')}
           </NavLink>
+          <NavLink to="/app/leaderboard" className="nav-link">
+            {t('shell.leaderboard')}
+          </NavLink>
           {authed ? (
             <NavLink to="/app/profile" className="nav-link">
               {t('shell.profile')}
