@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { apiRequest } from '../lib/api';
 import { useI18n } from '../i18n/I18nProvider';
 
@@ -172,6 +173,13 @@ export default function TournamentsPage() {
                           ? t('tournaments.available')
                           : t('tournaments.closed')}
                       </p>
+
+                      <Link
+                        to={`/app/leaderboard?tournamentId=${tournament.id}`}
+                        className="button button-soft"
+                      >
+                        {t('tournaments.leaderboard')}
+                      </Link>
                     </article>
                   ))}
                 </div>
