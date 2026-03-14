@@ -386,7 +386,18 @@ export default function JuryDashboardPage() {
         </label>
 
         {roundsLoading ? <p>{t('juryDashboard.roundsLoading')}</p> : null}
-        {roundsError ? <p className="form-error">{roundsError}</p> : null}
+        {roundsError ? (
+          <>
+            <p className="form-error">{roundsError}</p>
+            <button
+              type="button"
+              className="button button-soft"
+              onClick={() => void loadRounds(selectedTournamentId)}
+            >
+              {t('juryDashboard.retry')}
+            </button>
+          </>
+        ) : null}
         {!roundsLoading && rounds.length === 0 ? <p>{t('juryDashboard.noRounds')}</p> : null}
       </article>
 
@@ -394,7 +405,20 @@ export default function JuryDashboardPage() {
         <article className="card panel-card">
           <h2>{t('juryDashboard.assignmentsTitle')}</h2>
           {assignmentsLoading ? <p>{t('juryDashboard.assignmentsLoading')}</p> : null}
-          {assignmentsError ? <p className="form-error">{assignmentsError}</p> : null}
+          {assignmentsError ? (
+            <>
+              <p className="form-error">{assignmentsError}</p>
+              {selectedRoundId ? (
+                <button
+                  type="button"
+                  className="button button-soft"
+                  onClick={() => void loadAssignments(selectedRoundId)}
+                >
+                  {t('juryDashboard.retry')}
+                </button>
+              ) : null}
+            </>
+          ) : null}
           {saveNotice ? <p className="form-success">{saveNotice}</p> : null}
 
           {!assignmentsLoading && assignments.length === 0 ? (

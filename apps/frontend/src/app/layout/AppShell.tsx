@@ -38,6 +38,11 @@ export default function AppShell() {
             {t('shell.home')}
           </NavLink>
           {authed ? (
+            <NavLink to="/app/profile" className="nav-link">
+              {t('shell.profile')}
+            </NavLink>
+          ) : null}
+          {authed ? (
             <NavLink to="/app/team" className="nav-link">
               {t('shell.team')}
             </NavLink>

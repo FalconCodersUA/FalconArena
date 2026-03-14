@@ -6,6 +6,7 @@ import AppShell from './layout/AppShell';
 import JuryDashboardPage from '../pages/JuryDashboardPage';
 import LoginPage from '../pages/LoginPage';
 import NotFoundPage from '../pages/NotFoundPage';
+import ProfilePage from '../pages/ProfilePage';
 import TeamDashboardPage from '../pages/TeamDashboardPage';
 import TournamentsPage from '../pages/TournamentsPage';
 
@@ -29,6 +30,14 @@ export const router = createBrowserRouter([
       {
         path: 'login',
         element: <LoginPage />,
+      },
+      {
+        path: 'profile',
+        element: (
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'team',

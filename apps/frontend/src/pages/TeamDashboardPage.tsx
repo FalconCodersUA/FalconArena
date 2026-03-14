@@ -423,7 +423,18 @@ export default function TeamDashboardPage() {
         <article className="card panel-card">
           <h2>{t('teamDashboard.teamCardTitle')}</h2>
           {teamLoading ? <p>{t('teamDashboard.teamLoading')}</p> : null}
-          {teamError ? <p className="form-error">{teamError}</p> : null}
+          {teamError ? (
+            <>
+              <p className="form-error">{teamError}</p>
+              <button
+                type="button"
+                className="button button-soft"
+                onClick={() => void loadTeamForTournament(selectedTournamentId)}
+              >
+                {t('teamDashboard.retry')}
+              </button>
+            </>
+          ) : null}
           {teamNotice ? <p className="form-success">{teamNotice}</p> : null}
 
           {!team && !teamLoading ? (
@@ -549,7 +560,18 @@ export default function TeamDashboardPage() {
 
           {!team ? <p>{t('teamDashboard.needTeamFirst')}</p> : null}
           {team && submissionLoading ? <p>{t('teamDashboard.submissionLoading')}</p> : null}
-          {team && submissionError ? <p className="form-error">{submissionError}</p> : null}
+          {team && submissionError ? (
+            <>
+              <p className="form-error">{submissionError}</p>
+              <button
+                type="button"
+                className="button button-soft"
+                onClick={() => void loadRoundAndSubmission(selectedTournamentId)}
+              >
+                {t('teamDashboard.retry')}
+              </button>
+            </>
+          ) : null}
           {team && submissionNotice ? <p className="form-success">{submissionNotice}</p> : null}
 
           {team && activeRound ? (
