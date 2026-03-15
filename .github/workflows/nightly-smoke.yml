@@ -16,9 +16,13 @@ concurrency:
 
 jobs:
   smoke-mvp:
-    if: ${{ secrets.SMOKE_ADMIN_EMAIL != '' && secrets.SMOKE_ADMIN_PASSWORD != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      ADMIN_EMAIL: ${{ secrets.SMOKE_ADMIN_EMAIL }}
+      ADMIN_PASSWORD: ${{ secrets.SMOKE_ADMIN_PASSWORD }}
+      TEST_USER_PASSWORD: ${{ secrets.SMOKE_TEST_USER_PASSWORD }}
+      SMOKE_BASE_URL: ${{ vars.SMOKE_BASE_URL }}
 
     steps:
       - name: Checkout
@@ -34,12 +38,11 @@ jobs:
         run: npm install
 
       - name: Run MVP smoke script
-        env:
-          ADMIN_EMAIL: ${{ secrets.SMOKE_ADMIN_EMAIL }}
-          ADMIN_PASSWORD: ${{ secrets.SMOKE_ADMIN_PASSWORD }}
-          TEST_USER_PASSWORD: ${{ secrets.SMOKE_TEST_USER_PASSWORD }}
-          SMOKE_BASE_URL: ${{ vars.SMOKE_BASE_URL }}
         run: |
+          if [ -z "$ADMIN_EMAIL" ] || [ -z "$ADMIN_PASSWORD" ]; then
+            echo "SMOKE_ADMIN_EMAIL / SMOKE_ADMIN_PASSWORD are not set. Skipping smoke run."
+            exit 0
+          fi
           TARGET_BASE_URL="${SMOKE_BASE_URL:-https://falconarena.live}"
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.base_url }}" ]; then
             TARGET_BASE_URL="${{ inputs.base_url }}"
