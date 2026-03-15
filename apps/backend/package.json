@@ -7,7 +7,8 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "lint": "tsc --noEmit -p tsconfig.json",
-    "test": "node -e \"console.log('Backend tests are not configured yet')\"",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts",
     "test:e2e:finish-evaluation": "node scripts/e2e-finish-evaluation.mjs",
     "smoke:mvp": "node scripts/smoke-mvp.mjs",
     "prisma:generate": "prisma generate",
@@ -37,6 +38,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/node": "^22.13.10",
     "@types/passport-jwt": "^4.0.1",
+    "vitest": "^4.1.0",
     "prisma": "^6.4.1",
     "typescript": "^5.8.2"
   }
