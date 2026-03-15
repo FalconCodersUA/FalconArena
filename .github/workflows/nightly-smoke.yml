@@ -1,0 +1,47 @@
+name: Nightly Smoke
+
+on:
+  schedule:
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Base URL for smoke run
+        required: false
+        default: ''
+
+concurrency:
+  group: nightly-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke-mvp:
+    if: ${{ secrets.SMOKE_ADMIN_EMAIL != '' && secrets.SMOKE_ADMIN_PASSWORD != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run MVP smoke script
+        env:
+          ADMIN_EMAIL: ${{ secrets.SMOKE_ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.SMOKE_ADMIN_PASSWORD }}
+          TEST_USER_PASSWORD: ${{ secrets.SMOKE_TEST_USER_PASSWORD }}
+          SMOKE_BASE_URL: ${{ vars.SMOKE_BASE_URL }}
+        run: |
+          TARGET_BASE_URL="${SMOKE_BASE_URL:-https://falconarena.live}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.base_url }}" ]; then
+            TARGET_BASE_URL="${{ inputs.base_url }}"
+          fi
+          BASE_URL="$TARGET_BASE_URL" npm run smoke:mvp -w @falconarena/backend

@@ -73,6 +73,7 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 
 - PR у `main`: lint + test + build
 - Push/merge у `main`: deploy workflow підключається до Ubuntu через SSH і оновлює Docker Compose
+- Щоденний schedule + ручний запуск: `Nightly Smoke` виконує backend MVP smoke перевірку на production URL
 
 Необхідні GitHub secrets для deploy:
 
@@ -88,6 +89,16 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 - `POSTGRES_PASSWORD`
 - `JWT_SECRET`
 - `VITE_API_URL` (optional, fallback підтримується)
+
+Необхідні GitHub secrets для nightly smoke:
+
+- `SMOKE_ADMIN_EMAIL`
+- `SMOKE_ADMIN_PASSWORD`
+- `SMOKE_TEST_USER_PASSWORD` (optional, fallback підтримується)
+
+Опційна GitHub variable для nightly smoke:
+
+- `SMOKE_BASE_URL` (за замовчуванням `https://falconarena.live`, також можна перевизначити через input у ручному запуску workflow)
 
 У production маршрути обслуговує Caddy (`80/443`). PostgreSQL і Redis доступні тільки у внутрішній Docker мережі.
 
