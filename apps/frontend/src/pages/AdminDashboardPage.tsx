@@ -415,7 +415,7 @@ export default function AdminDashboardPage() {
             <p className="form-success">{createTournamentNotice}</p>
           ) : null}
 
-          <form className="panel-form" onSubmit={submitTournament}>
+          <form className="panel-form" onSubmit={submitTournament} noValidate>
             <label className="field" htmlFor="admin-tournament-title">
               <span>{t('adminDashboard.form.tournamentTitle')}</span>
               <input
@@ -545,7 +545,7 @@ export default function AdminDashboardPage() {
           {createRoundError ? <p className="form-error">{createRoundError}</p> : null}
           {createRoundNotice ? <p className="form-success">{createRoundNotice}</p> : null}
 
-          <form className="panel-form" onSubmit={submitRound}>
+          <form className="panel-form" onSubmit={submitRound} noValidate>
             <label className="field" htmlFor="admin-round-title">
               <span>{t('adminDashboard.form.roundTitle')}</span>
               <input

@@ -24,6 +24,24 @@ export default function LoginPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const normalizedEmail = email.trim();
+    const normalizedPassword = password;
+
+    if (!normalizedEmail) {
+      setError(t('login.validation.emailRequired'));
+      return;
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(normalizedEmail)) {
+      setError(t('login.validation.emailInvalid'));
+      return;
+    }
+
+    if (!normalizedPassword) {
+      setError(t('login.validation.passwordRequired'));
+      return;
+    }
+
     setSubmitting(true);
     setError('');
 
@@ -31,8 +49,8 @@ export default function LoginPage() {
       const data = await apiRequest<LoginResponse>('/auth/login', {
         method: 'POST',
         body: {
-          email,
-          password,
+          email: normalizedEmail,
+          password: normalizedPassword,
         },
       });
       setToken(data.accessToken);
@@ -52,7 +70,7 @@ export default function LoginPage() {
       <h1 className="auth-title">{t('login.title')}</h1>
       <p className="lead">{t('login.lead')}</p>
 
-      <form className="auth-form" onSubmit={handleSubmit}>
+      <form className="auth-form" onSubmit={handleSubmit} noValidate>
         <label className="field" htmlFor="email">
           <span>{t('login.email')}</span>
           <input
@@ -60,7 +78,12 @@ export default function LoginPage() {
             type="email"
             value={email}
             autoComplete="email"
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              if (error) {
+                setError('');
+              }
+            }}
             required
           />
         </label>
@@ -72,7 +95,12 @@ export default function LoginPage() {
             type="password"
             value={password}
             autoComplete="current-password"
-            onChange={(event) => setPassword(event.target.value)}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              if (error) {
+                setError('');
+              }
+            }}
             required
           />
         </label>

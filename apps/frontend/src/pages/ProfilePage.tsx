@@ -40,13 +40,56 @@ type Round = {
 
 type TeamSubmission = {
   id: string;
+  repoUrl: string;
+  demoUrl: string;
+  liveDemoUrl: string | null;
+  submittedAt: string;
+  status: 'DRAFT' | 'SUBMITTED' | 'LOCKED';
 };
 
 type Assignment = {
   id: string;
+  assignedAt: string;
+  submission: {
+    id: string;
+    repoUrl: string;
+    demoUrl: string;
+    liveDemoUrl: string | null;
+    team: {
+      id: string;
+      name: string;
+    };
+  };
   evaluation: {
     id: string;
+    totalScore: number;
   } | null;
+};
+
+type TeamSubmissionHistoryItem = {
+  roundId: string;
+  roundTitle: string;
+  roundStatus: RoundStatus;
+  submissionStatus: 'DRAFT' | 'SUBMITTED' | 'LOCKED';
+  submittedAt: string;
+  repoUrl: string;
+  demoUrl: string;
+  liveDemoUrl: string | null;
+};
+
+type JuryAssignmentHistoryItem = {
+  assignmentId: string;
+  tournamentId: string;
+  tournamentTitle: string;
+  roundId: string;
+  roundTitle: string;
+  teamName: string;
+  assignedAt: string;
+  repoUrl: string;
+  demoUrl: string;
+  liveDemoUrl: string | null;
+  evaluated: boolean;
+  totalScore: number | null;
 };
 
 type TeamSummaryItem = {
@@ -55,7 +98,9 @@ type TeamSummaryItem = {
   tournamentStatus: TournamentStatus;
   teamName: string;
   membersCount: number;
+  totalRounds: number;
   submissionsCount: number;
+  submissionHistory: TeamSubmissionHistoryItem[];
 };
 
 type JurySummaryItem = {
@@ -82,6 +127,7 @@ type JuryRoleSummary = {
   items: JurySummaryItem[];
   totalAssignments: number;
   evaluatedAssignments: number;
+  history: JuryAssignmentHistoryItem[];
 };
 
 type AdminRoleSummary = {
@@ -118,13 +164,16 @@ export default function ProfilePage() {
           const team = await apiRequest<TeamProfile>(`/tournaments/${tournament.id}/teams/me`);
           const rounds = await apiRequest<Round[]>(`/tournaments/${tournament.id}/rounds`);
 
-          const submissions = await Promise.all(
+          const submissionsWithRound = await Promise.all(
             rounds.map(async (round) => {
               try {
                 const submission = await apiRequest<TeamSubmission>(
                   `/rounds/${round.id}/submissions/me`,
                 );
-                return submission;
+                return {
+                  round,
+                  submission,
+                };
               } catch (requestError) {
                 if (requestError instanceof ApiError && requestError.status === 404) {
                   return null;
@@ -135,13 +184,39 @@ export default function ProfilePage() {
             }),
           );
 
+          const submissionHistory = submissionsWithRound
+            .filter(
+              (
+                entry,
+              ): entry is {
+                round: Round;
+                submission: TeamSubmission;
+              } => entry !== null,
+            )
+            .map((entry) => ({
+              roundId: entry.round.id,
+              roundTitle: entry.round.title,
+              roundStatus: entry.round.status,
+              submissionStatus: entry.submission.status,
+              submittedAt: entry.submission.submittedAt,
+              repoUrl: entry.submission.repoUrl,
+              demoUrl: entry.submission.demoUrl,
+              liveDemoUrl: entry.submission.liveDemoUrl,
+            }))
+            .sort(
+              (left, right) =>
+                new Date(right.submittedAt).getTime() - new Date(left.submittedAt).getTime(),
+            );
+
           return {
             tournamentId: tournament.id,
             tournamentTitle: tournament.title,
             tournamentStatus: tournament.status,
             teamName: team.name,
             membersCount: team.members.length + 1,
-            submissionsCount: submissions.filter((entry) => entry !== null).length,
+            totalRounds: rounds.length,
+            submissionsCount: submissionHistory.length,
+            submissionHistory,
           } satisfies TeamSummaryItem;
         } catch (requestError) {
           if (requestError instanceof ApiError && requestError.status === 404) {
@@ -167,10 +242,16 @@ export default function ProfilePage() {
           rounds.map(async (round) => {
             try {
               const assignments = await apiRequest<Assignment[]>(`/rounds/${round.id}/assignments/me`);
-              return assignments;
+              return {
+                round,
+                assignments,
+              };
             } catch (requestError) {
               if (requestError instanceof ApiError && requestError.status === 404) {
-                return [];
+                return {
+                  round,
+                  assignments: [],
+                };
               }
 
               throw requestError;
@@ -178,19 +259,52 @@ export default function ProfilePage() {
           }),
         );
 
-        const flatAssignments = assignmentsByRound.flat();
+        const flatAssignments = assignmentsByRound.flatMap((entry) => entry.assignments);
         const evaluated = flatAssignments.filter((entry) => entry.evaluation !== null).length;
 
+        const history = assignmentsByRound.flatMap((entry) =>
+          entry.assignments.map(
+            (assignment) =>
+              ({
+                assignmentId: assignment.id,
+                tournamentId: tournament.id,
+                tournamentTitle: tournament.title,
+                roundId: entry.round.id,
+                roundTitle: entry.round.title,
+                teamName: assignment.submission.team.name,
+                assignedAt: assignment.assignedAt,
+                repoUrl: assignment.submission.repoUrl,
+                demoUrl: assignment.submission.demoUrl,
+                liveDemoUrl: assignment.submission.liveDemoUrl,
+                evaluated: assignment.evaluation !== null,
+                totalScore: assignment.evaluation?.totalScore ?? null,
+              }) satisfies JuryAssignmentHistoryItem,
+          ),
+        );
+
         return {
-          tournamentId: tournament.id,
-          tournamentTitle: tournament.title,
-          assignments: flatAssignments.length,
-          evaluated,
-        } satisfies JurySummaryItem;
+          tournament: {
+            tournamentId: tournament.id,
+            tournamentTitle: tournament.title,
+            assignments: flatAssignments.length,
+            evaluated,
+          } satisfies JurySummaryItem,
+          history,
+        };
       }),
     );
 
-    const items = byTournament.filter((entry) => entry.assignments > 0);
+    const items = byTournament
+      .map((entry) => entry.tournament)
+      .filter((entry) => entry.assignments > 0);
+
+    const history = byTournament
+      .flatMap((entry) => entry.history)
+      .sort(
+        (left, right) =>
+          new Date(right.assignedAt).getTime() - new Date(left.assignedAt).getTime(),
+      );
+
     const totalAssignments = items.reduce((acc, entry) => acc + entry.assignments, 0);
     const evaluatedAssignments = items.reduce((acc, entry) => acc + entry.evaluated, 0);
 
@@ -199,6 +313,7 @@ export default function ProfilePage() {
       items,
       totalAssignments,
       evaluatedAssignments,
+      history,
     };
   }
 
@@ -323,11 +438,52 @@ export default function ProfilePage() {
                     {t('profile.team.members')}: {item.membersCount}
                   </p>
                   <p>
+                    {t('profile.team.roundsTotal')}: {item.totalRounds}
+                  </p>
+                  <p>
                     {t('profile.team.submissions')}: {item.submissionsCount}
                   </p>
                   {item.submissionsCount === 0 ? (
                     <p className="inline-hint">{t('profile.team.noSubmissions')}</p>
-                  ) : null}
+                  ) : (
+                    <>
+                      <h3>{t('profile.team.historyTitle')}</h3>
+                      <div className="profile-history-list">
+                        {item.submissionHistory.map((entry) => (
+                          <article key={`${item.tournamentId}-${entry.roundId}`} className="profile-history-card">
+                            <p>
+                              <strong>
+                                {t('profile.team.round')}: {entry.roundTitle}
+                              </strong>
+                            </p>
+                            <p>
+                              {t('profile.team.roundStatus')}: {t(`profile.status.${entry.roundStatus}`)}
+                            </p>
+                            <p>
+                              {t('profile.team.submissionStatus')}:{' '}
+                              {t(`profile.submission.${entry.submissionStatus}`)}
+                            </p>
+                            <p>
+                              {t('profile.team.submittedAt')}: {formatDate(entry.submittedAt, language)}
+                            </p>
+                            <div className="profile-links">
+                              <a href={entry.repoUrl} target="_blank" rel="noreferrer">
+                                {t('profile.team.links.repository')}
+                              </a>
+                              <a href={entry.demoUrl} target="_blank" rel="noreferrer">
+                                {t('profile.team.links.demo')}
+                              </a>
+                              {entry.liveDemoUrl ? (
+                                <a href={entry.liveDemoUrl} target="_blank" rel="noreferrer">
+                                  {t('profile.team.links.liveDemo')}
+                                </a>
+                              ) : null}
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </article>
               ))}
             </div>
@@ -373,6 +529,55 @@ export default function ProfilePage() {
                   </article>
                 ))}
               </div>
+
+              <h3>{t('profile.jury.historyTitle')}</h3>
+              {summary.history.length === 0 ? (
+                <p>{t('profile.jury.noHistory')}</p>
+              ) : (
+                <div className="profile-history-list">
+                  {summary.history.map((entry) => (
+                    <article key={entry.assignmentId} className="profile-history-card">
+                      <p>
+                        <strong>
+                          {t('profile.jury.tournament')}: {entry.tournamentTitle}
+                        </strong>
+                      </p>
+                      <p>
+                        {t('profile.jury.round')}: {entry.roundTitle}
+                      </p>
+                      <p>
+                        {t('profile.jury.team')}: {entry.teamName}
+                      </p>
+                      <p>
+                        {t('profile.jury.assignedAt')}: {formatDate(entry.assignedAt, language)}
+                      </p>
+                      <p>
+                        {t('profile.jury.statusLabel')}:{' '}
+                        {entry.evaluated
+                          ? t('profile.jury.status.evaluated')
+                          : t('profile.jury.status.pending')}
+                      </p>
+                      <p>
+                        {t('profile.jury.score')}:{' '}
+                        {entry.totalScore !== null ? entry.totalScore : '-'}
+                      </p>
+                      <div className="profile-links">
+                        <a href={entry.repoUrl} target="_blank" rel="noreferrer">
+                          {t('profile.jury.links.repository')}
+                        </a>
+                        <a href={entry.demoUrl} target="_blank" rel="noreferrer">
+                          {t('profile.jury.links.demo')}
+                        </a>
+                        {entry.liveDemoUrl ? (
+                          <a href={entry.liveDemoUrl} target="_blank" rel="noreferrer">
+                            {t('profile.jury.links.liveDemo')}
+                          </a>
+                        ) : null}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
             </>
           ) : null}
         </article>

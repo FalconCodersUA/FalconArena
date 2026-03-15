@@ -442,7 +442,7 @@ export default function TeamDashboardPage() {
 
           {!team && !teamLoading ? (
             selectedTournament?.canTeamRegister ? (
-              <form className="panel-form" onSubmit={submitTeamRegistration}>
+              <form className="panel-form" onSubmit={submitTeamRegistration} noValidate>
                 <label className="field" htmlFor="team-name">
                   <span>{t('teamDashboard.form.teamName')}</span>
                   <input
@@ -617,7 +617,7 @@ export default function TeamDashboardPage() {
           ) : null}
 
           {team && activeRound ? (
-            <form className="panel-form" onSubmit={submitSubmission}>
+            <form className="panel-form" onSubmit={submitSubmission} noValidate>
               <label className="field" htmlFor="repo-url">
                 <span>{t('teamDashboard.submission.repoUrl')}</span>
                 <input
