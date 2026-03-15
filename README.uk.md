@@ -71,7 +71,7 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 
 ## CI / CD
 
-- PR у `main`: lint + build
+- PR у `main`: lint + test + build
 - Push/merge у `main`: deploy workflow підключається до Ubuntu через SSH і оновлює Docker Compose
 
 Необхідні GitHub secrets для deploy:
