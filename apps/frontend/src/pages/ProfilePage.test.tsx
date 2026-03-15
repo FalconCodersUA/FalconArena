@@ -94,7 +94,14 @@ describe('ProfilePage', () => {
       }
 
       if (path === '/rounds/round-1/submissions/me') {
-        return { id: 'submission-1' };
+        return {
+          id: 'submission-1',
+          repoUrl: 'https://github.com/example/team',
+          demoUrl: 'https://youtu.be/example',
+          liveDemoUrl: null,
+          submittedAt: '2026-03-03T10:00:00.000Z',
+          status: 'SUBMITTED',
+        };
       }
 
       if (path === '/rounds/round-2/submissions/me') {
@@ -153,8 +160,36 @@ describe('ProfilePage', () => {
 
       if (path === '/rounds/round-a-1/assignments/me') {
         return [
-          { id: 'assignment-1', evaluation: { id: 'eval-1' } },
-          { id: 'assignment-2', evaluation: null },
+          {
+            id: 'assignment-1',
+            assignedAt: '2026-03-04T10:00:00.000Z',
+            submission: {
+              id: 'submission-1',
+              repoUrl: 'https://github.com/example/a1',
+              demoUrl: 'https://youtu.be/a1',
+              liveDemoUrl: null,
+              team: {
+                id: 'team-1',
+                name: 'Team Alpha',
+              },
+            },
+            evaluation: { id: 'eval-1', totalScore: 89 },
+          },
+          {
+            id: 'assignment-2',
+            assignedAt: '2026-03-04T11:00:00.000Z',
+            submission: {
+              id: 'submission-2',
+              repoUrl: 'https://github.com/example/a2',
+              demoUrl: 'https://youtu.be/a2',
+              liveDemoUrl: null,
+              team: {
+                id: 'team-2',
+                name: 'Team Beta',
+              },
+            },
+            evaluation: null,
+          },
         ];
       }
 

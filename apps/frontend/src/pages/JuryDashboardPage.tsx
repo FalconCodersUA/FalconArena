@@ -456,7 +456,7 @@ export default function JuryDashboardPage() {
           {!selectedAssignment ? (
             <p>{t('juryDashboard.pickAssignment')}</p>
           ) : (
-            <form className="panel-form" onSubmit={submitEvaluation}>
+            <form className="panel-form" onSubmit={submitEvaluation} noValidate>
               <div className="round-summary">
                 <p>
                   <strong>

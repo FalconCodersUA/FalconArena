@@ -592,6 +592,41 @@ a {
   color: #405a74;
 }
 
+.profile-history-list {
+  display: grid;
+  gap: 8px;
+}
+
+.profile-history-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px;
+  display: grid;
+  gap: 5px;
+}
+
+.profile-history-card p {
+  margin: 0;
+  color: #38546f;
+}
+
+.profile-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.profile-links a {
+  font-weight: 700;
+  color: var(--brand-deep);
+  text-decoration: none;
+}
+
+.profile-links a:hover {
+  text-decoration: underline;
+}
+
 .leaderboard-scoring {
   border: 1px solid var(--border);
   border-radius: 12px;
