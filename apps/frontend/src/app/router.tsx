@@ -8,6 +8,7 @@ import LeaderboardPage from '../pages/LeaderboardPage';
 import LoginPage from '../pages/LoginPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import ProfilePage from '../pages/ProfilePage';
+import RegisterPage from '../pages/RegisterPage';
 import TeamDashboardPage from '../pages/TeamDashboardPage';
 import TournamentsPage from '../pages/TournamentsPage';
 
@@ -46,6 +47,10 @@ export const router = createBrowserRouter([
       {
         path: 'login',
         element: <LoginPage />,
+      },
+      {
+        path: 'register',
+        element: <RegisterPage />,
       },
       {
         path: 'leaderboard',
