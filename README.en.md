@@ -128,14 +128,6 @@ Ukrainian docs:
 3. `JURY`: sign in, open `My jury`, choose a round, and evaluate assigned submissions.
 4. `ADMIN`: distribute assignments, close submissions or finish evaluation, then review the `Leaderboard`.
 
-## Pre-Demo Checks
-
-- `TEAM` can create an account through the site without manual API calls.
-- `ADMIN` can create tournaments, rounds, and other role users through the UI.
-- `JURY` can open assignments and submit category-based evaluations.
-- `Leaderboard` shows teams, category averages, and round results.
-- `npm run test`, `npm run build`, and GitHub CI all pass.
-
 ## Notes
 
 - The repository includes only the base scaffold so team members can start parallel feature work.
