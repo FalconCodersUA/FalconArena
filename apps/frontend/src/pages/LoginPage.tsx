@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import AuthSplitLayout from '../app/layout/AuthSplitLayout';
 import { apiRequest } from '../lib/api';
 import { AuthUser, isAuthenticated, setAuthUser, setToken } from '../lib/auth';
 import { useI18n } from '../i18n/I18nProvider';
@@ -67,17 +68,26 @@ export default function LoginPage() {
   }
 
   return (
-    <article className="auth-card">
-      <p className="eyebrow">{t('login.eyebrow')}</p>
-      <h1 className="auth-title">{t('login.title')}</h1>
-      <p className="lead">{t('login.lead')}</p>
-
+    <AuthSplitLayout
+      variant="login"
+      panelTitle={t('login.panelTitle')}
+      panelLead={t('login.panelLead')}
+      introTitle={t('login.title')}
+      introLead={t('login.lead')}
+      footer={
+        <p className="auth-footnote auth-footnote-centered">
+          {t('login.registerHint')}{' '}
+          <Link to="/app/register">{t('login.registerAction')}</Link>
+        </p>
+      }
+    >
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
-        <label className="field" htmlFor="email">
+        <label className="field auth-field" htmlFor="email">
           <span>{t('login.email')}</span>
           <input
             id="email"
             type="email"
+            placeholder={t('login.placeholders.email')}
             value={email}
             autoComplete="email"
             onChange={(event) => {
@@ -90,11 +100,12 @@ export default function LoginPage() {
           />
         </label>
 
-        <label className="field" htmlFor="password">
+        <label className="field auth-field" htmlFor="password">
           <span>{t('login.password')}</span>
           <input
             id="password"
             type="password"
+            placeholder={t('login.placeholders.password')}
             value={password}
             autoComplete="current-password"
             onChange={(event) => {
@@ -107,17 +118,12 @@ export default function LoginPage() {
           />
         </label>
 
-        {error ? <p className="form-error">{error}</p> : null}
+        {error ? <p className="form-error auth-form-error">{error}</p> : null}
 
-        <button className="button button-primary" type="submit" disabled={submitting}>
+        <button className="button auth-submit-button" type="submit" disabled={submitting}>
           {submitting ? t('login.submitting') : t('login.submit')}
         </button>
       </form>
-
-      <p className="auth-footnote">
-        {t('login.registerHint')}{' '}
-        <Link to="/app/register">{t('login.registerAction')}</Link>
-      </p>
-    </article>
+    </AuthSplitLayout>
   );
 }

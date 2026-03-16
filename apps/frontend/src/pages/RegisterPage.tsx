@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import AuthSplitLayout from '../app/layout/AuthSplitLayout';
 import { apiRequest } from '../lib/api';
 import { AuthUser, isAuthenticated, setAuthUser, setToken } from '../lib/auth';
 import { useI18n } from '../i18n/I18nProvider';
@@ -16,7 +17,8 @@ function isValidEmail(value: string) {
 export default function RegisterPage() {
   const navigate = useNavigate();
   const { t } = useI18n();
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -32,11 +34,18 @@ export default function RegisterPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const normalizedFullName = fullName.trim();
+    const normalizedFirstName = firstName.trim();
+    const normalizedLastName = lastName.trim();
+    const normalizedFullName = `${normalizedFirstName} ${normalizedLastName}`.trim();
     const normalizedEmail = email.trim().toLowerCase();
 
-    if (normalizedFullName.length < 2 || normalizedFullName.length > 80) {
-      setError(t('register.validation.fullNameLength'));
+    if (normalizedFirstName.length < 2 || normalizedFirstName.length > 40) {
+      setError(t('register.validation.firstNameLength'));
+      return;
+    }
+
+    if (normalizedLastName.length < 2 || normalizedLastName.length > 40) {
+      setError(t('register.validation.lastNameLength'));
       return;
     }
 
@@ -89,32 +98,65 @@ export default function RegisterPage() {
   }
 
   return (
-    <article className="auth-card">
-      <p className="eyebrow">{t('register.eyebrow')}</p>
-      <h1 className="auth-title">{t('register.title')}</h1>
-      <p className="lead">{t('register.lead')}</p>
-
+    <AuthSplitLayout
+      variant="register"
+      panelTitle={t('register.panelTitle')}
+      panelLead={t('register.panelLead')}
+      introTitle={t('register.title')}
+      introLead={t('register.lead')}
+      steps={[
+        { index: 1, title: t('register.steps.account'), active: true },
+        { index: 2, title: t('register.steps.workspace') },
+        { index: 3, title: t('register.steps.profile') },
+      ]}
+      footer={
+        <p className="auth-footnote auth-footnote-centered">
+          {t('register.loginHint')}{' '}
+          <Link to="/app/login">{t('register.loginAction')}</Link>
+        </p>
+      }
+    >
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
-        <label className="field" htmlFor="register-full-name">
-          <span>{t('register.fullName')}</span>
-          <input
-            id="register-full-name"
-            type="text"
-            value={fullName}
-            autoComplete="name"
-            onChange={(event) => {
-              setFullName(event.target.value);
-              clearError();
-            }}
-            required
-          />
-        </label>
+        <div className="auth-name-grid">
+          <label className="field auth-field" htmlFor="register-first-name">
+            <span>{t('register.firstName')}</span>
+            <input
+              id="register-first-name"
+              type="text"
+              placeholder={t('register.placeholders.firstName')}
+              value={firstName}
+              autoComplete="given-name"
+              onChange={(event) => {
+                setFirstName(event.target.value);
+                clearError();
+              }}
+              required
+            />
+          </label>
 
-        <label className="field" htmlFor="register-email">
+          <label className="field auth-field" htmlFor="register-last-name">
+            <span>{t('register.lastName')}</span>
+            <input
+              id="register-last-name"
+              type="text"
+              placeholder={t('register.placeholders.lastName')}
+              value={lastName}
+              autoComplete="family-name"
+              onChange={(event) => {
+                setLastName(event.target.value);
+                clearError();
+              }}
+              required
+            />
+          </label>
+        </div>
+
+        <label className="field auth-field" htmlFor="register-email">
           <span>{t('register.email')}</span>
           <input
             id="register-email"
             type="email"
+            placeholder={t('register.placeholders.email')}
             value={email}
             autoComplete="email"
             onChange={(event) => {
@@ -125,11 +167,12 @@ export default function RegisterPage() {
           />
         </label>
 
-        <label className="field" htmlFor="register-password">
+        <label className="field auth-field" htmlFor="register-password">
           <span>{t('register.password')}</span>
           <input
             id="register-password"
             type="password"
+            placeholder={t('register.placeholders.password')}
             value={password}
             autoComplete="new-password"
             onChange={(event) => {
@@ -140,11 +183,14 @@ export default function RegisterPage() {
           />
         </label>
 
-        <label className="field" htmlFor="register-confirm-password">
+        <p className="auth-password-hint">{t('register.passwordHint')}</p>
+
+        <label className="field auth-field" htmlFor="register-confirm-password">
           <span>{t('register.confirmPassword')}</span>
           <input
             id="register-confirm-password"
             type="password"
+            placeholder={t('register.placeholders.confirmPassword')}
             value={confirmPassword}
             autoComplete="new-password"
             onChange={(event) => {
@@ -155,17 +201,12 @@ export default function RegisterPage() {
           />
         </label>
 
-        {error ? <p className="form-error">{error}</p> : null}
+        {error ? <p className="form-error auth-form-error">{error}</p> : null}
 
-        <button className="button button-primary" type="submit" disabled={submitting}>
+        <button className="button auth-submit-button" type="submit" disabled={submitting}>
           {submitting ? t('register.submitting') : t('register.submit')}
         </button>
       </form>
-
-      <p className="auth-footnote">
-        {t('register.loginHint')}{' '}
-        <Link to="/app/login">{t('register.loginAction')}</Link>
-      </p>
-    </article>
+    </AuthSplitLayout>
   );
 }
