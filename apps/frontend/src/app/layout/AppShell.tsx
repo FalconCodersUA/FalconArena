@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useI18n } from '../../i18n/I18nProvider';
 import { SUPPORTED_LANGUAGES } from '../../i18n/messages';
 import { ApiError, apiRequest } from '../../lib/api';
@@ -19,10 +19,12 @@ type MeResponse = {
 };
 
 export default function AppShell() {
+  const location = useLocation();
   const navigate = useNavigate();
   const authed = isAuthenticated();
   const { language, setLanguage, t } = useI18n();
   const [role, setRole] = useState<AuthRole | null>(() => getAuthUser()?.role ?? null);
+  const isAuthRoute = location.pathname === '/app/login' || location.pathname === '/app/register';
 
   useEffect(() => {
     if (!authed) {
@@ -56,6 +58,32 @@ export default function AppShell() {
     clearToken();
     setRole(null);
     navigate('/app/login', { replace: true });
+  }
+
+  if (isAuthRoute) {
+    return (
+      <div className="page auth-page">
+        <header className="auth-shell-header">
+          <div className="auth-shell-spacer" />
+          <div className="language-switch auth-language-switch" role="group" aria-label={t('shell.languageAria')}>
+            {SUPPORTED_LANGUAGES.map((item) => (
+              <button
+                key={item}
+                type="button"
+                className={`lang-button${language === item ? ' active' : ''}`}
+                onClick={() => setLanguage(item)}
+              >
+                {item.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </header>
+
+        <section className="page-section auth-page-section">
+          <Outlet />
+        </section>
+      </div>
+    );
   }
 
   return (
