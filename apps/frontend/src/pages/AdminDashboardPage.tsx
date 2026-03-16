@@ -59,6 +59,15 @@ function fromInputDateTime(value: string) {
   return new Date(value).toISOString();
 }
 
+function isPositiveInteger(value: string) {
+  if (!value.trim()) {
+    return false;
+  }
+
+  const numeric = Number(value);
+  return Number.isInteger(numeric) && numeric > 0;
+}
+
 export default function AdminDashboardPage() {
   const { language, t } = useI18n();
 
@@ -183,16 +192,36 @@ export default function AdminDashboardPage() {
 
   async function submitTournament(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setCreateTournamentLoading(true);
     setCreateTournamentError('');
     setCreateTournamentNotice('');
+
+    const normalizedTitle = title.trim();
+    if (normalizedTitle.length < 3 || normalizedTitle.length > 120) {
+      setCreateTournamentError(t('adminDashboard.validation.tournamentTitleLength'));
+      return;
+    }
+
+    const normalizedDescription = description.trim();
+    const openDate = new Date(registrationOpenAt);
+    const closeDate = new Date(registrationCloseAt);
+    if (!registrationOpenAt || !registrationCloseAt || Number.isNaN(openDate.getTime()) || Number.isNaN(closeDate.getTime()) || openDate >= closeDate) {
+      setCreateTournamentError(t('adminDashboard.validation.registrationWindowInvalid'));
+      return;
+    }
+
+    if (maxTeams && !isPositiveInteger(maxTeams)) {
+      setCreateTournamentError(t('adminDashboard.validation.maxTeamsInvalid'));
+      return;
+    }
+
+    setCreateTournamentLoading(true);
 
     try {
       await apiRequest('/tournaments', {
         method: 'POST',
         body: {
-          title,
-          description: description || undefined,
+          title: normalizedTitle,
+          description: normalizedDescription || undefined,
           registrationOpenAt: fromInputDateTime(registrationOpenAt),
           registrationCloseAt: fromInputDateTime(registrationCloseAt),
           maxTeams: maxTeams ? Number(maxTeams) : undefined,
@@ -249,9 +278,29 @@ export default function AdminDashboardPage() {
       return;
     }
 
-    setCreateRoundLoading(true);
     setCreateRoundError('');
     setCreateRoundNotice('');
+
+    const normalizedRoundTitle = roundTitle.trim();
+    if (normalizedRoundTitle.length < 3 || normalizedRoundTitle.length > 140) {
+      setCreateRoundError(t('adminDashboard.validation.roundTitleLength'));
+      return;
+    }
+
+    const normalizedRoundDescription = roundDescription.trim();
+    if (normalizedRoundDescription.length < 10 || normalizedRoundDescription.length > 5000) {
+      setCreateRoundError(t('adminDashboard.validation.roundDescriptionLength'));
+      return;
+    }
+
+    const startsAt = new Date(roundStartsAt);
+    const deadlineAt = new Date(roundDeadlineAt);
+    if (!roundStartsAt || !roundDeadlineAt || Number.isNaN(startsAt.getTime()) || Number.isNaN(deadlineAt.getTime()) || startsAt >= deadlineAt) {
+      setCreateRoundError(t('adminDashboard.validation.roundWindowInvalid'));
+      return;
+    }
+
+    setCreateRoundLoading(true);
 
     try {
       const mustHave = mustHaveRaw
@@ -262,8 +311,8 @@ export default function AdminDashboardPage() {
       await apiRequest(`/tournaments/${selectedTournamentId}/rounds`, {
         method: 'POST',
         body: {
-          title: roundTitle,
-          description: roundDescription,
+          title: normalizedRoundTitle,
+          description: normalizedRoundDescription,
           mustHave: mustHave.length > 0 ? mustHave : undefined,
           startsAt: fromInputDateTime(roundStartsAt),
           deadlineAt: fromInputDateTime(roundDeadlineAt),
@@ -319,6 +368,14 @@ export default function AdminDashboardPage() {
     try {
       const minReviewers = minReviewersByRoundId[roundId] ?? 2;
       const resetExisting = resetByRoundId[roundId] ?? true;
+
+      if (!Number.isInteger(minReviewers) || minReviewers < 1) {
+        updateRoundOperationState(roundId, {
+          loading: false,
+          error: t('adminDashboard.validation.minReviewersInvalid'),
+        });
+        return;
+      }
 
       await apiRequest(`/rounds/${roundId}/assignments/distribute`, {
         method: 'POST',

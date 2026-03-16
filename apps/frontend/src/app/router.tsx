@@ -1,6 +1,6 @@
 import { ReactElement } from 'react';
 import { Navigate, createBrowserRouter } from 'react-router-dom';
-import { isAuthenticated } from '../lib/auth';
+import { AuthRole, getAuthRole, isAuthenticated } from '../lib/auth';
 import AdminDashboardPage from '../pages/AdminDashboardPage';
 import AppShell from './layout/AppShell';
 import JuryDashboardPage from '../pages/JuryDashboardPage';
@@ -11,8 +11,23 @@ import ProfilePage from '../pages/ProfilePage';
 import TeamDashboardPage from '../pages/TeamDashboardPage';
 import TournamentsPage from '../pages/TournamentsPage';
 
-function ProtectedRoute({ children }: { children: ReactElement }) {
-  return isAuthenticated() ? children : <Navigate to="/app/login" replace />;
+function ProtectedRoute({
+  children,
+  roles,
+}: {
+  children: ReactElement;
+  roles?: AuthRole[];
+}) {
+  if (!isAuthenticated()) {
+    return <Navigate to="/app/login" replace />;
+  }
+
+  const role = getAuthRole();
+  if (roles && role && !roles.includes(role)) {
+    return <Navigate to="/app" replace />;
+  }
+
+  return children;
 }
 
 export const router = createBrowserRouter([
@@ -47,7 +62,7 @@ export const router = createBrowserRouter([
       {
         path: 'team',
         element: (
-          <ProtectedRoute>
+          <ProtectedRoute roles={['TEAM']}>
             <TeamDashboardPage />
           </ProtectedRoute>
         ),
@@ -55,7 +70,7 @@ export const router = createBrowserRouter([
       {
         path: 'jury',
         element: (
-          <ProtectedRoute>
+          <ProtectedRoute roles={['JURY']}>
             <JuryDashboardPage />
           </ProtectedRoute>
         ),
@@ -63,7 +78,7 @@ export const router = createBrowserRouter([
       {
         path: 'admin',
         element: (
-          <ProtectedRoute>
+          <ProtectedRoute roles={['ADMIN', 'ORGANIZER']}>
             <AdminDashboardPage />
           </ProtectedRoute>
         ),

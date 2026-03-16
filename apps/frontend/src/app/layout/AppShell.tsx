@@ -1,15 +1,60 @@
+import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { clearToken, isAuthenticated } from '../../lib/auth';
 import { useI18n } from '../../i18n/I18nProvider';
 import { SUPPORTED_LANGUAGES } from '../../i18n/messages';
+import { ApiError, apiRequest } from '../../lib/api';
+import {
+  AuthRole,
+  clearToken,
+  getAuthUser,
+  isAuthenticated,
+  setAuthUser,
+} from '../../lib/auth';
+
+type MeResponse = {
+  id: string;
+  email: string;
+  fullName: string;
+  role: AuthRole;
+};
 
 export default function AppShell() {
   const navigate = useNavigate();
   const authed = isAuthenticated();
   const { language, setLanguage, t } = useI18n();
+  const [role, setRole] = useState<AuthRole | null>(() => getAuthUser()?.role ?? null);
+
+  useEffect(() => {
+    if (!authed) {
+      setRole(null);
+      return;
+    }
+
+    const cached = getAuthUser();
+    if (cached) {
+      setRole(cached.role);
+    }
+
+    async function syncMe() {
+      try {
+        const me = await apiRequest<MeResponse>('/auth/me');
+        setAuthUser(me);
+        setRole(me.role);
+      } catch (requestError) {
+        if (requestError instanceof ApiError && requestError.status === 401) {
+          clearToken();
+          setRole(null);
+          navigate('/app/login', { replace: true });
+        }
+      }
+    }
+
+    void syncMe();
+  }, [authed, navigate]);
 
   function logout() {
     clearToken();
+    setRole(null);
     navigate('/app/login', { replace: true });
   }
 
@@ -45,17 +90,17 @@ export default function AppShell() {
               {t('shell.profile')}
             </NavLink>
           ) : null}
-          {authed ? (
+          {authed && role === 'TEAM' ? (
             <NavLink to="/app/team" className="nav-link">
               {t('shell.team')}
             </NavLink>
           ) : null}
-          {authed ? (
+          {authed && role === 'JURY' ? (
             <NavLink to="/app/jury" className="nav-link">
               {t('shell.jury')}
             </NavLink>
           ) : null}
-          {authed ? (
+          {authed && (role === 'ADMIN' || role === 'ORGANIZER') ? (
             <NavLink to="/app/admin" className="nav-link">
               {t('shell.admin')}
             </NavLink>
