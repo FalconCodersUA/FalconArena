@@ -8,7 +8,18 @@ type RoundStatus = 'DRAFT' | 'ACTIVE' | 'SUBMISSION_CLOSED' | 'EVALUATED';
 
 type AuthMe = {
   id: string;
+  email: string;
   role: UserRole;
+};
+
+type ManagedUserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
+
+type CreatedUser = {
+  id: string;
+  email: string;
+  fullName: string;
+  role: ManagedUserRole;
+  createdAt: string;
 };
 
 type Tournament = {
@@ -68,6 +79,10 @@ function isPositiveInteger(value: string) {
   return Number.isInteger(numeric) && numeric > 0;
 }
 
+function isValidEmail(value: string) {
+  return /^\S+@\S+\.\S+$/.test(value);
+}
+
 export default function AdminDashboardPage() {
   const { language, t } = useI18n();
 
@@ -92,6 +107,10 @@ export default function AdminDashboardPage() {
   const [createRoundError, setCreateRoundError] = useState('');
   const [createRoundNotice, setCreateRoundNotice] = useState('');
 
+  const [createUserLoading, setCreateUserLoading] = useState(false);
+  const [createUserError, setCreateUserError] = useState('');
+  const [createUserNotice, setCreateUserNotice] = useState('');
+
   const [opsByRoundId, setOpsByRoundId] = useState<Record<string, RoundOperationState>>({});
   const [minReviewersByRoundId, setMinReviewersByRoundId] = useState<Record<string, number>>({});
   const [resetByRoundId, setResetByRoundId] = useState<Record<string, boolean>>({});
@@ -114,10 +133,17 @@ export default function AdminDashboardPage() {
     toInputDateTime(new Date(now.getTime() + 24 * 60 * 60 * 1000)),
   );
 
+  const [userFullName, setUserFullName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [userPassword, setUserPassword] = useState('');
+  const [userRole, setUserRole] = useState<ManagedUserRole>('JURY');
+
   const selectedTournament =
     tournaments.find((entry) => entry.id === selectedTournamentId) ?? null;
 
   const roleAllowed = me?.role === 'ADMIN' || me?.role === 'ORGANIZER';
+  const creatableRoles: ManagedUserRole[] =
+    me?.role === 'ADMIN' ? ['JURY', 'ORGANIZER', 'TEAM', 'ADMIN'] : ['JURY', 'ORGANIZER', 'TEAM'];
 
   function updateRoundOperationState(roundId: string, patch: Partial<RoundOperationState>) {
     setOpsByRoundId((current) => ({
@@ -335,6 +361,73 @@ export default function AdminDashboardPage() {
     }
   }
 
+  async function submitUser(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setCreateUserError('');
+    setCreateUserNotice('');
+
+    const normalizedFullName = userFullName.trim();
+    const normalizedEmail = userEmail.trim().toLowerCase();
+
+    if (normalizedFullName.length < 2 || normalizedFullName.length > 80) {
+      setCreateUserError(t('adminDashboard.validation.userFullNameLength'));
+      return;
+    }
+
+    if (!normalizedEmail) {
+      setCreateUserError(t('adminDashboard.validation.userEmailRequired'));
+      return;
+    }
+
+    if (!isValidEmail(normalizedEmail)) {
+      setCreateUserError(t('adminDashboard.validation.userEmailInvalid'));
+      return;
+    }
+
+    if (normalizedEmail === me?.email.toLowerCase()) {
+      setCreateUserError(t('adminDashboard.validation.userEmailSelf'));
+      return;
+    }
+
+    if (userPassword.length < 8 || userPassword.length > 128) {
+      setCreateUserError(t('adminDashboard.validation.userPasswordLength'));
+      return;
+    }
+
+    if (!creatableRoles.includes(userRole)) {
+      setCreateUserError(t('adminDashboard.validation.userRoleInvalid'));
+      return;
+    }
+
+    setCreateUserLoading(true);
+
+    try {
+      const created = await apiRequest<CreatedUser>('/auth/admin/users', {
+        method: 'POST',
+        body: {
+          fullName: normalizedFullName,
+          email: normalizedEmail,
+          password: userPassword,
+          role: userRole,
+        },
+      });
+
+      setUserFullName('');
+      setUserEmail('');
+      setUserPassword('');
+      setUserRole(me?.role === 'ADMIN' ? 'JURY' : 'JURY');
+      setCreateUserNotice(
+        t('adminDashboard.createUserSuccess').replace('{role}', t(`profile.role.${created.role}`)),
+      );
+    } catch (requestError) {
+      setCreateUserError(
+        requestError instanceof Error ? requestError.message : t('adminDashboard.createUserFailed'),
+      );
+    } finally {
+      setCreateUserLoading(false);
+    }
+  }
+
   async function changeRoundStatus(roundId: string, status: RoundStatus) {
     if (!selectedTournamentId) {
       return;
@@ -537,6 +630,79 @@ export default function AdminDashboardPage() {
               {createTournamentLoading
                 ? t('adminDashboard.form.creatingTournament')
                 : t('adminDashboard.form.createTournament')}
+            </button>
+          </form>
+        </article>
+
+        <article className="card panel-card">
+          <h2>{t('adminDashboard.createUserTitle')}</h2>
+          <p className="inline-hint">{t('adminDashboard.createUserLead')}</p>
+
+          {createUserError ? <p className="form-error">{createUserError}</p> : null}
+          {createUserNotice ? <p className="form-success">{createUserNotice}</p> : null}
+
+          <form className="panel-form" onSubmit={submitUser} noValidate>
+            <label className="field" htmlFor="admin-user-full-name">
+              <span>{t('adminDashboard.userForm.fullName')}</span>
+              <input
+                id="admin-user-full-name"
+                type="text"
+                value={userFullName}
+                onChange={(event) => setUserFullName(event.target.value)}
+                required
+                minLength={2}
+                maxLength={80}
+              />
+            </label>
+
+            <label className="field" htmlFor="admin-user-email">
+              <span>{t('adminDashboard.userForm.email')}</span>
+              <input
+                id="admin-user-email"
+                type="email"
+                value={userEmail}
+                onChange={(event) => setUserEmail(event.target.value)}
+                required
+              />
+            </label>
+
+            <label className="field" htmlFor="admin-user-password">
+              <span>{t('adminDashboard.userForm.password')}</span>
+              <input
+                id="admin-user-password"
+                type="password"
+                value={userPassword}
+                onChange={(event) => setUserPassword(event.target.value)}
+                required
+                minLength={8}
+                maxLength={128}
+              />
+            </label>
+
+            <label className="field" htmlFor="admin-user-role">
+              <span>{t('adminDashboard.userForm.role')}</span>
+              <select
+                id="admin-user-role"
+                className="select-input"
+                value={userRole}
+                onChange={(event) => setUserRole(event.target.value as ManagedUserRole)}
+              >
+                {creatableRoles.map((role) => (
+                  <option key={role} value={role}>
+                    {t(`profile.role.${role}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <button
+              type="submit"
+              className="button button-primary"
+              disabled={createUserLoading}
+            >
+              {createUserLoading
+                ? t('adminDashboard.userForm.creatingUser')
+                : t('adminDashboard.userForm.createUser')}
             </button>
           </form>
         </article>
