@@ -73,7 +73,7 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 
 - PR у `main`: lint + test + build
 - Push/merge у `main`: deploy workflow підключається до Ubuntu через SSH і оновлює Docker Compose
-- Щоденний schedule + ручний запуск: `Nightly Smoke` виконує backend MVP smoke перевірку на production URL
+- Ручний запуск: `Smoke Check (Manual)` виконує backend MVP smoke перевірку за запитом
 
 Необхідні GitHub secrets для deploy:
 
@@ -90,13 +90,13 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 - `JWT_SECRET`
 - `VITE_API_URL` (optional, fallback підтримується)
 
-Необхідні GitHub secrets для nightly smoke:
+Необхідні GitHub secrets для ручної smoke перевірки:
 
 - `SMOKE_ADMIN_EMAIL`
 - `SMOKE_ADMIN_PASSWORD`
 - `SMOKE_TEST_USER_PASSWORD` (optional, fallback підтримується)
 
-Опційна GitHub variable для nightly smoke:
+Опційна GitHub variable для ручної smoke перевірки:
 
 - `SMOKE_BASE_URL` (за замовчуванням `https://falconarena.live`, також можна перевизначити через input у ручному запуску workflow)
 
