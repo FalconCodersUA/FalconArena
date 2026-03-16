@@ -273,19 +273,35 @@ export default function JuryDashboardPage() {
   async function submitEvaluation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedRoundId || !selectedAssignmentId) {
+      setAssignmentsError(t('juryDashboard.validation.assignmentRequired'));
+      return;
+    }
+
+    setAssignmentsError('');
+    setSaveNotice('');
+
+    const hasInvalidScore = SCORE_KEYS.some(
+      (field) => !Number.isFinite(scores[field]) || scores[field] < 0 || scores[field] > 100,
+    );
+    if (hasInvalidScore) {
+      setAssignmentsError(t('juryDashboard.validation.scoreRange'));
+      return;
+    }
+
+    const normalizedComment = comment.trim();
+    if (normalizedComment.length > 2000) {
+      setAssignmentsError(t('juryDashboard.validation.commentTooLong'));
       return;
     }
 
     setSaving(true);
-    setAssignmentsError('');
-    setSaveNotice('');
 
     try {
       await apiRequest(`/rounds/${selectedRoundId}/assignments/${selectedAssignmentId}/evaluation`, {
         method: 'POST',
         body: {
           scores,
-          comment: comment || undefined,
+          comment: normalizedComment || undefined,
         },
       });
 

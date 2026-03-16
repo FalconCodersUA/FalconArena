@@ -1,11 +1,12 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiRequest } from '../lib/api';
-import { isAuthenticated, setToken } from '../lib/auth';
+import { AuthUser, isAuthenticated, setAuthUser, setToken } from '../lib/auth';
 import { useI18n } from '../i18n/I18nProvider';
 
 type LoginResponse = {
   accessToken: string;
+  user: AuthUser;
 };
 
 export default function LoginPage() {
@@ -54,6 +55,7 @@ export default function LoginPage() {
         },
       });
       setToken(data.accessToken);
+      setAuthUser(data.user);
       navigate('/app', { replace: true });
     } catch (requestError) {
       setError(

@@ -79,6 +79,19 @@ function emptyMember(): MemberDraft {
   return { fullName: '', email: '' };
 }
 
+function isValidEmail(value: string) {
+  return /^\S+@\S+\.\S+$/.test(value);
+}
+
+function isValidHttpUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 export default function TeamDashboardPage() {
   const { language, t } = useI18n();
 
@@ -284,19 +297,53 @@ export default function TeamDashboardPage() {
       return;
     }
 
-    setRegistering(true);
     setTeamError('');
     setTeamNotice('');
 
+    const normalizedTeamName = teamName.trim();
+    if (normalizedTeamName.length < 2 || normalizedTeamName.length > 120) {
+      setTeamError(t('teamDashboard.validation.teamNameLength'));
+      return;
+    }
+
+    const normalizedMembers = members.map((member) => ({
+      fullName: member.fullName.trim(),
+      email: member.email.trim().toLowerCase(),
+    }));
+
+    const emails = new Set<string>(me?.email ? [me.email.toLowerCase()] : []);
+    for (const member of normalizedMembers) {
+      if (member.fullName.length < 2 || member.fullName.length > 120) {
+        setTeamError(t('teamDashboard.validation.memberNameLength'));
+        return;
+      }
+
+      if (!member.email) {
+        setTeamError(t('teamDashboard.validation.memberEmailRequired'));
+        return;
+      }
+
+      if (!isValidEmail(member.email)) {
+        setTeamError(t('teamDashboard.validation.memberEmailInvalid'));
+        return;
+      }
+
+      if (emails.has(member.email)) {
+        setTeamError(t('teamDashboard.validation.memberEmailDuplicate'));
+        return;
+      }
+
+      emails.add(member.email);
+    }
+
+    setRegistering(true);
+
     try {
       const payload = {
-        name: teamName,
-        organization: organization || undefined,
-        contactHandle: contactHandle || undefined,
-        members: members.map((item) => ({
-          fullName: item.fullName,
-          email: item.email,
-        })),
+        name: normalizedTeamName,
+        organization: organization.trim() || undefined,
+        contactHandle: contactHandle.trim() || undefined,
+        members: normalizedMembers,
       };
 
       const created = await apiRequest<TeamProfile>(
@@ -330,18 +377,54 @@ export default function TeamDashboardPage() {
       return;
     }
 
-    setSavingSubmission(true);
     setSubmissionError('');
     setSubmissionNotice('');
+
+    const normalizedRepoUrl = repoUrl.trim();
+    const normalizedDemoUrl = demoUrl.trim();
+    const normalizedLiveDemoUrl = liveDemoUrl.trim();
+    const normalizedSummary = shortSummary.trim();
+
+    if (!normalizedRepoUrl) {
+      setSubmissionError(t('teamDashboard.validation.repoUrlRequired'));
+      return;
+    }
+
+    if (!isValidHttpUrl(normalizedRepoUrl)) {
+      setSubmissionError(t('teamDashboard.validation.repoUrlInvalid'));
+      return;
+    }
+
+    if (!normalizedDemoUrl) {
+      setSubmissionError(t('teamDashboard.validation.demoUrlRequired'));
+      return;
+    }
+
+    if (!isValidHttpUrl(normalizedDemoUrl)) {
+      setSubmissionError(t('teamDashboard.validation.demoUrlInvalid'));
+      return;
+    }
+
+    if (normalizedLiveDemoUrl && !isValidHttpUrl(normalizedLiveDemoUrl)) {
+      setSubmissionError(t('teamDashboard.validation.liveDemoUrlInvalid'));
+      return;
+    }
+
+    if (normalizedSummary && normalizedSummary.length < 10) {
+      setSubmissionError(t('teamDashboard.validation.summaryTooShort'));
+      return;
+    }
+
+    setSavingSubmission(true);
 
     try {
       const saved = await apiRequest<TeamSubmission>(`/rounds/${activeRound.id}/submissions`, {
         method: 'POST',
         body: {
-          repoUrl,
-          demoUrl,
-          liveDemoUrl: liveDemoUrl || undefined,
-          shortSummary: shortSummary || undefined,
+          repoUrl: normalizedRepoUrl,
+          demoUrl: normalizedDemoUrl,
+          liveDemoUrl: normalizedLiveDemoUrl || undefined,
+          shortSummary: normalizedSummary || undefined,
         },
       });
 
