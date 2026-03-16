@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { apiRequest } from '../lib/api';
 import { AuthUser, isAuthenticated, setAuthUser, setToken } from '../lib/auth';
 import { useI18n } from '../i18n/I18nProvider';
@@ -113,6 +113,11 @@ export default function LoginPage() {
           {submitting ? t('login.submitting') : t('login.submit')}
         </button>
       </form>
+
+      <p className="auth-footnote">
+        {t('login.registerHint')}{' '}
+        <Link to="/app/register">{t('login.registerAction')}</Link>
+      </p>
     </article>
   );
 }

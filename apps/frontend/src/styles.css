@@ -191,6 +191,22 @@ a {
   gap: 12px;
 }
 
+.auth-footnote {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.auth-footnote a {
+  color: var(--brand-deep);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.auth-footnote a:hover {
+  text-decoration: underline;
+}
+
 .field {
   display: grid;
   gap: 6px;

@@ -110,9 +110,14 @@ export default function AppShell() {
               {t('shell.logout')}
             </button>
           ) : (
-            <NavLink to="/app/login" className="button button-primary">
-              {t('shell.login')}
-            </NavLink>
+            <>
+              <NavLink to="/app/register" className="button button-soft">
+                {t('shell.register')}
+              </NavLink>
+              <NavLink to="/app/login" className="button button-primary">
+                {t('shell.login')}
+              </NavLink>
+            </>
           )}
         </nav>
       </header>
