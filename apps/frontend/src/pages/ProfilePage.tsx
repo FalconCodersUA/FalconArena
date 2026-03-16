@@ -421,6 +421,59 @@ export default function ProfilePage() {
         </div>
       </article>
 
+      <article className="card panel-card">
+        <h2>{t('profile.overviewTitle')}</h2>
+        {summary.kind === 'TEAM' ? (
+          <div className="summary-grid compact-summary-grid">
+            <div className="summary-card">
+              <span>{t('profile.team.title')}</span>
+              <strong>{summary.items.length}</strong>
+              <p>{t('profile.overview.teamTournaments')}</p>
+            </div>
+            <div className="summary-card">
+              <span>{t('profile.team.submissions')}</span>
+              <strong>{summary.items.reduce((acc, item) => acc + item.submissionsCount, 0)}</strong>
+              <p>{t('profile.overview.teamSubmissions')}</p>
+            </div>
+          </div>
+        ) : null}
+
+        {summary.kind === 'JURY' ? (
+          <div className="summary-grid compact-summary-grid">
+            <div className="summary-card">
+              <span>{t('profile.jury.totalAssignments')}</span>
+              <strong>{summary.totalAssignments}</strong>
+              <p>{t('profile.overview.juryAssignments')}</p>
+            </div>
+            <div className="summary-card">
+              <span>{t('profile.jury.pending')}</span>
+              <strong>{summary.totalAssignments - summary.evaluatedAssignments}</strong>
+              <p>{t('profile.overview.juryPending')}</p>
+            </div>
+          </div>
+        ) : null}
+
+        {summary.kind === 'ADMIN' ? (
+          <div className="summary-grid compact-summary-grid">
+            <div className="summary-card">
+              <span>{t('profile.admin.title')}</span>
+              <strong>{summary.items.length}</strong>
+              <p>{t('profile.overview.adminTournaments')}</p>
+            </div>
+            <div className="summary-card">
+              <span>{t('profile.admin.rounds')}</span>
+              <strong>{summary.items.reduce((acc, item) => acc + item.roundsCount, 0)}</strong>
+              <p>{t('profile.overview.adminRounds')}</p>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="state-callout subtle">
+          <strong>{t('profile.nextStepTitle')}</strong>
+          <p>{t(`profile.nextStep.${summary.kind}`)}</p>
+        </div>
+      </article>
+
       {summary.kind === 'TEAM' ? (
         <article className="card panel-card">
           <h2>{t('profile.team.title')}</h2>

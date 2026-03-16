@@ -112,6 +112,10 @@ function parseScores(input: unknown): ScoreDraft {
   };
 }
 
+function getTotalDraftScore(scores: ScoreDraft) {
+  return SCORE_KEYS.reduce((acc, key) => acc + scores[key], 0);
+}
+
 export default function JuryDashboardPage() {
   const { language, t } = useI18n();
 
@@ -139,6 +143,16 @@ export default function JuryDashboardPage() {
     () => assignments.find((entry) => entry.id === selectedAssignmentId) ?? null,
     [assignments, selectedAssignmentId],
   );
+  const selectedRound = useMemo(
+    () => rounds.find((entry) => entry.id === selectedRoundId) ?? null,
+    [rounds, selectedRoundId],
+  );
+  const evaluatedAssignments = useMemo(
+    () => assignments.filter((entry) => entry.evaluation !== null).length,
+    [assignments],
+  );
+  const pendingAssignments = assignments.length - evaluatedAssignments;
+  const draftTotalScore = useMemo(() => getTotalDraftScore(scores), [scores]);
 
   const roleAllowed = me?.role === 'JURY';
 
@@ -368,6 +382,49 @@ export default function JuryDashboardPage() {
       </header>
 
       <article className="card panel-card">
+        <h2>{t('juryDashboard.summaryTitle')}</h2>
+        <div className="summary-grid">
+          <div className="summary-card">
+            <span>{t('juryDashboard.tournamentLabel')}</span>
+            <strong>{tournaments.find((entry) => entry.id === selectedTournamentId)?.title ?? '-'}</strong>
+            <p>{selectedRound ? `${t('juryDashboard.roundLabel')}: ${selectedRound.title}` : '-'}</p>
+          </div>
+          <div className="summary-card">
+            <span>{t('juryDashboard.summary.total')}</span>
+            <strong>{assignments.length}</strong>
+            <p>{t('juryDashboard.assignmentsTitle')}</p>
+          </div>
+          <div className="summary-card">
+            <span>{t('juryDashboard.summary.pending')}</span>
+            <strong>{pendingAssignments}</strong>
+            <p>{t('juryDashboard.summary.evaluated')}: {evaluatedAssignments}</p>
+          </div>
+          <div className="summary-card">
+            <span>{t('juryDashboard.summary.currentScore')}</span>
+            <strong>{selectedAssignment ? draftTotalScore : '-'}</strong>
+            <p>
+              {selectedRound?.deadlineAt
+                ? `${t('juryDashboard.summary.deadline')}: ${formatDate(selectedRound.deadlineAt, language)}`
+                : t('juryDashboard.pickAssignment')}
+            </p>
+          </div>
+        </div>
+
+        <div className="state-callout subtle">
+          <strong>{t('juryDashboard.nextStepTitle')}</strong>
+          <p>
+            {selectedAssignment
+              ? selectedAssignment.evaluation
+                ? t('juryDashboard.nextStep.reviewOrUpdate')
+                : t('juryDashboard.nextStep.evaluateSelected')
+              : assignments.length > 0
+                ? t('juryDashboard.nextStep.pickAssignment')
+                : t('juryDashboard.nextStep.waitForAssignments')}
+          </p>
+        </div>
+      </article>
+
+      <article className="card panel-card">
         <label className="field" htmlFor="jury-tournament-select">
           <span>{t('juryDashboard.tournamentLabel')}</span>
           <select
@@ -502,6 +559,12 @@ export default function JuryDashboardPage() {
                 ) : null}
                 {selectedAssignment.submission.shortSummary ? (
                   <p>{selectedAssignment.submission.shortSummary}</p>
+                ) : null}
+                {selectedAssignment.evaluation ? (
+                  <div className="state-callout subtle">
+                    <strong>{t('juryDashboard.summary.lastSaved')}</strong>
+                    <p>{t('juryDashboard.summary.savedScore')}: {selectedAssignment.evaluation.totalScore}</p>
+                  </div>
                 ) : null}
               </div>
 
