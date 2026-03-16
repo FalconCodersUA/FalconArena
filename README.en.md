@@ -106,12 +106,35 @@ Production routing is handled by Caddy (`80/443`). Database and Redis are intern
 
 Quick setup for GitHub + Ubuntu + `falconarena.live` is in `docs/deploy-quickstart.md`.
 MVP API smoke script is in `docs/mvp-smoke-api.md`.
+Acceptance checklist is in `docs/acceptance-checklist.md`.
 
 Ukrainian docs:
 
 - `docs/deploy-quickstart.uk.md`
 - `docs/mvp-smoke-api.uk.md`
 - `docs/project-decisions.uk.md`
+- `docs/acceptance-checklist.uk.md`
+
+## Role Onboarding
+
+- `TEAM`: open `https://falconarena.live/`, go to `Register`, create an account, then open `My team` and register a team in a tournament.
+- `ADMIN`: create the initial admin with the seed command, sign in, open `Admin panel`, and create a tournament and round.
+- `ORGANIZER` / `JURY`: sign in as `ADMIN`, open the user creation block in `Admin panel`, and create the required roles through the UI.
+
+## Demo Flow
+
+1. `TEAM`: register through `/app/register`, sign in, register a team in a tournament, and submit work for the active round.
+2. `ADMIN`: sign in, create a tournament, switch it to `Registration`, create a round, and create `JURY` and `ORGANIZER` users if needed.
+3. `JURY`: sign in, open `My jury`, choose a round, and evaluate assigned submissions.
+4. `ADMIN`: distribute assignments, close submissions or finish evaluation, then review the `Leaderboard`.
+
+## Pre-Demo Checks
+
+- `TEAM` can create an account through the site without manual API calls.
+- `ADMIN` can create tournaments, rounds, and other role users through the UI.
+- `JURY` can open assignments and submit category-based evaluations.
+- `Leaderboard` shows teams, category averages, and round results.
+- `npm run test`, `npm run build`, and GitHub CI all pass.
 
 ## Notes
 
