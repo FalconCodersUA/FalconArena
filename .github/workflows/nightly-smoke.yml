@@ -1,8 +1,6 @@
-name: Nightly Smoke
+name: Smoke Check (Manual)
 
 on:
-  schedule:
-    - cron: '30 2 * * *'
   workflow_dispatch:
     inputs:
       base_url:
@@ -11,7 +9,7 @@ on:
         default: ''
 
 concurrency:
-  group: nightly-smoke
+  group: smoke-check-manual
   cancel-in-progress: true
 
 jobs:

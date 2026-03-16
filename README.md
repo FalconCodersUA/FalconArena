@@ -73,7 +73,7 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 
 - PR to `main`: lint + test + build
 - Push/merge to `main`: deploy workflow connects to Ubuntu over SSH and runs Docker Compose update
-- Daily schedule + manual trigger: `Nightly Smoke` runs backend MVP smoke script against production URL
+- Manual trigger: `Smoke Check (Manual)` runs backend MVP smoke script on demand
 
 Required repository secrets for deploy:
 
@@ -90,13 +90,13 @@ Required repository secrets for deploy:
 - `JWT_SECRET`
 - `VITE_API_URL` (optional, fallback supported)
 
-Required repository secrets for nightly smoke:
+Required repository secrets for manual smoke check:
 
 - `SMOKE_ADMIN_EMAIL`
 - `SMOKE_ADMIN_PASSWORD`
 - `SMOKE_TEST_USER_PASSWORD` (optional, fallback supported)
 
-Optional repository variable for nightly smoke:
+Optional repository variable for manual smoke check:
 
 - `SMOKE_BASE_URL` (defaults to `https://falconarena.live`, can also be overridden in manual workflow dispatch input)
 
