@@ -8,7 +8,6 @@ Language versions:
 
 - English: `README.en.md`
 - Ukrainian: `README.md`
-- Ukrainian (duplicate copy): `README.uk.md`
 
 ## Tech Stack
 
