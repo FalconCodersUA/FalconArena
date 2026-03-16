@@ -144,6 +144,10 @@ export default function AdminDashboardPage() {
   const roleAllowed = me?.role === 'ADMIN' || me?.role === 'ORGANIZER';
   const creatableRoles: ManagedUserRole[] =
     me?.role === 'ADMIN' ? ['JURY', 'ORGANIZER', 'TEAM', 'ADMIN'] : ['JURY', 'ORGANIZER', 'TEAM'];
+  const runningTournaments = tournaments.filter((entry) => entry.status === 'RUNNING').length;
+  const registrationTournaments = tournaments.filter((entry) => entry.status === 'REGISTRATION').length;
+  const activeRounds = rounds.filter((entry) => entry.status === 'ACTIVE').length;
+  const closedRounds = rounds.filter((entry) => entry.status === 'SUBMISSION_CLOSED').length;
 
   function updateRoundOperationState(roundId: string, patch: Partial<RoundOperationState>) {
     setOpsByRoundId((current) => ({
@@ -557,6 +561,41 @@ export default function AdminDashboardPage() {
         <p className="lead">{t('adminDashboard.lead')}</p>
       </header>
 
+      <article className="card panel-card">
+        <h2>{t('adminDashboard.summaryTitle')}</h2>
+        <div className="summary-grid">
+          <div className="summary-card">
+            <span>{t('profile.basics.role')}</span>
+            <strong>{t(`profile.role.${me.role}`)}</strong>
+            <p>{me.email}</p>
+          </div>
+          <div className="summary-card">
+            <span>{t('adminDashboard.summary.tournaments')}</span>
+            <strong>{tournaments.length}</strong>
+            <p>{t('adminDashboard.summary.registration')}: {registrationTournaments}</p>
+          </div>
+          <div className="summary-card">
+            <span>{t('adminDashboard.summary.running')}</span>
+            <strong>{runningTournaments}</strong>
+            <p>{t('adminDashboard.summary.rounds')}: {rounds.length}</p>
+          </div>
+          <div className="summary-card">
+            <span>{t('adminDashboard.summary.activeRounds')}</span>
+            <strong>{activeRounds}</strong>
+            <p>{t('adminDashboard.summary.closedRounds')}: {closedRounds}</p>
+          </div>
+        </div>
+
+        <div className="state-callout subtle">
+          <strong>{t('adminDashboard.nextStepTitle')}</strong>
+          <p>
+            {selectedTournament
+              ? t('adminDashboard.nextStep.selectedTournament')
+              : t('adminDashboard.nextStep.createTournament')}
+          </p>
+        </div>
+      </article>
+
       <div className="team-grid">
         <article className="card panel-card">
           <h2>{t('adminDashboard.createTournamentTitle')}</h2>
@@ -733,6 +772,21 @@ export default function AdminDashboardPage() {
                 <strong>{t(`tournaments.status.${selectedTournament.status}`)}</strong>
               </div>
 
+              <div className="summary-grid compact-summary-grid">
+                <div className="summary-card">
+                  <span>{t('adminDashboard.summary.registration')}</span>
+                  <strong>
+                    {formatDate(selectedTournament.registrationOpenAt, language)}
+                  </strong>
+                  <p>{formatDate(selectedTournament.registrationCloseAt, language)}</p>
+                </div>
+                <div className="summary-card">
+                  <span>{t('adminDashboard.summary.maxTeams')}</span>
+                  <strong>{selectedTournament.maxTeams ?? '-'}</strong>
+                  <p>{selectedTournament.description || t('adminDashboard.summary.noDescription')}</p>
+                </div>
+              </div>
+
               <div className="status-actions">
                 {(['DRAFT', 'REGISTRATION', 'RUNNING', 'FINISHED'] as TournamentStatus[]).map(
                   (status) => (
@@ -861,6 +915,21 @@ export default function AdminDashboardPage() {
         ) : null}
         {!roundsLoading && tournaments.length === 0 ? <p>{t('adminDashboard.noTournaments')}</p> : null}
         {!roundsLoading && rounds.length === 0 ? <p>{t('adminDashboard.noRounds')}</p> : null}
+
+        {rounds.length > 0 ? (
+          <div className="summary-grid compact-summary-grid">
+            <div className="summary-card">
+              <span>{t('adminDashboard.summary.rounds')}</span>
+              <strong>{rounds.length}</strong>
+              <p>{t('adminDashboard.summary.activeRounds')}: {activeRounds}</p>
+            </div>
+            <div className="summary-card">
+              <span>{t('adminDashboard.summary.closedRounds')}</span>
+              <strong>{closedRounds}</strong>
+              <p>{t('adminDashboard.summary.evaluatedRounds')}: {rounds.filter((entry) => entry.status === 'EVALUATED').length}</p>
+            </div>
+          </div>
+        ) : null}
 
         {rounds.length > 0 ? (
           <div className="rounds-grid">

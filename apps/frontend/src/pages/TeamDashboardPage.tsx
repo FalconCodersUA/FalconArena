@@ -92,6 +92,32 @@ function isValidHttpUrl(value: string) {
   }
 }
 
+function formatCountdown(target: string, language: string, nowMs: number) {
+  const diff = new Date(target).getTime() - nowMs;
+  if (diff <= 0) {
+    return language === 'uk' ? 'Дедлайн минув' : 'Deadline passed';
+  }
+
+  const totalMinutes = Math.floor(diff / 60000);
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+  const minutes = totalMinutes % 60;
+  const dayLabel = language === 'uk' ? 'д' : 'd';
+  const hourLabel = language === 'uk' ? 'г' : 'h';
+  const minuteLabel = language === 'uk' ? 'хв' : 'm';
+  const parts = [] as string[];
+
+  if (days > 0) {
+    parts.push(`${days}${dayLabel}`);
+  }
+  if (hours > 0 || days > 0) {
+    parts.push(`${hours}${hourLabel}`);
+  }
+  parts.push(`${minutes}${minuteLabel}`);
+
+  return parts.join(' ');
+}
+
 export default function TeamDashboardPage() {
   const { language, t } = useI18n();
 
@@ -124,6 +150,7 @@ export default function TeamDashboardPage() {
   const [demoUrl, setDemoUrl] = useState('');
   const [liveDemoUrl, setLiveDemoUrl] = useState('');
   const [shortSummary, setShortSummary] = useState('');
+  const [nowMs, setNowMs] = useState(() => Date.now());
 
   const selectedTournament = useMemo(
     () => tournaments.find((entry) => entry.id === selectedTournamentId) ?? null,
@@ -143,9 +170,45 @@ export default function TeamDashboardPage() {
 
     return (
       activeRound.status === 'ACTIVE' &&
-      Date.now() <= new Date(activeRound.deadlineAt).getTime()
+      nowMs <= new Date(activeRound.deadlineAt).getTime()
     );
-  }, [activeRound, submission]);
+  }, [activeRound, nowMs, submission]);
+
+  const deadlineCountdown = useMemo(
+    () => (activeRound ? formatCountdown(activeRound.deadlineAt, language, nowMs) : ''),
+    [activeRound, language, nowMs],
+  );
+
+  const nextStepMessage = useMemo(() => {
+    if (!selectedTournament) {
+      return '';
+    }
+
+    if (!team) {
+      return selectedTournament.canTeamRegister
+        ? t('teamDashboard.nextStep.registerTeam')
+        : t('teamDashboard.nextStep.waitForRegistration');
+    }
+
+    if (!activeRound) {
+      return t('teamDashboard.nextStep.waitForRound');
+    }
+
+    if (!submission) {
+      return canEditSubmission
+        ? t('teamDashboard.nextStep.submitWork')
+        : t('teamDashboard.nextStep.waitForNextRound');
+    }
+
+    return canEditSubmission
+      ? t('teamDashboard.nextStep.updateSubmission')
+      : t('teamDashboard.nextStep.lockedSubmission');
+  }, [activeRound, canEditSubmission, selectedTournament, submission, t, team]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowMs(Date.now()), 60000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   function applySubmissionDraft(value: TeamSubmission | null) {
     setSubmission(value);
@@ -483,6 +546,44 @@ export default function TeamDashboardPage() {
       </header>
 
       <article className="card panel-card">
+        <h2>{t('teamDashboard.summaryTitle')}</h2>
+        <div className="summary-grid">
+          <div className="summary-card">
+            <span>{t('teamDashboard.tournamentLabel')}</span>
+            <strong>{selectedTournament?.title ?? '-'}</strong>
+            <p>{selectedTournament ? t(`tournaments.status.${selectedTournament.status}`) : '-'}</p>
+          </div>
+          <div className="summary-card">
+            <span>{t('teamDashboard.summary.registration')}</span>
+            <strong>
+              {team ? t('teamDashboard.summary.registered') : t('teamDashboard.summary.notRegistered')}
+            </strong>
+            <p>{selectedTournament?.canTeamRegister ? t('tournaments.available') : t('tournaments.closed')}</p>
+          </div>
+          <div className="summary-card">
+            <span>{t('teamDashboard.summary.activeRound')}</span>
+            <strong>{activeRound?.title ?? t('teamDashboard.noActiveRound')}</strong>
+            <p>
+              {activeRound ? `${t('teamDashboard.deadlineRemaining')}: ${deadlineCountdown}` : nextStepMessage}
+            </p>
+          </div>
+          <div className="summary-card">
+            <span>{t('teamDashboard.summary.submission')}</span>
+            <strong>
+              {submission
+                ? t(`profile.submission.${submission.status}`)
+                : t('teamDashboard.summary.noSubmission')}
+            </strong>
+            <p>
+              {submission?.submittedAt
+                ? `${t('teamDashboard.submittedAt')}: ${formatDate(submission.submittedAt, language)}`
+                : nextStepMessage}
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <article className="card panel-card">
         <label className="field" htmlFor="team-tournament-select">
           <span>{t('teamDashboard.tournamentLabel')}</span>
           <select
@@ -522,6 +623,13 @@ export default function TeamDashboardPage() {
             </>
           ) : null}
           {teamNotice ? <p className="form-success">{teamNotice}</p> : null}
+
+          {nextStepMessage ? (
+            <div className="state-callout">
+              <strong>{t('teamDashboard.nextStepTitle')}</strong>
+              <p>{nextStepMessage}</p>
+            </div>
+          ) : null}
 
           {!team && !teamLoading ? (
             selectedTournament?.canTeamRegister ? (
@@ -665,6 +773,10 @@ export default function TeamDashboardPage() {
               <p>
                 <strong>{activeRound.title}</strong>
               </p>
+              <div className="deadline-banner">
+                <span>{t('teamDashboard.deadlineRemaining')}</span>
+                <strong>{deadlineCountdown}</strong>
+              </div>
               <p>
                 {t('teamDashboard.taskStartsAt')}:{' '}
                 {formatDate(activeRound.startsAt, language)}
@@ -701,6 +813,18 @@ export default function TeamDashboardPage() {
 
           {team && activeRound ? (
             <form className="panel-form" onSubmit={submitSubmission} noValidate>
+              {submission ? (
+                <div className="state-callout subtle">
+                  <strong>{t('teamDashboard.summary.submission')}</strong>
+                  <p>
+                    {t(`profile.submission.${submission.status}`)}
+                    {submission.submittedAt
+                      ? ` · ${t('teamDashboard.submittedAt')}: ${formatDate(submission.submittedAt, language)}`
+                      : ''}
+                  </p>
+                </div>
+              ) : null}
+
               <label className="field" htmlFor="repo-url">
                 <span>{t('teamDashboard.submission.repoUrl')}</span>
                 <input

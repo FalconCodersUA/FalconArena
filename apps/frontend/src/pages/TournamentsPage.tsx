@@ -248,6 +248,27 @@ export default function TournamentsPage() {
         <p className="lead">{t('tournaments.lead')}</p>
       </header>
 
+      <article className="card panel-card">
+        <h2>{t('tournaments.summaryTitle')}</h2>
+        <div className="summary-grid">
+          <div className="summary-card">
+            <span>{t('tournaments.totalLabel')}</span>
+            <strong>{items.length}</strong>
+            <p>{t('tournaments.sections.active')}: {activeItems.length}</p>
+          </div>
+          <div className="summary-card">
+            <span>{t('tournaments.filters.registrationOpen')}</span>
+            <strong>{items.filter((item) => item.canTeamRegister).length}</strong>
+            <p>{t('tournaments.sections.upcoming')}: {upcomingItems.length}</p>
+          </div>
+          <div className="summary-card">
+            <span>{t('tournaments.filters.running')}</span>
+            <strong>{activeItems.length}</strong>
+            <p>{t('tournaments.filters.finished')}: {finishedItems.length}</p>
+          </div>
+        </div>
+      </article>
+
       {quickLoading || quickError || quickRole === 'TEAM' ? (
         <article className="card panel-card quick-team-card">
           <h2>{t('tournaments.quickBlock.title')}</h2>
@@ -274,6 +295,17 @@ export default function TournamentsPage() {
 
           {!quickLoading && !quickError && quickData ? (
             <>
+              <div className="state-callout subtle">
+                <strong>{t('tournaments.quickBlock.nextStepTitle')}</strong>
+                <p>
+                  {quickData.activeRound
+                    ? quickData.submission
+                      ? t('tournaments.quickBlock.nextStep.updateSubmission')
+                      : t('tournaments.quickBlock.nextStep.submitWork')
+                    : t('tournaments.quickBlock.nextStep.waitForRound')}
+                </p>
+              </div>
+
               <div className="quick-team-grid">
                 <div className="quick-team-item">
                   <span>{t('tournaments.quickBlock.tournament')}</span>

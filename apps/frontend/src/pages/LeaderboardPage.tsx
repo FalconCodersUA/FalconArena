@@ -87,6 +87,8 @@ export default function LeaderboardPage() {
     () => tournaments.find((entry) => entry.id === selectedTournamentId) ?? null,
     [selectedTournamentId, tournaments],
   );
+  const leaderRow = leaderboard?.rows[0] ?? null;
+  const totalEvaluations = leaderboard?.rows.reduce((acc, row) => acc + row.evaluationsCount, 0) ?? 0;
 
   function resolveDefaultTournamentId(list: Tournament[]) {
     if (initialTournamentId && list.some((entry) => entry.id === initialTournamentId)) {
@@ -199,6 +201,43 @@ export default function LeaderboardPage() {
         <p className="lead">{t('leaderboard.lead')}</p>
       </header>
 
+      {leaderboard ? (
+        <article className="card panel-card">
+          <h2>{t('leaderboard.summaryTitle')}</h2>
+          <div className="summary-grid">
+            <div className="summary-card">
+              <span>{t('leaderboard.summary.tournament')}</span>
+              <strong>{leaderboard.tournament.title}</strong>
+              <p>{t(`tournaments.status.${leaderboard.tournament.status}`)}</p>
+            </div>
+            <div className="summary-card">
+              <span>{t('leaderboard.summary.leader')}</span>
+              <strong>{leaderRow ? leaderRow.teamName : '-'}</strong>
+              <p>{leaderRow ? `${t('leaderboard.totalScore')}: ${formatScore(leaderRow.totalScore)}` : '-'}</p>
+            </div>
+            <div className="summary-card">
+              <span>{t('leaderboard.summary.teams')}</span>
+              <strong>{leaderboard.rows.length}</strong>
+              <p>{t('leaderboard.summary.evaluations')}: {totalEvaluations}</p>
+            </div>
+            <div className="summary-card">
+              <span>{t('leaderboard.summary.formula')}</span>
+              <strong>{leaderboard.scoring.scale}</strong>
+              <p>{leaderboard.scoring.totalFormula}</p>
+            </div>
+          </div>
+
+          <div className="state-callout subtle">
+            <strong>{t('leaderboard.summary.noteTitle')}</strong>
+            <p>
+              {leaderboard.tournament.status === 'FINISHED'
+                ? t('leaderboard.summary.finishedNote')
+                : t('leaderboard.summary.liveNote')}
+            </p>
+          </div>
+        </article>
+      ) : null}
+
       <article className="card panel-card">
         <label className="field" htmlFor="leaderboard-tournament-select">
           <span>{t('leaderboard.tournamentLabel')}</span>
@@ -265,7 +304,10 @@ export default function LeaderboardPage() {
             ) : (
               <div className="leaderboard-grid">
                 {leaderboard.rows.map((row) => (
-                  <article key={row.teamId} className="leaderboard-row-card">
+                  <article
+                    key={row.teamId}
+                    className={`leaderboard-row-card${row.rank === 1 ? ' leader-card' : ''}`}
+                  >
                     <div className="leaderboard-row-head">
                       <strong>
                         #{row.rank} {row.teamName}

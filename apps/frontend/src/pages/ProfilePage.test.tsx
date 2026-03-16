@@ -115,7 +115,7 @@ describe('ProfilePage', () => {
 
     await screen.findByText('User profile');
 
-    expect(screen.getByText('Team participation')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Team participation' })).toBeInTheDocument();
     expect(screen.getByText('Alpha Team')).toBeInTheDocument();
     expect(screen.getByText(/Members:\s*3/)).toBeInTheDocument();
     expect(screen.getByText(/Submissions:\s*1/)).toBeInTheDocument();
@@ -253,7 +253,7 @@ describe('ProfilePage', () => {
 
     renderProfilePage();
 
-    await screen.findByText('Created tournaments');
+    await screen.findByRole('heading', { name: 'Created tournaments' });
 
     expect(screen.getByText('Own Tournament')).toBeInTheDocument();
     expect(screen.getByText(/Rounds:\s*2/)).toBeInTheDocument();
