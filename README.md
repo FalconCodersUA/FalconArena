@@ -1,13 +1,16 @@
 # FalconArena
 
-Language versions:
+FalconArena — це платформа турнірів з програмування, де організатори проводять раунди з дедлайнами, команди здають результати, а журі оцінює роботи з формуванням таблиці лідерів.
 
-- English: `README.md`
-- Ukrainian: `README.uk.md`
+Сайт доступний за адресою: `https://falconarena.live/`
 
-FalconArena is a tournament platform where organizers run coding rounds with deadlines, teams submit results, and jury members evaluate work to build a leaderboard.
+Мовні версії:
 
-## Tech Stack
+- Українська: `README.md`
+- English: `README.en.md`
+- Українська (додаткова копія): `README.uk.md`
+
+## Технологічний стек
 
 - Frontend: React + TypeScript + Vite
 - Backend: NestJS + TypeScript
@@ -16,7 +19,7 @@ FalconArena is a tournament platform where organizers run coding rounds with dea
 - Infrastructure: Docker Compose
 - CI/CD: GitHub Actions
 
-## Monorepo Layout
+## Структура монорепозиторію
 
 ```text
 apps/
@@ -30,150 +33,115 @@ infra/
 
 ## Git Flow
 
-- Protected branch: `main`
-- Feature development: `feature/*`
-- Integration path: Pull Request into `main` only
-- No direct pushes to `main`
+- Захищена гілка: `main`
+- Розробка: `feature/*`
+- Інтеграція: тільки Pull Request у `main`
+- Прямих push у `main` немає
 
-### Small team mode (self-merge)
+### Режим малої команди (self-merge)
 
-Recommended settings for a 1-2 developer team:
+Рекомендовані налаштування для 1-2 розробників:
 
 - Require pull request before merge: enabled
-- Required approvals: `0` (self-review with checklist in PR template)
+- Required approvals: `0` (self-review за шаблоном PR)
 - Require status checks before merge: enabled (`CI / checks`)
-- Auto-deploy after merge to `main`: enabled via `deploy.yml`
+- Auto-deploy після merge у `main`: enabled через `deploy.yml`
 
-## Local Start
+## Локальний запуск
 
-1. Install dependencies:
+1. Встановіть залежності:
 
 ```bash
 npm install
 ```
 
-2. Copy Docker env template:
+2. Скопіюйте Docker env шаблон:
 
 ```bash
 cp infra/docker-compose/.env.example infra/docker-compose/.env
 ```
 
-3. Start local infrastructure and apps:
+3. Запустіть інфраструктуру і застосунки:
 
 ```bash
 docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docker-compose/.env up -d --build
 ```
 
-4. Open apps:
+4. Відкрийте сервіси:
 
-- App entrypoint (Caddy): `http://localhost`
-- Backend health via proxy: `http://localhost/health`
+- Вхідна точка (Caddy): `http://localhost`
+- Health backend через proxy: `http://localhost/health`
 
 ## CI / CD
 
-- PR to `main`: lint + test + build
-- Push/merge to `main`: deploy workflow connects to Ubuntu over SSH and runs Docker Compose update
-- Manual trigger: `Smoke Check (Manual)` runs backend MVP smoke script on demand
+- PR у `main`: lint + test + build
+- Push/merge у `main`: deploy workflow підключається до Ubuntu через SSH і оновлює Docker Compose
+- Ручний запуск: `Smoke Check (Manual)` виконує backend MVP smoke перевірку за запитом
 
-Required repository secrets for deploy:
+Необхідні GitHub secrets для deploy:
 
 - `SSH_HOST`
 - `SSH_USER`
 - `SSH_PRIVATE_KEY`
-- `SSH_PORT` (optional, defaults to `22`)
+- `SSH_PORT` (optional, default `22`)
 - `DEPLOY_PATH`
 - `GH_PULL_USERNAME`
-- `GH_PULL_TOKEN` (fine-grained token with repo read access)
+- `GH_PULL_TOKEN` (fine-grained token з доступом Read до repository)
 - `POSTGRES_DB`
 - `POSTGRES_USER`
 - `POSTGRES_PASSWORD`
 - `JWT_SECRET`
-- `VITE_API_URL` (optional, fallback supported)
+- `VITE_API_URL` (optional, fallback підтримується)
 
-Required repository secrets for manual smoke check:
+Необхідні GitHub secrets для ручної smoke перевірки:
 
 - `SMOKE_ADMIN_EMAIL`
 - `SMOKE_ADMIN_PASSWORD`
-- `SMOKE_TEST_USER_PASSWORD` (optional, fallback supported)
+- `SMOKE_TEST_USER_PASSWORD` (optional, fallback підтримується)
 
-Optional repository variable for manual smoke check:
+Опційна GitHub variable для ручної smoke перевірки:
 
-- `SMOKE_BASE_URL` (defaults to `https://falconarena.live`, can also be overridden in manual workflow dispatch input)
+- `SMOKE_BASE_URL` (за замовчуванням `https://falconarena.live`, також можна перевизначити через input у ручному запуску workflow)
 
-Production routing is handled by Caddy (`80/443`). Database and Redis are internal-only in Docker network.
+У production маршрути обслуговує Caddy (`80/443`). PostgreSQL і Redis доступні тільки у внутрішній Docker мережі.
 
-Quick setup for GitHub + Ubuntu + `falconarena.live` is in `docs/deploy-quickstart.md`.
-MVP API smoke script is in `docs/mvp-smoke-api.md`.
+## Документація
 
-Ukrainian docs:
+- Швидкий деплой: `docs/deploy-quickstart.md`
+- Smoke API перевірка MVP: `docs/mvp-smoke-api.md`
+- Архітектурні рішення: `docs/project-decisions.md`
+
+Українські версії:
 
 - `docs/deploy-quickstart.uk.md`
 - `docs/mvp-smoke-api.uk.md`
 - `docs/project-decisions.uk.md`
 
-## Notes
+## Статус backend foundation
 
-- The repository includes only the base scaffold so team members can start parallel feature work.
-- Product domain entities are pre-seeded in Prisma schema for tournaments, teams, rounds, submissions, and jury evaluation.
+- Auth + RBAC реалізовано (`JWT`, `register`, `login`, `me`, role guard)
+- Публічна реєстрація `POST /auth/register` створює тільки роль `TEAM`
+- Адмінське створення користувачів: `POST /auth/admin/users` (`ADMIN`, `ORGANIZER`)
+- Турніри, команди, раунди, сабміти, оцінювання і leaderboard реалізовані
+- Додано `POST /rounds/:roundId/finish-evaluation`
+- Міграції Prisma версіонуються у `apps/backend/prisma/migrations`
 
-## Backend Foundation Status
+## Корисні команди
 
-- Auth + RBAC base is wired in NestJS (`JWT`, `register`, `login`, `me`, role guard).
-- Current auth endpoints:
-  - `POST /auth/register` (public, always creates `TEAM` user)
-  - `POST /auth/admin/users` (roles: `ADMIN`, `ORGANIZER`)
-  - `POST /auth/login`
-  - `GET /auth/me` (Bearer token)
-  - `GET /auth/admin/ping` (roles: `ADMIN`, `ORGANIZER`)
-- Health endpoints:
-  - `GET /health`
-  - `GET /admin/health` (roles: `ADMIN`, `ORGANIZER`)
-- Tournament endpoints:
-  - `GET /tournaments`
-  - `GET /tournaments/:id`
-  - `POST /tournaments` (roles: `ADMIN`, `ORGANIZER`)
-  - `PATCH /tournaments/:id/status` (roles: `ADMIN`, `ORGANIZER`)
-- Team registration endpoints:
-  - `POST /tournaments/:tournamentId/teams/register` (roles: `TEAM`, `ADMIN`, `ORGANIZER`)
-  - `GET /tournaments/:tournamentId/teams`
-  - `GET /tournaments/:tournamentId/teams/me` (roles: `TEAM`, `ADMIN`, `ORGANIZER`)
-- Round/task endpoints:
-  - `POST /tournaments/:tournamentId/rounds` (roles: `ADMIN`, `ORGANIZER`)
-  - `GET /tournaments/:tournamentId/rounds`
-  - `GET /tournaments/:tournamentId/rounds/active`
-  - `PATCH /tournaments/:tournamentId/rounds/:roundId/status` (roles: `ADMIN`, `ORGANIZER`)
-- Submission endpoints:
-  - `POST /rounds/:roundId/submissions` (role: `TEAM`)
-  - `GET /rounds/:roundId/submissions/me` (role: `TEAM`)
-  - `GET /rounds/:roundId/submissions` (roles: `ADMIN`, `ORGANIZER`, `JURY`)
-- Evaluation endpoints:
-  - `POST /rounds/:roundId/assignments/distribute` (roles: `ADMIN`, `ORGANIZER`)
-  - `GET /rounds/:roundId/assignments` (roles: `ADMIN`, `ORGANIZER`)
-  - `GET /rounds/:roundId/assignments/me` (role: `JURY`)
-  - `POST /rounds/:roundId/assignments/:assignmentId/evaluation` (role: `JURY`, scale `0-100`)
-  - `POST /rounds/:roundId/finish-evaluation` (roles: `ADMIN`, `ORGANIZER`, supports optional `{ "force": true }`)
-- Leaderboard endpoint:
-  - `GET /tournaments/:tournamentId/leaderboard`
-
-Optional env setting:
-
-- `MAX_TEAM_MEMBERS` (default: `8`)
-
-Optional admin seed command:
+Опційний seed admin:
 
 ```bash
 SEED_ADMIN_EMAIL=admin@falconarena.live SEED_ADMIN_PASSWORD=change_me npm run prisma:seed -w @falconarena/backend
 ```
 
-Database migrations:
+Міграції:
 
-- Versioned Prisma migration files are stored in `apps/backend/prisma/migrations`.
-- Generate Prisma client: `npm run prisma:generate -w @falconarena/backend`
-- Apply tracked migrations: `npm run prisma:migrate:deploy -w @falconarena/backend`
-- For already-running databases created with `db push`, baseline once: `npm run prisma:migrate:resolve:init -w @falconarena/backend`
-- Runtime DB sync mode is controlled by `PRISMA_SYNC_MODE` (`dbpush` by default, switch to `migrate` after baseline).
+- `npm run prisma:generate -w @falconarena/backend`
+- `npm run prisma:migrate:deploy -w @falconarena/backend`
+- baseline для існуючої БД після `db push`: `npm run prisma:migrate:resolve:init -w @falconarena/backend`
+- режим runtime синхронізації БД керується `PRISMA_SYNC_MODE` (`dbpush` або `migrate`)
 
-Backend API automation scripts:
+Автоматичні API перевірки backend:
 
 - `BASE_URL=http://localhost:4000 ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run smoke:mvp -w @falconarena/backend`
 - `BASE_URL=http://localhost:4000 ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run test:e2e:finish-evaluation -w @falconarena/backend`
