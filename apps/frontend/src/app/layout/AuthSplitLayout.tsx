@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import AuthBrandLogo from './AuthBrandLogo';
 
 type Step = {
   index: number;
@@ -32,7 +33,7 @@ export default function AuthSplitLayout({
       <div className="auth-promo">
         <div className="auth-promo-art">
           <div className="auth-mark-ring">
-            <div className="auth-mark-core">A</div>
+            <AuthBrandLogo className="auth-brand-logo" />
           </div>
         </div>
 

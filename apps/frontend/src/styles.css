@@ -278,24 +278,14 @@ a {
   background: radial-gradient(circle at 50% 46%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.02) 62%, transparent 100%);
 }
 
-.auth-mark-core {
-  width: clamp(118px, 15vw, 152px);
-  height: clamp(118px, 15vw, 152px);
-  border-radius: 34px;
-  display: grid;
-  place-items: center;
-  font-family: 'Chakra Petch', sans-serif;
-  font-size: clamp(3.8rem, 5vw, 5rem);
-  font-weight: 700;
-  color: rgba(84, 44, 167, 0.42);
-  background: linear-gradient(180deg, rgba(127, 89, 212, 0.14) 0%, rgba(127, 89, 212, 0.05) 100%);
-  box-shadow: inset 0 0 0 1px rgba(84, 44, 167, 0.12);
+.auth-brand-logo {
+  width: 100%;
+  height: auto;
+  color: rgba(49, 41, 65, 0.38);
 }
 
-.auth-split-login .auth-mark-core {
-  color: rgba(168, 130, 255, 0.44);
-  background: linear-gradient(180deg, rgba(164, 127, 244, 0.16) 0%, rgba(164, 127, 244, 0.04) 100%);
-  box-shadow: inset 0 0 0 1px rgba(192, 169, 255, 0.08);
+.auth-split-login .auth-brand-logo {
+  color: rgba(255, 255, 255, 0.42);
 }
 
 .auth-promo-bottom {
