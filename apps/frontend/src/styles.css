@@ -260,32 +260,28 @@ a {
   align-items: center;
   justify-content: center;
   flex: 1;
-  min-height: 340px;
+  min-height: 390px;
 }
 
 .auth-mark-ring {
-  width: clamp(220px, 28vw, 390px);
+  width: clamp(280px, 34vw, 430px);
   aspect-ratio: 1;
   border-radius: 50%;
-  border: 3px solid rgba(112, 87, 155, 0.26);
   display: grid;
   place-items: center;
-  background: radial-gradient(circle at 50% 46%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.02) 64%, transparent 100%);
-}
-
-.auth-split-login .auth-mark-ring {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: radial-gradient(circle at 50% 46%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.02) 62%, transparent 100%);
+  background: transparent;
 }
 
 .auth-brand-logo {
   width: 100%;
   height: auto;
-  color: rgba(49, 41, 65, 0.38);
+  color: rgba(63, 48, 97, 0.72);
+  filter: drop-shadow(0 14px 36px rgba(78, 38, 146, 0.12));
 }
 
 .auth-split-login .auth-brand-logo {
-  color: rgba(255, 255, 255, 0.42);
+  color: rgba(255, 255, 255, 0.72);
+  filter: drop-shadow(0 18px 40px rgba(146, 106, 255, 0.16));
 }
 
 .auth-promo-bottom {
@@ -308,6 +304,10 @@ a {
   align-items: start;
   max-width: 540px;
   gap: 18px;
+}
+
+.auth-split-register .auth-promo-art {
+  padding-top: 18px;
 }
 
 .auth-split-login .auth-promo-bottom {

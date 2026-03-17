@@ -1,8 +1,9 @@
 type AuthBrandLogoProps = {
   className?: string;
+  opacity?: number;
 };
 
-export default function AuthBrandLogo({ className = '' }: AuthBrandLogoProps) {
+export default function AuthBrandLogo({ className = '', opacity = 0.15 }: AuthBrandLogoProps) {
   return (
     <svg
       viewBox="0 0 430 431"
@@ -11,7 +12,7 @@ export default function AuthBrandLogo({ className = '' }: AuthBrandLogoProps) {
       className={className}
       aria-hidden="true"
     >
-      <g opacity="0.15" clipPath="url(#auth-brand-logo-clip)">
+      <g opacity={opacity} clipPath="url(#auth-brand-logo-clip)">
         <path
           fillRule="evenodd"
           clipRule="evenodd"
