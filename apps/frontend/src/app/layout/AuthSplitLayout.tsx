@@ -36,24 +36,26 @@ export default function AuthSplitLayout({
           </div>
         </div>
 
-        <div className="auth-promo-copy">
-          <h2>{panelTitle}</h2>
-          <p>{panelLead}</p>
-        </div>
-
-        {steps && steps.length > 0 ? (
-          <div className="auth-steps-grid">
-            {steps.map((step) => (
-              <article
-                key={`${step.index}-${step.title}`}
-                className={`auth-step-card${step.active ? ' active' : ''}`}
-              >
-                <span>{step.index}</span>
-                <strong>{step.title}</strong>
-              </article>
-            ))}
+        <div className={`auth-promo-bottom${steps && steps.length > 0 ? ' has-steps' : ''}`}>
+          <div className="auth-promo-copy">
+            <h2>{panelTitle}</h2>
+            <p>{panelLead}</p>
           </div>
-        ) : null}
+
+          {steps && steps.length > 0 ? (
+            <div className="auth-steps-grid">
+              {steps.map((step) => (
+                <article
+                  key={`${step.index}-${step.title}`}
+                  className={`auth-step-card${step.active ? ' active' : ''}`}
+                >
+                  <span>{step.index}</span>
+                  <strong>{step.title}</strong>
+                </article>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </div>
 
       <article className="auth-surface">
