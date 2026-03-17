@@ -226,10 +226,11 @@ a {
   overflow: hidden;
   box-shadow: 0 18px 40px rgba(36, 26, 66, 0.08);
   background:
-    radial-gradient(circle at 4% 4%, rgba(94, 23, 235, 0.96) 0%, rgba(94, 23, 235, 0.52) 22%, transparent 54%),
-    radial-gradient(circle at 52% 38%, rgba(103, 46, 202, 0.24) 0%, transparent 42%),
-    radial-gradient(circle at 96% 96%, rgba(4, 57, 54, 0.35) 0%, transparent 30%),
-    linear-gradient(135deg, #5e17eb 0%, #d2beff 55%, #eef2ff 100%);
+    radial-gradient(circle at 0% 0%, rgba(94, 23, 235, 0.98) 0%, rgba(94, 23, 235, 0.62) 24%, transparent 56%),
+    radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.18) 0%, transparent 34%),
+    radial-gradient(circle at 8% 100%, rgba(51, 84, 127, 0.44) 0%, transparent 30%),
+    radial-gradient(circle at 98% 100%, rgba(62, 96, 128, 0.34) 0%, transparent 28%),
+    linear-gradient(135deg, #5e17eb 0%, #ceb8ff 58%, #f7f4ff 100%);
 }
 
 .auth-split-login .auth-promo {
@@ -260,11 +261,11 @@ a {
   align-items: center;
   justify-content: center;
   flex: 1;
-  min-height: 390px;
+  min-height: 400px;
 }
 
 .auth-mark-ring {
-  width: clamp(280px, 34vw, 430px);
+  width: min(430px, 100%);
   aspect-ratio: 1;
   border-radius: 50%;
   display: grid;
@@ -275,8 +276,12 @@ a {
 .auth-brand-logo {
   width: 100%;
   height: auto;
-  color: rgba(63, 48, 97, 0.72);
-  filter: drop-shadow(0 14px 36px rgba(78, 38, 146, 0.12));
+  color: #3a304a;
+  filter: drop-shadow(0 12px 26px rgba(94, 23, 235, 0.06));
+}
+
+.auth-split-register .auth-brand-logo {
+  transform: translateX(-4px);
 }
 
 .auth-split-login .auth-brand-logo {
@@ -307,7 +312,7 @@ a {
 }
 
 .auth-split-register .auth-promo-art {
-  padding-top: 18px;
+  padding-top: 12px;
 }
 
 .auth-split-login .auth-promo-bottom {
