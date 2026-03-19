@@ -82,6 +82,10 @@ export default function LoginPage() {
       }
     >
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
+        <div className="auth-login-divider" aria-hidden>
+          <span>{t('login.divider')}</span>
+        </div>
+
         <label className="field auth-field" htmlFor="email">
           <span>{t('login.email')}</span>
           <input
