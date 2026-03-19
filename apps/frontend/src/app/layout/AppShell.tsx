@@ -60,11 +60,27 @@ export default function AppShell() {
     navigate('/app/login', { replace: true });
   }
 
+  function goBack() {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate('/app');
+  }
+
   if (isAuthRoute) {
     return (
       <div className="page auth-page">
         <header className="auth-shell-header">
-          <div className="auth-shell-spacer" />
+          <div className="auth-nav-actions">
+            <button type="button" className="auth-nav-link" onClick={goBack}>
+              {t('shell.back')}
+            </button>
+            <Link to="/app" className="auth-nav-link">
+              {t('shell.home')}
+            </Link>
+          </div>
           <div className="language-switch auth-language-switch" role="group" aria-label={t('shell.languageAria')}>
             {SUPPORTED_LANGUAGES.map((item) => (
               <button

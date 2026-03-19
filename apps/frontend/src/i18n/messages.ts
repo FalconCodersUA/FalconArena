@@ -13,6 +13,7 @@ export const messages: TranslationMap = {
   uk: {
     shell: {
       navAria: 'Основна навігація',
+      back: 'Назад',
       home: 'Головна',
       leaderboard: 'Лідерборд',
       team: 'Моя команда',
@@ -34,6 +35,7 @@ export const messages: TranslationMap = {
       panelLead: 'Увійдіть, щоб керувати своїм профілем, турнірами та налаштуваннями.',
       title: 'Увійти',
       lead: 'Введіть свої дані, щоб увійти до облікового запису.',
+      divider: 'Або',
       email: 'Email',
       password: 'Пароль',
       submit: 'Увійти',
@@ -564,6 +566,7 @@ export const messages: TranslationMap = {
   en: {
     shell: {
       navAria: 'Primary navigation',
+      back: 'Back',
       home: 'Home',
       leaderboard: 'Leaderboard',
       team: 'My team',
@@ -585,6 +588,7 @@ export const messages: TranslationMap = {
       panelLead: 'Log in to manage your profile, tournaments, and settings.',
       title: 'Sign in',
       lead: 'Enter your personal data to log in to your account.',
+      divider: 'Or',
       email: 'Email',
       password: 'Password',
       submit: 'Sign in',

@@ -33,7 +33,11 @@ export default function AuthSplitLayout({
       <div className="auth-promo">
         <div className="auth-promo-art">
           <div className="auth-mark-ring">
-            <AuthBrandLogo className="auth-brand-logo" opacity={variant === 'register' ? 0.15 : 0.18} />
+            <AuthBrandLogo
+              className="auth-brand-logo"
+              opacity={variant === 'register' ? 0.15 : 0.18}
+              variant={variant === 'login' ? 'login-full' : 'default'}
+            />
           </div>
         </div>
 
