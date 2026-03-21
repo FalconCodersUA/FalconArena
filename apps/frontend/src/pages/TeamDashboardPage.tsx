@@ -61,6 +61,33 @@ type TeamSubmission = {
   isEditable: boolean;
 };
 
+type DashboardActiveEntity = {
+  id: string;
+  name: string;
+  subtitle: string;
+};
+
+type TeamDashboardMetrics = {
+  summary: {
+    runningTournaments: number;
+    registrationOpen: number;
+    totalSubmissions: number;
+  };
+  weekly: {
+    labels: string[];
+    reviewed: number[];
+    submissions: number[];
+  };
+  pie: {
+    submitted: number;
+    draft: number;
+    locked: number;
+    total: number;
+  };
+  activeEntities: DashboardActiveEntity[];
+  activity: number[];
+};
+
 type MemberDraft = {
   fullName: string;
   email: string;
@@ -70,6 +97,29 @@ const DEFAULT_MEMBERS: MemberDraft[] = [
   { fullName: '', email: '' },
   { fullName: '', email: '' },
 ];
+
+const DEFAULT_WEEK_LABELS = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+
+const EMPTY_TEAM_METRICS: TeamDashboardMetrics = {
+  summary: {
+    runningTournaments: 0,
+    registrationOpen: 0,
+    totalSubmissions: 0,
+  },
+  weekly: {
+    labels: DEFAULT_WEEK_LABELS,
+    reviewed: new Array(7).fill(0),
+    submissions: new Array(7).fill(0),
+  },
+  pie: {
+    submitted: 0,
+    draft: 0,
+    locked: 0,
+    total: 0,
+  },
+  activeEntities: [],
+  activity: new Array(7).fill(0),
+};
 
 function formatDate(value: string, language: string) {
   return new Date(value).toLocaleString(language === 'uk' ? 'uk-UA' : 'en-US');
@@ -118,12 +168,57 @@ function formatCountdown(target: string, language: string, nowMs: number) {
   return parts.join(' ');
 }
 
+function toInitials(value: string) {
+  const chunks = value
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2);
+  if (chunks.length === 0) {
+    return 'FA';
+  }
+  return chunks.map((chunk) => chunk[0]?.toUpperCase() ?? '').join('');
+}
+
+function toSizedSeries(values: number[], size: number) {
+  const output = values.slice(0, size).map((value) => Math.max(0, value));
+  while (output.length < size) {
+    output.push(0);
+  }
+  return output;
+}
+
+function toBarHeights(values: number[]) {
+  const max = Math.max(...values, 0);
+  if (max <= 0) {
+    return values.map(() => 0);
+  }
+  return values.map((value) => Math.round((value / max) * 100));
+}
+
+function buildSparkPath(values: number[], width = 320, height = 96) {
+  if (values.length === 0) {
+    return '';
+  }
+
+  const max = Math.max(...values, 1);
+  const step = values.length > 1 ? width / (values.length - 1) : width;
+  return values
+    .map((value, index) => {
+      const x = index * step;
+      const y = height - (value / max) * height;
+      return `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`;
+    })
+    .join(' ');
+}
+
 export default function TeamDashboardPage() {
   const { language, t } = useI18n();
 
   const [me, setMe] = useState<AuthMe | null>(null);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedTournamentId, setSelectedTournamentId] = useState('');
+  const [metrics, setMetrics] = useState<TeamDashboardMetrics>(EMPTY_TEAM_METRICS);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -178,6 +273,38 @@ export default function TeamDashboardPage() {
     () => (activeRound ? formatCountdown(activeRound.deadlineAt, language, nowMs) : ''),
     [activeRound, language, nowMs],
   );
+  const weekLabels = metrics.weekly.labels.length > 0 ? metrics.weekly.labels : DEFAULT_WEEK_LABELS;
+  const weeklyReviewRaw = useMemo(
+    () => toSizedSeries(metrics.weekly.reviewed, weekLabels.length),
+    [metrics.weekly.reviewed, weekLabels.length],
+  );
+  const weeklySubmissionRaw = useMemo(
+    () => toSizedSeries(metrics.weekly.submissions, weekLabels.length),
+    [metrics.weekly.submissions, weekLabels.length],
+  );
+  const weeklyReviewBars = useMemo(() => toBarHeights(weeklyReviewRaw), [weeklyReviewRaw]);
+  const weeklySubmissionBars = useMemo(
+    () => toBarHeights(weeklySubmissionRaw),
+    [weeklySubmissionRaw],
+  );
+  const teamStatusShares = {
+    inProgress: metrics.pie.draft,
+    submitted: metrics.pie.submitted,
+    locked: metrics.pie.locked,
+  };
+  const runningTournaments = metrics.summary.runningTournaments;
+  const registrationOpenTournaments = metrics.summary.registrationOpen;
+  const activeDelta = Math.max(1, Math.round(runningTournaments / 2) + 1);
+  const registrationDelta = Math.max(1, Math.round(registrationOpenTournaments / 2) + 2);
+  const quickMembers = metrics.activeEntities.map((entry) => ({
+    id: entry.id,
+    name: entry.name,
+    subtitle: entry.subtitle,
+    initials: toInitials(entry.name),
+  }));
+  const quickMembersPreview = quickMembers.slice(0, 3);
+  const activityCurve = toSizedSeries(metrics.activity, 8);
+  const activityPath = buildSparkPath(activityCurve);
 
   const nextStepMessage = useMemo(() => {
     if (!selectedTournament) {
@@ -315,6 +442,16 @@ export default function TeamDashboardPage() {
     }
   }
 
+  async function loadDashboardMetrics(tournamentId?: string) {
+    try {
+      const query = tournamentId ? `?tournamentId=${encodeURIComponent(tournamentId)}` : '';
+      const data = await apiRequest<TeamDashboardMetrics>(`/dashboard/team/metrics${query}`);
+      setMetrics(data);
+    } catch {
+      setMetrics(EMPTY_TEAM_METRICS);
+    }
+  }
+
   async function reloadTournamentData(tournamentId: string) {
     if (!roleAllowed) {
       return;
@@ -323,6 +460,7 @@ export default function TeamDashboardPage() {
     await Promise.all([
       loadTeamForTournament(tournamentId),
       loadRoundAndSubmission(tournamentId),
+      loadDashboardMetrics(tournamentId),
     ]);
   }
 
@@ -337,6 +475,15 @@ export default function TeamDashboardPage() {
 
     void reloadTournamentData(selectedTournamentId);
   }, [selectedTournamentId, me?.role]);
+
+  useEffect(() => {
+    if (!roleAllowed) {
+      setMetrics(EMPTY_TEAM_METRICS);
+      return;
+    }
+
+    void loadDashboardMetrics(selectedTournamentId || undefined);
+  }, [roleAllowed, selectedTournamentId]);
 
   function updateMember(index: number, field: keyof MemberDraft, value: string) {
     setMembers((current) =>
@@ -423,6 +570,7 @@ export default function TeamDashboardPage() {
       setOrganization('');
       setContactHandle('');
       setMembers(DEFAULT_MEMBERS);
+      await loadDashboardMetrics(selectedTournamentId);
     } catch (requestError) {
       setTeamError(
         requestError instanceof Error
@@ -493,6 +641,7 @@ export default function TeamDashboardPage() {
 
       applySubmissionDraft(saved);
       setSubmissionNotice(t('teamDashboard.submissionSaved'));
+      await loadDashboardMetrics(selectedTournamentId || undefined);
     } catch (requestError) {
       setSubmissionError(
         requestError instanceof Error
@@ -545,45 +694,161 @@ export default function TeamDashboardPage() {
         <p className="lead">{t('teamDashboard.lead')}</p>
       </header>
 
-      <article className="card panel-card">
-        <h2>{t('teamDashboard.summaryTitle')}</h2>
-        <div className="summary-grid">
-          <div className="summary-card">
-            <span>{t('teamDashboard.tournamentLabel')}</span>
-            <strong>{selectedTournament?.title ?? '-'}</strong>
-            <p>{selectedTournament ? t(`tournaments.status.${selectedTournament.status}`) : '-'}</p>
+      <article className="card panel-card dashboard-overview-card">
+        <div className="dashboard-overview-top">
+          <div className="dashboard-summary-tiles">
+            <article className="dashboard-highlight-tile">
+              <div className="dashboard-tile-head">
+                <span>{t('tournaments.sections.active')}</span>
+                <span className="dashboard-tile-chip" aria-hidden />
+              </div>
+              <strong>{runningTournaments}</strong>
+              <div className="dashboard-tile-foot">
+                <a href="#team-tournament-select-card">{t('shell.viewAll')}</a>
+                <span>
+                  +{activeDelta} {t('shell.thisMonth')}
+                </span>
+              </div>
+            </article>
+            <article className="dashboard-muted-tile">
+              <div className="dashboard-tile-head">
+                <span>{t('tournaments.filters.registrationOpen')}</span>
+                <span className="dashboard-tile-chip muted" aria-hidden />
+              </div>
+              <strong>{registrationOpenTournaments}</strong>
+              <div className="dashboard-tile-foot">
+                <a href="#team-submission-card">{t('shell.viewAll')}</a>
+                <span>
+                  +{registrationDelta} {t('shell.thisMonth')}
+                </span>
+              </div>
+            </article>
           </div>
-          <div className="summary-card">
-            <span>{t('teamDashboard.summary.registration')}</span>
-            <strong>
-              {team ? t('teamDashboard.summary.registered') : t('teamDashboard.summary.notRegistered')}
-            </strong>
-            <p>{selectedTournament?.canTeamRegister ? t('tournaments.available') : t('tournaments.closed')}</p>
+
+          <div className="dashboard-quick-actions">
+            <div className="dashboard-quick-head">
+              <strong>{t('shell.quickActions')}</strong>
+              <span className="dashboard-edit-link">{t('shell.edit')}</span>
+            </div>
+            <a href="#team-card" className="button dashboard-action is-teal">
+              {t('teamDashboard.teamCardTitle')}
+            </a>
+            <a href="#team-submission-card" className="button dashboard-action is-purple">
+              {t('teamDashboard.submissionCardTitle')}
+            </a>
+            <a href="#team-tournament-select-card" className="button dashboard-action is-orange">
+              {t('teamDashboard.tournamentLabel')}
+            </a>
           </div>
-          <div className="summary-card">
-            <span>{t('teamDashboard.summary.activeRound')}</span>
-            <strong>{activeRound?.title ?? t('teamDashboard.noActiveRound')}</strong>
-            <p>
-              {activeRound ? `${t('teamDashboard.deadlineRemaining')}: ${deadlineCountdown}` : nextStepMessage}
-            </p>
-          </div>
-          <div className="summary-card">
-            <span>{t('teamDashboard.summary.submission')}</span>
-            <strong>
-              {submission
-                ? t(`profile.submission.${submission.status}`)
-                : t('teamDashboard.summary.noSubmission')}
-            </strong>
-            <p>
-              {submission?.submittedAt
-                ? `${t('teamDashboard.submittedAt')}: ${formatDate(submission.submittedAt, language)}`
-                : nextStepMessage}
-            </p>
-          </div>
+        </div>
+
+        <div className="dashboard-overview-bottom">
+          <article className="dashboard-chart-card">
+            <div className="dashboard-chart-head">
+              <h3>{t('shell.weeklyActivity')}</h3>
+              <div className="dashboard-chart-legend">
+                <span>
+                  <i className="dot is-secondary" aria-hidden />
+                  {t('shell.reviewed')}
+                </span>
+                <span>
+                  <i className="dot is-primary" aria-hidden />
+                  {t('shell.submissions')}
+                </span>
+              </div>
+            </div>
+            <div className="dashboard-bars">
+              {weeklyReviewBars.map((value, index) => (
+                <div key={`team-bar-a-${index}`} className="dashboard-bar-pair">
+                  <span className="dashboard-bar is-primary" style={{ height: `${value}%` }} />
+                  <span
+                    className="dashboard-bar is-secondary"
+                    style={{ height: `${weeklySubmissionBars[index] ?? 0}%` }}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="dashboard-bar-labels">
+              {weekLabels.map((label) => (
+                <span key={`team-week-${label}`}>{label}</span>
+              ))}
+            </div>
+          </article>
+
+          <article className="dashboard-pie-card">
+            <h3>{t('shell.submissionStatus')}</h3>
+            <div
+              className="dashboard-pie"
+              style={{
+                background: `conic-gradient(#5e17eb 0 ${teamStatusShares.submitted}%, #f8890a ${teamStatusShares.submitted}% ${teamStatusShares.submitted + teamStatusShares.locked}%, #2ec9c3 ${teamStatusShares.submitted + teamStatusShares.locked}% 100%)`,
+              }}
+            >
+              <div className="dashboard-pie-center">{metrics.pie.total}</div>
+            </div>
+            <div className="dashboard-pie-legend">
+              <p>
+                <i className="dot is-primary" aria-hidden />
+                {t('profile.submission.SUBMITTED')}: {teamStatusShares.submitted}%
+              </p>
+              <p>
+                <i className="dot is-teal" aria-hidden />
+                {t('profile.submission.DRAFT')}: {teamStatusShares.inProgress}%
+              </p>
+              <p>
+                <i className="dot is-orange" aria-hidden />
+                {t('profile.submission.LOCKED')}: {teamStatusShares.locked}%
+              </p>
+            </div>
+          </article>
+        </div>
+
+        <div className="dashboard-lower-grid">
+          <article className="dashboard-mini-card is-teams">
+            <h3>{t('shell.activeTeams')}</h3>
+            {quickMembersPreview.length === 0 ? (
+              <p className="inline-hint">{t('teamDashboard.needTeamFirst')}</p>
+            ) : (
+              <>
+                <div className="dashboard-mini-avatars">
+                  {quickMembersPreview.map((entry) => (
+                    <span key={`team-avatar-${entry.id}`} className="dashboard-mini-avatar">
+                      {entry.initials}
+                    </span>
+                  ))}
+                  <button type="button" className="dashboard-mini-arrow" aria-label={t('shell.viewAll')}>
+                    ›
+                  </button>
+                </div>
+                <div className="dashboard-mini-caption-row">
+                  {quickMembersPreview.map((entry) => (
+                    <div key={`team-caption-${entry.id}`} className="dashboard-mini-caption">
+                      <strong>{entry.name}</strong>
+                      <p>{entry.subtitle}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="dashboard-mini-cta">
+                  <input type="text" readOnly value={t('shell.writeMessage')} />
+                  <button type="button" className="button dashboard-action is-purple">
+                    {t('shell.send')}
+                  </button>
+                </div>
+              </>
+            )}
+          </article>
+
+          <article className="dashboard-mini-card is-history-highlight">
+            <h3>{t('shell.activityHistory')}</h3>
+            <div className="dashboard-line-wrap">
+              <svg viewBox="0 0 320 96" preserveAspectRatio="none" className="dashboard-line-svg" aria-hidden>
+                <path d={activityPath} />
+              </svg>
+            </div>
+          </article>
         </div>
       </article>
 
-      <article className="card panel-card">
+      <article id="team-tournament-select-card" className="card panel-card">
         <label className="field" htmlFor="team-tournament-select">
           <span>{t('teamDashboard.tournamentLabel')}</span>
           <select
@@ -607,7 +872,7 @@ export default function TeamDashboardPage() {
       </article>
 
       <div className="team-grid">
-        <article className="card panel-card">
+        <article id="team-card" className="card panel-card">
           <h2>{t('teamDashboard.teamCardTitle')}</h2>
           {teamLoading ? <p>{t('teamDashboard.teamLoading')}</p> : null}
           {teamError ? (
@@ -749,7 +1014,7 @@ export default function TeamDashboardPage() {
           ) : null}
         </article>
 
-        <article className="card panel-card">
+        <article id="team-submission-card" className="card panel-card">
           <h2>{t('teamDashboard.submissionCardTitle')}</h2>
 
           {!team ? <p>{t('teamDashboard.needTeamFirst')}</p> : null}

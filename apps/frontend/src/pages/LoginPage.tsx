@@ -20,7 +20,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated()) {
-      navigate('/app', { replace: true });
+      navigate('/app/dashboard', { replace: true });
     }
   }, [navigate]);
 
@@ -57,7 +57,7 @@ export default function LoginPage() {
       });
       setToken(data.accessToken);
       setAuthUser(data.user);
-      navigate('/app', { replace: true });
+      navigate('/app/dashboard', { replace: true });
     } catch (requestError) {
       setError(
         requestError instanceof Error ? requestError.message : t('login.requestFailed'),
