@@ -136,9 +136,43 @@ type AdminRoleSummary = {
 };
 
 type RoleSummary = TeamRoleSummary | JuryRoleSummary | AdminRoleSummary;
+type ProfileSettingsTab = 'edit' | 'preferences' | 'security';
+
+type ProfileSettingsPayload = {
+  edit: {
+    fullName: string;
+    userName: string;
+    email: string;
+    dateOfBirth: string;
+    presentAddress: string;
+    permanentAddress: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  };
+  preferences: {
+    interfaceLanguage: string;
+    timeZone: string;
+    notifyAnnouncements: boolean;
+    notifyReviews: boolean;
+    notifyMessages: boolean;
+  };
+};
 
 function formatDate(value: string, language: string) {
   return new Date(value).toLocaleString(language === 'uk' ? 'uk-UA' : 'en-US');
+}
+
+function initialsFromName(fullName: string) {
+  const value = fullName
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((item) => item.charAt(0).toUpperCase())
+    .join('');
+
+  return value || 'FA';
 }
 
 export default function ProfilePage() {
@@ -148,6 +182,29 @@ export default function ProfilePage() {
   const [error, setError] = useState('');
   const [me, setMe] = useState<AuthMe | null>(null);
   const [summary, setSummary] = useState<RoleSummary | null>(null);
+  const [activeSettingsTab, setActiveSettingsTab] = useState<ProfileSettingsTab>('edit');
+  const [settingsNotice, setSettingsNotice] = useState('');
+  const [settingsError, setSettingsError] = useState('');
+  const [settingsSaving, setSettingsSaving] = useState(false);
+
+  const [editFullName, setEditFullName] = useState('');
+  const [editUserName, setEditUserName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editDateOfBirth, setEditDateOfBirth] = useState('1990-01-25');
+  const [editPresentAddress, setEditPresentAddress] = useState('San Jose, California, USA');
+  const [editPermanentAddress, setEditPermanentAddress] = useState('San Jose, California, USA');
+  const [editCity, setEditCity] = useState('San Jose');
+  const [editPostalCode, setEditPostalCode] = useState('45962');
+  const [editCountry, setEditCountry] = useState('USA');
+
+  const [prefLanguage, setPrefLanguage] = useState(language === 'uk' ? 'Українська' : 'English');
+  const [prefTimeZone, setPrefTimeZone] = useState('(GMT+02:00) Eastern Europe');
+  const [prefNotificationsAnnouncements, setPrefNotificationsAnnouncements] = useState(true);
+  const [prefNotificationsReviews, setPrefNotificationsReviews] = useState(false);
+  const [prefNotificationsMessages, setPrefNotificationsMessages] = useState(true);
+
+  const [securityCurrentPassword, setSecurityCurrentPassword] = useState('');
+  const [securityNewPassword, setSecurityNewPassword] = useState('');
 
   const roleLabel = useMemo(() => {
     if (!me) {
@@ -340,6 +397,24 @@ export default function ProfilePage() {
     };
   }
 
+  function applySettingsPayload(payload: ProfileSettingsPayload) {
+    setEditFullName(payload.edit.fullName);
+    setEditUserName(payload.edit.userName);
+    setEditEmail(payload.edit.email);
+    setEditDateOfBirth(payload.edit.dateOfBirth || '1990-01-25');
+    setEditPresentAddress(payload.edit.presentAddress || '');
+    setEditPermanentAddress(payload.edit.permanentAddress || '');
+    setEditCity(payload.edit.city || '');
+    setEditPostalCode(payload.edit.postalCode || '');
+    setEditCountry(payload.edit.country || '');
+
+    setPrefLanguage(payload.preferences.interfaceLanguage || 'English');
+    setPrefTimeZone(payload.preferences.timeZone || '(GMT+02:00) Eastern Europe');
+    setPrefNotificationsAnnouncements(payload.preferences.notifyAnnouncements);
+    setPrefNotificationsReviews(payload.preferences.notifyReviews);
+    setPrefNotificationsMessages(payload.preferences.notifyMessages);
+  }
+
   async function loadProfile() {
     setLoading(true);
     setError('');
@@ -351,6 +426,18 @@ export default function ProfilePage() {
       ]);
 
       setMe(meData);
+      setEditFullName(meData.fullName);
+      setEditUserName(meData.fullName);
+      setEditEmail(meData.email);
+      setSettingsError('');
+      setSettingsNotice('');
+
+      try {
+        const settings = await apiRequest<ProfileSettingsPayload>('/profile/settings');
+        applySettingsPayload(settings);
+      } catch {
+        // keep defaults if settings endpoint is unavailable
+      }
 
       if (meData.role === 'TEAM') {
         setSummary(await loadTeamSummary(tournamentData));
@@ -391,6 +478,310 @@ export default function ProfilePage() {
     return <article className="card state-card">{t('profile.loadFailed')}</article>;
   }
 
+  async function saveSettings(tab: ProfileSettingsTab) {
+    setSettingsSaving(true);
+    setSettingsError('');
+    setSettingsNotice('');
+
+    try {
+      let body: Record<string, unknown>;
+
+      if (tab === 'edit') {
+        body = {
+          edit: {
+            fullName: editFullName,
+            userName: editUserName,
+            email: editEmail,
+            dateOfBirth: editDateOfBirth,
+            presentAddress: editPresentAddress,
+            permanentAddress: editPermanentAddress,
+            city: editCity,
+            postalCode: editPostalCode,
+            country: editCountry,
+          },
+        };
+      } else if (tab === 'preferences') {
+        body = {
+          preferences: {
+            interfaceLanguage: prefLanguage,
+            timeZone: prefTimeZone,
+            notifyAnnouncements: prefNotificationsAnnouncements,
+            notifyReviews: prefNotificationsReviews,
+            notifyMessages: prefNotificationsMessages,
+          },
+        };
+      } else {
+        body = {
+          security: {
+            currentPassword: securityCurrentPassword,
+            newPassword: securityNewPassword,
+          },
+        };
+      }
+
+      const settings = await apiRequest<ProfileSettingsPayload>('/profile/settings', {
+        method: 'PATCH',
+        body,
+      });
+      applySettingsPayload(settings);
+      setSettingsNotice(t('profile.settings.saved'));
+
+      if (tab === 'security') {
+        setSecurityCurrentPassword('');
+        setSecurityNewPassword('');
+      }
+    } catch (requestError) {
+      setSettingsError(requestError instanceof Error ? requestError.message : t('profile.loadFailed'));
+    } finally {
+      setSettingsSaving(false);
+    }
+  }
+
+  function renderSettingsContent() {
+    if (activeSettingsTab === 'edit') {
+      return (
+        <form
+          className="profile-settings-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void saveSettings('edit');
+          }}
+        >
+          <div className="profile-edit-layout">
+            <div className="profile-edit-avatar-wrap">
+              <div className="profile-edit-avatar">{initialsFromName(editFullName)}</div>
+              <button type="button" className="profile-edit-avatar-button" aria-label={t('profile.settings.editAvatar')}>
+                +
+              </button>
+            </div>
+
+            <div className="profile-settings-fields">
+              <label className="field" htmlFor="profile-edit-name">
+                <span>{t('profile.settings.edit.fullName')}</span>
+                <input
+                  id="profile-edit-name"
+                  type="text"
+                  value={editFullName}
+                  onChange={(event) => setEditFullName(event.target.value)}
+                  required
+                />
+              </label>
+
+              <label className="field" htmlFor="profile-edit-username">
+                <span>{t('profile.settings.edit.userName')}</span>
+                <input
+                  id="profile-edit-username"
+                  type="text"
+                  value={editUserName}
+                  onChange={(event) => setEditUserName(event.target.value)}
+                  required
+                />
+              </label>
+
+              <label className="field" htmlFor="profile-edit-email">
+                <span>{t('profile.settings.edit.email')}</span>
+                <input
+                  id="profile-edit-email"
+                  type="email"
+                  value={editEmail}
+                  onChange={(event) => setEditEmail(event.target.value)}
+                  required
+                />
+              </label>
+
+              <label className="field" htmlFor="profile-edit-password">
+                <span>{t('profile.settings.edit.password')}</span>
+                <input id="profile-edit-password" type="password" value="********" readOnly />
+              </label>
+
+              <label className="field" htmlFor="profile-edit-dob">
+                <span>{t('profile.settings.edit.dateOfBirth')}</span>
+                <input
+                  id="profile-edit-dob"
+                  type="date"
+                  value={editDateOfBirth}
+                  onChange={(event) => setEditDateOfBirth(event.target.value)}
+                />
+              </label>
+
+              <label className="field" htmlFor="profile-edit-present-address">
+                <span>{t('profile.settings.edit.presentAddress')}</span>
+                <input
+                  id="profile-edit-present-address"
+                  type="text"
+                  value={editPresentAddress}
+                  onChange={(event) => setEditPresentAddress(event.target.value)}
+                />
+              </label>
+
+              <label className="field" htmlFor="profile-edit-permanent-address">
+                <span>{t('profile.settings.edit.permanentAddress')}</span>
+                <input
+                  id="profile-edit-permanent-address"
+                  type="text"
+                  value={editPermanentAddress}
+                  onChange={(event) => setEditPermanentAddress(event.target.value)}
+                />
+              </label>
+
+              <label className="field" htmlFor="profile-edit-city">
+                <span>{t('profile.settings.edit.city')}</span>
+                <input
+                  id="profile-edit-city"
+                  type="text"
+                  value={editCity}
+                  onChange={(event) => setEditCity(event.target.value)}
+                />
+              </label>
+
+              <label className="field" htmlFor="profile-edit-postal-code">
+                <span>{t('profile.settings.edit.postalCode')}</span>
+                <input
+                  id="profile-edit-postal-code"
+                  type="text"
+                  value={editPostalCode}
+                  onChange={(event) => setEditPostalCode(event.target.value)}
+                />
+              </label>
+
+              <label className="field" htmlFor="profile-edit-country">
+                <span>{t('profile.settings.edit.country')}</span>
+                <input
+                  id="profile-edit-country"
+                  type="text"
+                  value={editCountry}
+                  onChange={(event) => setEditCountry(event.target.value)}
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="profile-settings-actions">
+            <button type="submit" className="button button-primary" disabled={settingsSaving}>
+              {t('profile.settings.save')}
+            </button>
+          </div>
+        </form>
+      );
+    }
+
+    if (activeSettingsTab === 'preferences') {
+      return (
+        <form
+          className="profile-settings-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void saveSettings('preferences');
+          }}
+        >
+          <div className="profile-settings-fields two-col">
+            <label className="field" htmlFor="profile-pref-language">
+              <span>{t('profile.settings.preferences.interfaceLanguage')}</span>
+              <input
+                id="profile-pref-language"
+                type="text"
+                value={prefLanguage}
+                onChange={(event) => setPrefLanguage(event.target.value)}
+              />
+            </label>
+
+            <label className="field" htmlFor="profile-pref-timezone">
+              <span>{t('profile.settings.preferences.timeZone')}</span>
+              <input
+                id="profile-pref-timezone"
+                type="text"
+                value={prefTimeZone}
+                onChange={(event) => setPrefTimeZone(event.target.value)}
+              />
+            </label>
+          </div>
+
+          <div className="profile-preferences-block">
+            <strong>{t('profile.settings.preferences.notifications')}</strong>
+
+            <label className="profile-toggle-row" htmlFor="pref-notify-announcements">
+              <button
+                id="pref-notify-announcements"
+                type="button"
+                className={`settings-toggle${prefNotificationsAnnouncements ? ' on' : ''}`}
+                onClick={() => setPrefNotificationsAnnouncements((current) => !current)}
+                aria-pressed={prefNotificationsAnnouncements}
+              />
+              <span>{t('profile.settings.preferences.notifyAnnouncements')}</span>
+            </label>
+
+            <label className="profile-toggle-row" htmlFor="pref-notify-reviews">
+              <button
+                id="pref-notify-reviews"
+                type="button"
+                className={`settings-toggle${prefNotificationsReviews ? ' on' : ''}`}
+                onClick={() => setPrefNotificationsReviews((current) => !current)}
+                aria-pressed={prefNotificationsReviews}
+              />
+              <span>{t('profile.settings.preferences.notifyReviews')}</span>
+            </label>
+
+            <label className="profile-toggle-row" htmlFor="pref-notify-messages">
+              <button
+                id="pref-notify-messages"
+                type="button"
+                className={`settings-toggle${prefNotificationsMessages ? ' on' : ''}`}
+                onClick={() => setPrefNotificationsMessages((current) => !current)}
+                aria-pressed={prefNotificationsMessages}
+              />
+              <span>{t('profile.settings.preferences.notifyMessages')}</span>
+            </label>
+          </div>
+
+          <div className="profile-settings-actions">
+            <button type="submit" className="button button-primary" disabled={settingsSaving}>
+              {t('profile.settings.save')}
+            </button>
+          </div>
+        </form>
+      );
+    }
+
+    return (
+      <form
+        className="profile-settings-form profile-settings-security"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void saveSettings('security');
+        }}
+      >
+        <h3>{t('profile.settings.security.title')}</h3>
+        <label className="field" htmlFor="profile-security-current-password">
+          <span>{t('profile.settings.security.currentPassword')}</span>
+          <input
+            id="profile-security-current-password"
+            type="password"
+            value={securityCurrentPassword}
+            onChange={(event) => setSecurityCurrentPassword(event.target.value)}
+            required
+          />
+        </label>
+
+        <label className="field" htmlFor="profile-security-new-password">
+          <span>{t('profile.settings.security.newPassword')}</span>
+          <input
+            id="profile-security-new-password"
+            type="password"
+            value={securityNewPassword}
+            onChange={(event) => setSecurityNewPassword(event.target.value)}
+            required
+          />
+        </label>
+
+        <div className="profile-settings-actions">
+          <button type="submit" className="button button-primary" disabled={settingsSaving}>
+            {t('profile.settings.save')}
+          </button>
+        </div>
+      </form>
+    );
+  }
+
   return (
     <section className="team-dashboard">
       <header className="section-header">
@@ -398,6 +789,32 @@ export default function ProfilePage() {
         <h1>{t('profile.title')}</h1>
         <p className="lead">{t('profile.lead')}</p>
       </header>
+
+      <article className="card profile-settings-shell">
+        <h2>{t('profile.settings.title')}</h2>
+
+        <div className="profile-settings-tabs" role="tablist" aria-label={t('profile.settings.tabsLabel')}>
+          {(['edit', 'preferences', 'security'] as ProfileSettingsTab[]).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              role="tab"
+              aria-selected={activeSettingsTab === tab}
+              className={`profile-settings-tab${activeSettingsTab === tab ? ' active' : ''}`}
+              onClick={() => {
+                setActiveSettingsTab(tab);
+                setSettingsNotice('');
+              }}
+            >
+              {t(`profile.settings.tabs.${tab}`)}
+            </button>
+          ))}
+        </div>
+
+        {settingsNotice ? <p className="form-success">{settingsNotice}</p> : null}
+        {settingsError ? <p className="form-error">{settingsError}</p> : null}
+        {renderSettingsContent()}
+      </article>
 
       <article className="card panel-card">
         <h2>{t('profile.basics.title')}</h2>

@@ -1,0 +1,191 @@
+import { useEffect, useMemo, useState } from 'react';
+import { useI18n } from '../i18n/I18nProvider';
+import { apiRequest } from '../lib/api';
+
+type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
+
+type Tournament = {
+  id: string;
+  title: string;
+  status: TournamentStatus;
+};
+
+type TeamRow = {
+  id: string;
+  name: string;
+  organization: string | null;
+  createdAt: string;
+  membersCount: number;
+};
+
+function formatDate(value: string, language: string) {
+  return new Date(value).toLocaleString(language === 'uk' ? 'uk-UA' : 'en-US');
+}
+
+export default function TeamsPage() {
+  const { language, t } = useI18n();
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [selectedTournamentId, setSelectedTournamentId] = useState('');
+  const [teams, setTeams] = useState<TeamRow[]>([]);
+  const [loadingTournaments, setLoadingTournaments] = useState(true);
+  const [loadingTeams, setLoadingTeams] = useState(false);
+  const [error, setError] = useState('');
+
+  const selectedTournament =
+    tournaments.find((item) => item.id === selectedTournamentId) ?? null;
+  const averageMembers = teams.length
+    ? Math.round((teams.reduce((acc, item) => acc + item.membersCount, 0) / teams.length) * 10) / 10
+    : 0;
+
+  async function loadTournaments() {
+    setLoadingTournaments(true);
+    setError('');
+
+    try {
+      const data = await apiRequest<Tournament[]>('/tournaments');
+      setTournaments(data);
+
+      if (data.length === 0) {
+        setSelectedTournamentId('');
+        setTeams([]);
+        return;
+      }
+
+      const running = data.find((item) => item.status === 'RUNNING');
+      const registration = data.find((item) => item.status === 'REGISTRATION');
+      const defaultId = running?.id ?? registration?.id ?? data[0].id;
+      setSelectedTournamentId((current) => current || defaultId);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : t('teamsPage.loadFailed'));
+      setTournaments([]);
+      setSelectedTournamentId('');
+      setTeams([]);
+    } finally {
+      setLoadingTournaments(false);
+    }
+  }
+
+  async function loadTeams(tournamentId: string) {
+    setLoadingTeams(true);
+    setError('');
+
+    try {
+      const data = await apiRequest<TeamRow[]>(`/tournaments/${tournamentId}/teams`);
+      setTeams(data);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : t('teamsPage.loadFailed'));
+      setTeams([]);
+    } finally {
+      setLoadingTeams(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadTournaments();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedTournamentId) {
+      setTeams([]);
+      return;
+    }
+
+    void loadTeams(selectedTournamentId);
+  }, [selectedTournamentId]);
+
+  const hasData = useMemo(
+    () => !loadingTournaments && tournaments.length > 0,
+    [loadingTournaments, tournaments.length],
+  );
+
+  if (loadingTournaments) {
+    return <article className="card state-card">{t('teamsPage.loading')}</article>;
+  }
+
+  if (error && tournaments.length === 0) {
+    return (
+      <article className="card state-card">
+        <p className="form-error">{error}</p>
+        <button type="button" className="button button-soft" onClick={loadTournaments}>
+          {t('teamsPage.retry')}
+        </button>
+      </article>
+    );
+  }
+
+  if (!hasData) {
+    return <article className="card state-card">{t('teamsPage.emptyTournaments')}</article>;
+  }
+
+  return (
+    <section className="team-dashboard">
+      <header className="section-header">
+        <p className="eyebrow">{t('teamsPage.eyebrow')}</p>
+        <h1>{t('teamsPage.title')}</h1>
+        <p className="lead">{t('teamsPage.lead')}</p>
+      </header>
+
+      <article className="card panel-card">
+        <label className="field" htmlFor="teams-page-tournament-select">
+          <span>{t('teamsPage.tournamentLabel')}</span>
+          <select
+            id="teams-page-tournament-select"
+            className="select-input"
+            value={selectedTournamentId}
+            onChange={(event) => setSelectedTournamentId(event.target.value)}
+          >
+            {tournaments.map((tournament) => (
+              <option key={tournament.id} value={tournament.id}>
+                {tournament.title}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="status-row">
+          <span>{t('teamsPage.tournamentStatus')}</span>
+          <strong>{selectedTournament ? t(`tournaments.status.${selectedTournament.status}`) : '-'}</strong>
+        </div>
+
+        <div className="summary-grid compact-summary-grid">
+          <div className="summary-card">
+            <span>{t('teamsPage.summary.teams')}</span>
+            <strong>{teams.length}</strong>
+            <p>{selectedTournament?.title ?? '-'}</p>
+          </div>
+          <div className="summary-card">
+            <span>{t('teamsPage.summary.averageMembers')}</span>
+            <strong>{averageMembers}</strong>
+            <p>{t('teamsPage.summary.membersHint')}</p>
+          </div>
+        </div>
+      </article>
+
+      <article className="card panel-card">
+        <h2>{t('teamsPage.resultsTitle')}</h2>
+
+        {loadingTeams ? <p>{t('teamsPage.loadingTeams')}</p> : null}
+        {error ? <p className="form-error">{error}</p> : null}
+        {!loadingTeams && teams.length === 0 ? <p>{t('teamsPage.emptyTeams')}</p> : null}
+
+        {teams.length > 0 ? (
+          <div className="team-grid">
+            {teams.map((team) => (
+              <article key={team.id} className="card panel-card">
+                <div className="tournament-head">
+                  <h3>{team.name}</h3>
+                  <span className="status-pill">{t('teamsPage.membersCount')}: {team.membersCount}</span>
+                </div>
+                <p className="inline-hint">{team.organization || t('teamsPage.noOrganization')}</p>
+                <p className="inline-hint">
+                  {t('teamsPage.createdAt')}: {formatDate(team.createdAt, language)}
+                </p>
+              </article>
+            ))}
+          </div>
+        ) : null}
+      </article>
+    </section>
+  );
+}
+

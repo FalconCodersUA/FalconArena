@@ -82,6 +82,6 @@ describe('LoginPage', () => {
 
     expect(localStorage.getItem('falconarena_access_token')).toBe('login-token');
     expect(localStorage.getItem('falconarena_auth_user')).toContain('new@example.com');
-    expect(navigateMock).toHaveBeenCalledWith('/app', { replace: true });
+    expect(navigateMock).toHaveBeenCalledWith('/app/dashboard', { replace: true });
   });
 });

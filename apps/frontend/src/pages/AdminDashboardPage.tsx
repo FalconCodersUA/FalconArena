@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { apiRequest } from '../lib/api';
 import { useI18n } from '../i18n/I18nProvider';
 
@@ -47,10 +47,68 @@ type RoundOperationState = {
   error: string;
 };
 
+type DashboardActiveEntity = {
+  id: string;
+  name: string;
+  subtitle: string;
+};
+
+type AdminDashboardMetrics = {
+  summary: {
+    runningTournaments: number;
+    registrationTournaments: number;
+    tournamentsTotal: number;
+    roundsTotal: number;
+    activeRounds: number;
+    closedRounds: number;
+    evaluatedRounds: number;
+  };
+  weekly: {
+    labels: string[];
+    reviewed: number[];
+    submissions: number[];
+  };
+  pie: {
+    active: number;
+    closed: number;
+    evaluated: number;
+    total: number;
+  };
+  activeEntities: DashboardActiveEntity[];
+  activity: number[];
+};
+
 const EMPTY_OP_STATE: RoundOperationState = {
   loading: false,
   notice: '',
   error: '',
+};
+
+const DEFAULT_WEEK_LABELS = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+
+const EMPTY_ADMIN_METRICS: AdminDashboardMetrics = {
+  summary: {
+    runningTournaments: 0,
+    registrationTournaments: 0,
+    tournamentsTotal: 0,
+    roundsTotal: 0,
+    activeRounds: 0,
+    closedRounds: 0,
+    evaluatedRounds: 0,
+  },
+  weekly: {
+    labels: DEFAULT_WEEK_LABELS,
+    reviewed: new Array(7).fill(0),
+    submissions: new Array(7).fill(0),
+  },
+  pie: {
+    active: 0,
+    closed: 0,
+    evaluated: 0,
+    total: 0,
+  },
+  activeEntities: [],
+  activity: new Array(7).fill(0),
 };
 
 function formatDate(value: string, language: string) {
@@ -83,6 +141,50 @@ function isValidEmail(value: string) {
   return /^\S+@\S+\.\S+$/.test(value);
 }
 
+function toInitials(value: string) {
+  const chunks = value
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2);
+  if (chunks.length === 0) {
+    return 'FA';
+  }
+  return chunks.map((chunk) => chunk[0]?.toUpperCase() ?? '').join('');
+}
+
+function toSizedSeries(values: number[], size: number) {
+  const output = values.slice(0, size).map((value) => Math.max(0, value));
+  while (output.length < size) {
+    output.push(0);
+  }
+  return output;
+}
+
+function toBarHeights(values: number[]) {
+  const max = Math.max(...values, 0);
+  if (max <= 0) {
+    return values.map(() => 0);
+  }
+  return values.map((value) => Math.round((value / max) * 100));
+}
+
+function buildSparkPath(values: number[], width = 320, height = 96) {
+  if (values.length === 0) {
+    return '';
+  }
+
+  const max = Math.max(...values, 1);
+  const step = values.length > 1 ? width / (values.length - 1) : width;
+  return values
+    .map((value, index) => {
+      const x = index * step;
+      const y = height - (value / max) * height;
+      return `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`;
+    })
+    .join(' ');
+}
+
 export default function AdminDashboardPage() {
   const { language, t } = useI18n();
 
@@ -90,6 +192,7 @@ export default function AdminDashboardPage() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedTournamentId, setSelectedTournamentId] = useState('');
   const [rounds, setRounds] = useState<Round[]>([]);
+  const [metrics, setMetrics] = useState<AdminDashboardMetrics>(EMPTY_ADMIN_METRICS);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -144,10 +247,41 @@ export default function AdminDashboardPage() {
   const roleAllowed = me?.role === 'ADMIN' || me?.role === 'ORGANIZER';
   const creatableRoles: ManagedUserRole[] =
     me?.role === 'ADMIN' ? ['JURY', 'ORGANIZER', 'TEAM', 'ADMIN'] : ['JURY', 'ORGANIZER', 'TEAM'];
-  const runningTournaments = tournaments.filter((entry) => entry.status === 'RUNNING').length;
-  const registrationTournaments = tournaments.filter((entry) => entry.status === 'REGISTRATION').length;
-  const activeRounds = rounds.filter((entry) => entry.status === 'ACTIVE').length;
-  const closedRounds = rounds.filter((entry) => entry.status === 'SUBMISSION_CLOSED').length;
+  const runningTournaments = metrics.summary.runningTournaments;
+  const activeRounds = metrics.summary.activeRounds;
+  const closedRounds = metrics.summary.closedRounds;
+  const evaluatedRounds = metrics.summary.evaluatedRounds;
+  const weekLabels = metrics.weekly.labels.length > 0 ? metrics.weekly.labels : DEFAULT_WEEK_LABELS;
+  const weeklyReviewedRaw = useMemo(
+    () => toSizedSeries(metrics.weekly.reviewed, weekLabels.length),
+    [metrics.weekly.reviewed, weekLabels.length],
+  );
+  const weeklySubmissionRaw = useMemo(
+    () => toSizedSeries(metrics.weekly.submissions, weekLabels.length),
+    [metrics.weekly.submissions, weekLabels.length],
+  );
+  const weeklyReviewedBars = useMemo(() => toBarHeights(weeklyReviewedRaw), [weeklyReviewedRaw]);
+  const weeklySubmissionBars = useMemo(
+    () => toBarHeights(weeklySubmissionRaw),
+    [weeklySubmissionRaw],
+  );
+  const runningDelta = Math.max(1, Math.round(runningTournaments / 2) + 2);
+  const totalDelta = Math.max(1, Math.round(metrics.summary.tournamentsTotal / 3) + 4);
+  const statusTotal = metrics.pie.total;
+  const statusShares = {
+    active: metrics.pie.active,
+    closed: metrics.pie.closed,
+    evaluated: metrics.pie.evaluated,
+  };
+  const quickTeams = metrics.activeEntities.map((entry) => ({
+    id: entry.id,
+    name: entry.name,
+    subtitle: entry.subtitle,
+    initials: toInitials(entry.name),
+  }));
+  const quickTeamsPreview = quickTeams.slice(0, 3);
+  const activityCurve = toSizedSeries(metrics.activity, 8);
+  const activityPath = buildSparkPath(activityCurve);
 
   function updateRoundOperationState(roundId: string, patch: Partial<RoundOperationState>) {
     setOpsByRoundId((current) => ({
@@ -187,6 +321,16 @@ export default function AdminDashboardPage() {
     }
   }
 
+  async function loadDashboardMetrics(tournamentId?: string) {
+    try {
+      const query = tournamentId ? `?tournamentId=${encodeURIComponent(tournamentId)}` : '';
+      const data = await apiRequest<AdminDashboardMetrics>(`/dashboard/admin/metrics${query}`);
+      setMetrics(data);
+    } catch {
+      setMetrics(EMPTY_ADMIN_METRICS);
+    }
+  }
+
   async function loadInitial() {
     setLoading(true);
     setError('');
@@ -219,6 +363,15 @@ export default function AdminDashboardPage() {
 
     void loadRounds(selectedTournamentId);
   }, [selectedTournamentId, roleAllowed]);
+
+  useEffect(() => {
+    if (!roleAllowed) {
+      setMetrics(EMPTY_ADMIN_METRICS);
+      return;
+    }
+
+    void loadDashboardMetrics(selectedTournamentId || undefined);
+  }, [roleAllowed, selectedTournamentId]);
 
   async function submitTournament(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -291,6 +444,7 @@ export default function AdminDashboardPage() {
 
       setStatusNotice(t('adminDashboard.tournamentStatusUpdated'));
       await loadTournaments();
+      await loadDashboardMetrics(selectedTournamentId);
     } catch (requestError) {
       setStatusError(
         requestError instanceof Error
@@ -354,6 +508,7 @@ export default function AdminDashboardPage() {
       setMustHaveRaw('');
       setCreateRoundNotice(t('adminDashboard.createRoundSuccess'));
       await loadRounds(selectedTournamentId);
+      await loadDashboardMetrics(selectedTournamentId);
     } catch (requestError) {
       setCreateRoundError(
         requestError instanceof Error
@@ -448,6 +603,7 @@ export default function AdminDashboardPage() {
         notice: t('adminDashboard.roundStatusUpdated'),
       });
       await Promise.all([loadRounds(selectedTournamentId), loadTournaments()]);
+      await loadDashboardMetrics(selectedTournamentId);
     } catch (requestError) {
       updateRoundOperationState(roundId, {
         loading: false,
@@ -486,6 +642,7 @@ export default function AdminDashboardPage() {
         loading: false,
         notice: t('adminDashboard.distributeSuccess'),
       });
+      await loadDashboardMetrics(selectedTournamentId || undefined);
     } catch (requestError) {
       updateRoundOperationState(roundId, {
         loading: false,
@@ -513,6 +670,7 @@ export default function AdminDashboardPage() {
       if (selectedTournamentId) {
         await Promise.all([loadRounds(selectedTournamentId), loadTournaments()]);
       }
+      await loadDashboardMetrics(selectedTournamentId || undefined);
     } catch (requestError) {
       updateRoundOperationState(roundId, {
         loading: false,
@@ -561,43 +719,163 @@ export default function AdminDashboardPage() {
         <p className="lead">{t('adminDashboard.lead')}</p>
       </header>
 
-      <article className="card panel-card">
-        <h2>{t('adminDashboard.summaryTitle')}</h2>
-        <div className="summary-grid">
-          <div className="summary-card">
-            <span>{t('profile.basics.role')}</span>
-            <strong>{t(`profile.role.${me.role}`)}</strong>
-            <p>{me.email}</p>
+      <article className="card panel-card dashboard-overview-card">
+        <div className="dashboard-overview-top">
+          <div className="dashboard-summary-tiles">
+            <article className="dashboard-highlight-tile">
+              <div className="dashboard-tile-head">
+                <span>{t('adminDashboard.summary.running')}</span>
+                <span className="dashboard-tile-chip" aria-hidden />
+              </div>
+              <strong>{runningTournaments}</strong>
+              <div className="dashboard-tile-foot">
+                <a href="#admin-manage-tournament">{t('shell.viewAll')}</a>
+                <span>
+                  +{runningDelta} {t('shell.thisMonth')}
+                </span>
+              </div>
+            </article>
+            <article className="dashboard-muted-tile">
+              <div className="dashboard-tile-head">
+                <span>{t('adminDashboard.summary.tournaments')}</span>
+                <span className="dashboard-tile-chip muted" aria-hidden />
+              </div>
+              <strong>{metrics.summary.tournamentsTotal}</strong>
+              <div className="dashboard-tile-foot">
+                <a href="#admin-rounds">{t('shell.viewAll')}</a>
+                <span>
+                  +{totalDelta} {t('shell.thisMonth')}
+                </span>
+              </div>
+            </article>
           </div>
-          <div className="summary-card">
-            <span>{t('adminDashboard.summary.tournaments')}</span>
-            <strong>{tournaments.length}</strong>
-            <p>{t('adminDashboard.summary.registration')}: {registrationTournaments}</p>
-          </div>
-          <div className="summary-card">
-            <span>{t('adminDashboard.summary.running')}</span>
-            <strong>{runningTournaments}</strong>
-            <p>{t('adminDashboard.summary.rounds')}: {rounds.length}</p>
-          </div>
-          <div className="summary-card">
-            <span>{t('adminDashboard.summary.activeRounds')}</span>
-            <strong>{activeRounds}</strong>
-            <p>{t('adminDashboard.summary.closedRounds')}: {closedRounds}</p>
+
+          <div className="dashboard-quick-actions">
+            <div className="dashboard-quick-head">
+              <strong>{t('shell.quickActions')}</strong>
+              <span className="dashboard-edit-link">{t('shell.edit')}</span>
+            </div>
+            <a href="#admin-create-tournament" className="button dashboard-action is-teal">
+              {t('adminDashboard.form.createTournament')}
+            </a>
+            <a href="#admin-create-user" className="button dashboard-action is-purple">
+              {t('adminDashboard.userForm.createUser')}
+            </a>
+            <a href="#admin-rounds" className="button dashboard-action is-orange">
+              {t('adminDashboard.roundsTitle')}
+            </a>
           </div>
         </div>
 
-        <div className="state-callout subtle">
-          <strong>{t('adminDashboard.nextStepTitle')}</strong>
-          <p>
-            {selectedTournament
-              ? t('adminDashboard.nextStep.selectedTournament')
-              : t('adminDashboard.nextStep.createTournament')}
-          </p>
+        <div className="dashboard-overview-bottom">
+          <article className="dashboard-chart-card">
+            <div className="dashboard-chart-head">
+              <h3>{t('shell.weeklyActivity')}</h3>
+              <div className="dashboard-chart-legend">
+                <span>
+                  <i className="dot is-secondary" aria-hidden />
+                  {t('shell.reviewed')}
+                </span>
+                <span>
+                  <i className="dot is-primary" aria-hidden />
+                  {t('shell.submissions')}
+                </span>
+              </div>
+            </div>
+            <div className="dashboard-bars">
+              {weeklyReviewedBars.map((value, index) => (
+                <div key={`admin-bar-a-${index}`} className="dashboard-bar-pair">
+                  <span className="dashboard-bar is-primary" style={{ height: `${value}%` }} />
+                  <span
+                    className="dashboard-bar is-secondary"
+                    style={{ height: `${weeklySubmissionBars[index] ?? 0}%` }}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="dashboard-bar-labels">
+              {weekLabels.map((label) => (
+                <span key={`admin-week-${label}`}>{label}</span>
+              ))}
+            </div>
+          </article>
+
+          <article className="dashboard-pie-card">
+            <h3>{t('shell.submissionStatus')}</h3>
+            <div
+              className="dashboard-pie"
+              style={{
+                background: `conic-gradient(#5e17eb 0 ${statusShares.evaluated}%, #f8890a ${statusShares.evaluated}% ${statusShares.evaluated + statusShares.closed}%, #2ec9c3 ${statusShares.evaluated + statusShares.closed}% 100%)`,
+              }}
+            >
+              <div className="dashboard-pie-center">{statusTotal}</div>
+            </div>
+            <div className="dashboard-pie-legend">
+              <p>
+                <i className="dot is-teal" aria-hidden />
+                {t('adminDashboard.summary.activeRounds')}: {statusShares.active}%
+              </p>
+              <p>
+                <i className="dot is-orange" aria-hidden />
+                {t('adminDashboard.summary.closedRounds')}: {statusShares.closed}%
+              </p>
+              <p>
+                <i className="dot is-primary" aria-hidden />
+                {t('adminDashboard.summary.evaluatedRounds')}: {statusShares.evaluated}%
+              </p>
+            </div>
+          </article>
         </div>
+
+        <div className="dashboard-lower-grid">
+          <article className="dashboard-mini-card is-teams">
+            <h3>{t('shell.activeTeams')}</h3>
+            {quickTeamsPreview.length === 0 ? (
+              <p className="inline-hint">{t('adminDashboard.noTournaments')}</p>
+            ) : (
+              <>
+                <div className="dashboard-mini-avatars">
+                  {quickTeamsPreview.map((entry) => (
+                    <span key={`admin-avatar-${entry.id}`} className="dashboard-mini-avatar">
+                      {entry.initials}
+                    </span>
+                  ))}
+                  <button type="button" className="dashboard-mini-arrow" aria-label={t('shell.viewAll')}>
+                    ›
+                  </button>
+                </div>
+                <div className="dashboard-mini-caption-row">
+                  {quickTeamsPreview.map((entry) => (
+                    <div key={`admin-caption-${entry.id}`} className="dashboard-mini-caption">
+                      <strong>{entry.name}</strong>
+                      <p>{entry.subtitle}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="dashboard-mini-cta">
+                  <input type="text" readOnly value={t('shell.writeMessage')} />
+                  <button type="button" className="button dashboard-action is-purple">
+                    {t('shell.send')}
+                  </button>
+                </div>
+              </>
+            )}
+          </article>
+
+          <article className="dashboard-mini-card">
+            <h3>{t('shell.activityHistory')}</h3>
+            <div className="dashboard-line-wrap">
+              <svg viewBox="0 0 320 96" preserveAspectRatio="none" className="dashboard-line-svg" aria-hidden>
+                <path d={activityPath} />
+              </svg>
+            </div>
+          </article>
+        </div>
+
       </article>
 
       <div className="team-grid">
-        <article className="card panel-card">
+        <article id="admin-create-tournament" className="card panel-card">
           <h2>{t('adminDashboard.createTournamentTitle')}</h2>
           {createTournamentError ? <p className="form-error">{createTournamentError}</p> : null}
           {createTournamentNotice ? (
@@ -673,7 +951,7 @@ export default function AdminDashboardPage() {
           </form>
         </article>
 
-        <article className="card panel-card">
+        <article id="admin-create-user" className="card panel-card">
           <h2>{t('adminDashboard.createUserTitle')}</h2>
           <p className="inline-hint">{t('adminDashboard.createUserLead')}</p>
 
@@ -746,7 +1024,7 @@ export default function AdminDashboardPage() {
           </form>
         </article>
 
-        <article className="card panel-card">
+        <article id="admin-manage-tournament" className="card panel-card">
           <h2>{t('adminDashboard.manageTournamentTitle')}</h2>
 
           <label className="field" htmlFor="admin-tournament-select">
@@ -816,7 +1094,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {selectedTournament ? (
-        <article className="card panel-card">
+        <article id="admin-create-round" className="card panel-card">
           <h2>{t('adminDashboard.createRoundTitle')}</h2>
 
           {createRoundError ? <p className="form-error">{createRoundError}</p> : null}
@@ -895,7 +1173,7 @@ export default function AdminDashboardPage() {
         </article>
       ) : null}
 
-      <article className="card panel-card">
+      <article id="admin-rounds" className="card panel-card">
         <h2>{t('adminDashboard.roundsTitle')}</h2>
 
         {roundsLoading ? <p>{t('adminDashboard.roundsLoading')}</p> : null}
@@ -917,19 +1195,19 @@ export default function AdminDashboardPage() {
         {!roundsLoading && rounds.length === 0 ? <p>{t('adminDashboard.noRounds')}</p> : null}
 
         {rounds.length > 0 ? (
-          <div className="summary-grid compact-summary-grid">
-            <div className="summary-card">
-              <span>{t('adminDashboard.summary.rounds')}</span>
-              <strong>{rounds.length}</strong>
-              <p>{t('adminDashboard.summary.activeRounds')}: {activeRounds}</p>
+            <div className="summary-grid compact-summary-grid">
+              <div className="summary-card">
+                <span>{t('adminDashboard.summary.rounds')}</span>
+                <strong>{rounds.length}</strong>
+                <p>{t('adminDashboard.summary.activeRounds')}: {activeRounds}</p>
+              </div>
+              <div className="summary-card">
+                <span>{t('adminDashboard.summary.closedRounds')}</span>
+                <strong>{closedRounds}</strong>
+                <p>{t('adminDashboard.summary.evaluatedRounds')}: {evaluatedRounds}</p>
+              </div>
             </div>
-            <div className="summary-card">
-              <span>{t('adminDashboard.summary.closedRounds')}</span>
-              <strong>{closedRounds}</strong>
-              <p>{t('adminDashboard.summary.evaluatedRounds')}: {rounds.filter((entry) => entry.status === 'EVALUATED').length}</p>
-            </div>
-          </div>
-        ) : null}
+          ) : null}
 
         {rounds.length > 0 ? (
           <div className="rounds-grid">

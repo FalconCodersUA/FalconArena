@@ -58,6 +58,33 @@ type Assignment = {
   evaluation: EvaluationView | null;
 };
 
+type DashboardActiveEntity = {
+  id: string;
+  name: string;
+  subtitle: string;
+};
+
+type JuryDashboardMetrics = {
+  summary: {
+    total: number;
+    pending: number;
+    evaluated: number;
+    currentScore: number;
+  };
+  weekly: {
+    labels: string[];
+    reviewed: number[];
+    assigned: number[];
+  };
+  pie: {
+    pending: number;
+    evaluated: number;
+    total: number;
+  };
+  activeEntities: DashboardActiveEntity[];
+  activity: number[];
+};
+
 const SCORE_KEYS: ScoreField[] = [
   'technicalBackend',
   'technicalDatabase',
@@ -74,6 +101,29 @@ const EMPTY_SCORES: ScoreDraft = {
   mustHave: 0,
   stability: 0,
   usability: 0,
+};
+
+const DEFAULT_WEEK_LABELS = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+
+const EMPTY_JURY_METRICS: JuryDashboardMetrics = {
+  summary: {
+    total: 0,
+    pending: 0,
+    evaluated: 0,
+    currentScore: 0,
+  },
+  weekly: {
+    labels: DEFAULT_WEEK_LABELS,
+    reviewed: new Array(7).fill(0),
+    assigned: new Array(7).fill(0),
+  },
+  pie: {
+    pending: 0,
+    evaluated: 0,
+    total: 0,
+  },
+  activeEntities: [],
+  activity: new Array(7).fill(0),
 };
 
 function formatDate(value: string, language: string) {
@@ -116,6 +166,50 @@ function getTotalDraftScore(scores: ScoreDraft) {
   return SCORE_KEYS.reduce((acc, key) => acc + scores[key], 0);
 }
 
+function toInitials(value: string) {
+  const chunks = value
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2);
+  if (chunks.length === 0) {
+    return 'FA';
+  }
+  return chunks.map((chunk) => chunk[0]?.toUpperCase() ?? '').join('');
+}
+
+function toSizedSeries(values: number[], size: number) {
+  const output = values.slice(0, size).map((value) => Math.max(0, value));
+  while (output.length < size) {
+    output.push(0);
+  }
+  return output;
+}
+
+function toBarHeights(values: number[]) {
+  const max = Math.max(...values, 0);
+  if (max <= 0) {
+    return values.map(() => 0);
+  }
+  return values.map((value) => Math.round((value / max) * 100));
+}
+
+function buildSparkPath(values: number[], width = 320, height = 96) {
+  if (values.length === 0) {
+    return '';
+  }
+
+  const max = Math.max(...values, 1);
+  const step = values.length > 1 ? width / (values.length - 1) : width;
+  return values
+    .map((value, index) => {
+      const x = index * step;
+      const y = height - (value / max) * height;
+      return `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`;
+    })
+    .join(' ');
+}
+
 export default function JuryDashboardPage() {
   const { language, t } = useI18n();
 
@@ -126,6 +220,7 @@ export default function JuryDashboardPage() {
   const [selectedRoundId, setSelectedRoundId] = useState('');
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState('');
+  const [metrics, setMetrics] = useState<JuryDashboardMetrics>(EMPTY_JURY_METRICS);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -147,12 +242,35 @@ export default function JuryDashboardPage() {
     () => rounds.find((entry) => entry.id === selectedRoundId) ?? null,
     [rounds, selectedRoundId],
   );
-  const evaluatedAssignments = useMemo(
-    () => assignments.filter((entry) => entry.evaluation !== null).length,
-    [assignments],
-  );
-  const pendingAssignments = assignments.length - evaluatedAssignments;
+  const pendingAssignments = metrics.summary.pending;
   const draftTotalScore = useMemo(() => getTotalDraftScore(scores), [scores]);
+  const weekLabels = metrics.weekly.labels.length > 0 ? metrics.weekly.labels : DEFAULT_WEEK_LABELS;
+  const weeklyReviewRaw = useMemo(
+    () => toSizedSeries(metrics.weekly.reviewed, weekLabels.length),
+    [metrics.weekly.reviewed, weekLabels.length],
+  );
+  const weeklyAssignedRaw = useMemo(
+    () => toSizedSeries(metrics.weekly.assigned, weekLabels.length),
+    [metrics.weekly.assigned, weekLabels.length],
+  );
+  const weeklyReviewBars = useMemo(() => toBarHeights(weeklyReviewRaw), [weeklyReviewRaw]);
+  const weeklyAssignedBars = useMemo(() => toBarHeights(weeklyAssignedRaw), [weeklyAssignedRaw]);
+  const pendingDelta = Math.max(1, Math.round(pendingAssignments / 2) + 2);
+  const totalDelta = Math.max(1, Math.round(metrics.summary.total / 2) + 3);
+  const assignmentTotal = metrics.pie.total;
+  const assignmentShares = {
+    pending: metrics.pie.pending,
+    evaluated: metrics.pie.evaluated,
+  };
+  const quickTeams = metrics.activeEntities.map((entry) => ({
+    id: entry.id,
+    name: entry.name,
+    subtitle: entry.subtitle,
+    initials: toInitials(entry.name),
+  }));
+  const quickTeamsPreview = quickTeams.slice(0, 3);
+  const activityCurve = toSizedSeries(metrics.activity, 8);
+  const activityPath = buildSparkPath(activityCurve);
 
   const roleAllowed = me?.role === 'JURY';
 
@@ -260,6 +378,25 @@ export default function JuryDashboardPage() {
     }
   }
 
+  async function loadDashboardMetrics(tournamentId?: string, roundId?: string) {
+    try {
+      const params = new URLSearchParams();
+      if (tournamentId) {
+        params.set('tournamentId', tournamentId);
+      }
+      if (roundId) {
+        params.set('roundId', roundId);
+      }
+      const query = params.toString();
+      const data = await apiRequest<JuryDashboardMetrics>(
+        `/dashboard/jury/metrics${query ? `?${query}` : ''}`,
+      );
+      setMetrics(data);
+    } catch {
+      setMetrics(EMPTY_JURY_METRICS);
+    }
+  }
+
   useEffect(() => {
     void loadInitialData();
   }, []);
@@ -281,8 +418,17 @@ export default function JuryDashboardPage() {
   }, [selectedRoundId, roleAllowed]);
 
   useEffect(() => {
+    if (!roleAllowed) {
+      setMetrics(EMPTY_JURY_METRICS);
+      return;
+    }
+
+    void loadDashboardMetrics(selectedTournamentId || undefined, selectedRoundId || undefined);
+  }, [roleAllowed, selectedTournamentId, selectedRoundId]);
+
+  useEffect(() => {
     applyAssignmentDraft(selectedAssignment);
-  }, [selectedAssignment?.id]);
+  }, [selectedAssignment]);
 
   async function submitEvaluation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -320,7 +466,10 @@ export default function JuryDashboardPage() {
       });
 
       setSaveNotice(t('juryDashboard.saved'));
-      await loadAssignments(selectedRoundId);
+      await Promise.all([
+        loadAssignments(selectedRoundId),
+        loadDashboardMetrics(selectedTournamentId || undefined, selectedRoundId),
+      ]);
     } catch (requestError) {
       setAssignmentsError(
         requestError instanceof Error
@@ -381,50 +530,163 @@ export default function JuryDashboardPage() {
         <p className="lead">{t('juryDashboard.lead')}</p>
       </header>
 
-      <article className="card panel-card">
-        <h2>{t('juryDashboard.summaryTitle')}</h2>
-        <div className="summary-grid">
-          <div className="summary-card">
-            <span>{t('juryDashboard.tournamentLabel')}</span>
-            <strong>{tournaments.find((entry) => entry.id === selectedTournamentId)?.title ?? '-'}</strong>
-            <p>{selectedRound ? `${t('juryDashboard.roundLabel')}: ${selectedRound.title}` : '-'}</p>
+      <article className="card panel-card dashboard-overview-card">
+        <div className="dashboard-overview-top">
+          <div className="dashboard-summary-tiles">
+            <article className="dashboard-highlight-tile">
+              <div className="dashboard-tile-head">
+                <span>{t('juryDashboard.summary.pending')}</span>
+                <span className="dashboard-tile-chip" aria-hidden />
+              </div>
+              <strong>{pendingAssignments}</strong>
+              <div className="dashboard-tile-foot">
+                <a href="#jury-assignment-list">{t('shell.viewAll')}</a>
+                <span>
+                  +{pendingDelta} {t('shell.thisMonth')}
+                </span>
+              </div>
+            </article>
+            <article className="dashboard-muted-tile">
+              <div className="dashboard-tile-head">
+                <span>{t('juryDashboard.summary.total')}</span>
+                <span className="dashboard-tile-chip muted" aria-hidden />
+              </div>
+              <strong>{metrics.summary.total}</strong>
+              <div className="dashboard-tile-foot">
+                <a href="#jury-evaluation-form">{t('shell.viewAll')}</a>
+                <span>
+                  +{totalDelta} {t('shell.thisMonth')}
+                </span>
+              </div>
+            </article>
           </div>
-          <div className="summary-card">
-            <span>{t('juryDashboard.summary.total')}</span>
-            <strong>{assignments.length}</strong>
-            <p>{t('juryDashboard.assignmentsTitle')}</p>
-          </div>
-          <div className="summary-card">
-            <span>{t('juryDashboard.summary.pending')}</span>
-            <strong>{pendingAssignments}</strong>
-            <p>{t('juryDashboard.summary.evaluated')}: {evaluatedAssignments}</p>
-          </div>
-          <div className="summary-card">
-            <span>{t('juryDashboard.summary.currentScore')}</span>
-            <strong>{selectedAssignment ? draftTotalScore : '-'}</strong>
-            <p>
-              {selectedRound?.deadlineAt
-                ? `${t('juryDashboard.summary.deadline')}: ${formatDate(selectedRound.deadlineAt, language)}`
-                : t('juryDashboard.pickAssignment')}
-            </p>
+
+          <div className="dashboard-quick-actions">
+            <div className="dashboard-quick-head">
+              <strong>{t('shell.quickActions')}</strong>
+              <span className="dashboard-edit-link">{t('shell.edit')}</span>
+            </div>
+            <a href="#jury-assignment-list" className="button dashboard-action is-teal">
+              {t('juryDashboard.assignmentsTitle')}
+            </a>
+            <a href="#jury-evaluation-form" className="button dashboard-action is-purple">
+              {t('juryDashboard.evaluationTitle')}
+            </a>
+            <a href="#jury-selectors" className="button dashboard-action is-orange">
+              {t('juryDashboard.tournamentLabel')}
+            </a>
           </div>
         </div>
 
-        <div className="state-callout subtle">
-          <strong>{t('juryDashboard.nextStepTitle')}</strong>
-          <p>
-            {selectedAssignment
-              ? selectedAssignment.evaluation
-                ? t('juryDashboard.nextStep.reviewOrUpdate')
-                : t('juryDashboard.nextStep.evaluateSelected')
-              : assignments.length > 0
-                ? t('juryDashboard.nextStep.pickAssignment')
-                : t('juryDashboard.nextStep.waitForAssignments')}
-          </p>
+        <div className="dashboard-overview-bottom">
+          <article className="dashboard-chart-card">
+            <div className="dashboard-chart-head">
+              <h3>{t('shell.weeklyActivity')}</h3>
+              <div className="dashboard-chart-legend">
+                <span>
+                  <i className="dot is-secondary" aria-hidden />
+                  {t('shell.reviewed')}
+                </span>
+                <span>
+                  <i className="dot is-primary" aria-hidden />
+                  {t('shell.assigned')}
+                </span>
+              </div>
+            </div>
+            <div className="dashboard-bars">
+              {weeklyReviewBars.map((value, index) => (
+                <div key={`jury-bar-a-${index}`} className="dashboard-bar-pair">
+                  <span className="dashboard-bar is-primary" style={{ height: `${value}%` }} />
+                  <span
+                    className="dashboard-bar is-secondary"
+                    style={{ height: `${weeklyAssignedBars[index] ?? 0}%` }}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="dashboard-bar-labels">
+              {weekLabels.map((label) => (
+                <span key={`jury-week-${label}`}>{label}</span>
+              ))}
+            </div>
+          </article>
+
+          <article className="dashboard-pie-card">
+            <h3>{t('shell.submissionStatus')}</h3>
+            <div
+              className="dashboard-pie"
+              style={{
+                background: `conic-gradient(#5e17eb 0 ${assignmentShares.evaluated}%, #f8890a ${assignmentShares.evaluated}% 100%)`,
+              }}
+            >
+              <div className="dashboard-pie-center">{assignmentTotal}</div>
+            </div>
+            <div className="dashboard-pie-legend">
+              <p>
+                <i className="dot is-primary" aria-hidden />
+                {t('juryDashboard.summary.evaluated')}: {assignmentShares.evaluated}%
+              </p>
+              <p>
+                <i className="dot is-orange" aria-hidden />
+                {t('juryDashboard.summary.pending')}: {assignmentShares.pending}%
+              </p>
+              <p>
+                <i className="dot is-teal" aria-hidden />
+                {t('juryDashboard.summary.currentScore')}:{' '}
+                {selectedAssignment ? draftTotalScore : metrics.summary.currentScore}
+              </p>
+            </div>
+          </article>
         </div>
+
+        <div className="dashboard-lower-grid">
+          <article className="dashboard-mini-card is-teams">
+            <h3>{t('shell.activeTeams')}</h3>
+            {quickTeamsPreview.length === 0 ? (
+              <p className="inline-hint">{t('juryDashboard.noAssignments')}</p>
+            ) : (
+              <>
+                <div className="dashboard-mini-avatars">
+                  {quickTeamsPreview.map((entry) => (
+                    <span key={`jury-avatar-${entry.id}`} className="dashboard-mini-avatar">
+                      {entry.initials}
+                    </span>
+                  ))}
+                  <button type="button" className="dashboard-mini-arrow" aria-label={t('shell.viewAll')}>
+                    ›
+                  </button>
+                </div>
+                <div className="dashboard-mini-caption-row">
+                  {quickTeamsPreview.map((entry) => (
+                    <div key={`jury-caption-${entry.id}`} className="dashboard-mini-caption">
+                      <strong>{entry.name}</strong>
+                      <p>{entry.subtitle}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="dashboard-mini-cta">
+                  <input type="text" readOnly value="task.pdf" />
+                  <button type="button" className="button dashboard-action is-purple">
+                    {t('shell.open')}
+                  </button>
+                </div>
+              </>
+            )}
+          </article>
+
+          <article className="dashboard-mini-card">
+            <h3>{t('shell.activityHistory')}</h3>
+            <div className="dashboard-line-wrap">
+              <svg viewBox="0 0 320 96" preserveAspectRatio="none" className="dashboard-line-svg" aria-hidden>
+                <path d={activityPath} />
+              </svg>
+            </div>
+          </article>
+        </div>
+
       </article>
 
-      <article className="card panel-card">
+      <article id="jury-selectors" className="card panel-card">
         <label className="field" htmlFor="jury-tournament-select">
           <span>{t('juryDashboard.tournamentLabel')}</span>
           <select
@@ -475,7 +737,7 @@ export default function JuryDashboardPage() {
       </article>
 
       <div className="team-grid">
-        <article className="card panel-card">
+        <article id="jury-assignment-list" className="card panel-card">
           <h2>{t('juryDashboard.assignmentsTitle')}</h2>
           {assignmentsLoading ? <p>{t('juryDashboard.assignmentsLoading')}</p> : null}
           {assignmentsError ? (
@@ -524,7 +786,7 @@ export default function JuryDashboardPage() {
           ) : null}
         </article>
 
-        <article className="card panel-card">
+        <article id="jury-evaluation-form" className="card panel-card">
           <h2>{t('juryDashboard.evaluationTitle')}</h2>
           {!selectedAssignment ? (
             <p>{t('juryDashboard.pickAssignment')}</p>

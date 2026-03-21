@@ -40,12 +40,32 @@ model User {
   fullName        String
   passwordHash    String
   role            Role                   @default(TEAM)
+  settings        UserSettings?
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
   createdTournaments Tournament[]        @relation("TournamentCreatedBy")
   captainTeams    Team[]                 @relation("TeamCaptain")
   juryAssignments EvaluationAssignment[]
   evaluations     Evaluation[]
+}
+
+model UserSettings {
+  userId                 String   @id
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userName               String?
+  dateOfBirth            DateTime?
+  presentAddress         String?
+  permanentAddress       String?
+  city                   String?
+  postalCode             String?
+  country                String?
+  interfaceLanguage      String?
+  timeZone               String?
+  notifyAnnouncements    Boolean  @default(true)
+  notifyReviews          Boolean  @default(false)
+  notifyMessages         Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 }
 
 model Tournament {

@@ -6,10 +6,12 @@ import AppShell from './layout/AppShell';
 import JuryDashboardPage from '../pages/JuryDashboardPage';
 import LeaderboardPage from '../pages/LeaderboardPage';
 import LoginPage from '../pages/LoginPage';
+import MessagesPage from '../pages/MessagesPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import ProfilePage from '../pages/ProfilePage';
 import RegisterPage from '../pages/RegisterPage';
 import TeamDashboardPage from '../pages/TeamDashboardPage';
+import TeamsPage from '../pages/TeamsPage';
 import TournamentsPage from '../pages/TournamentsPage';
 
 function ProtectedRoute({
@@ -31,6 +33,24 @@ function ProtectedRoute({
   return children;
 }
 
+function RoleDashboardRedirect() {
+  const role = getAuthRole();
+
+  if (role === 'TEAM') {
+    return <Navigate to="/app/team" replace />;
+  }
+
+  if (role === 'JURY') {
+    return <Navigate to="/app/jury" replace />;
+  }
+
+  if (role === 'ADMIN' || role === 'ORGANIZER') {
+    return <Navigate to="/app/admin" replace />;
+  }
+
+  return <Navigate to="/app/tournaments" replace />;
+}
+
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -42,7 +62,23 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
+        element: <Navigate to="/app/tournaments" replace />,
+      },
+      {
+        path: 'dashboard',
+        element: (
+          <ProtectedRoute>
+            <RoleDashboardRedirect />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'tournaments',
         element: <TournamentsPage />,
+      },
+      {
+        path: 'teams',
+        element: <TeamsPage />,
       },
       {
         path: 'login',
@@ -55,6 +91,14 @@ export const router = createBrowserRouter([
       {
         path: 'leaderboard',
         element: <LeaderboardPage />,
+      },
+      {
+        path: 'messages',
+        element: (
+          <ProtectedRoute>
+            <MessagesPage />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'profile',
@@ -87,10 +131,6 @@ export const router = createBrowserRouter([
             <AdminDashboardPage />
           </ProtectedRoute>
         ),
-      },
-      {
-        path: 'tournaments',
-        element: <Navigate to="/app" replace />,
       },
       {
         path: '*',

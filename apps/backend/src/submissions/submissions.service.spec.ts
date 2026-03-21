@@ -29,8 +29,9 @@ describe('SubmissionsService', () => {
     const prisma = createPrismaMock();
     const roundsService = createRoundsServiceMock();
 
-    const firstSubmittedAt = new Date('2026-03-10T12:00:00.000Z');
-    const deadline = new Date('2026-03-20T12:00:00.000Z');
+    const now = Date.now();
+    const firstSubmittedAt = new Date(now - 60 * 60 * 1000);
+    const deadline = new Date(now + 24 * 60 * 60 * 1000);
 
     roundsService.ensureSubmissionsOpen.mockResolvedValue({
       id: 'round-1',
@@ -59,8 +60,8 @@ describe('SubmissionsService', () => {
       shortSummary: null,
       status: SubmissionStatus.SUBMITTED,
       submittedAt: firstSubmittedAt,
-      createdAt: new Date('2026-03-10T11:59:00.000Z'),
-      updatedAt: new Date('2026-03-10T12:30:00.000Z'),
+      createdAt: new Date(firstSubmittedAt.getTime() - 60 * 1000),
+      updatedAt: new Date(firstSubmittedAt.getTime() + 30 * 60 * 1000),
       team: {
         id: 'team-1',
         name: 'Falcon Team',
@@ -101,7 +102,7 @@ describe('SubmissionsService', () => {
       id: 'round-1',
       tournamentId: 'tournament-1',
       status: RoundStatus.ACTIVE,
-      deadlineAt: new Date('2026-03-20T12:00:00.000Z'),
+      deadlineAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
 
     prisma.team.findUnique.mockResolvedValue(null);
