@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNotifications } from '../app/notifications/NotificationsProvider';
 import { ApiError, apiRequest } from '../lib/api';
 import { useI18n } from '../i18n/I18nProvider';
 
@@ -191,6 +192,7 @@ function initialsFromName(fullName: string) {
 
 export default function ProfilePage() {
   const { language, t } = useI18n();
+  const { notifyError, notifySuccess } = useNotifications();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -545,13 +547,17 @@ export default function ProfilePage() {
       }
       applySettingsPayload(settings);
       setSettingsNotice(t('profile.settings.saved'));
+      notifySuccess(t('profile.settings.saved'));
 
       if (tab === 'security') {
         setSecurityCurrentPassword('');
         setSecurityNewPassword('');
       }
     } catch (requestError) {
-      setSettingsError(requestError instanceof Error ? requestError.message : t('profile.loadFailed'));
+      const message =
+        requestError instanceof Error ? requestError.message : t('profile.loadFailed');
+      setSettingsError(message);
+      notifyError(message);
     } finally {
       setSettingsSaving(false);
     }

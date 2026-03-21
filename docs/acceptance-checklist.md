@@ -95,7 +95,7 @@ Status: implemented.
 
 Not included in the current MVP:
 
-- notifications
+- advanced notifications (email/realtime). Basic in-app toast notifications are implemented.
 - realtime updates
 - CSV / Google Sheet export
 - certificates
