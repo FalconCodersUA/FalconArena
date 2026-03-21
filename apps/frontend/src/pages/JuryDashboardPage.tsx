@@ -194,6 +194,22 @@ function toBarHeights(values: number[]) {
   return values.map((value) => Math.round((value / max) * 100));
 }
 
+function isJuryDashboardMetrics(value: unknown): value is JuryDashboardMetrics {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const payload = value as { summary?: unknown; weekly?: unknown; pie?: unknown };
+  return (
+    !!payload.summary &&
+    typeof payload.summary === 'object' &&
+    !!payload.weekly &&
+    typeof payload.weekly === 'object' &&
+    !!payload.pie &&
+    typeof payload.pie === 'object'
+  );
+}
+
 function buildSparkPath(values: number[], width = 320, height = 96) {
   if (values.length === 0) {
     return '';
@@ -388,9 +404,12 @@ export default function JuryDashboardPage() {
         params.set('roundId', roundId);
       }
       const query = params.toString();
-      const data = await apiRequest<JuryDashboardMetrics>(
+      const data = await apiRequest<unknown>(
         `/dashboard/jury/metrics${query ? `?${query}` : ''}`,
       );
+      if (!isJuryDashboardMetrics(data)) {
+        throw new Error('Invalid metrics response');
+      }
       setMetrics(data);
     } catch {
       setMetrics(EMPTY_JURY_METRICS);

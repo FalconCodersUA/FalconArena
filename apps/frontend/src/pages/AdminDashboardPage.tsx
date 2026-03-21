@@ -169,6 +169,22 @@ function toBarHeights(values: number[]) {
   return values.map((value) => Math.round((value / max) * 100));
 }
 
+function isAdminDashboardMetrics(value: unknown): value is AdminDashboardMetrics {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const payload = value as { summary?: unknown; weekly?: unknown; pie?: unknown };
+  return (
+    !!payload.summary &&
+    typeof payload.summary === 'object' &&
+    !!payload.weekly &&
+    typeof payload.weekly === 'object' &&
+    !!payload.pie &&
+    typeof payload.pie === 'object'
+  );
+}
+
 function buildSparkPath(values: number[], width = 320, height = 96) {
   if (values.length === 0) {
     return '';
@@ -324,7 +340,10 @@ export default function AdminDashboardPage() {
   async function loadDashboardMetrics(tournamentId?: string) {
     try {
       const query = tournamentId ? `?tournamentId=${encodeURIComponent(tournamentId)}` : '';
-      const data = await apiRequest<AdminDashboardMetrics>(`/dashboard/admin/metrics${query}`);
+      const data = await apiRequest<unknown>(`/dashboard/admin/metrics${query}`);
+      if (!isAdminDashboardMetrics(data)) {
+        throw new Error('Invalid metrics response');
+      }
       setMetrics(data);
     } catch {
       setMetrics(EMPTY_ADMIN_METRICS);
