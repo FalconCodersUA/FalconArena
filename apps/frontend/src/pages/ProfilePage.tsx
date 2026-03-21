@@ -159,6 +159,20 @@ type ProfileSettingsPayload = {
   };
 };
 
+function isProfileSettingsPayload(value: unknown): value is ProfileSettingsPayload {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const payload = value as { edit?: unknown; preferences?: unknown };
+  return (
+    !!payload.edit &&
+    typeof payload.edit === 'object' &&
+    !!payload.preferences &&
+    typeof payload.preferences === 'object'
+  );
+}
+
 function formatDate(value: string, language: string) {
   return new Date(value).toLocaleString(language === 'uk' ? 'uk-UA' : 'en-US');
 }
@@ -433,7 +447,10 @@ export default function ProfilePage() {
       setSettingsNotice('');
 
       try {
-        const settings = await apiRequest<ProfileSettingsPayload>('/profile/settings');
+        const settings = await apiRequest<unknown>('/profile/settings');
+        if (!isProfileSettingsPayload(settings)) {
+          throw new Error('Invalid settings response');
+        }
         applySettingsPayload(settings);
       } catch {
         // keep defaults if settings endpoint is unavailable
@@ -519,10 +536,13 @@ export default function ProfilePage() {
         };
       }
 
-      const settings = await apiRequest<ProfileSettingsPayload>('/profile/settings', {
+      const settings = await apiRequest<unknown>('/profile/settings', {
         method: 'PATCH',
         body,
       });
+      if (!isProfileSettingsPayload(settings)) {
+        throw new Error('Invalid settings response');
+      }
       applySettingsPayload(settings);
       setSettingsNotice(t('profile.settings.saved'));
 

@@ -196,6 +196,22 @@ function toBarHeights(values: number[]) {
   return values.map((value) => Math.round((value / max) * 100));
 }
 
+function isTeamDashboardMetrics(value: unknown): value is TeamDashboardMetrics {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const payload = value as { summary?: unknown; weekly?: unknown; pie?: unknown };
+  return (
+    !!payload.summary &&
+    typeof payload.summary === 'object' &&
+    !!payload.weekly &&
+    typeof payload.weekly === 'object' &&
+    !!payload.pie &&
+    typeof payload.pie === 'object'
+  );
+}
+
 function buildSparkPath(values: number[], width = 320, height = 96) {
   if (values.length === 0) {
     return '';
@@ -445,7 +461,10 @@ export default function TeamDashboardPage() {
   async function loadDashboardMetrics(tournamentId?: string) {
     try {
       const query = tournamentId ? `?tournamentId=${encodeURIComponent(tournamentId)}` : '';
-      const data = await apiRequest<TeamDashboardMetrics>(`/dashboard/team/metrics${query}`);
+      const data = await apiRequest<unknown>(`/dashboard/team/metrics${query}`);
+      if (!isTeamDashboardMetrics(data)) {
+        throw new Error('Invalid metrics response');
+      }
       setMetrics(data);
     } catch {
       setMetrics(EMPTY_TEAM_METRICS);
