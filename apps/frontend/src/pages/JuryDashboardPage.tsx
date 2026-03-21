@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useNotifications } from '../app/notifications/NotificationsProvider';
 import { ApiError, apiRequest } from '../lib/api';
 import { useI18n } from '../i18n/I18nProvider';
 
@@ -228,6 +229,7 @@ function buildSparkPath(values: number[], width = 320, height = 96) {
 
 export default function JuryDashboardPage() {
   const { language, t } = useI18n();
+  const { notifyError, notifySuccess } = useNotifications();
 
   const [me, setMe] = useState<AuthMe | null>(null);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -287,6 +289,9 @@ export default function JuryDashboardPage() {
   const quickTeamsPreview = quickTeams.slice(0, 3);
   const activityCurve = toSizedSeries(metrics.activity, 8);
   const activityPath = buildSparkPath(activityCurve);
+  const hasWeeklyMetrics = weeklyReviewRaw.some((value) => value > 0) || weeklyAssignedRaw.some((value) => value > 0);
+  const hasStatusMetrics = assignmentTotal > 0;
+  const hasActivityMetrics = activityCurve.some((value) => value > 0);
 
   const roleAllowed = me?.role === 'JURY';
 
@@ -489,12 +494,14 @@ export default function JuryDashboardPage() {
         loadAssignments(selectedRoundId),
         loadDashboardMetrics(selectedTournamentId || undefined, selectedRoundId),
       ]);
+      notifySuccess(t('juryDashboard.saved'));
     } catch (requestError) {
-      setAssignmentsError(
+      const message =
         requestError instanceof Error
           ? requestError.message
-          : t('juryDashboard.saveFailed'),
-      );
+          : t('juryDashboard.saveFailed');
+      setAssignmentsError(message);
+      notifyError(message);
     } finally {
       setSaving(false);
     }
@@ -612,49 +619,61 @@ export default function JuryDashboardPage() {
                 </span>
               </div>
             </div>
-            <div className="dashboard-bars">
-              {weeklyReviewBars.map((value, index) => (
-                <div key={`jury-bar-a-${index}`} className="dashboard-bar-pair">
-                  <span className="dashboard-bar is-primary" style={{ height: `${value}%` }} />
-                  <span
-                    className="dashboard-bar is-secondary"
-                    style={{ height: `${weeklyAssignedBars[index] ?? 0}%` }}
-                  />
+            {hasWeeklyMetrics ? (
+              <>
+                <div className="dashboard-bars">
+                  {weeklyReviewBars.map((value, index) => (
+                    <div key={`jury-bar-a-${index}`} className="dashboard-bar-pair">
+                      <span className="dashboard-bar is-primary" style={{ height: `${value}%` }} />
+                      <span
+                        className="dashboard-bar is-secondary"
+                        style={{ height: `${weeklyAssignedBars[index] ?? 0}%` }}
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <div className="dashboard-bar-labels">
-              {weekLabels.map((label) => (
-                <span key={`jury-week-${label}`}>{label}</span>
-              ))}
-            </div>
+                <div className="dashboard-bar-labels">
+                  {weekLabels.map((label) => (
+                    <span key={`jury-week-${label}`}>{label}</span>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="dashboard-empty-note">{t('juryDashboard.metrics.noWeekly')}</p>
+            )}
           </article>
 
           <article className="dashboard-pie-card">
             <h3>{t('shell.submissionStatus')}</h3>
-            <div
-              className="dashboard-pie"
-              style={{
-                background: `conic-gradient(#5e17eb 0 ${assignmentShares.evaluated}%, #f8890a ${assignmentShares.evaluated}% 100%)`,
-              }}
-            >
-              <div className="dashboard-pie-center">{assignmentTotal}</div>
-            </div>
-            <div className="dashboard-pie-legend">
-              <p>
-                <i className="dot is-primary" aria-hidden />
-                {t('juryDashboard.summary.evaluated')}: {assignmentShares.evaluated}%
-              </p>
-              <p>
-                <i className="dot is-orange" aria-hidden />
-                {t('juryDashboard.summary.pending')}: {assignmentShares.pending}%
-              </p>
-              <p>
-                <i className="dot is-teal" aria-hidden />
-                {t('juryDashboard.summary.currentScore')}:{' '}
-                {selectedAssignment ? draftTotalScore : metrics.summary.currentScore}
-              </p>
-            </div>
+            {hasStatusMetrics ? (
+              <>
+                <div
+                  className="dashboard-pie"
+                  style={{
+                    background: `conic-gradient(#5e17eb 0 ${assignmentShares.evaluated}%, #f8890a ${assignmentShares.evaluated}% 100%)`,
+                  }}
+                >
+                  <div className="dashboard-pie-center">{assignmentTotal}</div>
+                </div>
+                <div className="dashboard-pie-legend">
+                  <p>
+                    <i className="dot is-primary" aria-hidden />
+                    {t('juryDashboard.summary.evaluated')}: {assignmentShares.evaluated}%
+                  </p>
+                  <p>
+                    <i className="dot is-orange" aria-hidden />
+                    {t('juryDashboard.summary.pending')}: {assignmentShares.pending}%
+                  </p>
+                  <p>
+                    <i className="dot is-teal" aria-hidden />
+                    {t('juryDashboard.summary.currentScore')}:{' '}
+                    {selectedAssignment ? draftTotalScore : metrics.summary.currentScore}
+                  </p>
+                </div>
+              </>
+            ) : (
+              <p className="dashboard-empty-note">{t('juryDashboard.metrics.noStatus')}</p>
+            )}
           </article>
         </div>
 
@@ -695,11 +714,15 @@ export default function JuryDashboardPage() {
 
           <article className="dashboard-mini-card">
             <h3>{t('shell.activityHistory')}</h3>
-            <div className="dashboard-line-wrap">
-              <svg viewBox="0 0 320 96" preserveAspectRatio="none" className="dashboard-line-svg" aria-hidden>
-                <path d={activityPath} />
-              </svg>
-            </div>
+            {hasActivityMetrics ? (
+              <div className="dashboard-line-wrap">
+                <svg viewBox="0 0 320 96" preserveAspectRatio="none" className="dashboard-line-svg" aria-hidden>
+                  <path d={activityPath} />
+                </svg>
+              </div>
+            ) : (
+              <p className="dashboard-empty-note">{t('juryDashboard.metrics.noActivity')}</p>
+            )}
           </article>
         </div>
 

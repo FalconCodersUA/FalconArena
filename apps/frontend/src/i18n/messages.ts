@@ -13,6 +13,7 @@ export const messages: TranslationMap = {
   uk: {
     shell: {
       navAria: 'Основна навігація',
+      quickNavAria: 'Швидка навігація',
       back: 'Назад',
       home: 'Головна',
       overview: 'Огляд',
@@ -300,6 +301,11 @@ export const messages: TranslationMap = {
         submission: 'Стан сабміту',
         noSubmission: 'Сабміту ще немає',
       },
+      metrics: {
+        noWeekly: 'Ще немає подій сабмітів або перевірок для цього періоду.',
+        noStatus: 'Статусний розподіл зʼявиться після вашого першого сабміту.',
+        noActivity: 'Графік активності зʼявиться після дій у раундах.',
+      },
       nextStep: {
         registerTeam: 'Створіть команду для цього турніру, щоб отримати доступ до подачі роботи.',
         waitForRegistration: 'Дочекайтеся відкриття або повторного відкриття реєстрації.',
@@ -392,6 +398,11 @@ export const messages: TranslationMap = {
         lastSaved: 'Останнє збереження',
         savedScore: 'Підсумковий бал',
       },
+      metrics: {
+        noWeekly: 'Ще немає подій призначень або оцінок за вибраними фільтрами.',
+        noStatus: 'Діаграма статусів зʼявиться після розподілу робіт.',
+        noActivity: 'Графік активності зʼявиться після перших дій журі.',
+      },
       links: {
         repository: 'Репозиторій',
         demo: 'Відео-демо',
@@ -477,6 +488,11 @@ export const messages: TranslationMap = {
         evaluatedRounds: 'Оцінені раунди',
         maxTeams: 'Ліміт команд',
         noDescription: 'Опис турніру ще не заповнений',
+      },
+      metrics: {
+        noWeekly: 'Ще немає подій сабмітів або оцінювання для цього турніру.',
+        noStatus: 'Діаграма статусів зʼявиться після створення раундів.',
+        noActivity: 'Графік активності зʼявиться після перших дій у турнірі.',
       },
       minReviewers: 'Мінімум журі на сабміт',
       resetAssignments: 'Скинути існуючі призначення',
@@ -663,6 +679,7 @@ export const messages: TranslationMap = {
   en: {
     shell: {
       navAria: 'Primary navigation',
+      quickNavAria: 'Quick navigation',
       back: 'Back',
       home: 'Home',
       overview: 'Overview',
@@ -961,6 +978,11 @@ export const messages: TranslationMap = {
         submission: 'Submission state',
         noSubmission: 'No submission yet',
       },
+      metrics: {
+        noWeekly: 'No submission or review events are available for this period yet.',
+        noStatus: 'Status breakdown will appear after your first submission.',
+        noActivity: 'Activity trend appears after actions in rounds.',
+      },
       nextStep: {
         registerTeam: 'Create your team for this tournament to unlock submission access.',
         waitForRegistration: 'Wait until registration opens or becomes available again.',
@@ -1053,6 +1075,11 @@ export const messages: TranslationMap = {
         lastSaved: 'Last saved result',
         savedScore: 'Saved total score',
       },
+      metrics: {
+        noWeekly: 'No assignment or review activity is available for selected filters yet.',
+        noStatus: 'Status chart will appear after assignments are distributed.',
+        noActivity: 'Activity trend appears after first jury actions.',
+      },
       links: {
         repository: 'Repository',
         demo: 'Video demo',
@@ -1138,6 +1165,11 @@ export const messages: TranslationMap = {
         evaluatedRounds: 'Evaluated rounds',
         maxTeams: 'Team limit',
         noDescription: 'Tournament description is still empty',
+      },
+      metrics: {
+        noWeekly: 'No submission or review events are available for this tournament yet.',
+        noStatus: 'Status chart will appear after rounds are created.',
+        noActivity: 'Activity trend appears after first tournament actions.',
       },
       minReviewers: 'Minimum reviewers per submission',
       resetAssignments: 'Reset existing assignments',

@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useNotifications } from '../app/notifications/NotificationsProvider';
 import { apiRequest } from '../lib/api';
 import { useI18n } from '../i18n/I18nProvider';
 
@@ -203,6 +204,7 @@ function buildSparkPath(values: number[], width = 320, height = 96) {
 
 export default function AdminDashboardPage() {
   const { language, t } = useI18n();
+  const { notifyError, notifySuccess } = useNotifications();
 
   const [me, setMe] = useState<AuthMe | null>(null);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -298,6 +300,9 @@ export default function AdminDashboardPage() {
   const quickTeamsPreview = quickTeams.slice(0, 3);
   const activityCurve = toSizedSeries(metrics.activity, 8);
   const activityPath = buildSparkPath(activityCurve);
+  const hasWeeklyMetrics = weeklyReviewedRaw.some((value) => value > 0) || weeklySubmissionRaw.some((value) => value > 0);
+  const hasStatusMetrics = statusTotal > 0;
+  const hasActivityMetrics = activityCurve.some((value) => value > 0);
 
   function updateRoundOperationState(roundId: string, patch: Partial<RoundOperationState>) {
     setOpsByRoundId((current) => ({
@@ -434,13 +439,15 @@ export default function AdminDashboardPage() {
       setDescription('');
       setMaxTeams('');
       setCreateTournamentNotice(t('adminDashboard.createTournamentSuccess'));
+      notifySuccess(t('adminDashboard.createTournamentSuccess'));
       await loadTournaments();
     } catch (requestError) {
-      setCreateTournamentError(
+      const message =
         requestError instanceof Error
           ? requestError.message
-          : t('adminDashboard.createTournamentFailed'),
-      );
+          : t('adminDashboard.createTournamentFailed');
+      setCreateTournamentError(message);
+      notifyError(message);
     } finally {
       setCreateTournamentLoading(false);
     }
@@ -462,14 +469,16 @@ export default function AdminDashboardPage() {
       });
 
       setStatusNotice(t('adminDashboard.tournamentStatusUpdated'));
+      notifySuccess(t('adminDashboard.tournamentStatusUpdated'));
       await loadTournaments();
       await loadDashboardMetrics(selectedTournamentId);
     } catch (requestError) {
-      setStatusError(
+      const message =
         requestError instanceof Error
           ? requestError.message
-          : t('adminDashboard.tournamentStatusFailed'),
-      );
+          : t('adminDashboard.tournamentStatusFailed');
+      setStatusError(message);
+      notifyError(message);
     } finally {
       setStatusLoading(false);
     }
@@ -526,14 +535,16 @@ export default function AdminDashboardPage() {
       setRoundDescription('');
       setMustHaveRaw('');
       setCreateRoundNotice(t('adminDashboard.createRoundSuccess'));
+      notifySuccess(t('adminDashboard.createRoundSuccess'));
       await loadRounds(selectedTournamentId);
       await loadDashboardMetrics(selectedTournamentId);
     } catch (requestError) {
-      setCreateRoundError(
+      const message =
         requestError instanceof Error
           ? requestError.message
-          : t('adminDashboard.createRoundFailed'),
-      );
+          : t('adminDashboard.createRoundFailed');
+      setCreateRoundError(message);
+      notifyError(message);
     } finally {
       setCreateRoundLoading(false);
     }
@@ -597,10 +608,14 @@ export default function AdminDashboardPage() {
       setCreateUserNotice(
         t('adminDashboard.createUserSuccess').replace('{role}', t(`profile.role.${created.role}`)),
       );
-    } catch (requestError) {
-      setCreateUserError(
-        requestError instanceof Error ? requestError.message : t('adminDashboard.createUserFailed'),
+      notifySuccess(
+        t('adminDashboard.createUserSuccess').replace('{role}', t(`profile.role.${created.role}`)),
       );
+    } catch (requestError) {
+      const message =
+        requestError instanceof Error ? requestError.message : t('adminDashboard.createUserFailed');
+      setCreateUserError(message);
+      notifyError(message);
     } finally {
       setCreateUserLoading(false);
     }
@@ -621,16 +636,19 @@ export default function AdminDashboardPage() {
         loading: false,
         notice: t('adminDashboard.roundStatusUpdated'),
       });
+      notifySuccess(t('adminDashboard.roundStatusUpdated'));
       await Promise.all([loadRounds(selectedTournamentId), loadTournaments()]);
       await loadDashboardMetrics(selectedTournamentId);
     } catch (requestError) {
+      const message =
+        requestError instanceof Error
+          ? requestError.message
+          : t('adminDashboard.roundStatusFailed');
       updateRoundOperationState(roundId, {
         loading: false,
-        error:
-          requestError instanceof Error
-            ? requestError.message
-            : t('adminDashboard.roundStatusFailed'),
+        error: message,
       });
+      notifyError(message);
     }
   }
 
@@ -661,15 +679,18 @@ export default function AdminDashboardPage() {
         loading: false,
         notice: t('adminDashboard.distributeSuccess'),
       });
+      notifySuccess(t('adminDashboard.distributeSuccess'));
       await loadDashboardMetrics(selectedTournamentId || undefined);
     } catch (requestError) {
+      const message =
+        requestError instanceof Error
+          ? requestError.message
+          : t('adminDashboard.distributeFailed');
       updateRoundOperationState(roundId, {
         loading: false,
-        error:
-          requestError instanceof Error
-            ? requestError.message
-            : t('adminDashboard.distributeFailed'),
+        error: message,
       });
+      notifyError(message);
     }
   }
 
@@ -686,18 +707,21 @@ export default function AdminDashboardPage() {
         loading: false,
         notice: t('adminDashboard.finishEvaluationSuccess'),
       });
+      notifySuccess(t('adminDashboard.finishEvaluationSuccess'));
       if (selectedTournamentId) {
         await Promise.all([loadRounds(selectedTournamentId), loadTournaments()]);
       }
       await loadDashboardMetrics(selectedTournamentId || undefined);
     } catch (requestError) {
+      const message =
+        requestError instanceof Error
+          ? requestError.message
+          : t('adminDashboard.finishEvaluationFailed');
       updateRoundOperationState(roundId, {
         loading: false,
-        error:
-          requestError instanceof Error
-            ? requestError.message
-            : t('adminDashboard.finishEvaluationFailed'),
+        error: message,
       });
+      notifyError(message);
     }
   }
 
@@ -801,48 +825,60 @@ export default function AdminDashboardPage() {
                 </span>
               </div>
             </div>
-            <div className="dashboard-bars">
-              {weeklyReviewedBars.map((value, index) => (
-                <div key={`admin-bar-a-${index}`} className="dashboard-bar-pair">
-                  <span className="dashboard-bar is-primary" style={{ height: `${value}%` }} />
-                  <span
-                    className="dashboard-bar is-secondary"
-                    style={{ height: `${weeklySubmissionBars[index] ?? 0}%` }}
-                  />
+            {hasWeeklyMetrics ? (
+              <>
+                <div className="dashboard-bars">
+                  {weeklyReviewedBars.map((value, index) => (
+                    <div key={`admin-bar-a-${index}`} className="dashboard-bar-pair">
+                      <span className="dashboard-bar is-primary" style={{ height: `${value}%` }} />
+                      <span
+                        className="dashboard-bar is-secondary"
+                        style={{ height: `${weeklySubmissionBars[index] ?? 0}%` }}
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <div className="dashboard-bar-labels">
-              {weekLabels.map((label) => (
-                <span key={`admin-week-${label}`}>{label}</span>
-              ))}
-            </div>
+                <div className="dashboard-bar-labels">
+                  {weekLabels.map((label) => (
+                    <span key={`admin-week-${label}`}>{label}</span>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="dashboard-empty-note">{t('adminDashboard.metrics.noWeekly')}</p>
+            )}
           </article>
 
           <article className="dashboard-pie-card">
             <h3>{t('shell.submissionStatus')}</h3>
-            <div
-              className="dashboard-pie"
-              style={{
-                background: `conic-gradient(#5e17eb 0 ${statusShares.evaluated}%, #f8890a ${statusShares.evaluated}% ${statusShares.evaluated + statusShares.closed}%, #2ec9c3 ${statusShares.evaluated + statusShares.closed}% 100%)`,
-              }}
-            >
-              <div className="dashboard-pie-center">{statusTotal}</div>
-            </div>
-            <div className="dashboard-pie-legend">
-              <p>
-                <i className="dot is-teal" aria-hidden />
-                {t('adminDashboard.summary.activeRounds')}: {statusShares.active}%
-              </p>
-              <p>
-                <i className="dot is-orange" aria-hidden />
-                {t('adminDashboard.summary.closedRounds')}: {statusShares.closed}%
-              </p>
-              <p>
-                <i className="dot is-primary" aria-hidden />
-                {t('adminDashboard.summary.evaluatedRounds')}: {statusShares.evaluated}%
-              </p>
-            </div>
+            {hasStatusMetrics ? (
+              <>
+                <div
+                  className="dashboard-pie"
+                  style={{
+                    background: `conic-gradient(#5e17eb 0 ${statusShares.evaluated}%, #f8890a ${statusShares.evaluated}% ${statusShares.evaluated + statusShares.closed}%, #2ec9c3 ${statusShares.evaluated + statusShares.closed}% 100%)`,
+                  }}
+                >
+                  <div className="dashboard-pie-center">{statusTotal}</div>
+                </div>
+                <div className="dashboard-pie-legend">
+                  <p>
+                    <i className="dot is-teal" aria-hidden />
+                    {t('adminDashboard.summary.activeRounds')}: {statusShares.active}%
+                  </p>
+                  <p>
+                    <i className="dot is-orange" aria-hidden />
+                    {t('adminDashboard.summary.closedRounds')}: {statusShares.closed}%
+                  </p>
+                  <p>
+                    <i className="dot is-primary" aria-hidden />
+                    {t('adminDashboard.summary.evaluatedRounds')}: {statusShares.evaluated}%
+                  </p>
+                </div>
+              </>
+            ) : (
+              <p className="dashboard-empty-note">{t('adminDashboard.metrics.noStatus')}</p>
+            )}
           </article>
         </div>
 
@@ -883,11 +919,15 @@ export default function AdminDashboardPage() {
 
           <article className="dashboard-mini-card">
             <h3>{t('shell.activityHistory')}</h3>
-            <div className="dashboard-line-wrap">
-              <svg viewBox="0 0 320 96" preserveAspectRatio="none" className="dashboard-line-svg" aria-hidden>
-                <path d={activityPath} />
-              </svg>
-            </div>
+            {hasActivityMetrics ? (
+              <div className="dashboard-line-wrap">
+                <svg viewBox="0 0 320 96" preserveAspectRatio="none" className="dashboard-line-svg" aria-hidden>
+                  <path d={activityPath} />
+                </svg>
+              </div>
+            ) : (
+              <p className="dashboard-empty-note">{t('adminDashboard.metrics.noActivity')}</p>
+            )}
           </article>
         </div>
 
