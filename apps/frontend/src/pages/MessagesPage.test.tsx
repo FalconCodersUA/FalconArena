@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { apiRequest } from '../lib/api';
 import MessagesPage from './MessagesPage';
@@ -16,9 +17,11 @@ const mockedApiRequest = vi.mocked(apiRequest);
 
 function renderMessagesPage() {
   return render(
-    <I18nProvider>
-      <MessagesPage />
-    </I18nProvider>,
+    <MemoryRouter initialEntries={['/app/messages']}>
+      <I18nProvider>
+        <MessagesPage />
+      </I18nProvider>
+    </MemoryRouter>,
   );
 }
 

@@ -63,6 +63,7 @@ model User {
 model UserSettings {
   userId                 String   @id
   user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  avatarUrl              String?
   userName               String?
   dateOfBirth            DateTime?
   presentAddress         String?

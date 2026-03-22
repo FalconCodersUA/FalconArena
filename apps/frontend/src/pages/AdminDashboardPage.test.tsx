@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { apiRequest } from '../lib/api';
@@ -58,14 +58,17 @@ describe('AdminDashboardPage user creation', () => {
 
     renderAdminPage();
 
-    await screen.findByRole('heading', { name: 'Create user' });
+    const openCreateUserButton = await screen.findByRole('button', { name: 'Create user' });
+    fireEvent.click(openCreateUserButton);
+    const dialog = await screen.findByRole('dialog', { name: 'Create user' });
+    const dialogView = within(dialog);
 
-    fireEvent.change(screen.getByLabelText('Full name'), { target: { value: 'Jury User' } });
-    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'jury@example.com' } });
-    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'strongpass123' } });
-    fireEvent.change(screen.getByLabelText('Role'), { target: { value: 'JURY' } });
+    fireEvent.change(dialogView.getByLabelText('Full name'), { target: { value: 'Jury User' } });
+    fireEvent.change(dialogView.getByLabelText('Email'), { target: { value: 'jury@example.com' } });
+    fireEvent.change(dialogView.getByLabelText('Password'), { target: { value: 'strongpass123' } });
+    fireEvent.change(dialogView.getByLabelText('Role'), { target: { value: 'JURY' } });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create user' }));
+    fireEvent.click(dialogView.getByRole('button', { name: 'Create user' }));
 
     await waitFor(() => {
       expect(mockedApiRequest).toHaveBeenCalledWith('/auth/admin/users', {
@@ -79,7 +82,9 @@ describe('AdminDashboardPage user creation', () => {
       });
     });
 
-    expect(screen.getByText('User with the Jury role was created successfully.')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Create user' })).not.toBeInTheDocument();
+    });
   });
 
   it('hides ADMIN role option for organizer', async () => {
@@ -101,9 +106,12 @@ describe('AdminDashboardPage user creation', () => {
 
     renderAdminPage();
 
-    await screen.findByRole('heading', { name: 'Create user' });
+    const openCreateUserButton = await screen.findByRole('button', { name: 'Create user' });
+    fireEvent.click(openCreateUserButton);
+    const dialog = await screen.findByRole('dialog', { name: 'Create user' });
+    const dialogView = within(dialog);
 
-    const roleSelect = screen.getByLabelText('Role') as HTMLSelectElement;
+    const roleSelect = dialogView.getByLabelText('Role') as HTMLSelectElement;
     const options = Array.from(roleSelect.options).map((option) => option.value);
 
     expect(options).toEqual(['JURY', 'ORGANIZER', 'TEAM']);

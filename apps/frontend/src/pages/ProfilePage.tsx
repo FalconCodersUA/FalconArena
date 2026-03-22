@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useNotifications } from '../app/notifications/NotificationsProvider';
 import { ApiError, apiRequest } from '../lib/api';
 import { useI18n } from '../i18n/I18nProvider';
+import type { Language } from '../i18n/messages';
 
 type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
 type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
@@ -141,6 +142,7 @@ type ProfileSettingsTab = 'edit' | 'preferences' | 'security';
 
 type ProfileSettingsPayload = {
   edit: {
+    avatarUrl?: string;
     fullName: string;
     userName: string;
     email: string;
@@ -159,6 +161,14 @@ type ProfileSettingsPayload = {
     notifyMessages: boolean;
   };
 };
+
+const PROFILE_TIME_ZONE_OPTIONS = [
+  'Europe/Kyiv',
+  'UTC',
+  'Europe/Warsaw',
+  'Europe/London',
+  'America/New_York',
+] as const;
 
 function isProfileSettingsPayload(value: unknown): value is ProfileSettingsPayload {
   if (!value || typeof value !== 'object') {
@@ -190,9 +200,42 @@ function initialsFromName(fullName: string) {
   return value || 'FA';
 }
 
+function normalizeStoredLanguage(value: string | null | undefined, fallback: Language): Language {
+  const normalized = value?.trim().toLowerCase();
+  if (!normalized) {
+    return fallback;
+  }
+
+  if (normalized === 'uk' || normalized.includes('укра')) {
+    return 'uk';
+  }
+
+  if (normalized === 'en' || normalized.includes('eng')) {
+    return 'en';
+  }
+
+  return fallback;
+}
+
+function normalizeStoredTimeZone(value: string | null | undefined) {
+  const normalized = value?.trim();
+  if (!normalized) {
+    return 'Europe/Kyiv';
+  }
+
+  if (normalized === '(GMT+02:00) Eastern Europe') {
+    return 'Europe/Kyiv';
+  }
+
+  return PROFILE_TIME_ZONE_OPTIONS.includes(normalized as (typeof PROFILE_TIME_ZONE_OPTIONS)[number])
+    ? normalized
+    : 'Europe/Kyiv';
+}
+
 export default function ProfilePage() {
-  const { language, t } = useI18n();
+  const { language, setLanguage, t } = useI18n();
   const { notifyError, notifySuccess } = useNotifications();
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -206,6 +249,8 @@ export default function ProfilePage() {
   const [editFullName, setEditFullName] = useState('');
   const [editUserName, setEditUserName] = useState('');
   const [editEmail, setEditEmail] = useState('');
+  const [editAvatarUrl, setEditAvatarUrl] = useState('');
+  const [avatarUploadError, setAvatarUploadError] = useState('');
   const [editDateOfBirth, setEditDateOfBirth] = useState('1990-01-25');
   const [editPresentAddress, setEditPresentAddress] = useState('San Jose, California, USA');
   const [editPermanentAddress, setEditPermanentAddress] = useState('San Jose, California, USA');
@@ -213,8 +258,8 @@ export default function ProfilePage() {
   const [editPostalCode, setEditPostalCode] = useState('45962');
   const [editCountry, setEditCountry] = useState('USA');
 
-  const [prefLanguage, setPrefLanguage] = useState(language === 'uk' ? 'Українська' : 'English');
-  const [prefTimeZone, setPrefTimeZone] = useState('(GMT+02:00) Eastern Europe');
+  const [prefLanguage, setPrefLanguage] = useState<Language>(language);
+  const [prefTimeZone, setPrefTimeZone] = useState<string>('Europe/Kyiv');
   const [prefNotificationsAnnouncements, setPrefNotificationsAnnouncements] = useState(true);
   const [prefNotificationsReviews, setPrefNotificationsReviews] = useState(false);
   const [prefNotificationsMessages, setPrefNotificationsMessages] = useState(true);
@@ -414,6 +459,7 @@ export default function ProfilePage() {
   }
 
   function applySettingsPayload(payload: ProfileSettingsPayload) {
+    setEditAvatarUrl(payload.edit.avatarUrl || '');
     setEditFullName(payload.edit.fullName);
     setEditUserName(payload.edit.userName);
     setEditEmail(payload.edit.email);
@@ -424,8 +470,8 @@ export default function ProfilePage() {
     setEditPostalCode(payload.edit.postalCode || '');
     setEditCountry(payload.edit.country || '');
 
-    setPrefLanguage(payload.preferences.interfaceLanguage || 'English');
-    setPrefTimeZone(payload.preferences.timeZone || '(GMT+02:00) Eastern Europe');
+    setPrefLanguage(normalizeStoredLanguage(payload.preferences.interfaceLanguage, language));
+    setPrefTimeZone(normalizeStoredTimeZone(payload.preferences.timeZone));
     setPrefNotificationsAnnouncements(payload.preferences.notifyAnnouncements);
     setPrefNotificationsReviews(payload.preferences.notifyReviews);
     setPrefNotificationsMessages(payload.preferences.notifyMessages);
@@ -445,6 +491,8 @@ export default function ProfilePage() {
       setEditFullName(meData.fullName);
       setEditUserName(meData.fullName);
       setEditEmail(meData.email);
+      setEditAvatarUrl('');
+      setAvatarUploadError('');
       setSettingsError('');
       setSettingsNotice('');
 
@@ -478,6 +526,45 @@ export default function ProfilePage() {
     void loadProfile();
   }, []);
 
+  function onAvatarPickerClick() {
+    avatarInputRef.current?.click();
+  }
+
+  function onAvatarFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      setAvatarUploadError(t('profile.settings.avatarErrors.invalidType'));
+      return;
+    }
+
+    if (file.size > 1024 * 1024) {
+      setAvatarUploadError(t('profile.settings.avatarErrors.tooLarge'));
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      if (!result) {
+        setAvatarUploadError(t('profile.settings.avatarErrors.readFailed'));
+        return;
+      }
+
+      setAvatarUploadError('');
+      setEditAvatarUrl(result);
+    };
+    reader.onerror = () => {
+      setAvatarUploadError(t('profile.settings.avatarErrors.readFailed'));
+    };
+    reader.readAsDataURL(file);
+  }
+
   if (loading) {
     return <article className="card state-card">{t('profile.loading')}</article>;
   }
@@ -508,6 +595,7 @@ export default function ProfilePage() {
       if (tab === 'edit') {
         body = {
           edit: {
+            avatarUrl: editAvatarUrl,
             fullName: editFullName,
             userName: editUserName,
             email: editEmail,
@@ -549,6 +637,23 @@ export default function ProfilePage() {
       setSettingsNotice(t('profile.settings.saved'));
       notifySuccess(t('profile.settings.saved'));
 
+      if (tab === 'edit') {
+        window.dispatchEvent(
+          new CustomEvent('falconarena-profile-updated', {
+            detail: {
+              avatarUrl: settings.edit.avatarUrl ?? '',
+            },
+          }),
+        );
+      }
+
+      if (tab === 'preferences') {
+        const nextLanguage = normalizeStoredLanguage(settings.preferences.interfaceLanguage, language);
+        if (nextLanguage !== language) {
+          setLanguage(nextLanguage);
+        }
+      }
+
       if (tab === 'security') {
         setSecurityCurrentPassword('');
         setSecurityNewPassword('');
@@ -575,10 +680,29 @@ export default function ProfilePage() {
         >
           <div className="profile-edit-layout">
             <div className="profile-edit-avatar-wrap">
-              <div className="profile-edit-avatar">{initialsFromName(editFullName)}</div>
-              <button type="button" className="profile-edit-avatar-button" aria-label={t('profile.settings.editAvatar')}>
+              <div className={`profile-edit-avatar${editAvatarUrl ? ' has-image' : ''}`}>
+                {editAvatarUrl ? (
+                  <img src={editAvatarUrl} alt={t('profile.settings.editAvatar')} />
+                ) : (
+                  initialsFromName(editFullName)
+                )}
+              </div>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="visually-hidden"
+                onChange={onAvatarFileChange}
+              />
+              <button
+                type="button"
+                className="profile-edit-avatar-button"
+                aria-label={t('profile.settings.editAvatar')}
+                onClick={onAvatarPickerClick}
+              >
                 +
               </button>
+              {avatarUploadError ? <p className="form-error profile-avatar-error">{avatarUploadError}</p> : null}
             </div>
 
             <div className="profile-settings-fields">
@@ -703,22 +827,31 @@ export default function ProfilePage() {
           <div className="profile-settings-fields two-col">
             <label className="field" htmlFor="profile-pref-language">
               <span>{t('profile.settings.preferences.interfaceLanguage')}</span>
-              <input
+              <select
                 id="profile-pref-language"
-                type="text"
+                className="select-input"
                 value={prefLanguage}
-                onChange={(event) => setPrefLanguage(event.target.value)}
-              />
+                onChange={(event) => setPrefLanguage(event.target.value as Language)}
+              >
+                <option value="uk">{t('profile.settings.preferences.languages.uk')}</option>
+                <option value="en">{t('profile.settings.preferences.languages.en')}</option>
+              </select>
             </label>
 
             <label className="field" htmlFor="profile-pref-timezone">
               <span>{t('profile.settings.preferences.timeZone')}</span>
-              <input
+              <select
                 id="profile-pref-timezone"
-                type="text"
+                className="select-input"
                 value={prefTimeZone}
                 onChange={(event) => setPrefTimeZone(event.target.value)}
-              />
+              >
+                {PROFILE_TIME_ZONE_OPTIONS.map((zone) => (
+                  <option key={zone} value={zone}>
+                    {t(`profile.settings.preferences.timeZones.${zone}`)}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
 
