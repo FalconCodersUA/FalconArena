@@ -106,12 +106,14 @@ Production routing is handled by Caddy (`80/443`). Database and Redis are intern
 
 Quick setup for GitHub + Ubuntu + `falconarena.live` is in `docs/deploy-quickstart.md`.
 MVP API smoke script is in `docs/mvp-smoke-api.md`.
+UI smoke runbook is in `docs/ui-smoke-runbook.md`.
 Acceptance checklist is in `docs/acceptance-checklist.md`.
 
 Ukrainian docs:
 
 - `docs/deploy-quickstart.uk.md`
 - `docs/mvp-smoke-api.uk.md`
+- `docs/ui-smoke-runbook.uk.md`
 - `docs/project-decisions.uk.md`
 - `docs/acceptance-checklist.uk.md`
 
@@ -127,6 +129,7 @@ Ukrainian docs:
 2. `ADMIN`: sign in, create a tournament, switch it to `Registration`, create a round, and create `JURY` and `ORGANIZER` users if needed.
 3. `JURY`: sign in, open `My jury`, choose a round, and evaluate assigned submissions.
 4. `ADMIN`: distribute assignments, close submissions or finish evaluation, then review the `Leaderboard`.
+5. Any role: open `Messages` (`/app/messages`) for announcements; `ADMIN/ORGANIZER` can publish announcements, all roles can use personal dialogs.
 
 ## Notes
 
@@ -171,6 +174,15 @@ Ukrainian docs:
   - `POST /rounds/:roundId/finish-evaluation` (roles: `ADMIN`, `ORGANIZER`, supports optional `{ "force": true }`)
 - Leaderboard endpoint:
   - `GET /tournaments/:tournamentId/leaderboard`
+- Announcement endpoints:
+  - `GET /announcements` (authenticated users, role-aware feed)
+  - `POST /announcements` (roles: `ADMIN`, `ORGANIZER`)
+  - `PATCH /announcements/:id` (roles: `ADMIN`, `ORGANIZER`)
+- Personal dialog endpoints:
+  - `GET /messages/dialogs`
+  - `POST /messages/dialogs` (create/open dialog by recipient email)
+  - `GET /messages/dialogs/:id`
+  - `POST /messages/dialogs/:id` (send message)
 
 Optional env setting:
 
@@ -189,6 +201,7 @@ Database migrations:
 - Apply tracked migrations: `npm run prisma:migrate:deploy -w @falconarena/backend`
 - For already-running databases created with `db push`, baseline once: `npm run prisma:migrate:resolve:init -w @falconarena/backend`
 - Runtime DB sync mode is controlled by `PRISMA_SYNC_MODE` (`dbpush` by default, switch to `migrate` after baseline).
+- Current message-related migrations: `0003_announcements`, `0004_direct_dialogs`.
 
 Backend API automation scripts:
 

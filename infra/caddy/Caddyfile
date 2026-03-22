@@ -1,7 +1,7 @@
 {$APP_DOMAIN:localhost} {
   encode zstd gzip
 
-  @backend path /health /auth* /admin* /tournaments* /rounds* /dashboard* /profile*
+  @backend path /health /auth* /admin* /tournaments* /rounds* /dashboard* /profile* /announcements* /messages*
   handle @backend {
     reverse_proxy backend:4000
   }

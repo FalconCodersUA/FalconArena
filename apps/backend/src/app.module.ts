@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
+import { AnnouncementsController } from './announcements.controller';
+import { AnnouncementsService } from './announcements.service';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { DashboardMetricsController } from './dashboard-metrics.controller';
 import { DashboardMetricsService } from './dashboard-metrics.service';
+import { DirectMessagesController } from './direct-messages.controller';
+import { DirectMessagesService } from './direct-messages.service';
 import { EvaluationModule } from './evaluation/evaluation.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -25,7 +29,19 @@ import { TournamentsModule } from './tournaments/tournaments.module';
     EvaluationModule,
     LeaderboardModule,
   ],
-  controllers: [AppController, DashboardMetricsController, ProfileSettingsController],
-  providers: [AppService, DashboardMetricsService, ProfileSettingsService],
+  controllers: [
+    AppController,
+    DashboardMetricsController,
+    ProfileSettingsController,
+    AnnouncementsController,
+    DirectMessagesController,
+  ],
+  providers: [
+    AppService,
+    DashboardMetricsService,
+    ProfileSettingsService,
+    AnnouncementsService,
+    DirectMessagesService,
+  ],
 })
 export class AppModule {}

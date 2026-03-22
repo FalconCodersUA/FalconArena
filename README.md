@@ -108,6 +108,7 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 
 - Швидкий деплой: `docs/deploy-quickstart.md`
 - Smoke API перевірка MVP: `docs/mvp-smoke-api.md`
+- UI smoke перевірка: `docs/ui-smoke-runbook.md`
 - Архітектурні рішення: `docs/project-decisions.md`
 - Acceptance checklist: `docs/acceptance-checklist.md`
 
@@ -115,6 +116,7 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 
 - `docs/deploy-quickstart.uk.md`
 - `docs/mvp-smoke-api.uk.md`
+- `docs/ui-smoke-runbook.uk.md`
 - `docs/project-decisions.uk.md`
 - `docs/acceptance-checklist.uk.md`
 
@@ -130,6 +132,7 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 2. `ADMIN`: увійти, створити турнір, змінити статус на `Registration`, створити раунд, створити користувачів `JURY` та `ORGANIZER` за потреби.
 3. `JURY`: увійти, відкрити `Моє журі`, вибрати раунд, оцінити призначені роботи.
 4. `ADMIN`: розподілити призначення, закрити сабміти або завершити оцінювання, перевірити `Лідерборд`.
+5. Будь-яка роль: відкрити `Повідомлення` (`/app/messages`) для оголошень; `ADMIN/ORGANIZER` можуть публікувати оголошення, усі ролі можуть вести особисті діалоги.
 
 ## Статус backend foundation
 
@@ -138,6 +141,15 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 - Адмінське створення користувачів: `POST /auth/admin/users` (`ADMIN`, `ORGANIZER`)
 - Турніри, команди, раунди, сабміти, оцінювання і leaderboard реалізовані
 - Додано `POST /rounds/:roundId/finish-evaluation`
+- Додано оголошення:
+  - `GET /announcements` (авторизовані користувачі, фільтрація за ролями)
+  - `POST /announcements` (`ADMIN`, `ORGANIZER`)
+  - `PATCH /announcements/:id` (`ADMIN`, `ORGANIZER`)
+- Додано особисті діалоги:
+  - `GET /messages/dialogs`
+  - `POST /messages/dialogs` (створити/відкрити діалог за email)
+  - `GET /messages/dialogs/:id`
+  - `POST /messages/dialogs/:id` (надіслати повідомлення)
 - Міграції Prisma версіонуються у `apps/backend/prisma/migrations`
 
 ## Корисні команди
@@ -154,6 +166,7 @@ SEED_ADMIN_EMAIL=admin@falconarena.live SEED_ADMIN_PASSWORD=change_me npm run pr
 - `npm run prisma:migrate:deploy -w @falconarena/backend`
 - baseline для існуючої БД після `db push`: `npm run prisma:migrate:resolve:init -w @falconarena/backend`
 - режим runtime синхронізації БД керується `PRISMA_SYNC_MODE` (`dbpush` або `migrate`)
+- актуальні додаткові міграції для повідомлень: `0003_announcements`, `0004_direct_dialogs`
 
 Автоматичні API перевірки backend:
 
