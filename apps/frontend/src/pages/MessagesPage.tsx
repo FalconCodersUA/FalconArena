@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { apiRequest } from '../lib/api';
 import { useI18n } from '../i18n/I18nProvider';
 
@@ -87,6 +88,7 @@ function announcementsPath(role: UserRole, includeInactive: boolean) {
 
 export default function MessagesPage() {
   const { language, t } = useI18n();
+  const location = useLocation();
 
   const [me, setMe] = useState<AuthMe | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -116,6 +118,7 @@ export default function MessagesPage() {
   const [dialogActionLoading, setDialogActionLoading] = useState(false);
   const [newDialogEmail, setNewDialogEmail] = useState('');
   const [newMessageBody, setNewMessageBody] = useState('');
+  const [focusedAnnouncementId, setFocusedAnnouncementId] = useState('');
 
   const isManager = isManagerRole(me?.role);
   const pinnedCount = useMemo(
@@ -130,6 +133,10 @@ export default function MessagesPage() {
     () => dialogs.find((item) => item.id === selectedDialogId) ?? null,
     [dialogs, selectedDialogId],
   );
+  const requestedAnnouncementId = useMemo(() => {
+    const query = new URLSearchParams(location.search);
+    return query.get('announcement') ?? '';
+  }, [location.search]);
 
   async function loadAnnouncements(
     role: UserRole,
@@ -247,6 +254,29 @@ export default function MessagesPage() {
 
     void loadDialogMessages(selectedDialogId, true);
   }, [selectedDialogId]);
+
+  useEffect(() => {
+    if (!requestedAnnouncementId || announcements.length === 0) {
+      return;
+    }
+
+    const element = document.getElementById(`announcement-${requestedAnnouncementId}`);
+    if (!element) {
+      return;
+    }
+
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setFocusedAnnouncementId(requestedAnnouncementId);
+    const timeoutId = window.setTimeout(() => {
+      setFocusedAnnouncementId((current) =>
+        current === requestedAnnouncementId ? '' : current,
+      );
+    }, 2200);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [requestedAnnouncementId, announcements]);
 
   function refreshFeed() {
     if (!me) {
@@ -634,7 +664,10 @@ export default function MessagesPage() {
             {announcements.map((item) => (
               <article
                 key={item.id}
-                className={`announcement-item${item.isActive ? '' : ' inactive'}`}
+                id={`announcement-${item.id}`}
+                className={`announcement-item${item.isActive ? '' : ' inactive'}${
+                  focusedAnnouncementId === item.id ? ' focused' : ''
+                }`}
               >
                 <div className="announcement-head">
                   <h3>{item.title}</h3>

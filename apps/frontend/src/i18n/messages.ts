@@ -32,7 +32,12 @@ export const messages: TranslationMap = {
       logout: 'Вийти',
       languageAria: 'Перемикач мови',
       searchPlaceholder: 'Пошук',
+      searchNoResults: 'Нічого не знайдено',
       alertsAria: 'Сповіщення',
+      notificationsTitle: 'Останні оголошення',
+      notificationsEmpty: 'Поки немає оголошень.',
+      notificationsOnlyUnread: 'Тільки непрочитані',
+      notificationsNoUnread: 'Непрочитаних оголошень немає.',
       quickActions: 'Швидкі дії',
       weeklyActivity: 'Тижнева активність',
       submissionStatus: 'Статус сабмітів',
@@ -47,6 +52,7 @@ export const messages: TranslationMap = {
       writeMessage: 'Написати команді',
       send: 'Надіслати',
       open: 'Відкрити',
+      openInMessages: 'Відкрити в повідомленнях',
     },
     language: {
       uk: 'Українська',
@@ -515,7 +521,7 @@ export const messages: TranslationMap = {
       accessLead: 'Увійдіть під акаунтом Admin або Organizer для керування турнірами.',
       createTournamentTitle: 'Створення турніру',
       createUserTitle: 'Створення користувача',
-      createUserLead: 'Створюйте акаунти журі, організаторів, команд і доступних для вашої ролі адміністраторів без ручних API-запитів.',
+      createUserLead: 'Тут можна створити акаунти журі, організаторів, команд і адміністраторів (залежно від вашої ролі).',
       manageTournamentTitle: 'Керування турніром',
       tournamentLabel: 'Оберіть турнір',
       tournamentStatus: 'Статус турніру',
@@ -594,6 +600,10 @@ export const messages: TranslationMap = {
         createUser: 'Створити користувача',
         creatingUser: 'Створюємо користувача...',
       },
+      modal: {
+        close: 'Закрити',
+        selectTournamentFirst: 'Спочатку оберіть турнір у блоці керування.',
+      },
       validation: {
         tournamentTitleLength: 'Назва турніру має містити від 3 до 120 символів.',
         registrationWindowInvalid: 'Початок реєстрації має бути раніше за завершення.',
@@ -628,6 +638,11 @@ export const messages: TranslationMap = {
         save: 'Зберегти',
         saved: 'Налаштування збережено.',
         editAvatar: 'Змінити аватар',
+        avatarErrors: {
+          invalidType: 'Оберіть зображення (PNG, JPG, WEBP).',
+          tooLarge: 'Розмір зображення має бути до 1 MB.',
+          readFailed: 'Не вдалося прочитати файл. Спробуйте інше зображення.',
+        },
         tabs: {
           edit: 'Редагувати профіль',
           preferences: 'Уподобання',
@@ -648,6 +663,17 @@ export const messages: TranslationMap = {
         preferences: {
           interfaceLanguage: 'Мова інтерфейсу',
           timeZone: 'Часовий пояс',
+          languages: {
+            uk: 'Українська',
+            en: 'English',
+          },
+          timeZones: {
+            'Europe/Kyiv': 'Europe/Kyiv (UTC+02:00 / UTC+03:00)',
+            UTC: 'UTC',
+            'Europe/Warsaw': 'Europe/Warsaw (UTC+01:00 / UTC+02:00)',
+            'Europe/London': 'Europe/London (UTC+00:00 / UTC+01:00)',
+            'America/New_York': 'America/New_York (UTC-05:00 / UTC-04:00)',
+          },
           notifications: 'Сповіщення',
           notifyAnnouncements: 'Отримувати сповіщення про оголошення турніру, зміни статусів та важливі оновлення.',
           notifyReviews: 'Отримувати сповіщення про створення, оновлення та ревʼю сабмітів.',
@@ -772,7 +798,12 @@ export const messages: TranslationMap = {
       logout: 'Logout',
       languageAria: 'Language switcher',
       searchPlaceholder: 'Search for something',
+      searchNoResults: 'No results found',
       alertsAria: 'Notifications',
+      notificationsTitle: 'Latest announcements',
+      notificationsEmpty: 'No announcements yet.',
+      notificationsOnlyUnread: 'Only unread',
+      notificationsNoUnread: 'No unread announcements.',
       quickActions: 'Quick actions',
       weeklyActivity: 'Weekly activity',
       submissionStatus: 'Submission status',
@@ -787,6 +818,7 @@ export const messages: TranslationMap = {
       writeMessage: 'Write a message to a team',
       send: 'Send',
       open: 'Open',
+      openInMessages: 'Open in messages',
     },
     language: {
       uk: 'Українська',
@@ -1266,7 +1298,7 @@ export const messages: TranslationMap = {
       accessLead: 'Sign in with an Admin or Organizer account to manage tournaments.',
       createTournamentTitle: 'Create tournament',
       createUserTitle: 'Create user',
-      createUserLead: 'Create jury, organizer, team, and role-allowed admin accounts without manual API calls.',
+      createUserLead: 'Use this form to create jury, organizer, team, and role-allowed admin accounts.',
       manageTournamentTitle: 'Manage tournament',
       tournamentLabel: 'Select tournament',
       tournamentStatus: 'Tournament status',
@@ -1345,6 +1377,10 @@ export const messages: TranslationMap = {
         createUser: 'Create user',
         creatingUser: 'Creating user...',
       },
+      modal: {
+        close: 'Close',
+        selectTournamentFirst: 'Select a tournament in the manage block first.',
+      },
       validation: {
         tournamentTitleLength: 'Tournament title must contain between 3 and 120 characters.',
         registrationWindowInvalid: 'Registration start must be earlier than registration end.',
@@ -1379,6 +1415,11 @@ export const messages: TranslationMap = {
         save: 'Save',
         saved: 'Settings saved.',
         editAvatar: 'Edit avatar',
+        avatarErrors: {
+          invalidType: 'Please choose an image file (PNG, JPG, WEBP).',
+          tooLarge: 'Image size must be up to 1 MB.',
+          readFailed: 'Could not read the file. Please try another image.',
+        },
         tabs: {
           edit: 'Edit Profile',
           preferences: 'Preferences',
@@ -1399,6 +1440,17 @@ export const messages: TranslationMap = {
         preferences: {
           interfaceLanguage: 'Interface language',
           timeZone: 'Time Zone',
+          languages: {
+            uk: 'Ukrainian',
+            en: 'English',
+          },
+          timeZones: {
+            'Europe/Kyiv': 'Europe/Kyiv (UTC+02:00 / UTC+03:00)',
+            UTC: 'UTC',
+            'Europe/Warsaw': 'Europe/Warsaw (UTC+01:00 / UTC+02:00)',
+            'Europe/London': 'Europe/London (UTC+00:00 / UTC+01:00)',
+            'America/New_York': 'America/New_York (UTC-05:00 / UTC-04:00)',
+          },
           notifications: 'Notification',
           notifyAnnouncements: 'Receive notifications about tournament announcements, status changes, and important updates.',
           notifyReviews: 'Get notified when submissions are created, updated, or reviewed.',

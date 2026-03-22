@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useI18n } from '../../i18n/I18nProvider';
 import { SUPPORTED_LANGUAGES } from '../../i18n/messages';
@@ -17,6 +17,60 @@ type MeResponse = {
   fullName: string;
   role: AuthRole;
 };
+
+type TopbarAnnouncement = {
+  id: string;
+  title: string;
+  body: string;
+  linkUrl: string | null;
+  publishedAt: string;
+  isPinned: boolean;
+};
+
+type ProfileSettingsResponse = {
+  edit?: {
+    avatarUrl?: string;
+  };
+};
+
+function alertsReadAtKey(userId: string) {
+  return `falconarena_alerts_read_at_${userId}`;
+}
+
+function profileAvatarKey(userId: string) {
+  return `falconarena_avatar_url_${userId}`;
+}
+
+function getAlertsReadAt(userId: string) {
+  const raw = localStorage.getItem(alertsReadAtKey(userId));
+  if (!raw) {
+    return 0;
+  }
+
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function setAlertsReadAt(userId: string, value: number) {
+  localStorage.setItem(alertsReadAtKey(userId), String(value));
+}
+
+function getCachedProfileAvatar(userId: string) {
+  return localStorage.getItem(profileAvatarKey(userId)) ?? '';
+}
+
+function setCachedProfileAvatar(userId: string, avatarUrl: string) {
+  if (avatarUrl) {
+    localStorage.setItem(profileAvatarKey(userId), avatarUrl);
+  } else {
+    localStorage.removeItem(profileAvatarKey(userId));
+  }
+}
+
+function toTimestamp(value: string) {
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+}
 
 function initialsFromName(fullName: string | undefined, fallback = 'FA') {
   if (!fullName) {
@@ -46,17 +100,44 @@ export default function AppShell() {
   const authed = isAuthenticated();
   const { language, setLanguage, t } = useI18n();
   const [fullName, setFullName] = useState<string>(() => getAuthUser()?.fullName ?? '');
+  const [currentUserId, setCurrentUserId] = useState<string>(() => getAuthUser()?.id ?? '');
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState<string>(() => {
+    const cachedUser = getAuthUser();
+    if (!cachedUser) {
+      return '';
+    }
+
+    return getCachedProfileAvatar(cachedUser.id);
+  });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [alertsOpen, setAlertsOpen] = useState(false);
+  const [alertsLoading, setAlertsLoading] = useState(false);
+  const [alertsError, setAlertsError] = useState('');
+  const [alerts, setAlerts] = useState<TopbarAnnouncement[]>([]);
+  const [unreadAlertsCount, setUnreadAlertsCount] = useState(0);
+  const [unreadAlertIds, setUnreadAlertIds] = useState<string[]>([]);
+  const [showOnlyUnreadAlerts, setShowOnlyUnreadAlerts] = useState(false);
+  const searchRef = useRef<HTMLDivElement | null>(null);
+  const alertsRef = useRef<HTMLDivElement | null>(null);
   const isAuthRoute = location.pathname === '/app/login' || location.pathname === '/app/register';
 
   useEffect(() => {
     if (!authed) {
       setFullName('');
+      setCurrentUserId('');
+      setProfileAvatarUrl('');
+      setUnreadAlertsCount(0);
+      setUnreadAlertIds([]);
+      setShowOnlyUnreadAlerts(false);
       return;
     }
 
     const cached = getAuthUser();
     if (cached) {
       setFullName(cached.fullName);
+      setCurrentUserId(cached.id);
+      setProfileAvatarUrl(getCachedProfileAvatar(cached.id));
     }
 
     async function syncMe() {
@@ -64,10 +145,25 @@ export default function AppShell() {
         const me = await apiRequest<MeResponse>('/auth/me');
         setAuthUser(me);
         setFullName(me.fullName);
+        setCurrentUserId(me.id);
+
+        try {
+          const settings = await apiRequest<ProfileSettingsResponse>('/profile/settings');
+          const nextAvatarUrl = settings.edit?.avatarUrl?.trim() ?? '';
+          setProfileAvatarUrl(nextAvatarUrl);
+          setCachedProfileAvatar(me.id, nextAvatarUrl);
+        } catch {
+          setProfileAvatarUrl((current) => current || getCachedProfileAvatar(me.id));
+        }
       } catch (requestError) {
         if (requestError instanceof ApiError && requestError.status === 401) {
           clearToken();
           setFullName('');
+          setCurrentUserId('');
+          setProfileAvatarUrl('');
+          setUnreadAlertsCount(0);
+          setUnreadAlertIds([]);
+          setShowOnlyUnreadAlerts(false);
           navigate('/app/login', { replace: true });
         }
       }
@@ -79,6 +175,11 @@ export default function AppShell() {
   function logout() {
     clearToken();
     setFullName('');
+    setCurrentUserId('');
+    setProfileAvatarUrl('');
+    setUnreadAlertsCount(0);
+    setUnreadAlertIds([]);
+    setShowOnlyUnreadAlerts(false);
     navigate('/app/login', { replace: true });
   }
 
@@ -95,6 +196,36 @@ export default function AppShell() {
   const isRoleWorkspacePath = /^\/app\/(admin|team|jury)(\/|$)/.test(location.pathname);
   const isDashboardView =
     location.pathname.startsWith('/app/dashboard') || isRoleWorkspacePath;
+
+  const searchItems = useMemo(
+    () => [
+      { path: dashboardPath, label: t('shell.dashboard') },
+      { path: '/app/teams', label: t('shell.teams') },
+      { path: '/app/tournaments', label: t('shell.tournamentsNav') },
+      { path: '/app/leaderboard', label: t('shell.leaderboard') },
+      { path: '/app/messages', label: t('shell.messages') },
+      { path: '/app/profile', label: t('shell.settings') },
+    ],
+    [dashboardPath, t],
+  );
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const filteredSearchItems = useMemo(() => {
+    if (!normalizedSearchQuery) {
+      return searchItems;
+    }
+
+    return searchItems.filter((item) =>
+      item.label.toLowerCase().includes(normalizedSearchQuery),
+    );
+  }, [normalizedSearchQuery, searchItems]);
+  const visibleAlerts = useMemo(() => {
+    if (!showOnlyUnreadAlerts) {
+      return alerts;
+    }
+
+    const unreadSet = new Set(unreadAlertIds);
+    return alerts.filter((item) => unreadSet.has(item.id));
+  }, [alerts, showOnlyUnreadAlerts, unreadAlertIds]);
 
   const pageTitle = (() => {
     if (isDashboardView) {
@@ -126,6 +257,154 @@ export default function AppShell() {
 
     return t('shell.home');
   })();
+
+  useEffect(() => {
+    function handleGlobalPointer(event: MouseEvent) {
+      const target = event.target as Node;
+
+      if (searchRef.current && !searchRef.current.contains(target)) {
+        setSearchOpen(false);
+      }
+
+      if (alertsRef.current && !alertsRef.current.contains(target)) {
+        setAlertsOpen(false);
+      }
+    }
+
+    function handleGlobalKeydown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setSearchOpen(false);
+        setAlertsOpen(false);
+      }
+    }
+
+    window.addEventListener('mousedown', handleGlobalPointer);
+    window.addEventListener('keydown', handleGlobalKeydown);
+    return () => {
+      window.removeEventListener('mousedown', handleGlobalPointer);
+      window.removeEventListener('keydown', handleGlobalKeydown);
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleProfileUpdated(event: Event) {
+      if (!currentUserId) {
+        return;
+      }
+
+      const detail = (event as CustomEvent<{ avatarUrl?: string }>).detail;
+      const nextAvatarUrl = detail?.avatarUrl?.trim() ?? '';
+      setProfileAvatarUrl(nextAvatarUrl);
+      setCachedProfileAvatar(currentUserId, nextAvatarUrl);
+    }
+
+    window.addEventListener('falconarena-profile-updated', handleProfileUpdated as EventListener);
+    return () => {
+      window.removeEventListener('falconarena-profile-updated', handleProfileUpdated as EventListener);
+    };
+  }, [currentUserId]);
+
+  useEffect(() => {
+    if (!authed || !currentUserId || isAuthRoute) {
+      return;
+    }
+
+    void loadTopbarAlerts({ showLoading: false, markAsSeen: false });
+  }, [authed, currentUserId, isAuthRoute]);
+
+  async function loadTopbarAlerts({
+    showLoading,
+    markAsSeen,
+  }: {
+    showLoading: boolean;
+    markAsSeen: boolean;
+  }) {
+    if (showLoading) {
+      setAlertsLoading(true);
+    }
+    setAlertsError('');
+
+    try {
+      const data = await apiRequest<TopbarAnnouncement[]>('/announcements');
+      const sorted = [...data].sort(
+        (left, right) => toTimestamp(right.publishedAt) - toTimestamp(left.publishedAt),
+      );
+      const limited = sorted.slice(0, 6);
+      setAlerts(limited);
+
+      if (!currentUserId) {
+        setUnreadAlertsCount(0);
+        setUnreadAlertIds([]);
+        return;
+      }
+
+      const newestTimestamp = sorted.reduce(
+        (max, item) => Math.max(max, toTimestamp(item.publishedAt)),
+        0,
+      );
+      const seenAt = getAlertsReadAt(currentUserId);
+
+      if (markAsSeen) {
+        setUnreadAlertIds(sorted.filter((item) => toTimestamp(item.publishedAt) > seenAt).map((item) => item.id));
+        const markValue = Math.max(seenAt, newestTimestamp, Date.now());
+        setAlertsReadAt(currentUserId, markValue);
+        setUnreadAlertsCount(0);
+      } else {
+        const unreadIds = sorted.filter((item) => toTimestamp(item.publishedAt) > seenAt).map((item) => item.id);
+        const unreadCount = unreadIds.length;
+        setUnreadAlertIds(unreadIds);
+        setUnreadAlertsCount(unreadCount);
+      }
+    } catch (requestError) {
+      setAlertsError(requestError instanceof Error ? requestError.message : t('messagesPage.loadFailed'));
+      setAlerts([]);
+      setUnreadAlertIds([]);
+    } finally {
+      if (showLoading) {
+        setAlertsLoading(false);
+      }
+    }
+  }
+
+  async function toggleAlerts() {
+    if (!authed) {
+      navigate('/app/login');
+      return;
+    }
+
+    const nextOpen = !alertsOpen;
+    setAlertsOpen(nextOpen);
+    setSearchOpen(false);
+
+    if (nextOpen) {
+      setShowOnlyUnreadAlerts(false);
+      await loadTopbarAlerts({ showLoading: true, markAsSeen: true });
+    }
+  }
+
+  function openAnnouncementInMessages(announcementId: string) {
+    setAlertsOpen(false);
+    setSearchOpen(false);
+    navigate(`/app/messages?announcement=${encodeURIComponent(announcementId)}`);
+  }
+
+  function onSearchSubmit(event: FormEvent) {
+    event.preventDefault();
+    const target = filteredSearchItems[0];
+    if (!target) {
+      return;
+    }
+
+    setSearchOpen(false);
+    setSearchQuery('');
+    navigate(target.path);
+  }
+
+  function goToSearchItem(path: string) {
+    setSearchOpen(false);
+    setSearchQuery('');
+    navigate(path);
+  }
 
   if (isAuthRoute) {
     return (
@@ -254,10 +533,12 @@ export default function AppShell() {
               <span className="app-sidebar-icon" aria-hidden>
                 <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path
-                    d="M10 3.5L11.5 4.8L13.5 4.4L14.1 6.4L16 7.4L15.1 9.3L15.6 11.3L13.6 11.7L12.4 13.2L10.5 12.4L8.6 13.2L7.4 11.7L5.4 11.3L5.9 9.3L5 7.4L6.9 6.4L7.5 4.4L9.5 4.8L10 3.5Z"
-                    fill="currentColor"
+                    d="M8.7 2.8H11.3L11.7 4.3C12.2 4.4 12.7 4.6 13.1 4.9L14.5 4.2L16.3 6L15.6 7.4C15.9 7.8 16.1 8.3 16.2 8.8L17.7 9.2V11.8L16.2 12.2C16.1 12.7 15.9 13.2 15.6 13.6L16.3 15L14.5 16.8L13.1 16.1C12.7 16.4 12.2 16.6 11.7 16.7L11.3 18.2H8.7L8.3 16.7C7.8 16.6 7.3 16.4 6.9 16.1L5.5 16.8L3.7 15L4.4 13.6C4.1 13.2 3.9 12.7 3.8 12.2L2.3 11.8V9.2L3.8 8.8C3.9 8.3 4.1 7.8 4.4 7.4L3.7 6L5.5 4.2L6.9 4.9C7.3 4.6 7.8 4.4 8.3 4.3L8.7 2.8Z"
+                    stroke="currentColor"
+                    strokeWidth="1.3"
+                    strokeLinejoin="round"
                   />
-                  <circle cx="10" cy="9.2" r="1.8" fill="#fff" />
+                  <circle cx="10" cy="10" r="2.1" stroke="currentColor" strokeWidth="1.3" />
                 </svg>
               </span>
               <span>{t('shell.settings')}</span>
@@ -286,15 +567,44 @@ export default function AppShell() {
           <header className="app-topbar">
             <h1 className="app-topbar-title">{pageTitle}</h1>
             <div className="app-topbar-actions">
-              <label className="app-search" aria-label={t('shell.searchPlaceholder')}>
-                <span className="app-search-icon" aria-hidden>
-                  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="9" cy="9" r="5" stroke="currentColor" strokeWidth="1.6" />
-                    <path d="M12.8 12.8L16 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                  </svg>
-                </span>
-                <input type="text" placeholder={t('shell.searchPlaceholder')} readOnly />
-              </label>
+              <div className="app-search" ref={searchRef}>
+                <form className="app-search-form" aria-label={t('shell.searchPlaceholder')} onSubmit={onSearchSubmit}>
+                  <span className="app-search-icon" aria-hidden>
+                    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="9" cy="9" r="5" stroke="currentColor" strokeWidth="1.6" />
+                      <path d="M12.8 12.8L16 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                    </svg>
+                  </span>
+                  <input
+                    type="text"
+                    placeholder={t('shell.searchPlaceholder')}
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    onFocus={() => {
+                      setSearchOpen(true);
+                      setAlertsOpen(false);
+                    }}
+                  />
+                </form>
+                {searchOpen ? (
+                  <div className="app-search-dropdown">
+                    {filteredSearchItems.length === 0 ? (
+                      <p className="app-search-empty">{t('shell.searchNoResults')}</p>
+                    ) : (
+                      filteredSearchItems.map((item) => (
+                        <button
+                          key={`search-item-${item.path}-${item.label}`}
+                          type="button"
+                          className="app-search-item"
+                          onClick={() => goToSearchItem(item.path)}
+                        >
+                          {item.label}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                ) : null}
+              </div>
 
               <div
                 className="language-switch app-topbar-language"
@@ -315,30 +625,109 @@ export default function AppShell() {
 
               {authed ? (
                 <Link to="/app/profile" className="app-topbar-icon" aria-label={t('shell.profile')}>
-                  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg
+                    className="app-topbar-settings-icon"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
                     <path
-                      d="M10 3.4L11.4 4.6L13.3 4.3L13.9 6.1L15.8 7L14.9 8.8L15.4 10.7L13.5 11.1L12.3 12.6L10.5 11.8L8.7 12.6L7.5 11.1L5.6 10.7L6.1 8.8L5.2 7L7.1 6.1L7.7 4.3L9.6 4.6L10 3.4Z"
+                      d="M8.7 2.8H11.3L11.7 4.3C12.2 4.4 12.7 4.6 13.1 4.9L14.5 4.2L16.3 6L15.6 7.4C15.9 7.8 16.1 8.3 16.2 8.8L17.7 9.2V11.8L16.2 12.2C16.1 12.7 15.9 13.2 15.6 13.6L16.3 15L14.5 16.8L13.1 16.1C12.7 16.4 12.2 16.6 11.7 16.7L11.3 18.2H8.7L8.3 16.7C7.8 16.6 7.3 16.4 6.9 16.1L5.5 16.8L3.7 15L4.4 13.6C4.1 13.2 3.9 12.7 3.8 12.2L2.3 11.8V9.2L3.8 8.8C3.9 8.3 4.1 7.8 4.4 7.4L3.7 6L5.5 4.2L6.9 4.9C7.3 4.6 7.8 4.4 8.3 4.3L8.7 2.8Z"
                       stroke="currentColor"
                       strokeWidth="1.3"
-                      fill="currentColor"
-                      fillOpacity="0.16"
+                      strokeLinejoin="round"
                     />
-                    <circle cx="10" cy="8.6" r="1.7" fill="currentColor" />
+                    <circle cx="10" cy="10" r="2.1" stroke="currentColor" strokeWidth="1.3" />
                   </svg>
                 </Link>
               ) : null}
 
-              <button type="button" className="app-topbar-icon" aria-label={t('shell.alertsAria')}>
-                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M10 4.3C8 4.3 6.3 6 6.3 8V10.1C6.3 11 6 11.8 5.4 12.5L4.7 13.4H15.3L14.6 12.5C14 11.8 13.7 11 13.7 10.1V8C13.7 6 12 4.3 10 4.3Z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinejoin="round"
-                  />
-                  <circle cx="10" cy="15.5" r="1.3" fill="currentColor" />
-                </svg>
-              </button>
+              <div className="app-topbar-alerts-wrap" ref={alertsRef}>
+                <button
+                  type="button"
+                  className={`app-topbar-icon${alertsOpen ? ' active' : ''}`}
+                  aria-label={t('shell.alertsAria')}
+                  onClick={() => void toggleAlerts()}
+                >
+                  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M10 4.3C8 4.3 6.3 6 6.3 8V10.1C6.3 11 6 11.8 5.4 12.5L4.7 13.4H15.3L14.6 12.5C14 11.8 13.7 11 13.7 10.1V8C13.7 6 12 4.3 10 4.3Z"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinejoin="round"
+                    />
+                    <circle cx="10" cy="15.5" r="1.3" fill="currentColor" />
+                  </svg>
+                  {unreadAlertsCount > 0 ? (
+                    <span className="app-topbar-alerts-badge" aria-hidden>
+                      {unreadAlertsCount > 99 ? '99+' : unreadAlertsCount}
+                    </span>
+                  ) : null}
+                </button>
+                {alertsOpen ? (
+                  <div className="app-alerts-popover" role="dialog" aria-label={t('shell.alertsAria')}>
+                    <div className="app-alerts-head">
+                      <strong>{t('shell.notificationsTitle')}</strong>
+                      <button type="button" className="app-alerts-link" onClick={() => goToSearchItem('/app/messages')}>
+                        {t('shell.viewAll')}
+                      </button>
+                    </div>
+                    <label className="app-alerts-filter">
+                      <input
+                        type="checkbox"
+                        checked={showOnlyUnreadAlerts}
+                        onChange={(event) => setShowOnlyUnreadAlerts(event.target.checked)}
+                      />
+                      {t('shell.notificationsOnlyUnread')}
+                    </label>
+                    {alertsLoading ? <p className="app-alerts-state">{t('messagesPage.loading')}</p> : null}
+                    {!alertsLoading && alertsError ? (
+                      <div className="app-alerts-state-wrap">
+                        <p className="app-alerts-state">{alertsError}</p>
+                        <button
+                          type="button"
+                          className="button button-soft"
+                          onClick={() => void loadTopbarAlerts({ showLoading: true, markAsSeen: false })}
+                        >
+                          {t('messagesPage.retry')}
+                        </button>
+                      </div>
+                    ) : null}
+                    {!alertsLoading && !alertsError && visibleAlerts.length === 0 ? (
+                      <p className="app-alerts-state">
+                        {showOnlyUnreadAlerts
+                          ? t('shell.notificationsNoUnread')
+                          : t('shell.notificationsEmpty')}
+                      </p>
+                    ) : null}
+                    {!alertsLoading && !alertsError && visibleAlerts.length > 0 ? (
+                      <div className="app-alerts-list">
+                        {visibleAlerts.map((item) => (
+                          <article key={item.id} className="app-alert-item">
+                            <strong>{item.title}</strong>
+                            <p>{item.body}</p>
+                            <div className="app-alert-meta">
+                              <span>{new Date(item.publishedAt).toLocaleString(language === 'uk' ? 'uk-UA' : 'en-US')}</span>
+                              <button
+                                type="button"
+                                className="app-alert-meta-btn"
+                                onClick={() => openAnnouncementInMessages(item.id)}
+                              >
+                                {t('shell.openInMessages')}
+                              </button>
+                              {item.linkUrl ? (
+                                <a href={item.linkUrl} target="_blank" rel="noreferrer">
+                                  {t('messagesPage.openLink')}
+                                </a>
+                              ) : null}
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
 
               {authed ? (
                 <button type="button" className="app-topbar-icon" aria-label={t('shell.logout')} onClick={logout}>
@@ -362,7 +751,11 @@ export default function AppShell() {
 
               {authed ? (
                 <Link to="/app/profile" className="app-avatar" aria-label={t('shell.profile')}>
-                  {initialsFromName(fullName)}
+                  {profileAvatarUrl ? (
+                    <img src={profileAvatarUrl} alt={t('shell.profile')} />
+                  ) : (
+                    initialsFromName(fullName)
+                  )}
                 </Link>
               ) : (
                 <div className="app-topbar-guest-actions">

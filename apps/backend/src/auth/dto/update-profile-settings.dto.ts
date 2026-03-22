@@ -12,6 +12,11 @@ import {
 export class EditProfileSettingsDto {
   @IsOptional()
   @IsString()
+  @MaxLength(2000000)
+  avatarUrl?: string;
+
+  @IsOptional()
+  @IsString()
   @Length(2, 80)
   fullName?: string;
 
@@ -107,4 +112,3 @@ export class UpdateProfileSettingsDto {
   @Type(() => SecurityProfileSettingsDto)
   security?: SecurityProfileSettingsDto;
 }
-

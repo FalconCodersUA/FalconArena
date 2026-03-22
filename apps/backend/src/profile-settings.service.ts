@@ -43,6 +43,12 @@ export class ProfileSettingsService {
     };
 
     if (dto.edit) {
+      if (dto.edit.avatarUrl !== undefined) {
+        const value = this.normalizeAvatarUrl(dto.edit.avatarUrl);
+        settingsUpdate.avatarUrl = value;
+        settingsCreate.avatarUrl = value;
+      }
+
       if (dto.edit.fullName !== undefined) {
         userUpdate.fullName = dto.edit.fullName.trim();
       }
@@ -189,6 +195,22 @@ export class ProfileSettingsService {
     return normalized;
   }
 
+  private normalizeAvatarUrl(value: string) {
+    const normalized = value.trim();
+    if (normalized.length === 0) {
+      return null;
+    }
+
+    const isHttpUrl = /^https?:\/\/\S+$/i.test(normalized);
+    const isImageDataUrl = /^data:image\/[a-z0-9.+-]+;base64,[A-Za-z0-9+/=]+$/i.test(normalized);
+
+    if (!isHttpUrl && !isImageDataUrl) {
+      throw new BadRequestException('avatarUrl must be an image data URL or http(s) URL');
+    }
+
+    return normalized;
+  }
+
   private normalizeDate(value: string) {
     if (value.trim().length === 0) {
       return null;
@@ -207,6 +229,7 @@ export class ProfileSettingsService {
     fullName: string;
     email: string;
     settings: {
+      avatarUrl: string | null;
       userName: string | null;
       dateOfBirth: Date | null;
       presentAddress: string | null;
@@ -223,6 +246,7 @@ export class ProfileSettingsService {
   }) {
     return {
       edit: {
+        avatarUrl: user.settings?.avatarUrl ?? '',
         fullName: user.fullName,
         userName: user.settings?.userName ?? user.fullName,
         email: user.email,
@@ -245,4 +269,3 @@ export class ProfileSettingsService {
     };
   }
 }
-

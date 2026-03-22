@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, ReactNode, useEffect, useMemo, useState } from 'react';
 import { useNotifications } from '../app/notifications/NotificationsProvider';
 import { apiRequest } from '../lib/api';
 import { useI18n } from '../i18n/I18nProvider';
@@ -202,6 +202,46 @@ function buildSparkPath(values: number[], width = 320, height = 96) {
     .join(' ');
 }
 
+type AdminQuickModal = 'none' | 'createTournament' | 'createUser' | 'createRound';
+
+function AdminActionModal({
+  open,
+  title,
+  closeLabel,
+  onClose,
+  children,
+}: {
+  open: boolean;
+  title: string;
+  closeLabel: string;
+  onClose: () => void;
+  children: ReactNode;
+}) {
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <div className="app-modal-overlay" role="presentation" onClick={onClose}>
+      <article
+        className="app-modal-card"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <header className="app-modal-head">
+          <h2>{title}</h2>
+          <button type="button" className="app-modal-close" onClick={onClose}>
+            {closeLabel}
+          </button>
+        </header>
+        <div className="app-modal-body">{children}</div>
+      </article>
+    </div>
+  );
+}
+
 export default function AdminDashboardPage() {
   const { language, t } = useI18n();
   const { notifyError, notifySuccess } = useNotifications();
@@ -258,6 +298,7 @@ export default function AdminDashboardPage() {
   const [userEmail, setUserEmail] = useState('');
   const [userPassword, setUserPassword] = useState('');
   const [userRole, setUserRole] = useState<ManagedUserRole>('JURY');
+  const [quickModal, setQuickModal] = useState<AdminQuickModal>('none');
 
   const selectedTournament =
     tournaments.find((entry) => entry.id === selectedTournamentId) ?? null;
@@ -303,6 +344,37 @@ export default function AdminDashboardPage() {
   const hasWeeklyMetrics = weeklyReviewedRaw.some((value) => value > 0) || weeklySubmissionRaw.some((value) => value > 0);
   const hasStatusMetrics = statusTotal > 0;
   const hasActivityMetrics = activityCurve.some((value) => value > 0);
+
+  function openQuickModal(modal: Exclude<AdminQuickModal, 'none'>) {
+    setCreateTournamentError('');
+    setCreateTournamentNotice('');
+    setCreateRoundError('');
+    setCreateRoundNotice('');
+    setCreateUserError('');
+    setCreateUserNotice('');
+    setQuickModal(modal);
+  }
+
+  function closeQuickModal() {
+    setQuickModal('none');
+  }
+
+  useEffect(() => {
+    if (quickModal === 'none') {
+      return;
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        closeQuickModal();
+      }
+    }
+
+    window.addEventListener('keydown', handleEscape);
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [quickModal]);
 
   function updateRoundOperationState(roundId: string, patch: Partial<RoundOperationState>) {
     setOpsByRoundId((current) => ({
@@ -441,6 +513,7 @@ export default function AdminDashboardPage() {
       setCreateTournamentNotice(t('adminDashboard.createTournamentSuccess'));
       notifySuccess(t('adminDashboard.createTournamentSuccess'));
       await loadTournaments();
+      closeQuickModal();
     } catch (requestError) {
       const message =
         requestError instanceof Error
@@ -538,6 +611,7 @@ export default function AdminDashboardPage() {
       notifySuccess(t('adminDashboard.createRoundSuccess'));
       await loadRounds(selectedTournamentId);
       await loadDashboardMetrics(selectedTournamentId);
+      closeQuickModal();
     } catch (requestError) {
       const message =
         requestError instanceof Error
@@ -611,6 +685,7 @@ export default function AdminDashboardPage() {
       notifySuccess(
         t('adminDashboard.createUserSuccess').replace('{role}', t(`profile.role.${created.role}`)),
       );
+      closeQuickModal();
     } catch (requestError) {
       const message =
         requestError instanceof Error ? requestError.message : t('adminDashboard.createUserFailed');
@@ -796,17 +871,32 @@ export default function AdminDashboardPage() {
           <div className="dashboard-quick-actions">
             <div className="dashboard-quick-head">
               <strong>{t('shell.quickActions')}</strong>
-              <span className="dashboard-edit-link">{t('shell.edit')}</span>
             </div>
-            <a href="#admin-create-tournament" className="button dashboard-action is-teal">
+            <button
+              type="button"
+              className="button dashboard-action is-teal"
+              onClick={() => openQuickModal('createTournament')}
+            >
               {t('adminDashboard.form.createTournament')}
+            </button>
+            <a href="#admin-manage-tournament" className="button dashboard-action is-orange">
+              {t('adminDashboard.manageTournamentTitle')}
             </a>
-            <a href="#admin-create-user" className="button dashboard-action is-purple">
+            <button
+              type="button"
+              className="button dashboard-action is-cobalt"
+              onClick={() => openQuickModal('createRound')}
+              disabled={!selectedTournament}
+            >
+              {t('adminDashboard.form.createRound')}
+            </button>
+            <button
+              type="button"
+              className="button dashboard-action is-purple"
+              onClick={() => openQuickModal('createUser')}
+            >
               {t('adminDashboard.userForm.createUser')}
-            </a>
-            <a href="#admin-rounds" className="button dashboard-action is-orange">
-              {t('adminDashboard.roundsTitle')}
-            </a>
+            </button>
           </div>
         </div>
 
@@ -933,158 +1023,8 @@ export default function AdminDashboardPage() {
 
       </article>
 
-      <div className="team-grid">
-        <article id="admin-create-tournament" className="card panel-card">
-          <h2>{t('adminDashboard.createTournamentTitle')}</h2>
-          {createTournamentError ? <p className="form-error">{createTournamentError}</p> : null}
-          {createTournamentNotice ? (
-            <p className="form-success">{createTournamentNotice}</p>
-          ) : null}
-
-          <form className="panel-form" onSubmit={submitTournament} noValidate>
-            <label className="field" htmlFor="admin-tournament-title">
-              <span>{t('adminDashboard.form.tournamentTitle')}</span>
-              <input
-                id="admin-tournament-title"
-                type="text"
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                required
-                minLength={3}
-                maxLength={120}
-              />
-            </label>
-
-            <label className="field" htmlFor="admin-tournament-description">
-              <span>{t('adminDashboard.form.tournamentDescription')}</span>
-              <textarea
-                id="admin-tournament-description"
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                maxLength={4000}
-              />
-            </label>
-
-            <label className="field" htmlFor="admin-registration-open">
-              <span>{t('adminDashboard.form.registrationOpenAt')}</span>
-              <input
-                id="admin-registration-open"
-                type="datetime-local"
-                value={registrationOpenAt}
-                onChange={(event) => setRegistrationOpenAt(event.target.value)}
-                required
-              />
-            </label>
-
-            <label className="field" htmlFor="admin-registration-close">
-              <span>{t('adminDashboard.form.registrationCloseAt')}</span>
-              <input
-                id="admin-registration-close"
-                type="datetime-local"
-                value={registrationCloseAt}
-                onChange={(event) => setRegistrationCloseAt(event.target.value)}
-                required
-              />
-            </label>
-
-            <label className="field" htmlFor="admin-max-teams">
-              <span>{t('adminDashboard.form.maxTeams')}</span>
-              <input
-                id="admin-max-teams"
-                type="number"
-                min={1}
-                value={maxTeams}
-                onChange={(event) => setMaxTeams(event.target.value)}
-              />
-            </label>
-
-            <button
-              type="submit"
-              className="button button-primary"
-              disabled={createTournamentLoading}
-            >
-              {createTournamentLoading
-                ? t('adminDashboard.form.creatingTournament')
-                : t('adminDashboard.form.createTournament')}
-            </button>
-          </form>
-        </article>
-
-        <article id="admin-create-user" className="card panel-card">
-          <h2>{t('adminDashboard.createUserTitle')}</h2>
-          <p className="inline-hint">{t('adminDashboard.createUserLead')}</p>
-
-          {createUserError ? <p className="form-error">{createUserError}</p> : null}
-          {createUserNotice ? <p className="form-success">{createUserNotice}</p> : null}
-
-          <form className="panel-form" onSubmit={submitUser} noValidate>
-            <label className="field" htmlFor="admin-user-full-name">
-              <span>{t('adminDashboard.userForm.fullName')}</span>
-              <input
-                id="admin-user-full-name"
-                type="text"
-                value={userFullName}
-                onChange={(event) => setUserFullName(event.target.value)}
-                required
-                minLength={2}
-                maxLength={80}
-              />
-            </label>
-
-            <label className="field" htmlFor="admin-user-email">
-              <span>{t('adminDashboard.userForm.email')}</span>
-              <input
-                id="admin-user-email"
-                type="email"
-                value={userEmail}
-                onChange={(event) => setUserEmail(event.target.value)}
-                required
-              />
-            </label>
-
-            <label className="field" htmlFor="admin-user-password">
-              <span>{t('adminDashboard.userForm.password')}</span>
-              <input
-                id="admin-user-password"
-                type="password"
-                value={userPassword}
-                onChange={(event) => setUserPassword(event.target.value)}
-                required
-                minLength={8}
-                maxLength={128}
-              />
-            </label>
-
-            <label className="field" htmlFor="admin-user-role">
-              <span>{t('adminDashboard.userForm.role')}</span>
-              <select
-                id="admin-user-role"
-                className="select-input"
-                value={userRole}
-                onChange={(event) => setUserRole(event.target.value as ManagedUserRole)}
-              >
-                {creatableRoles.map((role) => (
-                  <option key={role} value={role}>
-                    {t(`profile.role.${role}`)}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <button
-              type="submit"
-              className="button button-primary"
-              disabled={createUserLoading}
-            >
-              {createUserLoading
-                ? t('adminDashboard.userForm.creatingUser')
-                : t('adminDashboard.userForm.createUser')}
-            </button>
-          </form>
-        </article>
-
-        <article id="admin-manage-tournament" className="card panel-card">
-          <h2>{t('adminDashboard.manageTournamentTitle')}</h2>
+      <article id="admin-manage-tournament" className="card panel-card">
+        <h2>{t('adminDashboard.manageTournamentTitle')}</h2>
 
           <label className="field" htmlFor="admin-tournament-select">
             <span>{t('adminDashboard.tournamentLabel')}</span>
@@ -1149,88 +1089,7 @@ export default function AdminDashboardPage() {
 
           {statusError ? <p className="form-error">{statusError}</p> : null}
           {statusNotice ? <p className="form-success">{statusNotice}</p> : null}
-        </article>
-      </div>
-
-      {selectedTournament ? (
-        <article id="admin-create-round" className="card panel-card">
-          <h2>{t('adminDashboard.createRoundTitle')}</h2>
-
-          {createRoundError ? <p className="form-error">{createRoundError}</p> : null}
-          {createRoundNotice ? <p className="form-success">{createRoundNotice}</p> : null}
-
-          <form className="panel-form" onSubmit={submitRound} noValidate>
-            <label className="field" htmlFor="admin-round-title">
-              <span>{t('adminDashboard.form.roundTitle')}</span>
-              <input
-                id="admin-round-title"
-                type="text"
-                value={roundTitle}
-                onChange={(event) => setRoundTitle(event.target.value)}
-                required
-                minLength={3}
-                maxLength={140}
-              />
-            </label>
-
-            <label className="field" htmlFor="admin-round-description">
-              <span>{t('adminDashboard.form.roundDescription')}</span>
-              <textarea
-                id="admin-round-description"
-                value={roundDescription}
-                onChange={(event) => setRoundDescription(event.target.value)}
-                required
-                minLength={10}
-                maxLength={5000}
-              />
-            </label>
-
-            <label className="field" htmlFor="admin-round-must-have">
-              <span>{t('adminDashboard.form.mustHave')}</span>
-              <input
-                id="admin-round-must-have"
-                type="text"
-                value={mustHaveRaw}
-                onChange={(event) => setMustHaveRaw(event.target.value)}
-              />
-            </label>
-
-            <div className="datetime-grid">
-              <label className="field" htmlFor="admin-round-starts-at">
-                <span>{t('adminDashboard.form.roundStartsAt')}</span>
-                <input
-                  id="admin-round-starts-at"
-                  type="datetime-local"
-                  value={roundStartsAt}
-                  onChange={(event) => setRoundStartsAt(event.target.value)}
-                  required
-                />
-              </label>
-
-              <label className="field" htmlFor="admin-round-deadline-at">
-                <span>{t('adminDashboard.form.roundDeadlineAt')}</span>
-                <input
-                  id="admin-round-deadline-at"
-                  type="datetime-local"
-                  value={roundDeadlineAt}
-                  onChange={(event) => setRoundDeadlineAt(event.target.value)}
-                  required
-                />
-              </label>
-            </div>
-
-            <button
-              type="submit"
-              className="button button-primary"
-              disabled={createRoundLoading}
-            >
-              {createRoundLoading
-                ? t('adminDashboard.form.creatingRound')
-                : t('adminDashboard.form.createRound')}
-            </button>
-          </form>
-        </article>
-      ) : null}
+      </article>
 
       <article id="admin-rounds" className="card panel-card">
         <h2>{t('adminDashboard.roundsTitle')}</h2>
@@ -1376,6 +1235,249 @@ export default function AdminDashboardPage() {
           </div>
         ) : null}
       </article>
+
+      <AdminActionModal
+        open={quickModal === 'createTournament'}
+        title={t('adminDashboard.createTournamentTitle')}
+        closeLabel={t('adminDashboard.modal.close')}
+        onClose={closeQuickModal}
+      >
+        {createTournamentError ? <p className="form-error">{createTournamentError}</p> : null}
+        {createTournamentNotice ? <p className="form-success">{createTournamentNotice}</p> : null}
+
+        <form className="panel-form" onSubmit={submitTournament} noValidate>
+          <label className="field" htmlFor="admin-tournament-title">
+            <span>{t('adminDashboard.form.tournamentTitle')}</span>
+            <input
+              id="admin-tournament-title"
+              type="text"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              required
+              minLength={3}
+              maxLength={120}
+            />
+          </label>
+
+          <label className="field" htmlFor="admin-tournament-description">
+            <span>{t('adminDashboard.form.tournamentDescription')}</span>
+            <textarea
+              id="admin-tournament-description"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              maxLength={4000}
+            />
+          </label>
+
+          <label className="field" htmlFor="admin-registration-open">
+            <span>{t('adminDashboard.form.registrationOpenAt')}</span>
+            <input
+              id="admin-registration-open"
+              type="datetime-local"
+              value={registrationOpenAt}
+              onChange={(event) => setRegistrationOpenAt(event.target.value)}
+              required
+            />
+          </label>
+
+          <label className="field" htmlFor="admin-registration-close">
+            <span>{t('adminDashboard.form.registrationCloseAt')}</span>
+            <input
+              id="admin-registration-close"
+              type="datetime-local"
+              value={registrationCloseAt}
+              onChange={(event) => setRegistrationCloseAt(event.target.value)}
+              required
+            />
+          </label>
+
+          <label className="field" htmlFor="admin-max-teams">
+            <span>{t('adminDashboard.form.maxTeams')}</span>
+            <input
+              id="admin-max-teams"
+              type="number"
+              min={1}
+              value={maxTeams}
+              onChange={(event) => setMaxTeams(event.target.value)}
+            />
+          </label>
+
+          <button
+            type="submit"
+            className="button button-primary"
+            disabled={createTournamentLoading}
+          >
+            {createTournamentLoading
+              ? t('adminDashboard.form.creatingTournament')
+              : t('adminDashboard.form.createTournament')}
+          </button>
+        </form>
+      </AdminActionModal>
+
+      <AdminActionModal
+        open={quickModal === 'createUser'}
+        title={t('adminDashboard.createUserTitle')}
+        closeLabel={t('adminDashboard.modal.close')}
+        onClose={closeQuickModal}
+      >
+        <p className="inline-hint">{t('adminDashboard.createUserLead')}</p>
+        {createUserError ? <p className="form-error">{createUserError}</p> : null}
+        {createUserNotice ? <p className="form-success">{createUserNotice}</p> : null}
+
+        <form className="panel-form" onSubmit={submitUser} noValidate>
+          <label className="field" htmlFor="admin-user-full-name">
+            <span>{t('adminDashboard.userForm.fullName')}</span>
+            <input
+              id="admin-user-full-name"
+              type="text"
+              value={userFullName}
+              onChange={(event) => setUserFullName(event.target.value)}
+              required
+              minLength={2}
+              maxLength={80}
+            />
+          </label>
+
+          <label className="field" htmlFor="admin-user-email">
+            <span>{t('adminDashboard.userForm.email')}</span>
+            <input
+              id="admin-user-email"
+              type="email"
+              value={userEmail}
+              onChange={(event) => setUserEmail(event.target.value)}
+              required
+            />
+          </label>
+
+          <label className="field" htmlFor="admin-user-password">
+            <span>{t('adminDashboard.userForm.password')}</span>
+            <input
+              id="admin-user-password"
+              type="password"
+              value={userPassword}
+              onChange={(event) => setUserPassword(event.target.value)}
+              required
+              minLength={8}
+              maxLength={128}
+            />
+          </label>
+
+          <label className="field" htmlFor="admin-user-role">
+            <span>{t('adminDashboard.userForm.role')}</span>
+            <select
+              id="admin-user-role"
+              className="select-input"
+              value={userRole}
+              onChange={(event) => setUserRole(event.target.value as ManagedUserRole)}
+            >
+              {creatableRoles.map((role) => (
+                <option key={role} value={role}>
+                  {t(`profile.role.${role}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <button
+            type="submit"
+            className="button button-primary"
+            disabled={createUserLoading}
+          >
+            {createUserLoading
+              ? t('adminDashboard.userForm.creatingUser')
+              : t('adminDashboard.userForm.createUser')}
+          </button>
+        </form>
+      </AdminActionModal>
+
+      <AdminActionModal
+        open={quickModal === 'createRound'}
+        title={t('adminDashboard.createRoundTitle')}
+        closeLabel={t('adminDashboard.modal.close')}
+        onClose={closeQuickModal}
+      >
+        {selectedTournament ? (
+          <p className="inline-hint">
+            {t('adminDashboard.tournamentLabel')}: <strong>{selectedTournament.title}</strong>
+          </p>
+        ) : (
+          <p className="form-error">{t('adminDashboard.modal.selectTournamentFirst')}</p>
+        )}
+
+        {createRoundError ? <p className="form-error">{createRoundError}</p> : null}
+        {createRoundNotice ? <p className="form-success">{createRoundNotice}</p> : null}
+
+        <form className="panel-form" onSubmit={submitRound} noValidate>
+          <label className="field" htmlFor="admin-round-title">
+            <span>{t('adminDashboard.form.roundTitle')}</span>
+            <input
+              id="admin-round-title"
+              type="text"
+              value={roundTitle}
+              onChange={(event) => setRoundTitle(event.target.value)}
+              required
+              minLength={3}
+              maxLength={140}
+            />
+          </label>
+
+          <label className="field" htmlFor="admin-round-description">
+            <span>{t('adminDashboard.form.roundDescription')}</span>
+            <textarea
+              id="admin-round-description"
+              value={roundDescription}
+              onChange={(event) => setRoundDescription(event.target.value)}
+              required
+              minLength={10}
+              maxLength={5000}
+            />
+          </label>
+
+          <label className="field" htmlFor="admin-round-must-have">
+            <span>{t('adminDashboard.form.mustHave')}</span>
+            <input
+              id="admin-round-must-have"
+              type="text"
+              value={mustHaveRaw}
+              onChange={(event) => setMustHaveRaw(event.target.value)}
+            />
+          </label>
+
+          <div className="datetime-grid">
+            <label className="field" htmlFor="admin-round-starts-at">
+              <span>{t('adminDashboard.form.roundStartsAt')}</span>
+              <input
+                id="admin-round-starts-at"
+                type="datetime-local"
+                value={roundStartsAt}
+                onChange={(event) => setRoundStartsAt(event.target.value)}
+                required
+              />
+            </label>
+
+            <label className="field" htmlFor="admin-round-deadline-at">
+              <span>{t('adminDashboard.form.roundDeadlineAt')}</span>
+              <input
+                id="admin-round-deadline-at"
+                type="datetime-local"
+                value={roundDeadlineAt}
+                onChange={(event) => setRoundDeadlineAt(event.target.value)}
+                required
+              />
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            className="button button-primary"
+            disabled={createRoundLoading || !selectedTournament}
+          >
+            {createRoundLoading
+              ? t('adminDashboard.form.creatingRound')
+              : t('adminDashboard.form.createRound')}
+          </button>
+        </form>
+      </AdminActionModal>
     </section>
   );
 }
