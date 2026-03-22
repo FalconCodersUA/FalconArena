@@ -285,24 +285,6 @@ export default function AppShell() {
         <main className="app-main">
           <header className="app-topbar">
             <h1 className="app-topbar-title">{pageTitle}</h1>
-            <nav className="app-topbar-nav" aria-label={t('shell.quickNavAria')}>
-              <button type="button" className="app-topbar-nav-btn" onClick={goBack}>
-                {t('shell.back')}
-              </button>
-              <Link to="/app" className="app-topbar-nav-btn">
-                {t('shell.home')}
-              </Link>
-              {authed ? (
-                <Link to="/app/dashboard" className="app-topbar-nav-btn">
-                  {t('shell.dashboard')}
-                </Link>
-              ) : (
-                <Link to="/app/register" className="app-topbar-nav-btn">
-                  {t('shell.register')}
-                </Link>
-              )}
-            </nav>
-
             <div className="app-topbar-actions">
               <label className="app-search" aria-label={t('shell.searchPlaceholder')}>
                 <span className="app-search-icon" aria-hidden>
