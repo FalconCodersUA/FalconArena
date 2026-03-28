@@ -168,7 +168,7 @@ export default function TeamsPage() {
         {teams.length > 0 ? (
           <div className="team-grid">
             {teams.map((team) => (
-              <article key={team.id} className="card panel-card">
+              <article key={team.id} className="team-list-card">
                 <div className="tournament-head">
                   <h3>{team.name}</h3>
                   <span className="status-pill">{t('teamsPage.membersCount')}: {team.membersCount}</span>
