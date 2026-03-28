@@ -42,6 +42,14 @@ enum AnnouncementAudience {
   ORGANIZER
 }
 
+enum TournamentScheduleEventType {
+  ROUND
+  CONSULTATION
+  DEADLINE
+  ANNOUNCEMENT
+  OTHER
+}
+
 model User {
   id              String                 @id @default(cuid())
   email           String                 @unique
@@ -94,6 +102,7 @@ model Tournament {
   createdBy          User?            @relation("TournamentCreatedBy", fields: [createdById], references: [id])
   teams              Team[]
   rounds             Round[]
+  scheduleEvents     TournamentScheduleEvent[]
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
 }
@@ -244,4 +253,20 @@ model DirectMessage {
   updatedAt      DateTime           @updatedAt
 
   @@index([conversationId, createdAt])
+}
+
+model TournamentScheduleEvent {
+  id           String                      @id @default(cuid())
+  tournamentId String
+  tournament   Tournament                  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?
+  type         TournamentScheduleEventType @default(OTHER)
+  startsAt     DateTime
+  endsAt       DateTime?
+  location     String?
+  createdAt    DateTime                    @default(now())
+  updatedAt    DateTime                    @updatedAt
+
+  @@index([tournamentId, startsAt])
 }
