@@ -68,3 +68,7 @@ export async function apiRequest<T>(
 
   return payload as T;
 }
+
+export function buildApiUrl(path: string) {
+  return `${API_BASE}${path}`;
+}

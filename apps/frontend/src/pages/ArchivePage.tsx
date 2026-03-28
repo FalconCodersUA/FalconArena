@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useI18n } from '../i18n/I18nProvider';
-import { apiRequest } from '../lib/api';
+import { apiRequest, buildApiUrl } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
 
 type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
@@ -316,6 +316,14 @@ export default function ArchivePage() {
               >
                 {t('archivePage.openTournament')}
               </Link>
+              <a
+                href={buildApiUrl(
+                  `/tournaments/${archive.tournament.id}/leaderboard/export.csv`,
+                )}
+                className="button button-soft"
+              >
+                {t('archivePage.exportCsv')}
+              </a>
               <Link
                 to={`/app/leaderboard?tournamentId=${archive.tournament.id}`}
                 className="button button-primary"
