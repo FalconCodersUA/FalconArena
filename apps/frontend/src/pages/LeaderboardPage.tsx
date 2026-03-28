@@ -70,7 +70,7 @@ function formatScore(value: number) {
 }
 
 export default function LeaderboardPage() {
-  const { t } = useI18n();
+  const { language, t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const [initialTournamentId] = useState(() => searchParams.get('tournamentId') ?? '');
 
@@ -82,11 +82,13 @@ export default function LeaderboardPage() {
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
   const [tournamentsError, setTournamentsError] = useState('');
   const [leaderboardError, setLeaderboardError] = useState('');
+  const [lastUpdatedAt, setLastUpdatedAt] = useState('');
 
   const selectedTournament = useMemo(
     () => tournaments.find((entry) => entry.id === selectedTournamentId) ?? null,
     [selectedTournamentId, tournaments],
   );
+  const isRealtimeEnabled = selectedTournament?.status === 'RUNNING';
   const leaderRow = leaderboard?.rows[0] ?? null;
   const totalEvaluations = leaderboard?.rows.reduce((acc, row) => acc + row.evaluationsCount, 0) ?? 0;
 
@@ -142,8 +144,10 @@ export default function LeaderboardPage() {
     }
   }
 
-  async function loadLeaderboard(tournamentId: string) {
-    setLoadingLeaderboard(true);
+  async function loadLeaderboard(tournamentId: string, showLoading = true) {
+    if (showLoading) {
+      setLoadingLeaderboard(true);
+    }
     setLeaderboardError('');
 
     try {
@@ -151,13 +155,16 @@ export default function LeaderboardPage() {
         `/tournaments/${tournamentId}/leaderboard`,
       );
       setLeaderboard(data);
+      setLastUpdatedAt(new Date().toISOString());
     } catch (requestError) {
       setLeaderboardError(
         requestError instanceof Error ? requestError.message : t('leaderboard.loadLeaderboardFailed'),
       );
       setLeaderboard(null);
     } finally {
-      setLoadingLeaderboard(false);
+      if (showLoading) {
+        setLoadingLeaderboard(false);
+      }
     }
   }
 
@@ -173,6 +180,26 @@ export default function LeaderboardPage() {
     setSearchParams({ tournamentId: selectedTournamentId }, { replace: true });
     void loadLeaderboard(selectedTournamentId);
   }, [selectedTournamentId, setSearchParams]);
+
+  useEffect(() => {
+    if (!selectedTournamentId || !isRealtimeEnabled) {
+      return;
+    }
+
+    let cancelled = false;
+    const intervalId = window.setInterval(() => {
+      if (cancelled || document.hidden) {
+        return;
+      }
+
+      void loadLeaderboard(selectedTournamentId, false);
+    }, 30000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [isRealtimeEnabled, selectedTournamentId]);
 
   if (loadingTournaments) {
     return <article className="card state-card">{t('leaderboard.loadingTournaments')}</article>;
@@ -267,6 +294,17 @@ export default function LeaderboardPage() {
         <div className="messages-controls">
           <div className="messages-controls-text">
             <h2>{t('leaderboard.resultsTitle')}</h2>
+            <p className="inline-hint">
+              {isRealtimeEnabled
+                ? t('leaderboard.realtimeActive')
+                : t('leaderboard.realtimePaused')}
+              {lastUpdatedAt
+                ? ` ${t('leaderboard.lastUpdated')}: ${new Date(lastUpdatedAt).toLocaleTimeString(language === 'uk' ? 'uk-UA' : 'en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}`
+                : ''}
+            </p>
           </div>
           {selectedTournamentId ? (
             <a

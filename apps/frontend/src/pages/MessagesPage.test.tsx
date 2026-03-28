@@ -15,9 +15,9 @@ vi.mock('../lib/api', async () => {
 
 const mockedApiRequest = vi.mocked(apiRequest);
 
-function renderMessagesPage() {
+function renderMessagesPage(initialEntry = '/app/messages') {
   return render(
-    <MemoryRouter initialEntries={['/app/messages']}>
+    <MemoryRouter initialEntries={[initialEntry]}>
       <I18nProvider>
         <MessagesPage />
       </I18nProvider>
@@ -66,6 +66,10 @@ describe('MessagesPage', () => {
         };
       }
 
+      if (path === '/notifications') {
+        return [];
+      }
+
       if (path === '/messages/dialogs') {
         return [];
       }
@@ -111,10 +115,8 @@ describe('MessagesPage', () => {
         return [];
       }
 
-      if (path === '/announcements/read-state') {
-        return {
-          lastAnnouncementsReadAt: '2026-03-22T10:00:00.000Z',
-        };
+      if (path === '/notifications') {
+        return [];
       }
 
       if (path === '/messages/dialogs') {
@@ -164,6 +166,10 @@ describe('MessagesPage', () => {
       }
 
       if (path === '/announcements') {
+        return [];
+      }
+
+      if (path === '/notifications') {
         return [];
       }
 
@@ -276,6 +282,10 @@ describe('MessagesPage', () => {
         };
       }
 
+      if (path === '/notifications') {
+        return [];
+      }
+
       if (path === '/messages/dialogs') {
         return [
           {
@@ -345,5 +355,55 @@ describe('MessagesPage', () => {
     expect(within(unreadSummaryCard as HTMLElement).getByText('1')).toBeInTheDocument();
     expect(screen.getByText('Please review the latest announcement.')).toBeInTheDocument();
     expect(screen.getAllByText('New').length).toBeGreaterThan(0);
+  });
+
+  it('opens notification section from query parameter and highlights the target item', async () => {
+    mockedApiRequest.mockImplementation(async (path: string) => {
+      if (path === '/auth/me') {
+        return {
+          id: 'team-1',
+          email: 'team@example.com',
+          fullName: 'Team User',
+          role: 'TEAM',
+        };
+      }
+
+      if (path === '/notifications') {
+        return [
+          {
+            id: 'notification-1',
+            type: 'ROUND_STARTED',
+            title: 'Round is active',
+            body: 'Upload your submission before the deadline.',
+            linkUrl: '/app/tournaments/t-1',
+            createdAt: '2026-03-22T12:00:00.000Z',
+            isUnread: true,
+          },
+        ];
+      }
+
+      if (path === '/notifications/read-state') {
+        return {
+          readAt: '2026-03-22T12:00:00.000Z',
+          updated: 1,
+        };
+      }
+
+      if (path === '/announcements') {
+        return [];
+      }
+
+      if (path === '/messages/dialogs') {
+        return [];
+      }
+
+      throw new Error(`Unexpected request: ${path}`);
+    });
+
+    renderMessagesPage('/app/messages?section=notifications&notification=notification-1');
+
+    await screen.findByText('System notifications');
+    expect(screen.getByText('Round is active')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Notifications' })).toHaveClass('active');
   });
 });

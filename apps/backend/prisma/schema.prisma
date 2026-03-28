@@ -42,6 +42,24 @@ enum AnnouncementAudience {
   ORGANIZER
 }
 
+enum NotificationAudience {
+  ALL
+  TEAM
+  JURY
+  ADMIN
+  ORGANIZER
+  USER
+}
+
+enum NotificationType {
+  REGISTRATION_STARTED
+  ROUND_STARTED
+  SUBMISSION_RECEIVED
+  DEADLINE_REMINDER
+  SUBMISSION_CLOSED
+  GENERAL
+}
+
 enum TournamentScheduleEventType {
   ROUND
   CONSULTATION
@@ -63,6 +81,8 @@ model User {
   captainTeams    Team[]                 @relation("TeamCaptain")
   juryAssignments EvaluationAssignment[]
   evaluations     Evaluation[]
+  notifications   Notification[]         @relation("NotificationUser")
+  notificationReadStates NotificationReadState[]
   createdDirectConversations DirectConversation[] @relation("ConversationCreatedBy")
   directConversationParticipants DirectConversationParticipant[] @relation("ConversationParticipantUser")
   sentDirectMessages DirectMessage[] @relation("DirectMessageSender")
@@ -148,6 +168,7 @@ model Round {
   additionalMaterials Json?
   startsAt    DateTime
   deadlineAt  DateTime
+  deadlineReminderSentAt DateTime?
   status      RoundStatus  @default(DRAFT)
   submissions Submission[]
   assignments EvaluationAssignment[]
@@ -216,6 +237,33 @@ model Announcement {
   updatedById String?
   createdAt   DateTime             @default(now())
   updatedAt   DateTime             @updatedAt
+}
+
+model Notification {
+  id        String               @id @default(cuid())
+  type      NotificationType     @default(GENERAL)
+  audience  NotificationAudience @default(ALL)
+  userId    String?
+  user      User?                @relation("NotificationUser", fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  linkUrl   String?
+  createdAt DateTime             @default(now())
+  readStates NotificationReadState[]
+
+  @@index([audience, createdAt])
+  @@index([userId, createdAt])
+}
+
+model NotificationReadState {
+  notificationId String
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  readAt         DateTime     @default(now())
+
+  @@id([notificationId, userId])
+  @@index([userId, readAt])
 }
 
 model DirectConversation {

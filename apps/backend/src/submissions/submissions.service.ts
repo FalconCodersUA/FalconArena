@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { RoundStatus, SubmissionStatus } from '@prisma/client';
+import { Injectable, NotFoundException, Optional } from '@nestjs/common';
+import { NotificationType, RoundStatus, SubmissionStatus } from '@prisma/client';
+import { NotificationsService } from '../notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { RoundsService } from '../rounds/rounds.service';
 import { UpsertSubmissionDto } from './dto/upsert-submission.dto';
@@ -9,6 +10,7 @@ export class SubmissionsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly roundsService: RoundsService,
+    @Optional() private readonly notificationsService?: NotificationsService,
   ) {}
 
   async upsertMySubmission(
@@ -66,6 +68,14 @@ export class SubmissionsService {
         },
       });
 
+      await this.notificationsService?.create({
+        type: NotificationType.SUBMISSION_RECEIVED,
+        userId: captainUserId,
+        title: `Сабміт збережено: ${created.round.title}`,
+        body: `Ваш сабміт для команди ${created.team.name} успішно збережено.`,
+        linkUrl: '/app/team',
+      });
+
       return {
         ...created,
         isEditable: this.isEditable(created.round.status, created.round.deadlineAt),
@@ -91,6 +101,14 @@ export class SubmissionsService {
         team: { select: { id: true, name: true } },
         round: { select: { id: true, title: true, deadlineAt: true, status: true } },
       },
+    });
+
+    await this.notificationsService?.create({
+      type: NotificationType.SUBMISSION_RECEIVED,
+      userId: captainUserId,
+      title: `Сабміт збережено: ${updated.round.title}`,
+      body: `Ваш сабміт для команди ${updated.team.name} успішно збережено.`,
+      linkUrl: '/app/team',
     });
 
     return {

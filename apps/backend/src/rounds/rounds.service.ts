@@ -1,16 +1,27 @@
 import {
+  Optional,
   BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Round, RoundStatus, SubmissionStatus, TournamentStatus } from '@prisma/client';
+import {
+  NotificationType,
+  Round,
+  RoundStatus,
+  SubmissionStatus,
+  TournamentStatus,
+} from '@prisma/client';
+import { NotificationsService } from '../notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRoundDto } from './dto/create-round.dto';
 
 @Injectable()
 export class RoundsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly notificationsService?: NotificationsService,
+  ) {}
 
   async create(tournamentId: string, dto: CreateRoundDto) {
     this.validateRoundWindow(dto.startsAt, dto.deadlineAt);
@@ -51,6 +62,7 @@ export class RoundsService {
   async listByTournament(tournamentId: string) {
     await this.ensureTournamentExists(tournamentId);
     await this.closeExpiredRounds(tournamentId);
+    await this.sendUpcomingDeadlineReminders(tournamentId);
 
     const rounds = await this.prisma.round.findMany({
       where: { tournamentId },
@@ -63,6 +75,7 @@ export class RoundsService {
   async getActiveRound(tournamentId: string) {
     await this.ensureTournamentExists(tournamentId);
     await this.closeExpiredRounds(tournamentId);
+    await this.sendUpcomingDeadlineReminders(tournamentId);
 
     const round = await this.prisma.round.findFirst({
       where: {
@@ -139,6 +152,14 @@ export class RoundsService {
         }),
       ]);
 
+      await this.notificationsService?.create({
+        type: NotificationType.ROUND_STARTED,
+        audience: 'ALL',
+        title: `Стартував раунд: ${updatedRound.title}`,
+        body: 'Активний раунд відкрито. Перевірте вимоги, дедлайн і подайте роботу вчасно.',
+        linkUrl: `/app/tournaments/${tournamentId}`,
+      });
+
       return this.mapRoundView(updatedRound);
     }
 
@@ -171,6 +192,8 @@ export class RoundsService {
       return this.closeSubmissionsAndRound(round.id);
     }
 
+    await this.sendUpcomingDeadlineReminders(undefined, round.id);
+
     return round;
   }
 
@@ -185,6 +208,8 @@ export class RoundsService {
       await this.closeSubmissionsAndRound(round.id);
       throw new BadRequestException('Submission deadline has passed');
     }
+
+    await this.sendUpcomingDeadlineReminders(undefined, round.id);
 
     return round;
   }
@@ -238,6 +263,74 @@ export class RoundsService {
         },
       }),
     ]);
+
+    const affectedRounds = await this.prisma.round.findMany({
+      where: { id: { in: roundIds } },
+      select: { title: true, tournamentId: true },
+    });
+
+    await Promise.all(
+      affectedRounds.map((round) =>
+        this.notificationsService?.create({
+          type: NotificationType.SUBMISSION_CLOSED,
+          audience: 'ALL',
+          title: `Сабміти закрито: ${round.title}`,
+          body: 'Прийом робіт для цього раунду завершено.',
+          linkUrl: `/app/tournaments/${round.tournamentId}`,
+        }),
+      ) ?? [],
+    );
+  }
+
+  private async sendUpcomingDeadlineReminders(tournamentId?: string, roundId?: string) {
+    const now = new Date();
+    const nextDay = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+    const rounds = await this.prisma.round.findMany({
+      where: {
+        ...(tournamentId ? { tournamentId } : {}),
+        ...(roundId ? { id: roundId } : {}),
+        status: RoundStatus.ACTIVE,
+        deadlineReminderSentAt: null,
+        deadlineAt: {
+          gt: now,
+          lte: nextDay,
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        tournamentId: true,
+      },
+    });
+
+    if (rounds.length === 0) {
+      return;
+    }
+
+    const sentAt = new Date();
+
+    await this.prisma.round.updateMany({
+      where: {
+        id: { in: rounds.map((round) => round.id) },
+        deadlineReminderSentAt: null,
+      },
+      data: {
+        deadlineReminderSentAt: sentAt,
+      },
+    });
+
+    await Promise.all(
+      rounds.map((round) =>
+        this.notificationsService?.create({
+          type: NotificationType.DEADLINE_REMINDER,
+          audience: 'ALL',
+          title: `Нагадування про дедлайн: ${round.title}`,
+          body: 'До завершення прийому робіт залишилося менше 24 годин.',
+          linkUrl: `/app/tournaments/${round.tournamentId}`,
+        }),
+      ) ?? [],
+    );
   }
 
   private async closeSubmissionsAndRound(roundId: string) {
@@ -256,6 +349,14 @@ export class RoundsService {
         },
       }),
     ]);
+
+    await this.notificationsService?.create({
+      type: NotificationType.SUBMISSION_CLOSED,
+      audience: 'ALL',
+      title: `Сабміти закрито: ${updatedRound.title}`,
+      body: 'Прийом робіт для цього раунду завершено.',
+      linkUrl: `/app/tournaments/${updatedRound.tournamentId}`,
+    });
 
     return updatedRound;
   }

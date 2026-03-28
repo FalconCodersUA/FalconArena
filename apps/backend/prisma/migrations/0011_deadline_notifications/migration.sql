@@ -1,0 +1,4 @@
+ALTER TYPE "NotificationType" ADD VALUE IF NOT EXISTS 'DEADLINE_REMINDER';
+
+ALTER TABLE "Round"
+ADD COLUMN "deadlineReminderSentAt" TIMESTAMP(3);

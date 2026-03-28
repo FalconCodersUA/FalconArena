@@ -86,32 +86,33 @@ describe('AppShell', () => {
         };
       }
 
-      if (path === '/announcements') {
+      if (path === '/notifications') {
         return [
           {
             id: 'old-1',
+            type: 'GENERAL',
             title: 'Old announcement',
             body: 'Old body',
             linkUrl: null,
-            publishedAt: '2026-03-19T10:00:00.000Z',
-            isPinned: false,
+            createdAt: '2026-03-19T10:00:00.000Z',
             isUnread: false,
           },
           {
             id: 'new-1',
+            type: 'ROUND_STARTED',
             title: 'New announcement',
             body: 'New body',
             linkUrl: null,
-            publishedAt: '2026-03-21T10:00:00.000Z',
-            isPinned: true,
+            createdAt: '2026-03-21T10:00:00.000Z',
             isUnread: true,
           },
         ];
       }
 
-      if (path === '/announcements/read-state') {
+      if (path === '/notifications/read-state') {
         return {
-          lastAnnouncementsReadAt: '2026-03-21T10:00:00.000Z',
+          readAt: '2026-03-21T10:00:00.000Z',
+          updated: 1,
         };
       }
 
@@ -153,23 +154,24 @@ describe('AppShell', () => {
         return { edit: { avatarUrl: '' } };
       }
 
-      if (path === '/announcements') {
+      if (path === '/notifications') {
         return [
           {
             id: 'new-1',
+            type: 'ROUND_STARTED',
             title: 'New announcement',
             body: 'New body',
             linkUrl: null,
-            publishedAt: '2026-03-21T10:00:00.000Z',
-            isPinned: true,
+            createdAt: '2026-03-21T10:00:00.000Z',
             isUnread: true,
           },
         ];
       }
 
-      if (path === '/announcements/read-state') {
+      if (path === '/notifications/read-state') {
         return {
-          lastAnnouncementsReadAt: '2026-03-21T10:00:00.000Z',
+          readAt: '2026-03-21T10:00:00.000Z',
+          updated: 1,
         };
       }
 
@@ -183,7 +185,7 @@ describe('AppShell', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('location-probe')).toHaveTextContent(
-        '/app/messages?announcement=new-1',
+        '/app/messages?section=notifications&notification=new-1',
       );
     });
   });
@@ -209,13 +211,14 @@ describe('AppShell', () => {
         };
       }
 
-      if (path === '/announcements') {
+      if (path === '/notifications') {
         return [];
       }
 
-      if (path === '/announcements/read-state') {
+      if (path === '/notifications/read-state') {
         return {
-          lastAnnouncementsReadAt: '2026-03-21T10:00:00.000Z',
+          readAt: '2026-03-21T10:00:00.000Z',
+          updated: 0,
         };
       }
 
