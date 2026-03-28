@@ -6,6 +6,7 @@ import { useI18n } from '../i18n/I18nProvider';
 
 type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
 type AnnouncementAudience = 'ALL' | 'TEAM' | 'JURY' | 'ADMIN' | 'ORGANIZER';
+type MessagesSection = 'all' | 'announcements' | 'dialogs';
 
 type AuthMe = {
   id: string;
@@ -48,6 +49,7 @@ type DialogListItem = {
     role: UserRole;
   };
   lastMessage: DialogMessage | null;
+  isUnread: boolean;
 };
 
 type DialogDetailsResponse = {
@@ -117,6 +119,7 @@ export default function MessagesPage() {
   const [newDialogEmail, setNewDialogEmail] = useState('');
   const [newMessageBody, setNewMessageBody] = useState('');
   const [focusedAnnouncementId, setFocusedAnnouncementId] = useState('');
+  const [activeSection, setActiveSection] = useState<MessagesSection>('all');
 
   const isManager = isManagerRole(me?.role);
   const pinnedCount = useMemo(
@@ -126,6 +129,10 @@ export default function MessagesPage() {
   const activeCount = useMemo(
     () => announcements.filter((item) => item.isActive).length,
     [announcements],
+  );
+  const unreadDialogsCount = useMemo(
+    () => dialogs.filter((item) => item.isUnread).length,
+    [dialogs],
   );
   const selectedDialog = useMemo(
     () => dialogs.find((item) => item.id === selectedDialogId) ?? null,
@@ -139,6 +146,23 @@ export default function MessagesPage() {
     const query = new URLSearchParams(location.search);
     return query.get('announcement') ?? '';
   }, [location.search]);
+  const requestedSection = useMemo<MessagesSection>(() => {
+    const query = new URLSearchParams(location.search);
+    const rawSection = query.get('section');
+    if (requestedDialogId) {
+      return 'dialogs';
+    }
+    if (requestedAnnouncementId) {
+      return 'announcements';
+    }
+    if (rawSection === 'announcements' || rawSection === 'dialogs') {
+      return rawSection;
+    }
+    return 'all';
+  }, [location.search, requestedAnnouncementId, requestedDialogId]);
+  const showAnnouncements =
+    activeSection === 'all' || activeSection === 'announcements';
+  const showDialogs = activeSection === 'all' || activeSection === 'dialogs';
 
   async function markAnnouncementsRead(items: Announcement[]) {
     if (items.length === 0) {
@@ -241,6 +265,18 @@ export default function MessagesPage() {
     try {
       const data = await apiRequest<DialogDetailsResponse>(`/messages/dialogs/${dialogId}`);
       setDialogMessages(data.messages);
+      setDialogs((current) =>
+        current.map((dialog) =>
+          dialog.id === dialogId
+            ? {
+                ...dialog,
+                ...data.dialog,
+                lastMessage: dialog.lastMessage,
+                isUnread: false,
+              }
+            : dialog,
+        ),
+      );
     } catch (requestError) {
       setDialogMessagesError(
         requestError instanceof Error
@@ -299,6 +335,10 @@ export default function MessagesPage() {
       setSelectedDialogId(requestedDialogId);
     }
   }, [requestedDialogId, dialogs]);
+
+  useEffect(() => {
+    setActiveSection(requestedSection);
+  }, [requestedSection]);
 
   useEffect(() => {
     if (!requestedAnnouncementId || announcements.length === 0) {
@@ -521,7 +561,12 @@ export default function MessagesPage() {
       setDialogs((current) => {
         const updated = current.map((dialog) =>
           dialog.id === selectedDialogId
-            ? { ...dialog, lastMessage: message, updatedAt: message.createdAt }
+            ? {
+                ...dialog,
+                lastMessage: message,
+                updatedAt: message.createdAt,
+                isUnread: false,
+              }
             : dialog,
         );
         const active = updated.find((dialog) => dialog.id === selectedDialogId);
@@ -581,25 +626,137 @@ export default function MessagesPage() {
             <strong>{activeCount}</strong>
             <p>{t('messagesPage.summary.activeHint')}</p>
           </div>
+          <div className="summary-card">
+            <span>{t('messagesPage.summary.dialogsUnread')}</span>
+            <strong>{unreadDialogsCount}</strong>
+            <p>{t('messagesPage.summary.dialogsUnreadHint')}</p>
+          </div>
         </div>
       </article>
 
-      {isManager ? (
-        <article className="card panel-card">
-          <div className="messages-controls">
-            <div className="messages-controls-text">
-              <h2>{t('messagesPage.manager.title')}</h2>
-              <p className="inline-hint">{t('messagesPage.manager.lead')}</p>
-            </div>
-            <div className="filters-row">
-              <label className="checkbox-inline">
-                <input
-                  type="checkbox"
-                  checked={includeInactive}
-                  onChange={(event) => handleIncludeInactiveChange(event.target.checked)}
-                />
-                {t('messagesPage.manager.includeInactive')}
-              </label>
+      <article className="card panel-card">
+        <div className="filters-row messages-section-tabs">
+          {(['all', 'announcements', 'dialogs'] as MessagesSection[]).map((section) => (
+            <button
+              key={section}
+              type="button"
+              className={`filter-button${activeSection === section ? ' active' : ''}`}
+              onClick={() => setActiveSection(section)}
+            >
+              {t(`messagesPage.sections.${section}`)}
+            </button>
+          ))}
+        </div>
+      </article>
+
+      {showAnnouncements ? (
+        <>
+          {isManager ? (
+            <article className="card panel-card">
+              <div className="messages-controls">
+                <div className="messages-controls-text">
+                  <h2>{t('messagesPage.manager.title')}</h2>
+                  <p className="inline-hint">{t('messagesPage.manager.lead')}</p>
+                </div>
+                <div className="filters-row">
+                  <label className="checkbox-inline">
+                    <input
+                      type="checkbox"
+                      checked={includeInactive}
+                      onChange={(event) => handleIncludeInactiveChange(event.target.checked)}
+                    />
+                    {t('messagesPage.manager.includeInactive')}
+                  </label>
+                  <button
+                    type="button"
+                    className="button button-soft announcement-action-btn"
+                    onClick={refreshFeed}
+                    disabled={refreshing}
+                  >
+                    {refreshing ? t('messagesPage.refreshing') : t('messagesPage.refresh')}
+                  </button>
+                </div>
+              </div>
+
+              <form className="panel-form" onSubmit={handleCreate}>
+                <label className="field">
+                  <span>{t('messagesPage.form.title')}</span>
+                  <input
+                    value={title}
+                    onChange={(event) => setTitle(event.target.value)}
+                    maxLength={140}
+                  />
+                </label>
+
+                <label className="field">
+                  <span>{t('messagesPage.form.body')}</span>
+                  <textarea
+                    value={body}
+                    onChange={(event) => setBody(event.target.value)}
+                    maxLength={5000}
+                  />
+                </label>
+
+                <label className="field" htmlFor="announcement-audience-select">
+                  <span>{t('messagesPage.form.audience')}</span>
+                  <select
+                    id="announcement-audience-select"
+                    className="select-input"
+                    value={audience}
+                    onChange={(event) =>
+                      setAudience(event.target.value as AnnouncementAudience)
+                    }
+                  >
+                    {ANNOUNCEMENT_AUDIENCES.map((item) => (
+                      <option key={item} value={item}>
+                        {t(`messagesPage.audience.${item}`)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="field">
+                  <span>{t('messagesPage.form.link')}</span>
+                  <input
+                    value={linkUrl}
+                    onChange={(event) => setLinkUrl(event.target.value)}
+                    placeholder="https://..."
+                  />
+                </label>
+
+                <div className="announcement-toggles">
+                  <label className="checkbox-inline">
+                    <input
+                      type="checkbox"
+                      checked={isPinned}
+                      onChange={(event) => setIsPinned(event.target.checked)}
+                    />
+                    {t('messagesPage.form.isPinned')}
+                  </label>
+                  <label className="checkbox-inline">
+                    <input
+                      type="checkbox"
+                      checked={isActive}
+                      onChange={(event) => setIsActive(event.target.checked)}
+                    />
+                    {t('messagesPage.form.isActive')}
+                  </label>
+                </div>
+
+                {managerError ? <p className="form-error">{managerError}</p> : null}
+                {notice ? <p className="form-success">{notice}</p> : null}
+
+                <button type="submit" className="button button-primary" disabled={saving}>
+                  {saving ? t('messagesPage.form.saving') : t('messagesPage.form.submit')}
+                </button>
+              </form>
+            </article>
+          ) : (
+            <article className="card panel-card">
+              <div className="state-callout subtle">
+                <strong>{t('messagesPage.viewer.title')}</strong>
+                <p>{t('messagesPage.viewer.lead')}</p>
+              </div>
               <button
                 type="button"
                 className="button button-soft announcement-action-btn"
@@ -608,182 +765,95 @@ export default function MessagesPage() {
               >
                 {refreshing ? t('messagesPage.refreshing') : t('messagesPage.refresh')}
               </button>
-            </div>
-          </div>
+            </article>
+          )}
 
-          <form className="panel-form" onSubmit={handleCreate}>
-            <label className="field">
-              <span>{t('messagesPage.form.title')}</span>
-              <input
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                maxLength={140}
-              />
-            </label>
+          <article className="card panel-card">
+            <h2>{t('messagesPage.feedTitle')}</h2>
+            {error ? <p className="form-error">{error}</p> : null}
+            {refreshing ? <p>{t('messagesPage.refreshing')}</p> : null}
+            {!refreshing && announcements.length === 0 ? <p>{t('messagesPage.empty')}</p> : null}
 
-            <label className="field">
-              <span>{t('messagesPage.form.body')}</span>
-              <textarea
-                value={body}
-                onChange={(event) => setBody(event.target.value)}
-                maxLength={5000}
-              />
-            </label>
+            {announcements.length > 0 ? (
+              <div className="announcements-feed">
+                {announcements.map((item) => (
+                  <article
+                    key={item.id}
+                    id={`announcement-${item.id}`}
+                    className={`announcement-item${item.isActive ? '' : ' inactive'}${
+                      item.isUnread ? ' unread' : ''
+                    }${
+                      focusedAnnouncementId === item.id ? ' focused' : ''
+                    }`}
+                  >
+                    <div className="announcement-head">
+                      <h3>{item.title}</h3>
+                      <div className="announcement-tags">
+                        {item.isUnread ? (
+                          <span className="status-pill">{t('messagesPage.unread')}</span>
+                        ) : null}
+                        <span className="status-pill">{t(`messagesPage.audience.${item.audience}`)}</span>
+                        {item.isPinned ? (
+                          <span className="status-pill">{t('messagesPage.tags.pinned')}</span>
+                        ) : null}
+                        {!item.isActive ? (
+                          <span className="status-pill announcement-status-off">
+                            {t('messagesPage.tags.inactive')}
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
 
-            <label className="field" htmlFor="announcement-audience-select">
-              <span>{t('messagesPage.form.audience')}</span>
-              <select
-                id="announcement-audience-select"
-                className="select-input"
-                value={audience}
-                onChange={(event) =>
-                  setAudience(event.target.value as AnnouncementAudience)
-                }
-              >
-                {ANNOUNCEMENT_AUDIENCES.map((item) => (
-                  <option key={item} value={item}>
-                    {t(`messagesPage.audience.${item}`)}
-                  </option>
-                ))}
-              </select>
-            </label>
+                    <p className="announcement-body">{item.body}</p>
 
-            <label className="field">
-              <span>{t('messagesPage.form.link')}</span>
-              <input
-                value={linkUrl}
-                onChange={(event) => setLinkUrl(event.target.value)}
-                placeholder="https://..."
-              />
-            </label>
-
-            <div className="announcement-toggles">
-              <label className="checkbox-inline">
-                <input
-                  type="checkbox"
-                  checked={isPinned}
-                  onChange={(event) => setIsPinned(event.target.checked)}
-                />
-                {t('messagesPage.form.isPinned')}
-              </label>
-              <label className="checkbox-inline">
-                <input
-                  type="checkbox"
-                  checked={isActive}
-                  onChange={(event) => setIsActive(event.target.checked)}
-                />
-                {t('messagesPage.form.isActive')}
-              </label>
-            </div>
-
-            {managerError ? <p className="form-error">{managerError}</p> : null}
-            {notice ? <p className="form-success">{notice}</p> : null}
-
-            <button type="submit" className="button button-primary" disabled={saving}>
-              {saving ? t('messagesPage.form.saving') : t('messagesPage.form.submit')}
-            </button>
-          </form>
-        </article>
-      ) : (
-        <article className="card panel-card">
-          <div className="state-callout subtle">
-            <strong>{t('messagesPage.viewer.title')}</strong>
-            <p>{t('messagesPage.viewer.lead')}</p>
-          </div>
-          <button
-            type="button"
-            className="button button-soft announcement-action-btn"
-            onClick={refreshFeed}
-            disabled={refreshing}
-          >
-            {refreshing ? t('messagesPage.refreshing') : t('messagesPage.refresh')}
-          </button>
-        </article>
-      )}
-
-      <article className="card panel-card">
-        <h2>{t('messagesPage.feedTitle')}</h2>
-        {error ? <p className="form-error">{error}</p> : null}
-        {refreshing ? <p>{t('messagesPage.refreshing')}</p> : null}
-        {!refreshing && announcements.length === 0 ? <p>{t('messagesPage.empty')}</p> : null}
-
-        {announcements.length > 0 ? (
-          <div className="announcements-feed">
-            {announcements.map((item) => (
-              <article
-                key={item.id}
-                id={`announcement-${item.id}`}
-                className={`announcement-item${item.isActive ? '' : ' inactive'}${
-                  item.isUnread ? ' unread' : ''
-                }${
-                  focusedAnnouncementId === item.id ? ' focused' : ''
-                }`}
-              >
-                <div className="announcement-head">
-                  <h3>{item.title}</h3>
-                  <div className="announcement-tags">
-                    {item.isUnread ? (
-                      <span className="status-pill">{t('messagesPage.unread')}</span>
-                    ) : null}
-                    <span className="status-pill">{t(`messagesPage.audience.${item.audience}`)}</span>
-                    {item.isPinned ? (
-                      <span className="status-pill">{t('messagesPage.tags.pinned')}</span>
-                    ) : null}
-                    {!item.isActive ? (
-                      <span className="status-pill announcement-status-off">
-                        {t('messagesPage.tags.inactive')}
+                    <div className="announcement-meta">
+                      <span>
+                        {t('messagesPage.publishedAt')}: {formatDateTime(item.publishedAt, language)}
                       </span>
+                      <span>
+                        {t('messagesPage.updatedAt')}: {formatDateTime(item.updatedAt, language)}
+                      </span>
+                      {item.linkUrl ? (
+                        <a href={item.linkUrl} target="_blank" rel="noreferrer">
+                          {t('messagesPage.openLink')}
+                        </a>
+                      ) : null}
+                    </div>
+
+                    {isManager ? (
+                      <div className="announcement-actions">
+                        <button
+                          type="button"
+                          className="button button-soft announcement-action-btn"
+                          onClick={() => void togglePinned(item)}
+                          disabled={pendingActionId === item.id}
+                        >
+                          {item.isPinned
+                            ? t('messagesPage.actions.unpin')
+                            : t('messagesPage.actions.pin')}
+                        </button>
+                        <button
+                          type="button"
+                          className="button button-soft announcement-action-btn"
+                          onClick={() => void toggleActive(item)}
+                          disabled={pendingActionId === item.id}
+                        >
+                          {item.isActive
+                            ? t('messagesPage.actions.deactivate')
+                            : t('messagesPage.actions.activate')}
+                        </button>
+                      </div>
                     ) : null}
-                  </div>
-                </div>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+          </article>
+        </>
+      ) : null}
 
-                <p className="announcement-body">{item.body}</p>
-
-                <div className="announcement-meta">
-                  <span>
-                    {t('messagesPage.publishedAt')}: {formatDateTime(item.publishedAt, language)}
-                  </span>
-                  <span>
-                    {t('messagesPage.updatedAt')}: {formatDateTime(item.updatedAt, language)}
-                  </span>
-                  {item.linkUrl ? (
-                    <a href={item.linkUrl} target="_blank" rel="noreferrer">
-                      {t('messagesPage.openLink')}
-                    </a>
-                  ) : null}
-                </div>
-
-                {isManager ? (
-                  <div className="announcement-actions">
-                    <button
-                      type="button"
-                      className="button button-soft announcement-action-btn"
-                      onClick={() => void togglePinned(item)}
-                      disabled={pendingActionId === item.id}
-                    >
-                      {item.isPinned
-                        ? t('messagesPage.actions.unpin')
-                        : t('messagesPage.actions.pin')}
-                    </button>
-                    <button
-                      type="button"
-                      className="button button-soft announcement-action-btn"
-                      onClick={() => void toggleActive(item)}
-                      disabled={pendingActionId === item.id}
-                    >
-                      {item.isActive
-                        ? t('messagesPage.actions.deactivate')
-                        : t('messagesPage.actions.activate')}
-                    </button>
-                  </div>
-                ) : null}
-              </article>
-            ))}
-          </div>
-        ) : null}
-      </article>
-
-      <article className="card panel-card">
+      {showDialogs ? (
+        <article className="card panel-card">
         <div className="messages-controls">
           <div className="messages-controls-text">
             <h2>{t('messagesPage.dialogs.title')}</h2>
@@ -842,6 +912,9 @@ export default function MessagesPage() {
                     <span className="messages-dialog-role">
                       {t(`profile.role.${dialog.otherUser.role}`)}
                     </span>
+                    {dialog.isUnread ? (
+                      <span className="messages-dialog-unread">{t('messagesPage.unread')}</span>
+                    ) : null}
                   </div>
                   <p>
                     {dialog.lastMessage
@@ -912,7 +985,8 @@ export default function MessagesPage() {
             )}
           </div>
         </div>
-      </article>
+        </article>
+      ) : null}
     </section>
   );
 }

@@ -2,6 +2,7 @@ import { ReactElement } from 'react';
 import { Navigate, createBrowserRouter } from 'react-router-dom';
 import { AuthRole, getAuthRole, isAuthenticated } from '../lib/auth';
 import AdminDashboardPage from '../pages/AdminDashboardPage';
+import ArchivePage from '../pages/ArchivePage';
 import AppShell from './layout/AppShell';
 import JuryDashboardPage from '../pages/JuryDashboardPage';
 import LeaderboardPage from '../pages/LeaderboardPage';
@@ -76,6 +77,10 @@ export const router = createBrowserRouter([
       {
         path: 'tournaments',
         element: <TournamentsPage />,
+      },
+      {
+        path: 'archive',
+        element: <ArchivePage />,
       },
       {
         path: 'tournaments/:tournamentId',

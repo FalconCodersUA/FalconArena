@@ -1,0 +1,517 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useI18n } from '../i18n/I18nProvider';
+import { apiRequest } from '../lib/api';
+import { formatDateTime } from '../lib/dateTime';
+
+type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
+type RoundStatus = 'DRAFT' | 'ACTIVE' | 'SUBMISSION_CLOSED' | 'EVALUATED';
+type SubmissionStatus = 'DRAFT' | 'SUBMITTED' | 'LOCKED';
+
+type TournamentOption = {
+  id: string;
+  title: string;
+  status: TournamentStatus;
+  startsAt: string | null;
+  registrationOpenAt: string;
+  registrationCloseAt: string;
+  canTeamRegister: boolean;
+};
+
+type CategoryAverages = {
+  technicalBackend: number;
+  technicalDatabase: number;
+  technicalFrontend: number;
+  mustHave: number;
+  stability: number;
+  usability: number;
+};
+
+type ArchiveResponse = {
+  tournament: TournamentOption & {
+    description: string | null;
+  };
+  summary: {
+    teamsCount: number;
+    roundsCount: number;
+    submissionsCount: number;
+  };
+  leaderboard: {
+    tournament: {
+      id: string;
+      title: string;
+      status: TournamentStatus;
+    };
+    scoring: {
+      scale: string;
+      totalFormula: string;
+      roundFormula: string;
+      evaluationFormula: string;
+    };
+    rows: Array<{
+      rank: number;
+      teamId: string;
+      teamName: string;
+      organization: string | null;
+      totalScore: number;
+      averageScore: number;
+      evaluationsCount: number;
+      categoryAverages: CategoryAverages;
+      rounds: Array<{
+        roundId: string;
+        roundTitle: string;
+        evaluationsCount: number;
+        averageScore: number;
+      }>;
+    }>;
+  } | null;
+  teams: Array<{
+    id: string;
+    name: string;
+    organization: string | null;
+    membersCount: number;
+    submissionsCount: number;
+    rank: number | null;
+    totalScore: number;
+    averageScore: number;
+    evaluationsCount: number;
+  }>;
+  rounds: Array<{
+    id: string;
+    sequence: number;
+    title: string;
+    description: string;
+    status: RoundStatus;
+    startsAt: string;
+    deadlineAt: string;
+    submissionsCount: number;
+    evaluatedSubmissionsCount: number;
+    averageScore: number;
+    submissions: Array<{
+      id: string;
+      teamId: string;
+      teamName: string;
+      organization: string | null;
+      repoUrl: string;
+      demoUrl: string;
+      liveDemoUrl: string | null;
+      shortSummary: string | null;
+      status: SubmissionStatus;
+      submittedAt: string | null;
+      evaluationsCount: number;
+      averageScore: number;
+      categoryAverages: CategoryAverages;
+    }>;
+  }>;
+};
+
+type CategoryKey = keyof CategoryAverages;
+
+const CATEGORY_KEYS: CategoryKey[] = [
+  'technicalBackend',
+  'technicalDatabase',
+  'technicalFrontend',
+  'mustHave',
+  'stability',
+  'usability',
+];
+
+function formatScore(value: number) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(2);
+}
+
+export default function ArchivePage() {
+  const { language, t } = useI18n();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [initialTournamentId] = useState(() => searchParams.get('tournamentId') ?? '');
+
+  const [tournaments, setTournaments] = useState<TournamentOption[]>([]);
+  const [selectedTournamentId, setSelectedTournamentId] = useState('');
+  const [archive, setArchive] = useState<ArchiveResponse | null>(null);
+  const [loadingTournaments, setLoadingTournaments] = useState(true);
+  const [loadingArchive, setLoadingArchive] = useState(false);
+  const [tournamentsError, setTournamentsError] = useState('');
+  const [archiveError, setArchiveError] = useState('');
+
+  const leader = archive?.leaderboard?.rows[0] ?? null;
+  const selectedTournament = useMemo(
+    () => tournaments.find((entry) => entry.id === selectedTournamentId) ?? null,
+    [selectedTournamentId, tournaments],
+  );
+
+  function resolveDefaultTournamentId(list: TournamentOption[]) {
+    if (initialTournamentId && list.some((entry) => entry.id === initialTournamentId)) {
+      return initialTournamentId;
+    }
+
+    return list[0]?.id ?? '';
+  }
+
+  async function loadTournaments() {
+    setLoadingTournaments(true);
+    setTournamentsError('');
+    setArchiveError('');
+
+    try {
+      const data = await apiRequest<TournamentOption[]>('/tournaments?status=FINISHED');
+      setTournaments(data);
+      setSelectedTournamentId((current) => {
+        if (current && data.some((entry) => entry.id === current)) {
+          return current;
+        }
+
+        return resolveDefaultTournamentId(data);
+      });
+    } catch (requestError) {
+      setTournamentsError(
+        requestError instanceof Error
+          ? requestError.message
+          : t('archivePage.loadTournamentsFailed'),
+      );
+      setTournaments([]);
+      setSelectedTournamentId('');
+      setArchive(null);
+    } finally {
+      setLoadingTournaments(false);
+    }
+  }
+
+  async function loadArchive(tournamentId: string) {
+    setLoadingArchive(true);
+    setArchiveError('');
+
+    try {
+      const data = await apiRequest<ArchiveResponse>(`/tournaments/${tournamentId}/archive`);
+      setArchive(data);
+    } catch (requestError) {
+      setArchiveError(
+        requestError instanceof Error ? requestError.message : t('archivePage.loadArchiveFailed'),
+      );
+      setArchive(null);
+    } finally {
+      setLoadingArchive(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadTournaments();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedTournamentId) {
+      return;
+    }
+
+    setSearchParams({ tournamentId: selectedTournamentId }, { replace: true });
+    void loadArchive(selectedTournamentId);
+  }, [selectedTournamentId, setSearchParams]);
+
+  if (loadingTournaments) {
+    return <article className="card state-card">{t('archivePage.loadingTournaments')}</article>;
+  }
+
+  if (tournamentsError) {
+    return (
+      <article className="card state-card">
+        <p className="form-error">{tournamentsError}</p>
+        <button type="button" className="button button-soft" onClick={() => void loadTournaments()}>
+          {t('archivePage.retry')}
+        </button>
+      </article>
+    );
+  }
+
+  if (tournaments.length === 0) {
+    return <article className="card state-card">{t('archivePage.empty')}</article>;
+  }
+
+  return (
+    <section className="team-dashboard">
+      <header className="section-header">
+        <p className="eyebrow">{t('archivePage.eyebrow')}</p>
+        <h1>{t('archivePage.title')}</h1>
+        <p className="lead">{t('archivePage.lead')}</p>
+      </header>
+
+      <article className="card panel-card">
+        <label className="field" htmlFor="archive-tournament-select">
+          <span>{t('archivePage.tournamentLabel')}</span>
+          <select
+            id="archive-tournament-select"
+            className="select-input"
+            value={selectedTournamentId}
+            onChange={(event) => setSelectedTournamentId(event.target.value)}
+          >
+            {tournaments.map((tournament) => (
+              <option key={tournament.id} value={tournament.id}>
+                {tournament.title}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="status-row">
+          <span>{t('archivePage.tournamentStatus')}</span>
+          <strong>
+            {selectedTournament ? t(`tournaments.status.${selectedTournament.status}`) : '-'}
+          </strong>
+        </div>
+      </article>
+
+      {loadingArchive ? (
+        <article className="card panel-card">{t('archivePage.loadingArchive')}</article>
+      ) : null}
+
+      {archiveError ? (
+        <article className="card panel-card">
+          <p className="form-error">{archiveError}</p>
+          <button
+            type="button"
+            className="button button-soft"
+            onClick={() => void loadArchive(selectedTournamentId)}
+          >
+            {t('archivePage.retry')}
+          </button>
+        </article>
+      ) : null}
+
+      {!loadingArchive && !archiveError && archive ? (
+        <>
+          <article className="card panel-card">
+            <h2>{t('archivePage.summaryTitle')}</h2>
+            <div className="summary-grid">
+              <div className="summary-card">
+                <span>{t('archivePage.summary.tournament')}</span>
+                <strong>{archive.tournament.title}</strong>
+                <p>{t(`tournaments.status.${archive.tournament.status}`)}</p>
+              </div>
+              <div className="summary-card">
+                <span>{t('archivePage.summary.winner')}</span>
+                <strong>{leader ? leader.teamName : '-'}</strong>
+                <p>{leader ? `${t('archivePage.totalScore')}: ${formatScore(leader.totalScore)}` : '-'}</p>
+              </div>
+              <div className="summary-card">
+                <span>{t('archivePage.summary.teams')}</span>
+                <strong>{archive.summary.teamsCount}</strong>
+                <p>{t('archivePage.summary.rounds')}: {archive.summary.roundsCount}</p>
+              </div>
+              <div className="summary-card">
+                <span>{t('archivePage.summary.submissions')}</span>
+                <strong>{archive.summary.submissionsCount}</strong>
+                <p>{t('archivePage.summary.evaluatedRounds')}: {archive.rounds.filter((item) => item.evaluatedSubmissionsCount > 0).length}</p>
+              </div>
+            </div>
+
+            <div className="state-callout subtle">
+              <strong>{t('archivePage.aboutTitle')}</strong>
+              <p>
+                {archive.tournament.description?.trim() || t('archivePage.noDescription')}
+              </p>
+            </div>
+
+            <div className="status-actions">
+              <Link
+                to={`/app/tournaments/${archive.tournament.id}`}
+                className="button button-soft"
+              >
+                {t('archivePage.openTournament')}
+              </Link>
+              <Link
+                to={`/app/leaderboard?tournamentId=${archive.tournament.id}`}
+                className="button button-primary"
+              >
+                {t('archivePage.openLeaderboard')}
+              </Link>
+            </div>
+          </article>
+
+          {archive.leaderboard ? (
+            <article className="card panel-card">
+              <h2>{t('archivePage.resultsTitle')}</h2>
+              <div className="leaderboard-scoring">
+                <p>
+                  <strong>{t('archivePage.scoreScale')}:</strong> {archive.leaderboard.scoring.scale}
+                </p>
+                <p>
+                  <strong>{t('archivePage.totalFormula')}:</strong> {archive.leaderboard.scoring.totalFormula}
+                </p>
+              </div>
+
+              <div className="leaderboard-grid">
+                {archive.leaderboard.rows.map((row) => (
+                  <article
+                    key={row.teamId}
+                    className={`leaderboard-row-card${row.rank === 1 ? ' leader-card' : ''}`}
+                  >
+                    <div className="leaderboard-row-head">
+                      <strong>
+                        #{row.rank} {row.teamName}
+                      </strong>
+                      <span>{row.organization || t('archivePage.noOrganization')}</span>
+                    </div>
+
+                    <div className="leaderboard-metrics">
+                      <div className="leaderboard-metric">
+                        <span>{t('archivePage.totalScore')}</span>
+                        <strong>{formatScore(row.totalScore)}</strong>
+                      </div>
+                      <div className="leaderboard-metric">
+                        <span>{t('archivePage.averageScore')}</span>
+                        <strong>{formatScore(row.averageScore)}</strong>
+                      </div>
+                      <div className="leaderboard-metric">
+                        <span>{t('archivePage.evaluationsCount')}</span>
+                        <strong>{row.evaluationsCount}</strong>
+                      </div>
+                    </div>
+
+                    <div className="leaderboard-category-grid">
+                      {CATEGORY_KEYS.map((key) => (
+                        <div key={`${row.teamId}-${key}`} className="leaderboard-category-item">
+                          <span>{t(`archivePage.categories.${key}`)}</span>
+                          <strong>{formatScore(row.categoryAverages[key])}</strong>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </article>
+          ) : null}
+
+          <article className="card panel-card">
+            <h2>{t('archivePage.teamsTitle')}</h2>
+            <div className="leaderboard-grid">
+              {archive.teams.map((team) => (
+                <article key={team.id} className="leaderboard-row-card">
+                  <div className="leaderboard-row-head">
+                    <strong>{team.rank ? `#${team.rank} ` : ''}{team.name}</strong>
+                    <span>{team.organization || t('archivePage.noOrganization')}</span>
+                  </div>
+                  <div className="leaderboard-metrics">
+                    <div className="leaderboard-metric">
+                      <span>{t('archivePage.membersCount')}</span>
+                      <strong>{team.membersCount}</strong>
+                    </div>
+                    <div className="leaderboard-metric">
+                      <span>{t('archivePage.submissionsCount')}</span>
+                      <strong>{team.submissionsCount}</strong>
+                    </div>
+                    <div className="leaderboard-metric">
+                      <span>{t('archivePage.totalScore')}</span>
+                      <strong>{formatScore(team.totalScore)}</strong>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </article>
+
+          <article className="card panel-card">
+            <h2>{t('archivePage.roundsTitle')}</h2>
+            <div className="archive-section-stack">
+              {archive.rounds.map((round) => (
+                <article key={round.id} className="archive-round-card">
+                  <div className="leaderboard-row-head">
+                    <strong>
+                      {t('archivePage.roundPrefix')} {round.sequence}. {round.title}
+                    </strong>
+                    <span>{t(`profile.status.${round.status}`)}</span>
+                  </div>
+
+                  <div className="meta-grid">
+                    <div>
+                      <dt>{t('archivePage.startsAt')}</dt>
+                      <dd>{formatDateTime(round.startsAt, language)}</dd>
+                    </div>
+                    <div>
+                      <dt>{t('archivePage.deadlineAt')}</dt>
+                      <dd>{formatDateTime(round.deadlineAt, language)}</dd>
+                    </div>
+                    <div>
+                      <dt>{t('archivePage.submissionsCount')}</dt>
+                      <dd>{round.submissionsCount}</dd>
+                    </div>
+                    <div>
+                      <dt>{t('archivePage.averageScore')}</dt>
+                      <dd>{formatScore(round.averageScore)}</dd>
+                    </div>
+                  </div>
+
+                  <p className="inline-hint">{round.description}</p>
+
+                  {round.submissions.length === 0 ? (
+                    <p className="archive-empty-note">{t('archivePage.noSubmissions')}</p>
+                  ) : (
+                    <div className="archive-submissions-grid">
+                      {round.submissions.map((submission) => (
+                        <article key={submission.id} className="leaderboard-row-card">
+                          <div className="leaderboard-row-head">
+                            <strong>{submission.teamName}</strong>
+                            <span>{submission.organization || t('archivePage.noOrganization')}</span>
+                          </div>
+
+                          <div className="leaderboard-metrics">
+                            <div className="leaderboard-metric">
+                              <span>{t('archivePage.submissionStatus')}</span>
+                              <strong>{t(`profile.submission.${submission.status}`)}</strong>
+                            </div>
+                            <div className="leaderboard-metric">
+                              <span>{t('archivePage.evaluationsCount')}</span>
+                              <strong>{submission.evaluationsCount}</strong>
+                            </div>
+                            <div className="leaderboard-metric">
+                              <span>{t('archivePage.averageScore')}</span>
+                              <strong>{formatScore(submission.averageScore)}</strong>
+                            </div>
+                          </div>
+
+                          <div className="leaderboard-category-grid">
+                            {CATEGORY_KEYS.map((key) => (
+                              <div
+                                key={`${submission.id}-${key}`}
+                                className="leaderboard-category-item"
+                              >
+                                <span>{t(`archivePage.categories.${key}`)}</span>
+                                <strong>{formatScore(submission.categoryAverages[key])}</strong>
+                              </div>
+                            ))}
+                          </div>
+
+                          {submission.shortSummary ? (
+                            <p className="inline-hint">{submission.shortSummary}</p>
+                          ) : null}
+
+                          <div className="archive-link-list">
+                            <a href={submission.repoUrl} target="_blank" rel="noreferrer">
+                              {t('archivePage.links.repository')}
+                            </a>
+                            <a href={submission.demoUrl} target="_blank" rel="noreferrer">
+                              {t('archivePage.links.demo')}
+                            </a>
+                            {submission.liveDemoUrl ? (
+                              <a href={submission.liveDemoUrl} target="_blank" rel="noreferrer">
+                                {t('archivePage.links.liveDemo')}
+                              </a>
+                            ) : null}
+                          </div>
+
+                          <p className="archive-empty-note">
+                            {t('archivePage.submittedAt')}:{' '}
+                            {submission.submittedAt
+                              ? formatDateTime(submission.submittedAt, language)
+                              : '-'}
+                          </p>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+          </article>
+        </>
+      ) : null}
+    </section>
+  );
+}

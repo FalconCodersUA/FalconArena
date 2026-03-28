@@ -88,7 +88,10 @@ export class DirectMessagesService {
       data: {
         createdById: userId,
         participants: {
-          create: [{ userId }, { userId: recipient.id }],
+          create: [
+            { userId, lastReadAt: new Date() },
+            { userId: recipient.id, lastReadAt: new Date() },
+          ],
         },
       },
       include: dialogListInclude,
@@ -126,8 +129,31 @@ export class DirectMessagesService {
       take: 200,
     });
 
+    const readAt = new Date();
+    await this.prisma.directConversationParticipant.update({
+      where: {
+        conversationId_userId: {
+          conversationId: dialogId,
+          userId,
+        },
+      },
+      data: {
+        lastReadAt: readAt,
+      },
+    });
+
     return {
-      dialog: this.mapDialogSummary(dialog, userId),
+      dialog: this.mapDialogSummary(
+        {
+          ...dialog,
+          participants: dialog.participants.map((participant) =>
+            participant.userId === userId
+              ? { ...participant, lastReadAt: readAt }
+              : participant,
+          ),
+        },
+        userId,
+      ),
       messages,
     };
   }
@@ -152,6 +178,7 @@ export class DirectMessagesService {
       throw new NotFoundException('Dialog not found');
     }
 
+    const timestamp = new Date();
     const [message] = await this.prisma.$transaction([
       this.prisma.directMessage.create({
         data: {
@@ -162,7 +189,16 @@ export class DirectMessagesService {
       }),
       this.prisma.directConversation.update({
         where: { id: dialogId },
-        data: { updatedAt: new Date() },
+        data: { updatedAt: timestamp },
+      }),
+      this.prisma.directConversationParticipant.update({
+        where: {
+          conversationId_userId: {
+            conversationId: dialogId,
+            userId,
+          },
+        },
+        data: { lastReadAt: timestamp },
       }),
     ]);
 
@@ -176,6 +212,7 @@ export class DirectMessagesService {
       updatedAt: Date;
       participants: Array<{
         userId: string;
+        lastReadAt?: Date | null;
         user: {
           id: string;
           email: string;
@@ -192,6 +229,8 @@ export class DirectMessagesService {
       createdAt: dialog.createdAt,
       updatedAt: dialog.updatedAt,
       otherUser: other.user,
+      lastMessage: null,
+      isUnread: false,
     };
   }
 
@@ -202,6 +241,7 @@ export class DirectMessagesService {
       updatedAt: Date;
       participants: Array<{
         userId: string;
+        lastReadAt?: Date | null;
         user: {
           id: string;
           email: string;
@@ -221,14 +261,42 @@ export class DirectMessagesService {
     currentUserId: string,
   ) {
     const other = this.resolveOtherParticipant(dialog.participants, currentUserId);
+    const currentParticipant = this.resolveCurrentParticipant(
+      dialog.participants,
+      currentUserId,
+    );
+    const lastMessage = dialog.messages[0] ?? null;
+    const currentLastReadAt = currentParticipant?.lastReadAt?.getTime() ?? 0;
+    const latestMessageAt = lastMessage ? new Date(lastMessage.createdAt).getTime() : 0;
+    const isUnread =
+      !!lastMessage &&
+      lastMessage.senderId !== currentUserId &&
+      latestMessageAt > currentLastReadAt;
 
     return {
       id: dialog.id,
       createdAt: dialog.createdAt,
       updatedAt: dialog.updatedAt,
       otherUser: other.user,
-      lastMessage: dialog.messages[0] ?? null,
+      lastMessage,
+      isUnread,
     };
+  }
+
+  private resolveCurrentParticipant(
+    participants: Array<{
+      userId: string;
+      lastReadAt?: Date | null;
+      user: {
+        id: string;
+        email: string;
+        fullName: string;
+        role: 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
+      };
+    }>,
+    currentUserId: string,
+  ) {
+    return participants.find((item) => item.userId === currentUserId) ?? null;
   }
 
   private resolveOtherParticipant(
