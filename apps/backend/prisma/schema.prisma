@@ -236,6 +236,7 @@ model DirectConversationParticipant {
   conversation   DirectConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   userId         String
   user           User               @relation("ConversationParticipantUser", fields: [userId], references: [id], onDelete: Cascade)
+  lastReadAt     DateTime?
   createdAt      DateTime           @default(now())
 
   @@unique([conversationId, userId])

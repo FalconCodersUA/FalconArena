@@ -11,6 +11,12 @@ function createPrismaMock() {
       update: vi.fn(),
       create: vi.fn(),
     },
+    team: {
+      findMany: vi.fn(),
+    },
+    round: {
+      findMany: vi.fn(),
+    },
   };
 }
 
@@ -111,5 +117,137 @@ describe('TournamentsService', () => {
     const service = new TournamentsService(prisma as never);
 
     await expect(service.findById('missing')).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('builds archive payload for finished tournament', async () => {
+    const prisma = createPrismaMock();
+    prisma.tournament.findUnique.mockResolvedValue({
+      id: 't-finished',
+      title: 'Finished Tournament',
+      description: 'Archive ready',
+      startsAt: new Date('2026-03-10T10:00:00.000Z'),
+      registrationOpenAt: new Date('2026-03-01T10:00:00.000Z'),
+      registrationCloseAt: new Date('2026-03-05T10:00:00.000Z'),
+      maxTeams: null,
+      status: TournamentStatus.FINISHED,
+      createdById: 'admin-1',
+      createdAt: new Date('2026-03-01T09:00:00.000Z'),
+      updatedAt: new Date('2026-03-20T09:00:00.000Z'),
+    });
+    prisma.team.findMany.mockResolvedValue([
+      {
+        id: 'team-1',
+        name: 'Falcons',
+        organization: 'Kyiv',
+        _count: {
+          members: 3,
+          submissions: 1,
+        },
+      },
+    ]);
+    prisma.round.findMany.mockResolvedValue([
+      {
+        id: 'round-1',
+        sequence: 1,
+        title: 'Round 1',
+        description: 'Initial round',
+        status: 'EVALUATED',
+        startsAt: new Date('2026-03-11T10:00:00.000Z'),
+        deadlineAt: new Date('2026-03-12T10:00:00.000Z'),
+        submissions: [
+          {
+            id: 'submission-1',
+            repoUrl: 'https://github.com/example/repo',
+            demoUrl: 'https://youtu.be/demo',
+            liveDemoUrl: 'https://demo.example.com',
+            shortSummary: 'Done',
+            status: 'LOCKED',
+            submittedAt: new Date('2026-03-12T09:00:00.000Z'),
+            team: {
+              id: 'team-1',
+              name: 'Falcons',
+              organization: 'Kyiv',
+            },
+            assignments: [
+              {
+                evaluation: {
+                  totalScore: 88,
+                  scores: {
+                    technicalBackend: 90,
+                    technicalDatabase: 80,
+                    technicalFrontend: 85,
+                    mustHave: 90,
+                    stability: 92,
+                    usability: 91,
+                  },
+                },
+              },
+              {
+                evaluation: {
+                  totalScore: 92,
+                  scores: {
+                    technicalBackend: 94,
+                    technicalDatabase: 86,
+                    technicalFrontend: 90,
+                    mustHave: 95,
+                    stability: 91,
+                    usability: 96,
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    const leaderboardService = {
+      getTournamentLeaderboard: vi.fn().mockResolvedValue({
+        tournament: {
+          id: 't-finished',
+          title: 'Finished Tournament',
+          status: TournamentStatus.FINISHED,
+        },
+        scoring: {
+          scale: '0-100',
+          totalFormula: 'sum(roundAverageScore)',
+          roundFormula: 'average(juryEvaluationTotals)',
+          evaluationFormula: 'average(6 category scores)',
+        },
+        rows: [
+          {
+            rank: 1,
+            teamId: 'team-1',
+            teamName: 'Falcons',
+            organization: 'Kyiv',
+            totalScore: 90,
+            averageScore: 90,
+            evaluationsCount: 2,
+            categoryAverages: {
+              technicalBackend: 92,
+              technicalDatabase: 83,
+              technicalFrontend: 87.5,
+              mustHave: 92.5,
+              stability: 91.5,
+              usability: 93.5,
+            },
+            rounds: [],
+          },
+        ],
+      }),
+    };
+
+    const service = new TournamentsService(
+      prisma as never,
+      leaderboardService as never,
+    );
+
+    const archive = await service.getArchive('t-finished');
+
+    expect(leaderboardService.getTournamentLeaderboard).toHaveBeenCalledWith('t-finished');
+    expect(archive.summary.teamsCount).toBe(1);
+    expect(archive.summary.submissionsCount).toBe(1);
+    expect(archive.teams[0].rank).toBe(1);
+    expect(archive.rounds[0].submissions[0].averageScore).toBe(90);
   });
 });

@@ -425,6 +425,14 @@ export default function TournamentsPage() {
                         >
                           {t('tournaments.details')}
                         </Link>
+                        {tournament.status === 'FINISHED' ? (
+                          <Link
+                            to={`/app/archive?tournamentId=${tournament.id}`}
+                            className="button button-soft"
+                          >
+                            {t('tournaments.archive')}
+                          </Link>
+                        ) : null}
                         <Link
                           to={`/app/leaderboard?tournamentId=${tournament.id}`}
                           className="button button-soft"

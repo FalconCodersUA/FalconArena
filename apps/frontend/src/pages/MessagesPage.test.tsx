@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { I18nProvider } from '../i18n/I18nProvider';
@@ -180,6 +180,7 @@ describe('MessagesPage', () => {
               role: 'JURY',
             },
             lastMessage: null,
+            isUnread: false,
           };
         }
 
@@ -195,6 +196,7 @@ describe('MessagesPage', () => {
               role: 'JURY',
             },
             lastMessage: null,
+            isUnread: false,
           },
         ];
       }
@@ -223,6 +225,7 @@ describe('MessagesPage', () => {
               role: 'JURY',
             },
             lastMessage: null,
+            isUnread: false,
           },
           messages: [],
         };
@@ -250,5 +253,97 @@ describe('MessagesPage', () => {
     });
 
     expect(screen.getByText('Message sent.')).toBeInTheDocument();
+  });
+
+  it('shows unread dialogs count for unopened conversations', async () => {
+    mockedApiRequest.mockImplementation(async (path: string) => {
+      if (path === '/auth/me') {
+        return {
+          id: 'team-1',
+          email: 'team@example.com',
+          fullName: 'Team User',
+          role: 'TEAM',
+        };
+      }
+
+      if (path === '/announcements') {
+        return [];
+      }
+
+      if (path === '/announcements/read-state') {
+        return {
+          lastAnnouncementsReadAt: '2026-03-22T10:00:00.000Z',
+        };
+      }
+
+      if (path === '/messages/dialogs') {
+        return [
+          {
+            id: 'dialog-1',
+            createdAt: '2026-03-22T10:00:00.000Z',
+            updatedAt: '2026-03-22T10:00:00.000Z',
+            otherUser: {
+              id: 'jury-1',
+              email: 'jury@example.com',
+              fullName: 'Jury User',
+              role: 'JURY',
+            },
+            lastMessage: null,
+            isUnread: false,
+          },
+          {
+            id: 'dialog-2',
+            createdAt: '2026-03-22T09:00:00.000Z',
+            updatedAt: '2026-03-22T11:30:00.000Z',
+            otherUser: {
+              id: 'admin-1',
+              email: 'admin@example.com',
+              fullName: 'Admin User',
+              role: 'ADMIN',
+            },
+            lastMessage: {
+              id: 'message-2',
+              conversationId: 'dialog-2',
+              senderId: 'admin-1',
+              body: 'Please review the latest announcement.',
+              createdAt: '2026-03-22T11:30:00.000Z',
+              updatedAt: '2026-03-22T11:30:00.000Z',
+            },
+            isUnread: true,
+          },
+        ];
+      }
+
+      if (path === '/messages/dialogs/dialog-1') {
+        return {
+          dialog: {
+            id: 'dialog-1',
+            createdAt: '2026-03-22T10:00:00.000Z',
+            updatedAt: '2026-03-22T10:00:00.000Z',
+            otherUser: {
+              id: 'jury-1',
+              email: 'jury@example.com',
+              fullName: 'Jury User',
+              role: 'JURY',
+            },
+            lastMessage: null,
+            isUnread: false,
+          },
+          messages: [],
+        };
+      }
+
+      throw new Error(`Unexpected request: ${path}`);
+    });
+
+    renderMessagesPage();
+
+    await screen.findByText('Unread dialogs');
+
+    const unreadSummaryCard = screen.getByText('Unread dialogs').closest('.summary-card');
+    expect(unreadSummaryCard).not.toBeNull();
+    expect(within(unreadSummaryCard as HTMLElement).getByText('1')).toBeInTheDocument();
+    expect(screen.getByText('Please review the latest announcement.')).toBeInTheDocument();
+    expect(screen.getAllByText('New').length).toBeGreaterThan(0);
   });
 });

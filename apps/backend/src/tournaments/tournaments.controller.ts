@@ -42,6 +42,11 @@ export class TournamentsController {
     return this.tournamentsService.findById(id);
   }
 
+  @Get(':id/archive')
+  getArchive(@Param('id') id: string) {
+    return this.tournamentsService.getArchive(id);
+  }
+
   @Patch(':id/status')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'ORGANIZER')

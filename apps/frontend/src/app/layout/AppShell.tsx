@@ -185,6 +185,7 @@ export default function AppShell() {
       { path: dashboardPath, label: t('shell.dashboard') },
       { path: '/app/teams', label: t('shell.teams') },
       { path: '/app/tournaments', label: t('shell.tournamentsNav') },
+      { path: '/app/archive', label: t('shell.archive') },
       { path: '/app/leaderboard', label: t('shell.leaderboard') },
       { path: '/app/messages', label: t('shell.messages') },
       { path: '/app/profile', label: t('shell.settings') },
@@ -228,6 +229,10 @@ export default function AppShell() {
 
     if (location.pathname.startsWith('/app/messages')) {
       return t('shell.messages');
+    }
+
+    if (location.pathname.startsWith('/app/archive')) {
+      return t('shell.archive');
     }
 
     if (location.pathname.startsWith('/app/profile')) {
@@ -478,6 +483,25 @@ export default function AppShell() {
                 </svg>
               </span>
               <span>{t('shell.tournamentsNav')}</span>
+            </NavLink>
+
+            <NavLink to="/app/archive" className="app-sidebar-link">
+              <span className="app-sidebar-icon" aria-hidden>
+                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M4.5 5.5H15.5V15.5H4.5V5.5Z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
+                  <path
+                    d="M7 4V7M13 4V7M7.2 10H12.8M7.2 13H10.8"
+                    stroke="currentColor"
+                    strokeWidth="1.4"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+              <span>{t('shell.archive')}</span>
             </NavLink>
 
             <NavLink to="/app/leaderboard" className="app-sidebar-link">
