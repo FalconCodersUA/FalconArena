@@ -220,7 +220,60 @@ export class LeaderboardService {
     };
   }
 
+  async exportTournamentLeaderboardCsv(tournamentId: string) {
+    const leaderboard = await this.getTournamentLeaderboard(tournamentId);
+    const headers = [
+      'rank',
+      'teamName',
+      'organization',
+      'totalScore',
+      'averageScore',
+      'evaluationsCount',
+      'technicalBackend',
+      'technicalDatabase',
+      'technicalFrontend',
+      'mustHave',
+      'stability',
+      'usability',
+      'rounds',
+    ];
+
+    const rows = leaderboard.rows.map((row) => [
+      row.rank,
+      row.teamName,
+      row.organization ?? '',
+      row.totalScore,
+      row.averageScore,
+      row.evaluationsCount,
+      row.categoryAverages.technicalBackend,
+      row.categoryAverages.technicalDatabase,
+      row.categoryAverages.technicalFrontend,
+      row.categoryAverages.mustHave,
+      row.categoryAverages.stability,
+      row.categoryAverages.usability,
+      row.rounds
+        .map(
+          (round) =>
+            `${round.roundTitle}: avg=${round.averageScore}, evaluations=${round.evaluationsCount}`,
+        )
+        .join(' | '),
+    ]);
+
+    return [headers, ...rows]
+      .map((entry) => entry.map((value) => this.escapeCsv(value)).join(','))
+      .join('\n');
+  }
+
   private round2(value: number) {
     return Number(value.toFixed(2));
+  }
+
+  private escapeCsv(value: string | number) {
+    const normalized = String(value ?? '');
+    if (/[",\n]/.test(normalized)) {
+      return `"${normalized.replace(/"/g, '""')}"`;
+    }
+
+    return normalized;
   }
 }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useI18n } from '../i18n/I18nProvider';
-import { apiRequest } from '../lib/api';
+import { apiRequest, buildApiUrl } from '../lib/api';
 
 type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
 
@@ -264,7 +264,21 @@ export default function LeaderboardPage() {
       </article>
 
       <article className="card panel-card">
-        <h2>{t('leaderboard.resultsTitle')}</h2>
+        <div className="messages-controls">
+          <div className="messages-controls-text">
+            <h2>{t('leaderboard.resultsTitle')}</h2>
+          </div>
+          {selectedTournamentId ? (
+            <a
+              href={buildApiUrl(
+                `/tournaments/${selectedTournamentId}/leaderboard/export.csv`,
+              )}
+              className="button button-soft announcement-action-btn"
+            >
+              {t('leaderboard.exportCsv')}
+            </a>
+          ) : null}
+        </div>
 
         {loadingLeaderboard ? <p>{t('leaderboard.loadingLeaderboard')}</p> : null}
 

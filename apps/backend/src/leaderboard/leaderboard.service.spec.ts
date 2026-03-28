@@ -108,4 +108,43 @@ describe('LeaderboardService', () => {
       service.getTournamentLeaderboard('missing-id'),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
+
+  it('exports leaderboard rows as csv', async () => {
+    const prisma = createPrismaMock();
+    prisma.tournament.findUnique.mockResolvedValue({
+      id: 'tournament-1',
+      title: 'Falcon Arena',
+      status: TournamentStatus.FINISHED,
+    });
+    prisma.team.findMany.mockResolvedValue([
+      { id: 'team-a', name: 'Alpha', organization: 'School A' },
+    ]);
+    prisma.evaluation.findMany.mockResolvedValue([
+      {
+        totalScore: 90,
+        scores: {
+          technicalBackend: 92,
+          technicalDatabase: 88,
+          technicalFrontend: 90,
+          mustHave: 94,
+          stability: 89,
+          usability: 87,
+        },
+        assignment: {
+          roundId: 'round-1',
+          round: { title: 'Round 1' },
+          submission: { teamId: 'team-a' },
+        },
+      },
+    ]);
+
+    const service = new LeaderboardService(prisma as never);
+    const csv = await service.exportTournamentLeaderboardCsv('tournament-1');
+
+    expect(csv).toContain(
+      'rank,teamName,organization,totalScore,averageScore,evaluationsCount',
+    );
+    expect(csv).toContain('1,Alpha,School A,90,90,1,92,88,90,94,89,87');
+    expect(csv).toContain('Round 1: avg=90, evaluations=1');
+  });
 });
