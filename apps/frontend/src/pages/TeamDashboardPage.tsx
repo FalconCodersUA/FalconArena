@@ -1,7 +1,10 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useNotifications } from '../app/notifications/NotificationsProvider';
+import TournamentSchedulePanel from '../components/TournamentSchedulePanel';
 import { ApiError, apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
+import { TournamentScheduleEvent } from '../lib/tournamentSchedule';
 import { useI18n } from '../i18n/I18nProvider';
 
 type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
@@ -252,10 +255,13 @@ export default function TeamDashboardPage() {
   const [members, setMembers] = useState<MemberDraft[]>(DEFAULT_MEMBERS);
 
   const [activeRound, setActiveRound] = useState<ActiveRound | null>(null);
+  const [scheduleEvents, setScheduleEvents] = useState<TournamentScheduleEvent[]>([]);
   const [submission, setSubmission] = useState<TeamSubmission | null>(null);
   const [submissionError, setSubmissionError] = useState('');
   const [submissionNotice, setSubmissionNotice] = useState('');
   const [submissionLoading, setSubmissionLoading] = useState(false);
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [scheduleError, setScheduleError] = useState('');
   const [savingSubmission, setSavingSubmission] = useState(false);
 
   const [repoUrl, setRepoUrl] = useState('');
@@ -462,6 +468,25 @@ export default function TeamDashboardPage() {
     }
   }
 
+  async function loadSchedule(tournamentId: string) {
+    setScheduleLoading(true);
+    setScheduleError('');
+
+    try {
+      const data = await apiRequest<TournamentScheduleEvent[]>(
+        `/tournaments/${tournamentId}/schedule`,
+      );
+      setScheduleEvents(data);
+    } catch (requestError) {
+      setScheduleEvents([]);
+      setScheduleError(
+        requestError instanceof Error ? requestError.message : t('schedule.loadFailed'),
+      );
+    } finally {
+      setScheduleLoading(false);
+    }
+  }
+
   async function loadDashboardMetrics(tournamentId?: string) {
     try {
       const query = tournamentId ? `?tournamentId=${encodeURIComponent(tournamentId)}` : '';
@@ -483,6 +508,7 @@ export default function TeamDashboardPage() {
     await Promise.all([
       loadTeamForTournament(tournamentId),
       loadRoundAndSubmission(tournamentId),
+      loadSchedule(tournamentId),
       loadDashboardMetrics(tournamentId),
     ]);
   }
@@ -755,7 +781,6 @@ export default function TeamDashboardPage() {
           <div className="dashboard-quick-actions">
             <div className="dashboard-quick-head">
               <strong>{t('shell.quickActions')}</strong>
-              <span className="dashboard-edit-link">{t('shell.edit')}</span>
             </div>
             <a href="#team-card" className="button dashboard-action is-teal">
               {t('teamDashboard.teamCardTitle')}
@@ -854,9 +879,6 @@ export default function TeamDashboardPage() {
                       {entry.initials}
                     </span>
                   ))}
-                  <button type="button" className="dashboard-mini-arrow" aria-label={t('shell.viewAll')}>
-                    ›
-                  </button>
                 </div>
                 <div className="dashboard-mini-caption-row">
                   {quickMembersPreview.map((entry) => (
@@ -866,11 +888,13 @@ export default function TeamDashboardPage() {
                     </div>
                   ))}
                 </div>
-                <div className="dashboard-mini-cta">
-                  <input type="text" readOnly value={t('shell.writeMessage')} />
-                  <button type="button" className="button dashboard-action is-purple">
-                    {t('shell.send')}
-                  </button>
+                <div className="dashboard-mini-links">
+                  <Link to="/app/profile" className="button dashboard-action is-teal">
+                    {t('shell.profile')}
+                  </Link>
+                  <Link to="/app/messages" className="button dashboard-action is-purple">
+                    {t('shell.messages')}
+                  </Link>
                 </div>
               </>
             )}
@@ -913,6 +937,14 @@ export default function TeamDashboardPage() {
           <strong>{selectedTournament ? t(`tournaments.status.${selectedTournament.status}`) : '-'}</strong>
         </div>
       </article>
+
+      <TournamentSchedulePanel
+        events={scheduleEvents}
+        loading={scheduleLoading}
+        error={scheduleError}
+        onRetry={() => void loadSchedule(selectedTournamentId)}
+        lead={t('teamDashboard.scheduleLead')}
+      />
 
       <div className="team-grid">
         <article id="team-card" className="card panel-card">

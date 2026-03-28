@@ -131,6 +131,10 @@ export default function MessagesPage() {
     () => dialogs.find((item) => item.id === selectedDialogId) ?? null,
     [dialogs, selectedDialogId],
   );
+  const requestedDialogId = useMemo(() => {
+    const query = new URLSearchParams(location.search);
+    return query.get('dialog') ?? '';
+  }, [location.search]);
   const requestedAnnouncementId = useMemo(() => {
     const query = new URLSearchParams(location.search);
     return query.get('announcement') ?? '';
@@ -204,7 +208,13 @@ export default function MessagesPage() {
         return;
       }
 
-      setSelectedDialogId((current) => current || data[0].id);
+      setSelectedDialogId((current) => {
+        if (requestedDialogId && data.some((item) => item.id === requestedDialogId)) {
+          return requestedDialogId;
+        }
+
+        return current && data.some((item) => item.id === current) ? current : data[0].id;
+      });
     } catch (requestError) {
       setDialogsError(
         requestError instanceof Error ? requestError.message : t('messagesPage.dialogs.loadFailed'),
@@ -279,6 +289,16 @@ export default function MessagesPage() {
 
     void loadDialogMessages(selectedDialogId, true);
   }, [selectedDialogId]);
+
+  useEffect(() => {
+    if (!requestedDialogId || dialogs.length === 0) {
+      return;
+    }
+
+    if (dialogs.some((item) => item.id === requestedDialogId)) {
+      setSelectedDialogId(requestedDialogId);
+    }
+  }, [requestedDialogId, dialogs]);
 
   useEffect(() => {
     if (!requestedAnnouncementId || announcements.length === 0) {
@@ -498,13 +518,16 @@ export default function MessagesPage() {
       });
 
       setDialogMessages((current) => [...current, message]);
-      setDialogs((current) =>
-        current.map((dialog) =>
+      setDialogs((current) => {
+        const updated = current.map((dialog) =>
           dialog.id === selectedDialogId
             ? { ...dialog, lastMessage: message, updatedAt: message.createdAt }
             : dialog,
-        ),
-      );
+        );
+        const active = updated.find((dialog) => dialog.id === selectedDialogId);
+        const rest = updated.filter((dialog) => dialog.id !== selectedDialogId);
+        return active ? [active, ...rest] : updated;
+      });
       setNewMessageBody('');
       setDialogNotice(t('messagesPage.dialogs.sent'));
     } catch (requestError) {
@@ -814,15 +837,20 @@ export default function MessagesPage() {
                   onClick={() => setSelectedDialogId(dialog.id)}
                 >
                   <strong>{dialog.otherUser.fullName}</strong>
-                  <span>{dialog.otherUser.email}</span>
-                  <span className="messages-dialog-role">
-                    {t(`profile.role.${dialog.otherUser.role}`)}
-                  </span>
+                  <div className="messages-dialog-meta">
+                    <span>{dialog.otherUser.email}</span>
+                    <span className="messages-dialog-role">
+                      {t(`profile.role.${dialog.otherUser.role}`)}
+                    </span>
+                  </div>
                   <p>
                     {dialog.lastMessage
                       ? dialog.lastMessage.body
                       : t('messagesPage.dialogs.noMessages')}
                   </p>
+                  <span className="messages-dialog-time">
+                    {formatDateTime(dialog.updatedAt, language)}
+                  </span>
                 </button>
               ))
             )}
@@ -836,6 +864,9 @@ export default function MessagesPage() {
                 <header className="messages-thread-head">
                   <strong>{selectedDialog.otherUser.fullName}</strong>
                   <span>{selectedDialog.otherUser.email}</span>
+                  <span className="messages-dialog-role">
+                    {t(`profile.role.${selectedDialog.otherUser.role}`)}
+                  </span>
                 </header>
 
                 {dialogMessagesLoading ? (

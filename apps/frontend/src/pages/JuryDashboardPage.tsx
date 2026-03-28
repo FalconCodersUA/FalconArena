@@ -1,7 +1,10 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useNotifications } from '../app/notifications/NotificationsProvider';
+import TournamentSchedulePanel from '../components/TournamentSchedulePanel';
 import { ApiError, apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
+import { TournamentScheduleEvent } from '../lib/tournamentSchedule';
 import { useI18n } from '../i18n/I18nProvider';
 
 type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
@@ -232,6 +235,7 @@ export default function JuryDashboardPage() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedTournamentId, setSelectedTournamentId] = useState('');
   const [rounds, setRounds] = useState<Round[]>([]);
+  const [scheduleEvents, setScheduleEvents] = useState<TournamentScheduleEvent[]>([]);
   const [selectedRoundId, setSelectedRoundId] = useState('');
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState('');
@@ -240,6 +244,8 @@ export default function JuryDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [roundsLoading, setRoundsLoading] = useState(false);
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [scheduleError, setScheduleError] = useState('');
   const [roundsError, setRoundsError] = useState('');
   const [assignmentsLoading, setAssignmentsLoading] = useState(false);
   const [assignmentsError, setAssignmentsError] = useState('');
@@ -396,6 +402,25 @@ export default function JuryDashboardPage() {
     }
   }
 
+  async function loadSchedule(tournamentId: string) {
+    setScheduleLoading(true);
+    setScheduleError('');
+
+    try {
+      const data = await apiRequest<TournamentScheduleEvent[]>(
+        `/tournaments/${tournamentId}/schedule`,
+      );
+      setScheduleEvents(data);
+    } catch (requestError) {
+      setScheduleEvents([]);
+      setScheduleError(
+        requestError instanceof Error ? requestError.message : t('schedule.loadFailed'),
+      );
+    } finally {
+      setScheduleLoading(false);
+    }
+  }
+
   async function loadDashboardMetrics(tournamentId?: string, roundId?: string) {
     try {
       const params = new URLSearchParams();
@@ -428,6 +453,7 @@ export default function JuryDashboardPage() {
     }
 
     void loadRounds(selectedTournamentId);
+    void loadSchedule(selectedTournamentId);
   }, [selectedTournamentId, roleAllowed]);
 
   useEffect(() => {
@@ -587,7 +613,6 @@ export default function JuryDashboardPage() {
           <div className="dashboard-quick-actions">
             <div className="dashboard-quick-head">
               <strong>{t('shell.quickActions')}</strong>
-              <span className="dashboard-edit-link">{t('shell.edit')}</span>
             </div>
             <a href="#jury-assignment-list" className="button dashboard-action is-teal">
               {t('juryDashboard.assignmentsTitle')}
@@ -687,9 +712,6 @@ export default function JuryDashboardPage() {
                       {entry.initials}
                     </span>
                   ))}
-                  <button type="button" className="dashboard-mini-arrow" aria-label={t('shell.viewAll')}>
-                    ›
-                  </button>
                 </div>
                 <div className="dashboard-mini-caption-row">
                   {quickTeamsPreview.map((entry) => (
@@ -699,11 +721,13 @@ export default function JuryDashboardPage() {
                     </div>
                   ))}
                 </div>
-                <div className="dashboard-mini-cta">
-                  <input type="text" readOnly value="task.pdf" />
-                  <button type="button" className="button dashboard-action is-purple">
-                    {t('shell.open')}
-                  </button>
+                <div className="dashboard-mini-links">
+                  <a href="#jury-assignment-list" className="button dashboard-action is-teal">
+                    {t('juryDashboard.assignmentsTitle')}
+                  </a>
+                  <Link to="/app/messages" className="button dashboard-action is-purple">
+                    {t('shell.messages')}
+                  </Link>
                 </div>
               </>
             )}
@@ -774,6 +798,14 @@ export default function JuryDashboardPage() {
         ) : null}
         {!roundsLoading && rounds.length === 0 ? <p>{t('juryDashboard.noRounds')}</p> : null}
       </article>
+
+      <TournamentSchedulePanel
+        events={scheduleEvents}
+        loading={scheduleLoading}
+        error={scheduleError}
+        onRetry={() => void loadSchedule(selectedTournamentId)}
+        lead={t('juryDashboard.scheduleLead')}
+      />
 
       <div className="team-grid">
         <article id="jury-assignment-list" className="card panel-card">

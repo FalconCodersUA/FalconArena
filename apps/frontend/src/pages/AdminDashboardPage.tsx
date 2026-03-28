@@ -1,7 +1,12 @@
 import { FormEvent, ReactNode, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useNotifications } from '../app/notifications/NotificationsProvider';
 import { apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
+import {
+  TournamentScheduleEvent,
+  TournamentScheduleEventType,
+} from '../lib/tournamentSchedule';
 import { useI18n } from '../i18n/I18nProvider';
 
 type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
@@ -54,6 +59,12 @@ type RoundOperationState = {
   error: string;
 };
 
+type ScheduleOperationState = {
+  loading: boolean;
+  error: string;
+  notice: string;
+};
+
 type DashboardActiveEntity = {
   id: string;
   name: string;
@@ -86,6 +97,12 @@ type AdminDashboardMetrics = {
 };
 
 const EMPTY_OP_STATE: RoundOperationState = {
+  loading: false,
+  notice: '',
+  error: '',
+};
+
+const EMPTY_SCHEDULE_OP_STATE: ScheduleOperationState = {
   loading: false,
   notice: '',
   error: '',
@@ -259,12 +276,15 @@ export default function AdminDashboardPage() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedTournamentId, setSelectedTournamentId] = useState('');
   const [rounds, setRounds] = useState<Round[]>([]);
+  const [scheduleEvents, setScheduleEvents] = useState<TournamentScheduleEvent[]>([]);
   const [metrics, setMetrics] = useState<AdminDashboardMetrics>(EMPTY_ADMIN_METRICS);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [roundsLoading, setRoundsLoading] = useState(false);
   const [roundsError, setRoundsError] = useState('');
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [scheduleError, setScheduleError] = useState('');
   const [statusLoading, setStatusLoading] = useState(false);
   const [statusError, setStatusError] = useState('');
   const [statusNotice, setStatusNotice] = useState('');
@@ -284,6 +304,7 @@ export default function AdminDashboardPage() {
   const [opsByRoundId, setOpsByRoundId] = useState<Record<string, RoundOperationState>>({});
   const [minReviewersByRoundId, setMinReviewersByRoundId] = useState<Record<string, number>>({});
   const [resetByRoundId, setResetByRoundId] = useState<Record<string, boolean>>({});
+  const [scheduleOp, setScheduleOp] = useState<ScheduleOperationState>(EMPTY_SCHEDULE_OP_STATE);
 
   const now = new Date();
 
@@ -305,6 +326,13 @@ export default function AdminDashboardPage() {
   const [roundDeadlineAt, setRoundDeadlineAt] = useState(
     toInputDateTime(new Date(now.getTime() + 24 * 60 * 60 * 1000)),
   );
+  const [scheduleEditingId, setScheduleEditingId] = useState('');
+  const [scheduleTitle, setScheduleTitle] = useState('');
+  const [scheduleDescription, setScheduleDescription] = useState('');
+  const [scheduleType, setScheduleType] = useState<TournamentScheduleEventType>('OTHER');
+  const [scheduleStartsAt, setScheduleStartsAt] = useState(toInputDateTime(now));
+  const [scheduleEndsAt, setScheduleEndsAt] = useState('');
+  const [scheduleLocation, setScheduleLocation] = useState('');
 
   const [userFullName, setUserFullName] = useState('');
   const [userEmail, setUserEmail] = useState('');
@@ -371,6 +399,27 @@ export default function AdminDashboardPage() {
     setQuickModal('none');
   }
 
+  function resetScheduleForm() {
+    setScheduleEditingId('');
+    setScheduleTitle('');
+    setScheduleDescription('');
+    setScheduleType('OTHER');
+    setScheduleStartsAt(toInputDateTime(new Date()));
+    setScheduleEndsAt('');
+    setScheduleLocation('');
+  }
+
+  function applyScheduleDraft(event: TournamentScheduleEvent) {
+    setScheduleEditingId(event.id);
+    setScheduleTitle(event.title);
+    setScheduleDescription(event.description ?? '');
+    setScheduleType(event.type);
+    setScheduleStartsAt(toInputDateTime(new Date(event.startsAt)));
+    setScheduleEndsAt(event.endsAt ? toInputDateTime(new Date(event.endsAt)) : '');
+    setScheduleLocation(event.location ?? '');
+    setScheduleOp(EMPTY_SCHEDULE_OP_STATE);
+  }
+
   useEffect(() => {
     if (quickModal === 'none') {
       return;
@@ -426,6 +475,26 @@ export default function AdminDashboardPage() {
     }
   }
 
+  async function loadScheduleEvents(tournamentId: string) {
+    setScheduleLoading(true);
+    setScheduleError('');
+    try {
+      const data = await apiRequest<TournamentScheduleEvent[]>(
+        `/tournaments/${tournamentId}/schedule`,
+      );
+      setScheduleEvents(data);
+    } catch (requestError) {
+      setScheduleEvents([]);
+      setScheduleError(
+        requestError instanceof Error
+          ? requestError.message
+          : t('schedule.loadFailed'),
+      );
+    } finally {
+      setScheduleLoading(false);
+    }
+  }
+
   async function loadDashboardMetrics(tournamentId?: string) {
     try {
       const query = tournamentId ? `?tournamentId=${encodeURIComponent(tournamentId)}` : '';
@@ -466,10 +535,17 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     if (!selectedTournamentId || !roleAllowed) {
       setRounds([]);
+      setScheduleEvents([]);
+      setScheduleError('');
+      setScheduleOp(EMPTY_SCHEDULE_OP_STATE);
+      resetScheduleForm();
       return;
     }
 
+    setScheduleOp(EMPTY_SCHEDULE_OP_STATE);
+    resetScheduleForm();
     void loadRounds(selectedTournamentId);
+    void loadScheduleEvents(selectedTournamentId);
   }, [selectedTournamentId, roleAllowed]);
 
   useEffect(() => {
@@ -752,6 +828,119 @@ export default function AdminDashboardPage() {
     }
   }
 
+  async function submitScheduleEvent(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedTournamentId) {
+      return;
+    }
+
+    setScheduleOp({ loading: false, error: '', notice: '' });
+
+    const normalizedTitle = scheduleTitle.trim();
+    if (normalizedTitle.length < 3 || normalizedTitle.length > 140) {
+      setScheduleOp({
+        loading: false,
+        error: t('adminDashboard.validation.scheduleTitleLength'),
+        notice: '',
+      });
+      return;
+    }
+
+    const normalizedDescription = scheduleDescription.trim();
+    const startsAt = new Date(scheduleStartsAt);
+    const endsAt = scheduleEndsAt ? new Date(scheduleEndsAt) : null;
+    if (!scheduleStartsAt || Number.isNaN(startsAt.getTime())) {
+      setScheduleOp({
+        loading: false,
+        error: t('adminDashboard.validation.scheduleWindowInvalid'),
+        notice: '',
+      });
+      return;
+    }
+
+    if (endsAt && Number.isNaN(endsAt.getTime())) {
+      setScheduleOp({
+        loading: false,
+        error: t('adminDashboard.validation.scheduleWindowInvalid'),
+        notice: '',
+      });
+      return;
+    }
+
+    if (endsAt && startsAt > endsAt) {
+      setScheduleOp({
+        loading: false,
+        error: t('adminDashboard.validation.scheduleWindowInvalid'),
+        notice: '',
+      });
+      return;
+    }
+
+    setScheduleOp({ loading: true, error: '', notice: '' });
+
+    try {
+      const path = scheduleEditingId
+        ? `/tournaments/${selectedTournamentId}/schedule/${scheduleEditingId}`
+        : `/tournaments/${selectedTournamentId}/schedule`;
+      const method = scheduleEditingId ? 'PATCH' : 'POST';
+
+      await apiRequest(path, {
+        method,
+        body: {
+          title: normalizedTitle,
+          description: normalizedDescription || undefined,
+          type: scheduleType,
+          startsAt: fromInputDateTime(scheduleStartsAt),
+          endsAt: scheduleEndsAt ? fromInputDateTime(scheduleEndsAt) : undefined,
+          location: scheduleLocation.trim() || undefined,
+        },
+      });
+
+      await loadScheduleEvents(selectedTournamentId);
+      resetScheduleForm();
+      const notice = scheduleEditingId
+        ? t('adminDashboard.schedule.updated')
+        : t('adminDashboard.schedule.created');
+      setScheduleOp({ loading: false, error: '', notice });
+      notifySuccess(notice);
+    } catch (requestError) {
+      const message =
+        requestError instanceof Error
+          ? requestError.message
+          : t('adminDashboard.schedule.saveFailed');
+      setScheduleOp({ loading: false, error: message, notice: '' });
+      notifyError(message);
+    }
+  }
+
+  async function deleteScheduleEvent(eventId: string) {
+    if (!selectedTournamentId) {
+      return;
+    }
+
+    setScheduleOp({ loading: true, error: '', notice: '' });
+
+    try {
+      await apiRequest(`/tournaments/${selectedTournamentId}/schedule/${eventId}`, {
+        method: 'DELETE',
+      });
+      await loadScheduleEvents(selectedTournamentId);
+      if (scheduleEditingId === eventId) {
+        resetScheduleForm();
+      }
+      const notice = t('adminDashboard.schedule.deleted');
+      setScheduleOp({ loading: false, error: '', notice });
+      notifySuccess(notice);
+    } catch (requestError) {
+      const message =
+        requestError instanceof Error
+          ? requestError.message
+          : t('adminDashboard.schedule.deleteFailed');
+      setScheduleOp({ loading: false, error: message, notice: '' });
+      notifyError(message);
+    }
+  }
+
   async function distributeAssignments(roundId: string) {
     updateRoundOperationState(roundId, { loading: true, error: '', notice: '' });
 
@@ -1010,9 +1199,6 @@ export default function AdminDashboardPage() {
                       {entry.initials}
                     </span>
                   ))}
-                  <button type="button" className="dashboard-mini-arrow" aria-label={t('shell.viewAll')}>
-                    ›
-                  </button>
                 </div>
                 <div className="dashboard-mini-caption-row">
                   {quickTeamsPreview.map((entry) => (
@@ -1022,11 +1208,13 @@ export default function AdminDashboardPage() {
                     </div>
                   ))}
                 </div>
-                <div className="dashboard-mini-cta">
-                  <input type="text" readOnly value={t('shell.writeMessage')} />
-                  <button type="button" className="button dashboard-action is-purple">
-                    {t('shell.send')}
-                  </button>
+                <div className="dashboard-mini-links">
+                  <Link to="/app/teams" className="button dashboard-action is-teal">
+                    {t('shell.teams')}
+                  </Link>
+                  <Link to="/app/messages" className="button dashboard-action is-purple">
+                    {t('shell.messages')}
+                  </Link>
                 </div>
               </>
             )}
@@ -1119,6 +1307,189 @@ export default function AdminDashboardPage() {
 
           {statusError ? <p className="form-error">{statusError}</p> : null}
           {statusNotice ? <p className="form-success">{statusNotice}</p> : null}
+      </article>
+
+      <article id="admin-schedule" className="card panel-card">
+        <div className="tournament-head">
+          <h2>{t('schedule.title')}</h2>
+          <span className="status-pill">{scheduleEvents.length}</span>
+        </div>
+        <p className="inline-hint">{t('adminDashboard.schedule.lead')}</p>
+
+        {scheduleError ? (
+          <>
+            <p className="form-error">{scheduleError}</p>
+            {selectedTournamentId ? (
+              <button
+                type="button"
+                className="button button-soft"
+                onClick={() => void loadScheduleEvents(selectedTournamentId)}
+              >
+                {t('schedule.retry')}
+              </button>
+            ) : null}
+          </>
+        ) : null}
+        {scheduleOp.error ? <p className="form-error">{scheduleOp.error}</p> : null}
+        {scheduleOp.notice ? <p className="form-success">{scheduleOp.notice}</p> : null}
+
+        <form className="panel-form" onSubmit={submitScheduleEvent} noValidate>
+          <label className="field" htmlFor="admin-schedule-title">
+            <span>{t('schedule.form.title')}</span>
+            <input
+              id="admin-schedule-title"
+              type="text"
+              value={scheduleTitle}
+              onChange={(event) => setScheduleTitle(event.target.value)}
+              required
+              minLength={3}
+              maxLength={140}
+            />
+          </label>
+
+          <label className="field" htmlFor="admin-schedule-description">
+            <span>{t('schedule.form.description')}</span>
+            <textarea
+              id="admin-schedule-description"
+              value={scheduleDescription}
+              onChange={(event) => setScheduleDescription(event.target.value)}
+              maxLength={4000}
+            />
+          </label>
+
+          <div className="schedule-manager-grid">
+            <label className="field" htmlFor="admin-schedule-type">
+              <span>{t('schedule.form.type')}</span>
+              <select
+                id="admin-schedule-type"
+                className="select-input"
+                value={scheduleType}
+                onChange={(event) =>
+                  setScheduleType(event.target.value as TournamentScheduleEventType)
+                }
+              >
+                {(['ROUND', 'CONSULTATION', 'DEADLINE', 'ANNOUNCEMENT', 'OTHER'] as TournamentScheduleEventType[]).map((type) => (
+                  <option key={type} value={type}>
+                    {t(`schedule.types.${type}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field" htmlFor="admin-schedule-location">
+              <span>{t('schedule.form.location')}</span>
+              <input
+                id="admin-schedule-location"
+                type="text"
+                value={scheduleLocation}
+                onChange={(event) => setScheduleLocation(event.target.value)}
+                maxLength={280}
+              />
+            </label>
+          </div>
+
+          <div className="datetime-grid">
+            <label className="field" htmlFor="admin-schedule-start">
+              <span>{t('schedule.form.startsAt')}</span>
+              <input
+                id="admin-schedule-start"
+                type="datetime-local"
+                value={scheduleStartsAt}
+                onChange={(event) => setScheduleStartsAt(event.target.value)}
+                required
+              />
+            </label>
+
+            <label className="field" htmlFor="admin-schedule-end">
+              <span>{t('schedule.form.endsAt')}</span>
+              <input
+                id="admin-schedule-end"
+                type="datetime-local"
+                value={scheduleEndsAt}
+                onChange={(event) => setScheduleEndsAt(event.target.value)}
+              />
+            </label>
+          </div>
+
+          <div className="schedule-form-actions">
+            <button
+              type="submit"
+              className="button button-primary"
+              disabled={scheduleOp.loading || !selectedTournamentId}
+            >
+              {scheduleOp.loading
+                ? t('schedule.form.saving')
+                : scheduleEditingId
+                  ? t('schedule.form.update')
+                  : t('schedule.form.create')}
+            </button>
+            {scheduleEditingId ? (
+              <button
+                type="button"
+                className="button button-ghost"
+                onClick={resetScheduleForm}
+                disabled={scheduleOp.loading}
+              >
+                {t('schedule.actions.cancel')}
+              </button>
+            ) : null}
+          </div>
+        </form>
+
+        {scheduleLoading ? <p>{t('schedule.loading')}</p> : null}
+        {!scheduleLoading && scheduleEvents.length === 0 ? (
+          <p>{t('schedule.empty')}</p>
+        ) : null}
+        {scheduleEvents.length > 0 ? (
+          <div className="schedule-stack">
+            {scheduleEvents.map((event) => (
+              <article key={event.id} className="schedule-item">
+                <div className="schedule-item-head">
+                  <div>
+                    <strong>{event.title}</strong>
+                    <p>{event.description || t('schedule.noDescription')}</p>
+                  </div>
+                  <span className={`schedule-type-chip type-${event.type.toLowerCase()}`}>
+                    {t(`schedule.types.${event.type}`)}
+                  </span>
+                </div>
+                <div className="schedule-item-meta">
+                  <span>
+                    {t('schedule.form.startsAt')}: {formatDateTime(event.startsAt, language)}
+                  </span>
+                  <span>
+                    {event.endsAt
+                      ? `${t('schedule.form.endsAt')}: ${formatDateTime(event.endsAt, language)}`
+                      : t('schedule.noEndTime')}
+                  </span>
+                  <span>
+                    {event.location
+                      ? `${t('schedule.form.location')}: ${event.location}`
+                      : t('schedule.noLocation')}
+                  </span>
+                </div>
+                <div className="status-actions">
+                  <button
+                    type="button"
+                    className="button button-soft"
+                    onClick={() => applyScheduleDraft(event)}
+                    disabled={scheduleOp.loading}
+                  >
+                    {t('schedule.actions.edit')}
+                  </button>
+                  <button
+                    type="button"
+                    className="button button-ghost"
+                    onClick={() => void deleteScheduleEvent(event.id)}
+                    disabled={scheduleOp.loading}
+                  >
+                    {t('schedule.actions.delete')}
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : null}
       </article>
 
       <article id="admin-rounds" className="card panel-card">

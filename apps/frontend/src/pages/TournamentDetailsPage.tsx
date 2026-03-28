@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import TournamentSchedulePanel from '../components/TournamentSchedulePanel';
 import { apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
 import { getAuthRole, isAuthenticated } from '../lib/auth';
+import { TournamentScheduleEvent } from '../lib/tournamentSchedule';
 import { useI18n } from '../i18n/I18nProvider';
 
 type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
@@ -56,8 +58,10 @@ export default function TournamentDetailsPage() {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [rounds, setRounds] = useState<Round[]>([]);
   const [teams, setTeams] = useState<TeamRow[]>([]);
+  const [scheduleEvents, setScheduleEvents] = useState<TournamentScheduleEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [scheduleError, setScheduleError] = useState('');
 
   useEffect(() => {
     if (!tournamentId) {
@@ -71,10 +75,27 @@ export default function TournamentDetailsPage() {
       setError('');
 
       try {
-        const tournamentData = await apiRequest<Tournament>(`/tournaments/${tournamentId}`);
-        const roundsData = await apiRequest<Round[]>(`/tournaments/${tournamentId}/rounds`);
+        const [tournamentData, roundsData] = await Promise.all([
+          apiRequest<Tournament>(`/tournaments/${tournamentId}`),
+          apiRequest<Round[]>(`/tournaments/${tournamentId}/rounds`),
+        ]);
         setTournament(tournamentData);
         setRounds(roundsData);
+
+        try {
+          const scheduleData = await apiRequest<TournamentScheduleEvent[]>(
+            `/tournaments/${tournamentId}/schedule`,
+          );
+          setScheduleEvents(scheduleData);
+          setScheduleError('');
+        } catch (scheduleRequestError) {
+          setScheduleEvents([]);
+          setScheduleError(
+            scheduleRequestError instanceof Error
+              ? scheduleRequestError.message
+              : t('schedule.loadFailed'),
+          );
+        }
 
         if (canShowTeamsList(tournamentData)) {
           const teamsData = await apiRequest<TeamRow[]>(`/tournaments/${tournamentId}/teams`);
@@ -89,6 +110,8 @@ export default function TournamentDetailsPage() {
         setTournament(null);
         setRounds([]);
         setTeams([]);
+        setScheduleEvents([]);
+        setScheduleError('');
       } finally {
         setLoading(false);
       }
@@ -222,6 +245,30 @@ export default function TournamentDetailsPage() {
           </div>
         </article>
       ) : null}
+
+      <TournamentSchedulePanel
+        className="section-card"
+        events={scheduleEvents}
+        error={scheduleError}
+        onRetry={() => {
+          void (async () => {
+            try {
+              setScheduleError('');
+              const data = await apiRequest<TournamentScheduleEvent[]>(
+                `/tournaments/${tournamentId}/schedule`,
+              );
+              setScheduleEvents(data);
+            } catch (requestError) {
+              setScheduleError(
+                requestError instanceof Error
+                  ? requestError.message
+                  : t('schedule.loadFailed'),
+              );
+            }
+          })();
+        }}
+        lead={t('tournamentDetails.scheduleLead')}
+      />
 
       <article className="section-card">
         <h2>{t('tournamentDetails.roundsTitle')}</h2>
