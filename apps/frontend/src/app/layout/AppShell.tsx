@@ -25,6 +25,7 @@ type TopbarAnnouncement = {
   linkUrl: string | null;
   publishedAt: string;
   isPinned: boolean;
+  isUnread: boolean;
 };
 
 type ProfileSettingsResponse = {
@@ -33,26 +34,8 @@ type ProfileSettingsResponse = {
   };
 };
 
-function alertsReadAtKey(userId: string) {
-  return `falconarena_alerts_read_at_${userId}`;
-}
-
 function profileAvatarKey(userId: string) {
   return `falconarena_avatar_url_${userId}`;
-}
-
-function getAlertsReadAt(userId: string) {
-  const raw = localStorage.getItem(alertsReadAtKey(userId));
-  if (!raw) {
-    return 0;
-  }
-
-  const parsed = Number(raw);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function setAlertsReadAt(userId: string, value: number) {
-  localStorage.setItem(alertsReadAtKey(userId), String(value));
 }
 
 function getCachedProfileAvatar(userId: string) {
@@ -330,27 +313,23 @@ export default function AppShell() {
         (left, right) => toTimestamp(right.publishedAt) - toTimestamp(left.publishedAt),
       );
       const limited = sorted.slice(0, 6);
-      setAlerts(limited);
-
-      if (!currentUserId) {
-        setUnreadAlertsCount(0);
-        setUnreadAlertIds([]);
-        return;
-      }
-
-      const newestTimestamp = sorted.reduce(
-        (max, item) => Math.max(max, toTimestamp(item.publishedAt)),
-        0,
-      );
-      const seenAt = getAlertsReadAt(currentUserId);
 
       if (markAsSeen) {
-        setUnreadAlertIds(sorted.filter((item) => toTimestamp(item.publishedAt) > seenAt).map((item) => item.id));
-        const markValue = Math.max(seenAt, newestTimestamp, Date.now());
-        setAlertsReadAt(currentUserId, markValue);
+        const newestAnnouncement = sorted[0];
+        if (newestAnnouncement) {
+          await apiRequest('/announcements/read-state', {
+            method: 'PATCH',
+            body: {
+              publishedAt: newestAnnouncement.publishedAt,
+            },
+          });
+        }
+        setAlerts(limited.map((item) => ({ ...item, isUnread: false })));
+        setUnreadAlertIds(sorted.filter((item) => item.isUnread).map((item) => item.id));
         setUnreadAlertsCount(0);
       } else {
-        const unreadIds = sorted.filter((item) => toTimestamp(item.publishedAt) > seenAt).map((item) => item.id);
+        setAlerts(limited);
+        const unreadIds = sorted.filter((item) => item.isUnread).map((item) => item.id);
         const unreadCount = unreadIds.length;
         setUnreadAlertIds(unreadIds);
         setUnreadAlertsCount(unreadCount);
@@ -359,6 +338,7 @@ export default function AppShell() {
       setAlertsError(requestError instanceof Error ? requestError.message : t('messagesPage.loadFailed'));
       setAlerts([]);
       setUnreadAlertIds([]);
+      setUnreadAlertsCount(0);
     } finally {
       if (showLoading) {
         setAlertsLoading(false);

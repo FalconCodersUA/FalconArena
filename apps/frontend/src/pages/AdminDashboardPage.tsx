@@ -1,6 +1,7 @@
 import { FormEvent, ReactNode, useEffect, useMemo, useState } from 'react';
 import { useNotifications } from '../app/notifications/NotificationsProvider';
 import { apiRequest } from '../lib/api';
+import { formatDateTime } from '../lib/dateTime';
 import { useI18n } from '../i18n/I18nProvider';
 
 type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
@@ -28,6 +29,7 @@ type Tournament = {
   title: string;
   description: string | null;
   status: TournamentStatus;
+  startsAt: string | null;
   registrationOpenAt: string;
   registrationCloseAt: string;
   maxTeams: number | null;
@@ -37,7 +39,11 @@ type Round = {
   id: string;
   sequence: number;
   title: string;
+  description: string;
   status: RoundStatus;
+  mustHave: string[];
+  technologyRequirements: string[];
+  additionalMaterials: string[];
   startsAt: string;
   deadlineAt: string;
 };
@@ -112,10 +118,6 @@ const EMPTY_ADMIN_METRICS: AdminDashboardMetrics = {
   activity: new Array(7).fill(0),
 };
 
-function formatDate(value: string, language: string) {
-  return new Date(value).toLocaleString(language === 'uk' ? 'uk-UA' : 'en-US');
-}
-
 function toInputDateTime(value: Date) {
   const yyyy = value.getFullYear();
   const mm = String(value.getMonth() + 1).padStart(2, '0');
@@ -140,6 +142,13 @@ function isPositiveInteger(value: string) {
 
 function isValidEmail(value: string) {
   return /^\S+@\S+\.\S+$/.test(value);
+}
+
+function parseLineList(value: string) {
+  return value
+    .split(/\r?\n/)
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
 }
 
 function toInitials(value: string) {
@@ -280,6 +289,7 @@ export default function AdminDashboardPage() {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [tournamentStartsAt, setTournamentStartsAt] = useState('');
   const [registrationOpenAt, setRegistrationOpenAt] = useState(toInputDateTime(now));
   const [registrationCloseAt, setRegistrationCloseAt] = useState(
     toInputDateTime(new Date(now.getTime() + 24 * 60 * 60 * 1000)),
@@ -289,6 +299,8 @@ export default function AdminDashboardPage() {
   const [roundTitle, setRoundTitle] = useState('');
   const [roundDescription, setRoundDescription] = useState('');
   const [mustHaveRaw, setMustHaveRaw] = useState('');
+  const [technologyRequirementsRaw, setTechnologyRequirementsRaw] = useState('');
+  const [additionalMaterialsRaw, setAdditionalMaterialsRaw] = useState('');
   const [roundStartsAt, setRoundStartsAt] = useState(toInputDateTime(now));
   const [roundDeadlineAt, setRoundDeadlineAt] = useState(
     toInputDateTime(new Date(now.getTime() + 24 * 60 * 60 * 1000)),
@@ -481,6 +493,12 @@ export default function AdminDashboardPage() {
     }
 
     const normalizedDescription = description.trim();
+    const startDate = tournamentStartsAt ? new Date(tournamentStartsAt) : null;
+    if (tournamentStartsAt && (!startDate || Number.isNaN(startDate.getTime()))) {
+      setCreateTournamentError(t('adminDashboard.validation.tournamentStartInvalid'));
+      return;
+    }
+
     const openDate = new Date(registrationOpenAt);
     const closeDate = new Date(registrationCloseAt);
     if (!registrationOpenAt || !registrationCloseAt || Number.isNaN(openDate.getTime()) || Number.isNaN(closeDate.getTime()) || openDate >= closeDate) {
@@ -501,6 +519,7 @@ export default function AdminDashboardPage() {
         body: {
           title: normalizedTitle,
           description: normalizedDescription || undefined,
+          startsAt: startDate ? fromInputDateTime(tournamentStartsAt) : undefined,
           registrationOpenAt: fromInputDateTime(registrationOpenAt),
           registrationCloseAt: fromInputDateTime(registrationCloseAt),
           maxTeams: maxTeams ? Number(maxTeams) : undefined,
@@ -509,6 +528,7 @@ export default function AdminDashboardPage() {
 
       setTitle('');
       setDescription('');
+      setTournamentStartsAt('');
       setMaxTeams('');
       setCreateTournamentNotice(t('adminDashboard.createTournamentSuccess'));
       notifySuccess(t('adminDashboard.createTournamentSuccess'));
@@ -588,10 +608,9 @@ export default function AdminDashboardPage() {
     setCreateRoundLoading(true);
 
     try {
-      const mustHave = mustHaveRaw
-        .split(',')
-        .map((entry) => entry.trim())
-        .filter((entry) => entry.length > 0);
+      const mustHave = parseLineList(mustHaveRaw);
+      const technologyRequirements = parseLineList(technologyRequirementsRaw);
+      const additionalMaterials = parseLineList(additionalMaterialsRaw);
 
       await apiRequest(`/tournaments/${selectedTournamentId}/rounds`, {
         method: 'POST',
@@ -599,6 +618,10 @@ export default function AdminDashboardPage() {
           title: normalizedRoundTitle,
           description: normalizedRoundDescription,
           mustHave: mustHave.length > 0 ? mustHave : undefined,
+          technologyRequirements:
+            technologyRequirements.length > 0 ? technologyRequirements : undefined,
+          additionalMaterials:
+            additionalMaterials.length > 0 ? additionalMaterials : undefined,
           startsAt: fromInputDateTime(roundStartsAt),
           deadlineAt: fromInputDateTime(roundDeadlineAt),
         },
@@ -607,6 +630,8 @@ export default function AdminDashboardPage() {
       setRoundTitle('');
       setRoundDescription('');
       setMustHaveRaw('');
+      setTechnologyRequirementsRaw('');
+      setAdditionalMaterialsRaw('');
       setCreateRoundNotice(t('adminDashboard.createRoundSuccess'));
       notifySuccess(t('adminDashboard.createRoundSuccess'));
       await loadRounds(selectedTournamentId);
@@ -1053,14 +1078,18 @@ export default function AdminDashboardPage() {
                 <div className="summary-card">
                   <span>{t('adminDashboard.summary.registration')}</span>
                   <strong>
-                    {formatDate(selectedTournament.registrationOpenAt, language)}
+                    {formatDateTime(selectedTournament.registrationOpenAt, language)}
                   </strong>
-                  <p>{formatDate(selectedTournament.registrationCloseAt, language)}</p>
+                  <p>{formatDateTime(selectedTournament.registrationCloseAt, language)}</p>
                 </div>
                 <div className="summary-card">
                   <span>{t('adminDashboard.summary.maxTeams')}</span>
                   <strong>{selectedTournament.maxTeams ?? '-'}</strong>
-                  <p>{selectedTournament.description || t('adminDashboard.summary.noDescription')}</p>
+                  <p>
+                    {selectedTournament.startsAt
+                      ? `${t('adminDashboard.form.tournamentStartsAt')}: ${formatDateTime(selectedTournament.startsAt, language)}`
+                      : selectedTournament.description || t('adminDashboard.summary.noDescription')}
+                  </p>
                 </div>
               </div>
 
@@ -1081,8 +1110,9 @@ export default function AdminDashboardPage() {
               </div>
 
               <p className="inline-hint">
-                {t('adminDashboard.registrationPeriod')}: {formatDate(selectedTournament.registrationOpenAt, language)} -{' '}
-                {formatDate(selectedTournament.registrationCloseAt, language)}
+                {t('adminDashboard.registrationPeriod')}:{' '}
+                {formatDateTime(selectedTournament.registrationOpenAt, language)} -{' '}
+                {formatDateTime(selectedTournament.registrationCloseAt, language)}
               </p>
             </>
           ) : null}
@@ -1141,11 +1171,57 @@ export default function AdminDashboardPage() {
                   </div>
 
                   <p>
-                    {t('adminDashboard.roundStartsAt')}: {formatDate(round.startsAt, language)}
+                    {t('adminDashboard.roundStartsAt')}: {formatDateTime(round.startsAt, language)}
                   </p>
                   <p>
-                    {t('adminDashboard.roundDeadlineAt')}: {formatDate(round.deadlineAt, language)}
+                    {t('adminDashboard.roundDeadlineAt')}: {formatDateTime(round.deadlineAt, language)}
                   </p>
+                  <p>{round.description}</p>
+
+                  <div className="must-have-block">
+                    <p>
+                      <strong>{t('adminDashboard.form.mustHave')}</strong>
+                    </p>
+                    {round.mustHave.length === 0 ? (
+                      <p className="inline-hint">{t('adminDashboard.noItemsDefined')}</p>
+                    ) : (
+                      <ul className="must-have-list">
+                        {round.mustHave.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  <div className="must-have-block">
+                    <p>
+                      <strong>{t('adminDashboard.form.technologyRequirements')}</strong>
+                    </p>
+                    {round.technologyRequirements.length === 0 ? (
+                      <p className="inline-hint">{t('adminDashboard.noItemsDefined')}</p>
+                    ) : (
+                      <ul className="must-have-list">
+                        {round.technologyRequirements.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  <div className="must-have-block">
+                    <p>
+                      <strong>{t('adminDashboard.form.additionalMaterials')}</strong>
+                    </p>
+                    {round.additionalMaterials.length === 0 ? (
+                      <p className="inline-hint">{t('adminDashboard.noItemsDefined')}</p>
+                    ) : (
+                      <ul className="must-have-list">
+                        {round.additionalMaterials.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
 
                   <div className="round-actions">
                     <button
@@ -1266,6 +1342,16 @@ export default function AdminDashboardPage() {
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               maxLength={4000}
+            />
+          </label>
+
+          <label className="field" htmlFor="admin-tournament-start">
+            <span>{t('adminDashboard.form.tournamentStartsAt')}</span>
+            <input
+              id="admin-tournament-start"
+              type="datetime-local"
+              value={tournamentStartsAt}
+              onChange={(event) => setTournamentStartsAt(event.target.value)}
             />
           </label>
 
@@ -1435,11 +1521,28 @@ export default function AdminDashboardPage() {
 
           <label className="field" htmlFor="admin-round-must-have">
             <span>{t('adminDashboard.form.mustHave')}</span>
-            <input
+            <textarea
               id="admin-round-must-have"
-              type="text"
               value={mustHaveRaw}
               onChange={(event) => setMustHaveRaw(event.target.value)}
+            />
+          </label>
+
+          <label className="field" htmlFor="admin-round-tech-req">
+            <span>{t('adminDashboard.form.technologyRequirements')}</span>
+            <textarea
+              id="admin-round-tech-req"
+              value={technologyRequirementsRaw}
+              onChange={(event) => setTechnologyRequirementsRaw(event.target.value)}
+            />
+          </label>
+
+          <label className="field" htmlFor="admin-round-materials">
+            <span>{t('adminDashboard.form.additionalMaterials')}</span>
+            <textarea
+              id="admin-round-materials"
+              value={additionalMaterialsRaw}
+              onChange={(event) => setAdditionalMaterialsRaw(event.target.value)}
             />
           </label>
 

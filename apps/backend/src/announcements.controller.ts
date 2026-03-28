@@ -16,6 +16,7 @@ import { AuthUser } from './common/types/auth-user.type';
 import {
   CreateAnnouncementDto,
   ListAnnouncementsDto,
+  MarkAnnouncementsReadDto,
   UpdateAnnouncementDto,
 } from './announcements.dto';
 import { AnnouncementsService } from './announcements.service';
@@ -32,7 +33,19 @@ export class AnnouncementsController {
   ) {
     return this.announcementsService.listForRole(
       request.user.role,
+      request.user.userId,
       query.includeInactive ?? false,
+    );
+  }
+
+  @Patch('read-state')
+  markRead(
+    @Req() request: { user: AuthUser },
+    @Body() dto: MarkAnnouncementsReadDto,
+  ) {
+    return this.announcementsService.markRead(
+      request.user.userId,
+      dto.publishedAt,
     );
   }
 
