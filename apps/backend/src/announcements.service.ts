@@ -8,7 +8,7 @@ import { PrismaService } from './prisma/prisma.service';
 export class AnnouncementsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listForRole(role: Role, includeInactive = false) {
+  async listForRole(role: Role, userId: string, includeInactive = false) {
     const isManager = role === 'ADMIN' || role === 'ORGANIZER';
 
     const where = isManager
@@ -20,10 +20,43 @@ export class AnnouncementsService {
           audience: { in: this.allowedAudiences(role) },
         };
 
-    return this.prisma.announcement.findMany({
-      where,
-      orderBy: [{ isPinned: 'desc' }, { publishedAt: 'desc' }, { createdAt: 'desc' }],
+    const [announcements, settings] = await Promise.all([
+      this.prisma.announcement.findMany({
+        where,
+        orderBy: [{ isPinned: 'desc' }, { publishedAt: 'desc' }, { createdAt: 'desc' }],
+      }),
+      this.prisma.userSettings.findUnique({
+        where: { userId },
+        select: { lastAnnouncementsReadAt: true },
+      }),
+    ]);
+
+    const readAt = settings?.lastAnnouncementsReadAt?.getTime() ?? 0;
+
+    return announcements.map((announcement) => ({
+      ...announcement,
+      isUnread: announcement.publishedAt.getTime() > readAt,
+    }));
+  }
+
+  async markRead(userId: string, publishedAt?: string) {
+    const targetDate = publishedAt ? new Date(publishedAt) : new Date();
+    if (Number.isNaN(targetDate.getTime())) {
+      throw new BadRequestException('publishedAt is invalid');
+    }
+
+    await this.prisma.userSettings.upsert({
+      where: { userId },
+      update: { lastAnnouncementsReadAt: targetDate },
+      create: {
+        user: { connect: { id: userId } },
+        lastAnnouncementsReadAt: targetDate,
+      },
     });
+
+    return {
+      lastAnnouncementsReadAt: targetDate.toISOString(),
+    };
   }
 
   async create(dto: CreateAnnouncementDto, createdById: string) {
@@ -111,4 +144,3 @@ export class AnnouncementsService {
     return normalized;
   }
 }
-

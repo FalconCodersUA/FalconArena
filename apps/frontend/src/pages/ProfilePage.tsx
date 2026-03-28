@@ -1,6 +1,7 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useNotifications } from '../app/notifications/NotificationsProvider';
 import { ApiError, apiRequest } from '../lib/api';
+import { formatDateTime, setPreferredTimeZone } from '../lib/dateTime';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/messages';
 
@@ -28,9 +29,13 @@ type TeamProfile = {
   name: string;
   captain: {
     id: string;
+    fullName: string;
+    email: string;
   };
   members: {
     id: string;
+    fullName: string;
+    email: string;
   }[];
 };
 
@@ -100,6 +105,11 @@ type TeamSummaryItem = {
   tournamentStatus: TournamentStatus;
   teamName: string;
   membersCount: number;
+  members: {
+    fullName: string;
+    email: string;
+    isCaptain: boolean;
+  }[];
   totalRounds: number;
   submissionsCount: number;
   submissionHistory: TeamSubmissionHistoryItem[];
@@ -182,10 +192,6 @@ function isProfileSettingsPayload(value: unknown): value is ProfileSettingsPaylo
     !!payload.preferences &&
     typeof payload.preferences === 'object'
   );
-}
-
-function formatDate(value: string, language: string) {
-  return new Date(value).toLocaleString(language === 'uk' ? 'uk-UA' : 'en-US');
 }
 
 function initialsFromName(fullName: string) {
@@ -332,6 +338,18 @@ export default function ProfilePage() {
             tournamentStatus: tournament.status,
             teamName: team.name,
             membersCount: team.members.length + 1,
+            members: [
+              {
+                fullName: team.captain.fullName,
+                email: team.captain.email,
+                isCaptain: true,
+              },
+              ...team.members.map((member) => ({
+                fullName: member.fullName,
+                email: member.email,
+                isCaptain: false,
+              })),
+            ],
             totalRounds: rounds.length,
             submissionsCount: submissionHistory.length,
             submissionHistory,
@@ -471,7 +489,9 @@ export default function ProfilePage() {
     setEditCountry(payload.edit.country || '');
 
     setPrefLanguage(normalizeStoredLanguage(payload.preferences.interfaceLanguage, language));
-    setPrefTimeZone(normalizeStoredTimeZone(payload.preferences.timeZone));
+    const nextTimeZone = normalizeStoredTimeZone(payload.preferences.timeZone);
+    setPrefTimeZone(nextTimeZone);
+    setPreferredTimeZone(nextTimeZone);
     setPrefNotificationsAnnouncements(payload.preferences.notifyAnnouncements);
     setPrefNotificationsReviews(payload.preferences.notifyReviews);
     setPrefNotificationsMessages(payload.preferences.notifyMessages);
@@ -633,6 +653,7 @@ export default function ProfilePage() {
       if (!isProfileSettingsPayload(settings)) {
         throw new Error('Invalid settings response');
       }
+      setPreferredTimeZone(normalizeStoredTimeZone(settings.preferences.timeZone));
       applySettingsPayload(settings);
       setSettingsNotice(t('profile.settings.saved'));
       notifySuccess(t('profile.settings.saved'));
@@ -992,7 +1013,7 @@ export default function ProfilePage() {
           </div>
           <div className="profile-item">
             <span>{t('profile.basics.createdAt')}</span>
-            <strong>{formatDate(me.createdAt, language)}</strong>
+            <strong>{formatDateTime(me.createdAt, language)}</strong>
           </div>
         </div>
       </article>
@@ -1066,6 +1087,19 @@ export default function ProfilePage() {
                   <p>
                     {t('profile.team.members')}: {item.membersCount}
                   </p>
+                  <div className="profile-history-list">
+                    {item.members.map((member) => (
+                      <article key={`${item.tournamentId}-${member.email}`} className="profile-history-card">
+                        <p>
+                          <strong>{member.fullName}</strong>
+                        </p>
+                        <p>{member.email}</p>
+                        {member.isCaptain ? (
+                          <p className="inline-hint">{t('profile.team.captainLabel')}</p>
+                        ) : null}
+                      </article>
+                    ))}
+                  </div>
                   <p>
                     {t('profile.team.roundsTotal')}: {item.totalRounds}
                   </p>
@@ -1093,7 +1127,7 @@ export default function ProfilePage() {
                               {t(`profile.submission.${entry.submissionStatus}`)}
                             </p>
                             <p>
-                              {t('profile.team.submittedAt')}: {formatDate(entry.submittedAt, language)}
+                              {t('profile.team.submittedAt')}: {formatDateTime(entry.submittedAt, language)}
                             </p>
                             <div className="profile-links">
                               <a href={entry.repoUrl} target="_blank" rel="noreferrer">
@@ -1177,9 +1211,9 @@ export default function ProfilePage() {
                       <p>
                         {t('profile.jury.team')}: {entry.teamName}
                       </p>
-                      <p>
-                        {t('profile.jury.assignedAt')}: {formatDate(entry.assignedAt, language)}
-                      </p>
+                            <p>
+                              {t('profile.jury.assignedAt')}: {formatDateTime(entry.assignedAt, language)}
+                            </p>
                       <p>
                         {t('profile.jury.statusLabel')}:{' '}
                         {entry.evaluated

@@ -73,6 +73,7 @@ model UserSettings {
   country                String?
   interfaceLanguage      String?
   timeZone               String?
+  lastAnnouncementsReadAt DateTime?
   notifyAnnouncements    Boolean  @default(true)
   notifyReviews          Boolean  @default(false)
   notifyMessages         Boolean  @default(true)
@@ -134,6 +135,8 @@ model Round {
   title       String
   description String
   mustHave    Json?
+  technologyRequirements Json?
+  additionalMaterials Json?
   startsAt    DateTime
   deadlineAt  DateTime
   status      RoundStatus  @default(DRAFT)

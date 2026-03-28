@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { isAuthenticated } from '../lib/auth';
 import { ApiError, apiRequest } from '../lib/api';
+import { formatDateTime } from '../lib/dateTime';
 import { useI18n } from '../i18n/I18nProvider';
 
 type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
@@ -11,6 +12,7 @@ type Tournament = {
   id: string;
   title: string;
   status: TournamentStatus;
+  startsAt: string | null;
   registrationOpenAt: string;
   registrationCloseAt: string;
   canTeamRegister: boolean;
@@ -45,10 +47,6 @@ type QuickTeamBlock = {
 };
 
 type FilterType = 'all' | 'registrationOpen' | 'running' | 'finished';
-
-function formatDate(value: string, language: string) {
-  return new Date(value).toLocaleString(language === 'uk' ? 'uk-UA' : 'en-US');
-}
 
 const TOURNAMENT_PRIORITY: Record<TournamentStatus, number> = {
   RUNNING: 1,
@@ -331,7 +329,7 @@ export default function TournamentsPage() {
                   <span>{t('tournaments.quickBlock.deadline')}</span>
                   <strong>
                     {quickData.activeRound
-                      ? formatDate(quickData.activeRound.deadlineAt, language)
+                      ? formatDateTime(quickData.activeRound.deadlineAt, language)
                       : '-'}
                   </strong>
                 </div>
@@ -399,12 +397,18 @@ export default function TournamentsPage() {
                       <dl className="meta-grid">
                         <div>
                           <dt>{t('tournaments.registrationOpens')}</dt>
-                          <dd>{formatDate(tournament.registrationOpenAt, language)}</dd>
+                          <dd>{formatDateTime(tournament.registrationOpenAt, language)}</dd>
                         </div>
                         <div>
                           <dt>{t('tournaments.registrationCloses')}</dt>
-                          <dd>{formatDate(tournament.registrationCloseAt, language)}</dd>
+                          <dd>{formatDateTime(tournament.registrationCloseAt, language)}</dd>
                         </div>
+                        {tournament.startsAt ? (
+                          <div>
+                            <dt>{t('tournaments.startsAt')}</dt>
+                            <dd>{formatDateTime(tournament.startsAt, language)}</dd>
+                          </div>
+                        ) : null}
                       </dl>
 
                       <p className="register-flag">
@@ -414,12 +418,20 @@ export default function TournamentsPage() {
                           : t('tournaments.closed')}
                       </p>
 
-                      <Link
-                        to={`/app/leaderboard?tournamentId=${tournament.id}`}
-                        className="button button-soft"
-                      >
-                        {t('tournaments.leaderboard')}
-                      </Link>
+                      <div className="status-actions">
+                        <Link
+                          to={`/app/tournaments/${tournament.id}`}
+                          className="button button-primary"
+                        >
+                          {t('tournaments.details')}
+                        </Link>
+                        <Link
+                          to={`/app/leaderboard?tournamentId=${tournament.id}`}
+                          className="button button-soft"
+                        >
+                          {t('tournaments.leaderboard')}
+                        </Link>
+                      </div>
                     </article>
                   ))}
                 </div>

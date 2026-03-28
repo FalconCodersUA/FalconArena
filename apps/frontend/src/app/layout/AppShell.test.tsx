@@ -67,10 +67,6 @@ describe('AppShell', () => {
 
   it('shows unread badge and supports only-unread filter', async () => {
     seedAuthedUser();
-    localStorage.setItem(
-      'falconarena_alerts_read_at_user-1',
-      String(new Date('2026-03-20T00:00:00.000Z').getTime()),
-    );
 
     mockedApiRequest.mockImplementation(async (path: string) => {
       if (path === '/auth/me') {
@@ -99,6 +95,7 @@ describe('AppShell', () => {
             linkUrl: null,
             publishedAt: '2026-03-19T10:00:00.000Z',
             isPinned: false,
+            isUnread: false,
           },
           {
             id: 'new-1',
@@ -107,8 +104,15 @@ describe('AppShell', () => {
             linkUrl: null,
             publishedAt: '2026-03-21T10:00:00.000Z',
             isPinned: true,
+            isUnread: true,
           },
         ];
+      }
+
+      if (path === '/announcements/read-state') {
+        return {
+          lastAnnouncementsReadAt: '2026-03-21T10:00:00.000Z',
+        };
       }
 
       throw new Error(`Unexpected request: ${path}`);
@@ -158,8 +162,15 @@ describe('AppShell', () => {
             linkUrl: null,
             publishedAt: '2026-03-21T10:00:00.000Z',
             isPinned: true,
+            isUnread: true,
           },
         ];
+      }
+
+      if (path === '/announcements/read-state') {
+        return {
+          lastAnnouncementsReadAt: '2026-03-21T10:00:00.000Z',
+        };
       }
 
       throw new Error(`Unexpected request: ${path}`);
@@ -202,6 +213,12 @@ describe('AppShell', () => {
         return [];
       }
 
+      if (path === '/announcements/read-state') {
+        return {
+          lastAnnouncementsReadAt: '2026-03-21T10:00:00.000Z',
+        };
+      }
+
       throw new Error(`Unexpected request: ${path}`);
     });
 
@@ -218,4 +235,3 @@ describe('AppShell', () => {
     ).toBeGreaterThanOrEqual(2);
   });
 });
-

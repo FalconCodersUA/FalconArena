@@ -55,8 +55,15 @@ describe('MessagesPage', () => {
             publishedAt: '2026-03-22T10:00:00.000Z',
             createdAt: '2026-03-22T10:00:00.000Z',
             updatedAt: '2026-03-22T10:00:00.000Z',
+            isUnread: true,
           },
         ];
+      }
+
+      if (path === '/announcements/read-state') {
+        return {
+          lastAnnouncementsReadAt: '2026-03-22T10:00:00.000Z',
+        };
       }
 
       if (path === '/messages/dialogs') {
@@ -96,11 +103,18 @@ describe('MessagesPage', () => {
           publishedAt: '2026-03-22T10:00:00.000Z',
           createdAt: '2026-03-22T10:00:00.000Z',
           updatedAt: '2026-03-22T10:00:00.000Z',
+          isUnread: false,
         };
       }
 
       if (path === '/announcements') {
         return [];
+      }
+
+      if (path === '/announcements/read-state') {
+        return {
+          lastAnnouncementsReadAt: '2026-03-22T10:00:00.000Z',
+        };
       }
 
       if (path === '/messages/dialogs') {

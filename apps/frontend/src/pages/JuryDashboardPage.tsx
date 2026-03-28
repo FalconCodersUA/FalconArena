@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useNotifications } from '../app/notifications/NotificationsProvider';
 import { ApiError, apiRequest } from '../lib/api';
+import { formatDateTime } from '../lib/dateTime';
 import { useI18n } from '../i18n/I18nProvider';
 
 type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
@@ -126,10 +127,6 @@ const EMPTY_JURY_METRICS: JuryDashboardMetrics = {
   activeEntities: [],
   activity: new Array(7).fill(0),
 };
-
-function formatDate(value: string, language: string) {
-  return new Date(value).toLocaleString(language === 'uk' ? 'uk-UA' : 'en-US');
-}
 
 function clampScore(value: number) {
   if (!Number.isFinite(value)) {
@@ -820,7 +817,7 @@ export default function JuryDashboardPage() {
                     </span>
                   </div>
                   <p>
-                    {t('juryDashboard.assignedAt')}: {formatDate(assignment.assignedAt, language)}
+                          {t('juryDashboard.assignedAt')}: {formatDateTime(assignment.assignedAt, language)}
                   </p>
                 </button>
               ))}

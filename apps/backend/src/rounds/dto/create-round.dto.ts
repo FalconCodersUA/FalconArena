@@ -29,6 +29,22 @@ export class CreateRoundDto {
   @MaxLength(240, { each: true })
   mustHave?: string[];
 
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(30)
+  @IsString({ each: true })
+  @MaxLength(240, { each: true })
+  technologyRequirements?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(30)
+  @IsString({ each: true })
+  @MaxLength(240, { each: true })
+  additionalMaterials?: string[];
+
   @Type(() => Date)
   @IsDate()
   startsAt!: Date;

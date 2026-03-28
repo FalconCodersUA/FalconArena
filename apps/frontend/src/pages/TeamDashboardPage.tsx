@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useNotifications } from '../app/notifications/NotificationsProvider';
 import { ApiError, apiRequest } from '../lib/api';
+import { formatDateTime } from '../lib/dateTime';
 import { useI18n } from '../i18n/I18nProvider';
 
 type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
@@ -48,6 +49,8 @@ type ActiveRound = {
   startsAt: string;
   deadlineAt: string;
   mustHave: string[];
+  technologyRequirements: string[];
+  additionalMaterials: string[];
   status: 'DRAFT' | 'ACTIVE' | 'SUBMISSION_CLOSED' | 'EVALUATED';
 };
 
@@ -121,10 +124,6 @@ const EMPTY_TEAM_METRICS: TeamDashboardMetrics = {
   activeEntities: [],
   activity: new Array(7).fill(0),
 };
-
-function formatDate(value: string, language: string) {
-  return new Date(value).toLocaleString(language === 'uk' ? 'uk-UA' : 'en-US');
-}
 
 function emptyMember(): MemberDraft {
   return { fullName: '', email: '' };
@@ -1088,11 +1087,11 @@ export default function TeamDashboardPage() {
               </div>
               <p>
                 {t('teamDashboard.taskStartsAt')}:{' '}
-                {formatDate(activeRound.startsAt, language)}
+                {formatDateTime(activeRound.startsAt, language)}
               </p>
               <p>
                 {t('teamDashboard.deadlineLabel')}:{' '}
-                {formatDate(activeRound.deadlineAt, language)}
+                {formatDateTime(activeRound.deadlineAt, language)}
               </p>
               <p>
                 <strong>{t('teamDashboard.taskDescriptionLabel')}</strong>
@@ -1113,6 +1112,36 @@ export default function TeamDashboardPage() {
                   </ul>
                 )}
               </div>
+
+              <div className="must-have-block">
+                <p>
+                  <strong>{t('teamDashboard.technologyRequirementsTitle')}</strong>
+                </p>
+                {activeRound.technologyRequirements.length === 0 ? (
+                  <p className="inline-hint">{t('teamDashboard.noTechnologyRequirements')}</p>
+                ) : (
+                  <ul className="must-have-list">
+                    {activeRound.technologyRequirements.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div className="must-have-block">
+                <p>
+                  <strong>{t('teamDashboard.additionalMaterialsTitle')}</strong>
+                </p>
+                {activeRound.additionalMaterials.length === 0 ? (
+                  <p className="inline-hint">{t('teamDashboard.noAdditionalMaterials')}</p>
+                ) : (
+                  <ul className="must-have-list">
+                    {activeRound.additionalMaterials.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           ) : null}
 
@@ -1128,7 +1157,7 @@ export default function TeamDashboardPage() {
                   <p>
                     {t(`profile.submission.${submission.status}`)}
                     {submission.submittedAt
-                      ? ` · ${t('teamDashboard.submittedAt')}: ${formatDate(submission.submittedAt, language)}`
+                      ? ` · ${t('teamDashboard.submittedAt')}: ${formatDateTime(submission.submittedAt, language)}`
                       : ''}
                   </p>
                 </div>

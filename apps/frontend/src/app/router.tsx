@@ -12,6 +12,7 @@ import ProfilePage from '../pages/ProfilePage';
 import RegisterPage from '../pages/RegisterPage';
 import TeamDashboardPage from '../pages/TeamDashboardPage';
 import TeamsPage from '../pages/TeamsPage';
+import TournamentDetailsPage from '../pages/TournamentDetailsPage';
 import TournamentsPage from '../pages/TournamentsPage';
 
 function ProtectedRoute({
@@ -75,6 +76,10 @@ export const router = createBrowserRouter([
       {
         path: 'tournaments',
         element: <TournamentsPage />,
+      },
+      {
+        path: 'tournaments/:tournamentId',
+        element: <TournamentDetailsPage />,
       },
       {
         path: 'teams',

@@ -2884,6 +2884,11 @@ a {
   gap: 10px;
 }
 
+.announcement-item.unread {
+  border-color: rgba(94, 23, 235, 0.3);
+  background: linear-gradient(180deg, rgba(94, 23, 235, 0.06), #fff 45%);
+}
+
 .announcement-item.inactive {
   background: #f8f6fc;
   border-color: #e5ddf3;

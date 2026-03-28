@@ -1,6 +1,7 @@
 import { Transform } from 'class-transformer';
 import {
   IsBoolean,
+  IsDateString,
   IsIn,
   IsOptional,
   IsString,
@@ -100,3 +101,8 @@ export class UpdateAnnouncementDto {
   isActive?: boolean;
 }
 
+export class MarkAnnouncementsReadDto {
+  @IsOptional()
+  @IsDateString()
+  publishedAt?: string;
+}

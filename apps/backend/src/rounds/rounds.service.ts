@@ -31,40 +31,48 @@ export class RoundsService {
 
     const sequence = (aggregate._max.sequence ?? 0) + 1;
 
-    return this.prisma.round.create({
+    const round = await this.prisma.round.create({
       data: {
         tournamentId,
         sequence,
         title: dto.title,
         description: dto.description,
         mustHave: dto.mustHave ?? [],
+        technologyRequirements: dto.technologyRequirements ?? [],
+        additionalMaterials: dto.additionalMaterials ?? [],
         startsAt: dto.startsAt,
         deadlineAt: dto.deadlineAt,
       },
     });
+
+    return this.mapRoundView(round);
   }
 
   async listByTournament(tournamentId: string) {
     await this.ensureTournamentExists(tournamentId);
     await this.closeExpiredRounds(tournamentId);
 
-    return this.prisma.round.findMany({
+    const rounds = await this.prisma.round.findMany({
       where: { tournamentId },
       orderBy: { sequence: 'asc' },
     });
+
+    return rounds.map((round) => this.mapRoundView(round));
   }
 
   async getActiveRound(tournamentId: string) {
     await this.ensureTournamentExists(tournamentId);
     await this.closeExpiredRounds(tournamentId);
 
-    return this.prisma.round.findFirst({
+    const round = await this.prisma.round.findFirst({
       where: {
         tournamentId,
         status: RoundStatus.ACTIVE,
       },
       orderBy: { sequence: 'asc' },
     });
+
+    return round ? this.mapRoundView(round) : null;
   }
 
   async updateStatus(
@@ -90,7 +98,7 @@ export class RoundsService {
     this.assertStatusTransition(round.status, status);
 
     if (round.status === status) {
-      return round;
+      return this.mapRoundView(round);
     }
 
     if (status === RoundStatus.ACTIVE) {
@@ -131,7 +139,7 @@ export class RoundsService {
         }),
       ]);
 
-      return updatedRound;
+      return this.mapRoundView(updatedRound);
     }
 
     if (status === RoundStatus.EVALUATED) {
@@ -141,7 +149,8 @@ export class RoundsService {
     }
 
     if (status === RoundStatus.SUBMISSION_CLOSED) {
-      return this.closeSubmissionsAndRound(roundId);
+      const updatedRound = await this.closeSubmissionsAndRound(roundId);
+      return this.mapRoundView(updatedRound);
     }
 
     throw new BadRequestException(
@@ -274,5 +283,26 @@ export class RoundsService {
     if (startsAt >= deadlineAt) {
       throw new BadRequestException('startsAt must be earlier than deadlineAt');
     }
+  }
+
+  private mapRoundView(round: Round) {
+    return {
+      ...round,
+      mustHave: this.toStringArray(round.mustHave),
+      technologyRequirements: this.toStringArray(
+        (round as Round & { technologyRequirements?: unknown }).technologyRequirements,
+      ),
+      additionalMaterials: this.toStringArray(
+        (round as Round & { additionalMaterials?: unknown }).additionalMaterials,
+      ),
+    };
+  }
+
+  private toStringArray(value: unknown) {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value.filter((item): item is string => typeof item === 'string');
   }
 }

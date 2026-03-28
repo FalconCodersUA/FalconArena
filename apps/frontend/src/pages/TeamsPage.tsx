@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useI18n } from '../i18n/I18nProvider';
 import { apiRequest } from '../lib/api';
+import { formatDateTime } from '../lib/dateTime';
 
 type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
 
@@ -17,10 +18,6 @@ type TeamRow = {
   createdAt: string;
   membersCount: number;
 };
-
-function formatDate(value: string, language: string) {
-  return new Date(value).toLocaleString(language === 'uk' ? 'uk-UA' : 'en-US');
-}
 
 export default function TeamsPage() {
   const { language, t } = useI18n();
@@ -178,7 +175,7 @@ export default function TeamsPage() {
                 </div>
                 <p className="inline-hint">{team.organization || t('teamsPage.noOrganization')}</p>
                 <p className="inline-hint">
-                  {t('teamsPage.createdAt')}: {formatDate(team.createdAt, language)}
+                    {t('teamsPage.createdAt')}: {formatDateTime(team.createdAt, language)}
                 </p>
               </article>
             ))}
@@ -188,4 +185,3 @@ export default function TeamsPage() {
     </section>
   );
 }
-

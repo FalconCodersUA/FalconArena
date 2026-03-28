@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { apiRequest } from '../lib/api';
+import { formatDateTime } from '../lib/dateTime';
 import { useI18n } from '../i18n/I18nProvider';
 
 type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
@@ -24,6 +25,7 @@ type Announcement = {
   publishedAt: string;
   createdAt: string;
   updatedAt: string;
+  isUnread: boolean;
 };
 
 type DialogMessage = {
@@ -60,10 +62,6 @@ const ANNOUNCEMENT_AUDIENCES: AnnouncementAudience[] = [
   'ADMIN',
   'ORGANIZER',
 ];
-
-function formatDate(value: string, language: string) {
-  return new Date(value).toLocaleString(language === 'uk' ? 'uk-UA' : 'en-US');
-}
 
 function isManagerRole(role: UserRole | null | undefined): role is 'ADMIN' | 'ORGANIZER' {
   return role === 'ADMIN' || role === 'ORGANIZER';
@@ -138,6 +136,28 @@ export default function MessagesPage() {
     return query.get('announcement') ?? '';
   }, [location.search]);
 
+  async function markAnnouncementsRead(items: Announcement[]) {
+    if (items.length === 0) {
+      return;
+    }
+
+    const newestAnnouncement = [...items].sort(
+      (left, right) =>
+        new Date(right.publishedAt).getTime() - new Date(left.publishedAt).getTime(),
+    )[0];
+
+    if (!newestAnnouncement) {
+      return;
+    }
+
+    await apiRequest('/announcements/read-state', {
+      method: 'PATCH',
+      body: {
+        publishedAt: newestAnnouncement.publishedAt,
+      },
+    });
+  }
+
   async function loadAnnouncements(
     role: UserRole,
     includeInactiveValue: boolean,
@@ -152,7 +172,12 @@ export default function MessagesPage() {
       const data = await apiRequest<Announcement[]>(
         announcementsPath(role, includeInactiveValue),
       );
-      setAnnouncements(data);
+      if (!includeInactiveValue) {
+        await markAnnouncementsRead(data);
+        setAnnouncements(data.map((item) => ({ ...item, isUnread: false })));
+      } else {
+        setAnnouncements(data);
+      }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : t('messagesPage.loadFailed'));
     } finally {
@@ -666,12 +691,17 @@ export default function MessagesPage() {
                 key={item.id}
                 id={`announcement-${item.id}`}
                 className={`announcement-item${item.isActive ? '' : ' inactive'}${
+                  item.isUnread ? ' unread' : ''
+                }${
                   focusedAnnouncementId === item.id ? ' focused' : ''
                 }`}
               >
                 <div className="announcement-head">
                   <h3>{item.title}</h3>
                   <div className="announcement-tags">
+                    {item.isUnread ? (
+                      <span className="status-pill">{t('messagesPage.unread')}</span>
+                    ) : null}
                     <span className="status-pill">{t(`messagesPage.audience.${item.audience}`)}</span>
                     {item.isPinned ? (
                       <span className="status-pill">{t('messagesPage.tags.pinned')}</span>
@@ -688,10 +718,10 @@ export default function MessagesPage() {
 
                 <div className="announcement-meta">
                   <span>
-                    {t('messagesPage.publishedAt')}: {formatDate(item.publishedAt, language)}
+                    {t('messagesPage.publishedAt')}: {formatDateTime(item.publishedAt, language)}
                   </span>
                   <span>
-                    {t('messagesPage.updatedAt')}: {formatDate(item.updatedAt, language)}
+                    {t('messagesPage.updatedAt')}: {formatDateTime(item.updatedAt, language)}
                   </span>
                   {item.linkUrl ? (
                     <a href={item.linkUrl} target="_blank" rel="noreferrer">
@@ -823,7 +853,7 @@ export default function MessagesPage() {
                           }`}
                         >
                           <p>{item.body}</p>
-                          <span>{formatDate(item.createdAt, language)}</span>
+                        <span>{formatDateTime(item.createdAt, language)}</span>
                         </article>
                       ))
                     )}
