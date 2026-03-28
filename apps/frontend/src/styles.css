@@ -12,6 +12,12 @@
   --brand-soft: #ece4ff;
   --signal: #8d62ec;
   --signal-soft: #eee6ff;
+  --surface-0: #ffffff;
+  --surface-1: #fcfaff;
+  --surface-2: #f7f3ff;
+  --line-soft: #ece5f5;
+  --shadow-soft: 0 12px 28px rgba(33, 24, 58, 0.06);
+  --shadow-card: 0 18px 40px rgba(33, 24, 58, 0.08);
 }
 
 * {
@@ -234,12 +240,14 @@ a {
 }
 
 .app-sidebar {
-  padding: 16px 10px 12px;
+  padding: 18px 12px 14px;
   border-right: 1px solid #ece7f5;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  background: #fbf9ff;
+  gap: 16px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(122, 67, 243, 0.08) 0%, transparent 26%),
+    linear-gradient(180deg, #fcfaff 0%, #f7f3ff 100%);
 }
 
 .app-brand {
@@ -349,18 +357,23 @@ a {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   min-width: 0;
-  background: linear-gradient(180deg, #ffffff 0%, #ffffff 56%, #c7b4ed 100%);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(122, 67, 243, 0.08) 0%, transparent 28%),
+    radial-gradient(circle at 100% 0%, rgba(157, 118, 241, 0.09) 0%, transparent 24%),
+    linear-gradient(180deg, #ffffff 0%, #fbf9ff 58%, #f1ecf8 100%);
 }
 
 .app-topbar {
-  min-height: 58px;
-  padding: 10px 18px;
+  min-height: 62px;
+  padding: 12px 20px;
   border-bottom: 1px solid #ece7f5;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(10px);
 }
 
 .app-topbar-title {
@@ -721,7 +734,7 @@ a {
 
 .app-content.page-section {
   margin-top: 0;
-  padding: 14px 16px 20px;
+  padding: 18px 20px 24px;
   overflow: auto;
 }
 
@@ -801,25 +814,27 @@ a {
 .app-page .distribute-box,
 .app-page .status-row,
 .app-page .meta-grid div {
-  border-color: #e3dcef;
-  border-radius: 18px;
-  box-shadow: 0 12px 28px rgba(43, 31, 73, 0.06);
+  border-color: #e7e0f0;
+  border-radius: 20px;
+  box-shadow: var(--shadow-soft);
 }
 
 .app-page .panel-card,
 .app-page .section-card,
 .app-page .state-card {
   border-radius: 24px;
-  background: color-mix(in srgb, #ffffff 88%, #f4eefc 12%);
+  border-color: var(--line-soft);
+  background: linear-gradient(180deg, var(--surface-0) 0%, var(--surface-1) 100%);
+  box-shadow: var(--shadow-card);
 }
 
 .app-page .panel-card {
-  padding: clamp(18px, 2.4vw, 24px);
-  gap: 14px;
+  padding: clamp(20px, 2.6vw, 28px);
+  gap: 16px;
 }
 
 .app-page .section-card {
-  padding: clamp(16px, 2.2vw, 22px);
+  padding: clamp(18px, 2.3vw, 24px);
 }
 
 .app-page .summary-grid,
@@ -855,12 +870,13 @@ a {
 .app-page .round-summary,
 .app-page .status-row,
 .app-page .meta-grid div {
-  background: #f8f5ff;
+  background: linear-gradient(180deg, #ffffff 0%, var(--surface-1) 100%);
+  border-color: #ebe4f3;
 }
 
 .app-page .state-callout {
   border-color: #d8c8ff;
-  background: #f2ebff;
+  background: linear-gradient(180deg, #f5efff 0%, #f0e9ff 100%);
 }
 
 .app-page .status-pill {
@@ -927,8 +943,10 @@ a {
 }
 
 .app-page .leaderboard-row-card.leader-card {
-  border-color: #ccb8ff;
-  background: linear-gradient(180deg, #f7f2ff 0%, #ffffff 100%);
+  border-color: #d6c3ff;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.09) 0%, transparent 34%),
+    linear-gradient(180deg, #faf6ff 0%, #ffffff 100%);
 }
 
 .app-page .field input,
@@ -1431,12 +1449,15 @@ a {
 }
 
 .summary-card {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fbfb 100%);
-  padding: 12px;
+  border: 1px solid #ebe4f3;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.06) 0%, transparent 38%),
+    linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
+  box-shadow: 0 12px 28px rgba(33, 24, 58, 0.05);
+  padding: 16px;
   display: grid;
-  gap: 5px;
+  gap: 8px;
 }
 
 .summary-card span {
@@ -1448,13 +1469,13 @@ a {
 }
 
 .summary-card strong {
-  font-size: 1rem;
-  color: #24455f;
+  font-size: 1.08rem;
+  color: #26223a;
 }
 
 .summary-card p {
   margin: 0;
-  color: #4d677f;
+  color: #615b76;
   font-size: 0.86rem;
 }
 
@@ -1528,19 +1549,36 @@ a {
 
 .team-dashboard {
   display: grid;
-  gap: 12px;
+  gap: 16px;
 }
 
 .team-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
 }
 
 .panel-card {
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+}
+
+.tournaments-section {
+  display: grid;
+  gap: 18px;
+}
+
+.team-list-card {
+  border: 1px solid #e9e1f4;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.06) 0%, transparent 34%),
+    linear-gradient(180deg, #ffffff 0%, #faf7ff 100%);
+  box-shadow: 0 12px 28px rgba(33, 24, 58, 0.05);
   padding: 16px;
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .panel-card h2,
@@ -1774,12 +1812,13 @@ a {
 }
 
 .quick-team-item {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #fff;
-  padding: 9px;
+  border: 1px solid #ebe4f3;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #faf7ff 100%);
+  box-shadow: 0 10px 24px rgba(33, 24, 58, 0.04);
+  padding: 12px;
   display: grid;
-  gap: 4px;
+  gap: 6px;
 }
 
 .quick-team-item span {
@@ -1920,13 +1959,15 @@ a {
 }
 
 .profile-settings-shell {
-  border: 1px solid #ebe6f3;
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 10px 24px rgba(43, 31, 73, 0.04);
-  padding: clamp(18px, 2.4vw, 26px);
+  border: 1px solid #ebe4f3;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.06) 0%, transparent 36%),
+    linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
+  box-shadow: 0 16px 36px rgba(33, 24, 58, 0.07);
+  padding: clamp(20px, 2.6vw, 30px);
   display: grid;
-  gap: 16px;
+  gap: 18px;
 }
 
 .profile-settings-shell h2 {
@@ -1938,26 +1979,28 @@ a {
 .profile-settings-tabs {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 10px;
   border-bottom: 1px solid #ece7f5;
-  padding-bottom: 10px;
+  padding-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .profile-settings-tab {
-  min-height: 30px;
-  border: 0;
-  background: transparent;
-  color: #7a86a1;
+  min-height: 34px;
+  border: 1px solid transparent;
+  background: #f6f2ff;
+  color: #6d6880;
   font-size: 0.8rem;
   font-weight: 700;
-  padding: 0 2px;
+  padding: 0 12px;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
+  border-radius: 999px;
 }
 
 .profile-settings-tab.active {
   color: #5e17eb;
-  border-bottom: 3px solid #5e17eb;
+  border-color: #d8c8ff;
+  background: #f0e8ff;
 }
 
 .profile-settings-form {
@@ -1983,7 +2026,8 @@ a {
   height: 72px;
   border-radius: 999px;
   border: 1px solid #d6ccf1;
-  background: linear-gradient(160deg, #a2b8d0 0%, #6d89a8 100%);
+  background: linear-gradient(160deg, #8ea6c0 0%, #5d7592 100%);
+  box-shadow: 0 12px 24px rgba(33, 24, 58, 0.12);
   color: #f4f8ff;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -2024,7 +2068,7 @@ a {
 .profile-settings-fields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 14px;
+  gap: 14px 16px;
 }
 
 .profile-settings-fields.two-col {
@@ -2039,11 +2083,11 @@ a {
 
 .profile-preferences-block {
   display: grid;
-  gap: 12px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  padding: 0;
+  gap: 14px;
+  border: 1px solid #ece4f5;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
+  padding: 16px;
 }
 
 .profile-preferences-block strong {
@@ -2053,7 +2097,8 @@ a {
 .profile-toggle-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 12px;
   color: #4c5368;
   font-size: 0.9rem;
 }
@@ -2117,12 +2162,13 @@ a {
 
 .dashboard-highlight-tile,
 .dashboard-muted-tile {
-  border: 1px solid #e3dcef;
-  border-radius: 16px;
-  padding: 14px;
+  border: 1px solid #e8e0f3;
+  border-radius: 20px;
+  padding: 16px;
   display: grid;
-  gap: 9px;
+  gap: 10px;
   min-height: 132px;
+  box-shadow: 0 12px 28px rgba(33, 24, 58, 0.05);
 }
 
 .dashboard-highlight-tile {
@@ -2151,7 +2197,7 @@ a {
 }
 
 .dashboard-muted-tile {
-  background: #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
 }
 
 .dashboard-muted-tile span {
@@ -2221,13 +2267,16 @@ a {
 }
 
 .dashboard-quick-actions {
-  border: 1px solid #e3dcef;
-  border-radius: 16px;
-  background: color-mix(in srgb, #ffffff 84%, #f6f2ff 16%);
-  padding: 12px;
+  border: 1px solid #e8e0f3;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.08) 0%, transparent 34%),
+    linear-gradient(180deg, #ffffff 0%, #faf7ff 100%);
+  box-shadow: 0 12px 28px rgba(33, 24, 58, 0.05);
+  padding: 14px;
   display: grid;
   align-content: start;
-  gap: 10px;
+  gap: 12px;
 }
 
 .dashboard-quick-head {
@@ -2295,12 +2344,13 @@ a {
 
 .dashboard-chart-card,
 .dashboard-pie-card {
-  border: 1px solid #e3dcef;
-  border-radius: 16px;
-  background: #ffffff;
-  padding: 12px;
+  border: 1px solid #e8e0f3;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
+  box-shadow: 0 12px 28px rgba(33, 24, 58, 0.05);
+  padding: 14px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .dashboard-chart-card h3,
@@ -2651,16 +2701,17 @@ a {
 .profile-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .profile-item {
-  border: 1px solid var(--border);
-  border-radius: 11px;
-  background: #fff;
-  padding: 10px;
+  border: 1px solid #ebe4f3;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
+  box-shadow: 0 10px 24px rgba(33, 24, 58, 0.04);
+  padding: 14px;
   display: grid;
-  gap: 5px;
+  gap: 6px;
 }
 
 .profile-item span {
@@ -2678,16 +2729,17 @@ a {
 
 .profile-role-grid {
   display: grid;
-  gap: 8px;
+  gap: 12px;
 }
 
 .profile-role-card {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #fff;
-  padding: 12px;
+  border: 1px solid #ebe4f3;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
+  box-shadow: 0 12px 28px rgba(33, 24, 58, 0.05);
+  padding: 16px;
   display: grid;
-  gap: 7px;
+  gap: 10px;
 }
 
 .profile-role-card p {
@@ -2697,16 +2749,17 @@ a {
 
 .profile-history-list {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .profile-history-card {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #fff;
-  padding: 10px;
+  border: 1px solid #ebe4f3;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
+  box-shadow: 0 10px 24px rgba(33, 24, 58, 0.04);
+  padding: 14px;
   display: grid;
-  gap: 5px;
+  gap: 7px;
 }
 
 .profile-history-card p {
@@ -2750,17 +2803,20 @@ a {
 }
 
 .leaderboard-row-card {
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: #fff;
-  padding: 12px;
+  border: 1px solid #ebe4f3;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
+  box-shadow: 0 12px 28px rgba(33, 24, 58, 0.05);
+  padding: 16px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .leaderboard-row-card.leader-card {
-  border-color: color-mix(in srgb, var(--signal) 40%, var(--border) 60%);
-  background: linear-gradient(180deg, #fff9f4 0%, #ffffff 100%);
+  border-color: #d6c3ff;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.09) 0%, transparent 34%),
+    linear-gradient(180deg, #faf6ff 0%, #ffffff 100%);
 }
 
 .leaderboard-row-card h3 {
@@ -2846,12 +2902,13 @@ a {
 }
 
 .archive-round-card {
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: #fff;
-  padding: 12px;
+  border: 1px solid #ebe4f3;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
+  box-shadow: 0 12px 28px rgba(33, 24, 58, 0.05);
+  padding: 16px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .archive-submissions-grid {
@@ -2919,18 +2976,18 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .filter-button {
-  min-height: 36px;
+  min-height: 38px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: #fff;
-  color: #34506a;
+  border: 1px solid #e6dff2;
+  background: rgba(255, 255, 255, 0.84);
+  color: #534f65;
   font-weight: 700;
   font-size: 0.82rem;
-  padding: 0 12px;
+  padding: 0 14px;
   cursor: pointer;
 }
 
@@ -2974,12 +3031,13 @@ a {
 }
 
 .announcement-item {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #fff;
-  padding: 12px;
+  border: 1px solid #ebe4f3;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
+  box-shadow: 0 10px 24px rgba(33, 24, 58, 0.04);
+  padding: 16px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .announcement-item.unread {
@@ -3133,16 +3191,17 @@ a {
 .messages-dialogs-layout {
   display: grid;
   grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
-  gap: 12px;
+  gap: 14px;
 }
 
 .messages-dialog-list {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #fbf9ff;
-  padding: 8px;
+  border: 1px solid #ebe4f3;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fdfbff 0%, #f7f3ff 100%);
+  box-shadow: 0 12px 28px rgba(33, 24, 58, 0.05);
+  padding: 10px;
   display: grid;
-  gap: 8px;
+  gap: 10px;
   max-height: 520px;
   overflow: auto;
 }
@@ -3155,18 +3214,30 @@ a {
 .messages-dialog-item {
   text-align: left;
   width: 100%;
-  border: 1px solid #e4ddf1;
-  border-radius: 10px;
-  background: #fff;
-  padding: 10px;
+  border: 1px solid #e7e0f2;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  padding: 12px;
   display: grid;
-  gap: 4px;
+  gap: 6px;
   cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease,
+    background 0.18s ease;
+}
+
+.messages-dialog-item:hover {
+  border-color: #d8c8ff;
+  box-shadow: 0 10px 24px rgba(33, 24, 58, 0.06);
+  transform: translateY(-1px);
 }
 
 .messages-dialog-item.active {
   border-color: #7a43f3;
-  background: #f1ebff;
+  background: linear-gradient(180deg, #f4eeff 0%, #ffffff 100%);
+  box-shadow: 0 12px 28px rgba(94, 23, 235, 0.12);
 }
 
 .messages-dialog-item strong {
@@ -3215,12 +3286,13 @@ a {
 }
 
 .messages-dialog-thread {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #fff;
-  padding: 12px;
+  border: 1px solid #ebe4f3;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
+  box-shadow: 0 12px 28px rgba(33, 24, 58, 0.05);
+  padding: 16px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .messages-thread-head {
@@ -3238,15 +3310,15 @@ a {
 }
 
 .messages-thread-feed {
-  border: 1px solid #ece7f5;
-  border-radius: 10px;
-  background: #fcfbff;
+  border: 1px solid #ece5f5;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fcfbff 0%, #f7f3ff 100%);
   min-height: 180px;
   max-height: 340px;
   overflow: auto;
-  padding: 8px;
+  padding: 12px;
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .messages-thread-feed > p {
@@ -3256,18 +3328,19 @@ a {
 
 .messages-thread-item {
   max-width: min(80%, 520px);
-  border: 1px solid #e5dff3;
-  border-radius: 10px;
-  padding: 8px;
-  background: #f4efff;
+  border: 1px solid #ddd2f6;
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, #f8f4ff 0%, #f1eaff 100%);
+  box-shadow: 0 8px 20px rgba(33, 24, 58, 0.05);
   display: grid;
-  gap: 4px;
+  gap: 6px;
 }
 
 .messages-thread-item.mine {
   margin-left: auto;
-  background: #efe8ff;
-  border-color: #d8c8ff;
+  background: linear-gradient(180deg, #efe6ff 0%, #f7f2ff 100%);
+  border-color: #cfbbff;
 }
 
 .messages-thread-item p {
@@ -3303,11 +3376,11 @@ a {
 .tournaments-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
 }
 
 .tournament-card {
-  padding: 16px;
+  padding: 18px;
   animation: rise 420ms ease both;
 }
 
@@ -3347,14 +3420,14 @@ a {
 .meta-grid {
   margin: 14px 0 0;
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .meta-grid div {
-  border: 1px solid var(--border);
-  border-radius: 11px;
-  padding: 9px 10px;
-  background: #fff;
+  border: 1px solid #ebe4f3;
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
 }
 
 .meta-grid dt {
