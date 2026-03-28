@@ -6,7 +6,13 @@ import { useI18n } from '../i18n/I18nProvider';
 
 type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
 type AnnouncementAudience = 'ALL' | 'TEAM' | 'JURY' | 'ADMIN' | 'ORGANIZER';
-type MessagesSection = 'all' | 'announcements' | 'dialogs';
+type NotificationType =
+  | 'REGISTRATION_STARTED'
+  | 'ROUND_STARTED'
+  | 'SUBMISSION_RECEIVED'
+  | 'SUBMISSION_CLOSED'
+  | 'GENERAL';
+type MessagesSection = 'all' | 'notifications' | 'announcements' | 'dialogs';
 
 type AuthMe = {
   id: string;
@@ -26,6 +32,16 @@ type Announcement = {
   publishedAt: string;
   createdAt: string;
   updatedAt: string;
+  isUnread: boolean;
+};
+
+type NotificationItem = {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  linkUrl: string | null;
+  createdAt: string;
   isUnread: boolean;
 };
 
@@ -91,8 +107,10 @@ export default function MessagesPage() {
   const location = useLocation();
 
   const [me, setMe] = useState<AuthMe | null>(null);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [notificationsError, setNotificationsError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -118,10 +136,16 @@ export default function MessagesPage() {
   const [dialogActionLoading, setDialogActionLoading] = useState(false);
   const [newDialogEmail, setNewDialogEmail] = useState('');
   const [newMessageBody, setNewMessageBody] = useState('');
+  const [focusedNotificationId, setFocusedNotificationId] = useState('');
   const [focusedAnnouncementId, setFocusedAnnouncementId] = useState('');
   const [activeSection, setActiveSection] = useState<MessagesSection>('all');
+  const [lastRealtimeSyncAt, setLastRealtimeSyncAt] = useState('');
 
   const isManager = isManagerRole(me?.role);
+  const unreadNotificationsCount = useMemo(
+    () => notifications.filter((item) => item.isUnread).length,
+    [notifications],
+  );
   const pinnedCount = useMemo(
     () => announcements.filter((item) => item.isPinned).length,
     [announcements],
@@ -146,23 +170,69 @@ export default function MessagesPage() {
     const query = new URLSearchParams(location.search);
     return query.get('announcement') ?? '';
   }, [location.search]);
+  const requestedNotificationId = useMemo(() => {
+    const query = new URLSearchParams(location.search);
+    return query.get('notification') ?? '';
+  }, [location.search]);
   const requestedSection = useMemo<MessagesSection>(() => {
     const query = new URLSearchParams(location.search);
     const rawSection = query.get('section');
+    if (requestedNotificationId) {
+      return 'notifications';
+    }
     if (requestedDialogId) {
       return 'dialogs';
     }
     if (requestedAnnouncementId) {
       return 'announcements';
     }
-    if (rawSection === 'announcements' || rawSection === 'dialogs') {
+    if (
+      rawSection === 'notifications' ||
+      rawSection === 'announcements' ||
+      rawSection === 'dialogs'
+    ) {
       return rawSection;
     }
     return 'all';
-  }, [location.search, requestedAnnouncementId, requestedDialogId]);
+  }, [location.search, requestedAnnouncementId, requestedDialogId, requestedNotificationId]);
+  const showNotifications =
+    activeSection === 'all' || activeSection === 'notifications';
   const showAnnouncements =
     activeSection === 'all' || activeSection === 'announcements';
   const showDialogs = activeSection === 'all' || activeSection === 'dialogs';
+
+  async function markNotificationsRead(items: NotificationItem[]) {
+    const unreadIds = items.filter((item) => item.isUnread).map((item) => item.id);
+    if (unreadIds.length === 0) {
+      return;
+    }
+
+    await apiRequest('/notifications/read-state', {
+      method: 'PATCH',
+      body: {
+        notificationIds: unreadIds,
+      },
+    });
+  }
+
+  async function loadNotifications(markAsRead = false) {
+    setNotificationsError('');
+
+    try {
+      const data = await apiRequest<NotificationItem[]>('/notifications');
+      if (markAsRead) {
+        await markNotificationsRead(data);
+        setNotifications(data.map((item) => ({ ...item, isUnread: false })));
+        return;
+      }
+
+      setNotifications(data);
+    } catch (requestError) {
+      setNotificationsError(
+        requestError instanceof Error ? requestError.message : t('messagesPage.notifications.loadFailed'),
+      );
+    }
+  }
 
   async function markAnnouncementsRead(items: Announcement[]) {
     if (items.length === 0) {
@@ -298,9 +368,14 @@ export default function MessagesPage() {
     try {
       const meData = await apiRequest<AuthMe>('/auth/me');
       setMe(meData);
+      await loadNotifications(
+        requestedSection === 'all' || requestedSection === 'notifications',
+      );
       await loadAnnouncements(meData.role, false, false);
       await loadDialogs(false);
+      setLastRealtimeSyncAt(new Date().toISOString());
     } catch (requestError) {
+      setNotifications([]);
       setAnnouncements([]);
       setMe(null);
       setDialogs([]);
@@ -341,6 +416,37 @@ export default function MessagesPage() {
   }, [requestedSection]);
 
   useEffect(() => {
+    if (!showNotifications || unreadNotificationsCount === 0) {
+      return;
+    }
+
+    void loadNotifications(true);
+  }, [showNotifications, unreadNotificationsCount]);
+
+  useEffect(() => {
+    if (!requestedNotificationId || notifications.length === 0) {
+      return;
+    }
+
+    const element = document.getElementById(`notification-${requestedNotificationId}`);
+    if (!element) {
+      return;
+    }
+
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setFocusedNotificationId(requestedNotificationId);
+    const timeoutId = window.setTimeout(() => {
+      setFocusedNotificationId((current) =>
+        current === requestedNotificationId ? '' : current,
+      );
+    }, 2200);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [requestedNotificationId, notifications]);
+
+  useEffect(() => {
     if (!requestedAnnouncementId || announcements.length === 0) {
       return;
     }
@@ -363,12 +469,53 @@ export default function MessagesPage() {
     };
   }, [requestedAnnouncementId, announcements]);
 
+  useEffect(() => {
+    if (!me) {
+      return;
+    }
+
+    let cancelled = false;
+    const intervalId = window.setInterval(() => {
+      if (cancelled || document.hidden) {
+        return;
+      }
+
+      void (async () => {
+        await loadNotifications(showNotifications);
+
+        if (showAnnouncements) {
+          await loadAnnouncements(me.role, includeInactive, false);
+        }
+
+        if (showDialogs) {
+          await loadDialogs(false);
+          if (selectedDialogId) {
+            await loadDialogMessages(selectedDialogId, false);
+          }
+        }
+
+        if (!cancelled) {
+          setLastRealtimeSyncAt(new Date().toISOString());
+        }
+      })();
+    }, 20000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [includeInactive, me, selectedDialogId, showNotifications, showAnnouncements, showDialogs]);
+
   function refreshFeed() {
     if (!me) {
       return;
     }
 
     void loadAnnouncements(me.role, includeInactive, true);
+  }
+
+  function refreshNotifications() {
+    void loadNotifications(showNotifications);
   }
 
   function handleIncludeInactiveChange(nextValue: boolean) {
@@ -612,6 +759,11 @@ export default function MessagesPage() {
       <article className="card panel-card">
         <div className="summary-grid compact-summary-grid">
           <div className="summary-card">
+            <span>{t('messagesPage.summary.notificationsUnread')}</span>
+            <strong>{unreadNotificationsCount}</strong>
+            <p>{t('messagesPage.summary.notificationsUnreadHint')}</p>
+          </div>
+          <div className="summary-card">
             <span>{t('messagesPage.summary.total')}</span>
             <strong>{announcements.length}</strong>
             <p>{t('messagesPage.summary.totalHint')}</p>
@@ -636,7 +788,7 @@ export default function MessagesPage() {
 
       <article className="card panel-card">
         <div className="filters-row messages-section-tabs">
-          {(['all', 'announcements', 'dialogs'] as MessagesSection[]).map((section) => (
+          {(['all', 'notifications', 'announcements', 'dialogs'] as MessagesSection[]).map((section) => (
             <button
               key={section}
               type="button"
@@ -647,7 +799,79 @@ export default function MessagesPage() {
             </button>
           ))}
         </div>
+        <p className="inline-hint">
+          {t('messagesPage.realtimeActive')}
+          {lastRealtimeSyncAt
+            ? ` ${t('messagesPage.lastUpdated')}: ${new Date(lastRealtimeSyncAt).toLocaleTimeString(language === 'uk' ? 'uk-UA' : 'en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}`
+            : ''}
+        </p>
       </article>
+
+      {showNotifications ? (
+        <article className="card panel-card">
+          <div className="messages-controls">
+            <div className="messages-controls-text">
+              <h2>{t('messagesPage.notifications.title')}</h2>
+              <p className="inline-hint">{t('messagesPage.notifications.lead')}</p>
+            </div>
+            <button
+              type="button"
+              className="button button-soft announcement-action-btn"
+              onClick={refreshNotifications}
+            >
+              {t('messagesPage.refresh')}
+            </button>
+          </div>
+
+          {notificationsError ? <p className="form-error">{notificationsError}</p> : null}
+          {!notificationsError && notifications.length === 0 ? (
+            <p>{t('messagesPage.notifications.empty')}</p>
+          ) : null}
+
+          {notifications.length > 0 ? (
+            <div className="announcements-feed">
+              {notifications.map((item) => (
+                <article
+                  key={item.id}
+                  id={`notification-${item.id}`}
+                  className={`announcement-item${item.isUnread ? ' unread' : ''}${
+                    focusedNotificationId === item.id ? ' focused' : ''
+                  }`}
+                >
+                  <div className="announcement-head">
+                    <h3>{item.title}</h3>
+                    <div className="announcement-tags">
+                      {item.isUnread ? (
+                        <span className="status-pill">{t('messagesPage.unread')}</span>
+                      ) : null}
+                      <span className="status-pill">
+                        {t(`messagesPage.notifications.types.${item.type}`)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="announcement-body">{item.body}</p>
+
+                  <div className="announcement-meta">
+                    <span>
+                      {t('messagesPage.notifications.createdAt')}:{' '}
+                      {formatDateTime(item.createdAt, language)}
+                    </span>
+                    {item.linkUrl ? (
+                      <a href={item.linkUrl} target="_blank" rel="noreferrer">
+                        {t('messagesPage.openLink')}
+                      </a>
+                    ) : null}
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : null}
+        </article>
+      ) : null}
 
       {showAnnouncements ? (
         <>

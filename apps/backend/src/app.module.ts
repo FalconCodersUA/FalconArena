@@ -10,6 +10,7 @@ import { DirectMessagesController } from './direct-messages.controller';
 import { DirectMessagesService } from './direct-messages.service';
 import { EvaluationModule } from './evaluation/evaluation.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
+import { NotificationsModule } from './notifications.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProfileSettingsController } from './profile-settings.controller';
 import { ProfileSettingsService } from './profile-settings.service';
@@ -22,6 +23,7 @@ import { TournamentsModule } from './tournaments/tournaments.module';
   imports: [
     PrismaModule,
     AuthModule,
+    NotificationsModule,
     TournamentsModule,
     TeamsModule,
     RoundsModule,

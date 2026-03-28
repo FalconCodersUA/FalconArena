@@ -18,13 +18,13 @@ type MeResponse = {
   role: AuthRole;
 };
 
-type TopbarAnnouncement = {
+type TopbarNotification = {
   id: string;
+  type: string;
   title: string;
   body: string;
   linkUrl: string | null;
-  publishedAt: string;
-  isPinned: boolean;
+  createdAt: string;
   isUnread: boolean;
 };
 
@@ -97,7 +97,7 @@ export default function AppShell() {
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [alertsLoading, setAlertsLoading] = useState(false);
   const [alertsError, setAlertsError] = useState('');
-  const [alerts, setAlerts] = useState<TopbarAnnouncement[]>([]);
+  const [alerts, setAlerts] = useState<TopbarNotification[]>([]);
   const [unreadAlertsCount, setUnreadAlertsCount] = useState(0);
   const [unreadAlertIds, setUnreadAlertIds] = useState<string[]>([]);
   const [showOnlyUnreadAlerts, setShowOnlyUnreadAlerts] = useState(false);
@@ -300,6 +300,26 @@ export default function AppShell() {
     void loadTopbarAlerts({ showLoading: false, markAsSeen: false });
   }, [authed, currentUserId, isAuthRoute]);
 
+  useEffect(() => {
+    if (!authed || !currentUserId || isAuthRoute) {
+      return;
+    }
+
+    let cancelled = false;
+    const intervalId = window.setInterval(() => {
+      if (cancelled || document.hidden) {
+        return;
+      }
+
+      void loadTopbarAlerts({ showLoading: false, markAsSeen: false });
+    }, 45000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [authed, currentUserId, isAuthRoute]);
+
   async function loadTopbarAlerts({
     showLoading,
     markAsSeen,
@@ -313,28 +333,27 @@ export default function AppShell() {
     setAlertsError('');
 
     try {
-      const data = await apiRequest<TopbarAnnouncement[]>('/announcements');
+      const data = await apiRequest<TopbarNotification[]>('/notifications');
       const sorted = [...data].sort(
-        (left, right) => toTimestamp(right.publishedAt) - toTimestamp(left.publishedAt),
+        (left, right) => toTimestamp(right.createdAt) - toTimestamp(left.createdAt),
       );
       const limited = sorted.slice(0, 6);
+      const unreadIds = sorted.filter((item) => item.isUnread).map((item) => item.id);
 
       if (markAsSeen) {
-        const newestAnnouncement = sorted[0];
-        if (newestAnnouncement) {
-          await apiRequest('/announcements/read-state', {
+        if (unreadIds.length > 0) {
+          await apiRequest('/notifications/read-state', {
             method: 'PATCH',
             body: {
-              publishedAt: newestAnnouncement.publishedAt,
+              notificationIds: unreadIds,
             },
           });
         }
         setAlerts(limited.map((item) => ({ ...item, isUnread: false })));
-        setUnreadAlertIds(sorted.filter((item) => item.isUnread).map((item) => item.id));
+        setUnreadAlertIds(unreadIds);
         setUnreadAlertsCount(0);
       } else {
         setAlerts(limited);
-        const unreadIds = sorted.filter((item) => item.isUnread).map((item) => item.id);
         const unreadCount = unreadIds.length;
         setUnreadAlertIds(unreadIds);
         setUnreadAlertsCount(unreadCount);
@@ -367,10 +386,10 @@ export default function AppShell() {
     }
   }
 
-  function openAnnouncementInMessages(announcementId: string) {
+  function openNotificationInMessages(notificationId: string) {
     setAlertsOpen(false);
     setSearchOpen(false);
-    navigate(`/app/messages?announcement=${encodeURIComponent(announcementId)}`);
+    navigate(`/app/messages?section=notifications&notification=${notificationId}`);
   }
 
   function onSearchSubmit(event: FormEvent) {
@@ -672,7 +691,11 @@ export default function AppShell() {
                   <div className="app-alerts-popover" role="dialog" aria-label={t('shell.alertsAria')}>
                     <div className="app-alerts-head">
                       <strong>{t('shell.notificationsTitle')}</strong>
-                      <button type="button" className="app-alerts-link" onClick={() => goToSearchItem('/app/messages')}>
+                      <button
+                        type="button"
+                        className="app-alerts-link"
+                        onClick={() => goToSearchItem('/app/messages?section=notifications')}
+                      >
                         {t('shell.viewAll')}
                       </button>
                     </div>
@@ -711,11 +734,11 @@ export default function AppShell() {
                             <strong>{item.title}</strong>
                             <p>{item.body}</p>
                             <div className="app-alert-meta">
-                              <span>{new Date(item.publishedAt).toLocaleString(language === 'uk' ? 'uk-UA' : 'en-US')}</span>
+                              <span>{new Date(item.createdAt).toLocaleString(language === 'uk' ? 'uk-UA' : 'en-US')}</span>
                               <button
                                 type="button"
                                 className="app-alert-meta-btn"
-                                onClick={() => openAnnouncementInMessages(item.id)}
+                                onClick={() => openNotificationInMessages(item.id)}
                               >
                                 {t('shell.openInMessages')}
                               </button>

@@ -4,8 +4,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Tournament, TournamentStatus } from '@prisma/client';
+import { NotificationType, Tournament, TournamentStatus } from '@prisma/client';
 import { LeaderboardService } from '../leaderboard/leaderboard.service';
+import { NotificationsService } from '../notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { ListTournamentsDto } from './dto/list-tournaments.dto';
@@ -31,6 +32,7 @@ export class TournamentsService {
   constructor(
     private readonly prisma: PrismaService,
     @Optional() private readonly leaderboardService?: LeaderboardService,
+    @Optional() private readonly notificationsService?: NotificationsService,
   ) {}
 
   async create(dto: CreateTournamentDto, createdById: string): Promise<TournamentView> {
@@ -252,6 +254,26 @@ export class TournamentsService {
       where: { id },
       data: { status },
     });
+
+    if (status === TournamentStatus.REGISTRATION) {
+      await this.notificationsService?.create({
+        type: NotificationType.REGISTRATION_STARTED,
+        audience: 'ALL',
+        title: `Відкрита реєстрація: ${tournament.title}`,
+        body: 'Реєстрація команди вже доступна в цьому турнірі.',
+        linkUrl: `/app/tournaments/${tournament.id}`,
+      });
+    }
+
+    if (status === TournamentStatus.FINISHED) {
+      await this.notificationsService?.create({
+        type: NotificationType.GENERAL,
+        audience: 'ALL',
+        title: `Турнір завершено: ${tournament.title}`,
+        body: 'Підсумкові результати доступні в лідерборді та архіві турніру.',
+        linkUrl: `/app/archive?tournamentId=${tournament.id}`,
+      });
+    }
 
     return this.mapTournamentView(tournament);
   }
