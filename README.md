@@ -1,21 +1,103 @@
 # FalconArena
 
-FalconArena - це платформа турнірів з програмування, де організатори проводять раунди з дедлайнами, команди здають результати, а журі оцінює роботи з формуванням таблиці лідерів.
+FalconArena - це вебплатформа для командного турніру з програмування. Організатори створюють турніри й раунди, команди реєструються та подають рішення, журі оцінює роботи, а система формує leaderboard, архів результатів і комунікацію навколо турніру.
 
-Сайт доступний за адресою: `https://falconarena.live/`
+Продакшн-адреса: `https://falconarena.live/`
 
 Мовні версії:
 
 - Українська: `README.md`
 - English: `README.en.md`
 
+## Що вже є в проєкті
+
+### Основний функціонал
+
+- Аутентифікація та ролі: `ADMIN`, `ORGANIZER`, `TEAM`, `JURY`
+- Публічна реєстрація команди через акаунт капітана
+- Адмінське створення користувачів через UI
+- Турніри зі статусами `Draft / Registration / Running / Finished`
+- Окрема публічна сторінка турніру
+- Раунди із:
+  - описом
+  - must-have вимогами
+  - вимогами до технологій
+  - додатковими матеріалами
+  - стартом і дедлайном
+- Подання сабмітів:
+  - GitHub repository URL
+  - demo URL
+  - live demo URL
+  - короткий summary
+- Блокування сабмітів після дедлайну
+- Розподіл робіт для журі
+- Оцінювання по категоріях
+- Finish evaluation
+- Leaderboard
+- Архів завершених турнірів
+- CSV-експорт результатів
+
+### Комунікація та активність
+
+- Оголошення для ролей
+- Особисті діалоги
+- Системні сповіщення
+- Unread/read-state для:
+  - оголошень
+  - особистих діалогів
+  - системних сповіщень
+- Topbar bell з переходом у потрібний контекст
+- Realtime у прагматичному форматі через автооновлення:
+  - leaderboard
+  - повідомлення
+  - topbar сповіщення
+- Email-нотифікації:
+  - `console` fallback для dev/demo
+  - `resend` для реальної доставки
+
+### Додаткові можливості
+
+- Розклад турніру
+- Профіль користувача з налаштуваннями
+- Аватар користувача
+- Мовні уподобання
+- Часовий пояс
+- Printable сертифікати участі та переможця
+- Збереження сертифікатів у PDF через браузерний print dialog
+
+## Поточний статус щодо ТЗ
+
+Реалізовано:
+
+- ролі користувачів
+- турніри
+- реєстрацію команд
+- раунди / завдання
+- сабміти
+- оцінювання
+- leaderboard
+- головну навігацію й робочі кабінети
+- профіль користувача
+- оголошення
+- особисті діалоги
+- внутрішні та email-сповіщення
+- архів турнірів
+- розклад турніру
+- сертифікати
+- CSV-експорт
+
+Ще можна посилювати як optional / next step:
+
+- інтеграцію з Google Sheets
+- більш production-grade realtime через WebSocket або SSE
+
 ## Технологічний стек
 
 - Frontend: React + TypeScript + Vite
 - Backend: NestJS + TypeScript
 - Database: PostgreSQL + Prisma
-- Cache/queue-ready layer: Redis
-- Infrastructure: Docker Compose
+- Cache / queue-ready layer: Redis
+- Infrastructure: Docker Compose + Caddy
 - CI/CD: GitHub Actions
 
 ## Структура монорепозиторію
@@ -24,27 +106,58 @@ FalconArena - це платформа турнірів з програмуван
 apps/
   frontend/
   backend/
+docs/
 infra/
   docker-compose/
 .github/
   workflows/
 ```
 
-## Git Flow
+## Основні екрани
 
-- Захищена гілка: `main`
-- Розробка: `feature/*`
-- Інтеграція: тільки Pull Request у `main`
-- Прямих push у `main` немає
+- `/` - landing / вхід у застосунок
+- `/app/login` - вхід
+- `/app/register` - реєстрація
+- `/app/tournaments` - список турнірів
+- `/app/tournaments/:id` - публічна сторінка турніру
+- `/app/team` - кабінет команди
+- `/app/jury` - кабінет журі
+- `/app/admin` - admin dashboard
+- `/app/leaderboard` - leaderboard
+- `/app/archive` - архів завершених турнірів
+- `/app/messages` - оголошення, сповіщення, діалоги
+- `/app/profile` - профіль і налаштування
+- `/app/certificates` - printable certificate preview
 
-### Режим малої команди (self-merge)
+## Рольова модель
 
-Рекомендовані налаштування для 1-2 розробників:
+- `TEAM`
+  - реєструється
+  - створює/реєструє команду
+  - бачить активний турнір і раунд
+  - подає сабміт
+  - читає оголошення, сповіщення, діалоги
+- `JURY`
+  - бачить призначені роботи
+  - оцінює сабміти
+  - читає повідомлення і розклад
+- `ADMIN`
+  - створює турніри
+  - змінює статуси
+  - створює раунди
+  - розподіляє оцінювання
+  - створює користувачів
+  - керує оголошеннями, архівом, сертифікатами
+- `ORGANIZER`
+  - має доступ до більшості організаційних дій без повного admin scope
 
-- Require pull request before merge: enabled
-- Required approvals: `0` (self-review за шаблоном PR)
-- Require status checks before merge: enabled (`CI / checks`)
-- Auto-deploy після merge у `main`: enabled через `deploy.yml`
+## Demo Flow
+
+1. `TEAM`: зареєструвати акаунт через `/app/register`, увійти, відкрити турніри, зареєструвати команду і подати сабміт.
+2. `ADMIN`: увійти, створити турнір, перевести його в `Registration`, створити раунд і за потреби створити `JURY` та `ORGANIZER`.
+3. `JURY`: увійти, перейти в кабінет журі, відкрити призначені роботи та виставити оцінки.
+4. `ADMIN`: розподілити оцінювання, закрити сабміти або завершити оцінювання, перевірити `Leaderboard`, `Archive`, сертифікати.
+5. Будь-яка роль: відкрити `Повідомлення`, перевірити оголошення, системні сповіщення та особисті діалоги.
 
 ## Локальний запуск
 
@@ -54,122 +167,180 @@ infra/
 npm install
 ```
 
-2. Скопіюйте Docker env шаблон:
+2. Скопіюйте env-шаблон:
 
 ```bash
 cp infra/docker-compose/.env.example infra/docker-compose/.env
 ```
 
-3. Запустіть інфраструктуру і застосунки:
+3. Запустіть локальне оточення:
 
 ```bash
 docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docker-compose/.env up -d --build
 ```
 
-4. Відкрийте сервіси:
+4. Відкрийте:
 
-- Вхідна точка (Caddy): `http://localhost`
-- Health backend через proxy: `http://localhost/health`
+- `http://localhost` - frontend через Caddy
+- `http://localhost/health` - backend health через proxy
 
-## CI / CD
+## Змінні середовища
 
-- PR у `main`: lint + test + build
-- Push/merge у `main`: deploy workflow підключається до Ubuntu через SSH і оновлює Docker Compose
-- Ручний запуск: `Smoke Check (Manual)` виконує backend MVP smoke перевірку за запитом
+Базові:
 
-Необхідні GitHub secrets для deploy:
-
-- `SSH_HOST`
-- `SSH_USER`
-- `SSH_PRIVATE_KEY`
-- `SSH_PORT` (optional, default `22`)
-- `DEPLOY_PATH`
-- `GH_PULL_USERNAME`
-- `GH_PULL_TOKEN` (fine-grained token з доступом Read до repository)
 - `POSTGRES_DB`
 - `POSTGRES_USER`
 - `POSTGRES_PASSWORD`
 - `JWT_SECRET`
-- `VITE_API_URL` (optional, fallback підтримується)
+- `VITE_API_URL`
+- `APP_DOMAIN`
+- `PRISMA_SYNC_MODE`
 
-Необхідні GitHub secrets для ручної smoke перевірки:
+Для email-нотифікацій:
 
-- `SMOKE_ADMIN_EMAIL`
-- `SMOKE_ADMIN_PASSWORD`
-- `SMOKE_TEST_USER_PASSWORD` (optional, fallback підтримується)
+- `EMAIL_NOTIFICATIONS_ENABLED`
+- `EMAIL_PROVIDER` - `console` або `resend`
+- `EMAIL_FROM`
+- `EMAIL_REPLY_TO`
+- `RESEND_API_KEY`
 
-Опційна GitHub variable для ручної smoke перевірки:
+## Seed і міграції
 
-- `SMOKE_BASE_URL` (за замовчуванням `https://falconarena.live`, також можна перевизначити через input у ручному запуску workflow)
-
-У production маршрути обслуговує Caddy (`80/443`). PostgreSQL і Redis доступні тільки у внутрішній Docker мережі.
-
-## Документація
-
-- Швидкий деплой: `docs/deploy-quickstart.md`
-- Smoke API перевірка MVP: `docs/mvp-smoke-api.md`
-- UI smoke перевірка: `docs/ui-smoke-runbook.md`
-- Архітектурні рішення: `docs/project-decisions.md`
-- Acceptance checklist: `docs/acceptance-checklist.md`
-
-Українські версії:
-
-- `docs/deploy-quickstart.uk.md`
-- `docs/mvp-smoke-api.uk.md`
-- `docs/ui-smoke-runbook.uk.md`
-- `docs/project-decisions.uk.md`
-- `docs/acceptance-checklist.uk.md`
-
-## Онбординг ролей
-
-- `TEAM`: відкрийте `https://falconarena.live/`, перейдіть на `Реєстрація`, створіть акаунт, після входу відкрийте `Моя команда` і зареєструйте команду в турнірі.
-- `ADMIN`: створіть стартового адміністратора через seed-команду, увійдіть у `Панель admin`, створіть турнір і раунд.
-- `ORGANIZER` / `JURY`: після входу під `ADMIN` відкрийте блок створення користувача в `Панель admin` і створіть потрібні ролі через UI.
-
-## Demo Flow
-
-1. `TEAM`: зареєструвати акаунт через `/app/register`, увійти, зареєструвати команду в турнірі, заповнити сабміт для активного раунду.
-2. `ADMIN`: увійти, створити турнір, змінити статус на `Registration`, створити раунд, створити користувачів `JURY` та `ORGANIZER` за потреби.
-3. `JURY`: увійти, відкрити `Моє журі`, вибрати раунд, оцінити призначені роботи.
-4. `ADMIN`: розподілити призначення, закрити сабміти або завершити оцінювання, перевірити `Лідерборд`.
-5. Будь-яка роль: відкрити `Повідомлення` (`/app/messages`) для оголошень; `ADMIN/ORGANIZER` можуть публікувати оголошення, усі ролі можуть вести особисті діалоги.
-
-## Статус backend foundation
-
-- Auth + RBAC реалізовано (`JWT`, `register`, `login`, `me`, role guard)
-- Публічна реєстрація `POST /auth/register` створює тільки роль `TEAM`
-- Адмінське створення користувачів: `POST /auth/admin/users` (`ADMIN`, `ORGANIZER`)
-- Турніри, команди, раунди, сабміти, оцінювання і leaderboard реалізовані
-- Додано `POST /rounds/:roundId/finish-evaluation`
-- Додано оголошення:
-  - `GET /announcements` (авторизовані користувачі, фільтрація за ролями)
-  - `POST /announcements` (`ADMIN`, `ORGANIZER`)
-  - `PATCH /announcements/:id` (`ADMIN`, `ORGANIZER`)
-- Додано особисті діалоги:
-  - `GET /messages/dialogs`
-  - `POST /messages/dialogs` (створити/відкрити діалог за email)
-  - `GET /messages/dialogs/:id`
-  - `POST /messages/dialogs/:id` (надіслати повідомлення)
-- Міграції Prisma версіонуються у `apps/backend/prisma/migrations`
-
-## Корисні команди
-
-Опційний seed admin:
+Seed admin:
 
 ```bash
 SEED_ADMIN_EMAIL=admin@falconarena.live SEED_ADMIN_PASSWORD=change_me npm run prisma:seed -w @falconarena/backend
 ```
 
-Міграції:
+Корисні команди Prisma:
 
 - `npm run prisma:generate -w @falconarena/backend`
 - `npm run prisma:migrate:deploy -w @falconarena/backend`
-- baseline для існуючої БД після `db push`: `npm run prisma:migrate:resolve:init -w @falconarena/backend`
-- режим runtime синхронізації БД керується `PRISMA_SYNC_MODE` (`dbpush` або `migrate`)
-- актуальні додаткові міграції для повідомлень: `0003_announcements`, `0004_direct_dialogs`
+- `npm run prisma:migrate:dev -w @falconarena/backend`
+- `npm run prisma:migrate:resolve:init -w @falconarena/backend`
 
-Автоматичні API перевірки backend:
+## Backend API
+
+### Auth
+
+- `POST /auth/register`
+- `POST /auth/login`
+- `GET /auth/me`
+- `POST /auth/admin/users`
+
+### Tournaments
+
+- `GET /tournaments`
+- `GET /tournaments/:id`
+- `POST /tournaments`
+- `PATCH /tournaments/:id/status`
+- `GET /tournaments/:tournamentId/leaderboard`
+- `GET /tournaments/:tournamentId/leaderboard/export.csv`
+
+### Teams
+
+- `POST /tournaments/:tournamentId/teams/register`
+- `GET /tournaments/:tournamentId/teams`
+- `GET /tournaments/:tournamentId/teams/me`
+
+### Rounds
+
+- `POST /tournaments/:tournamentId/rounds`
+- `GET /tournaments/:tournamentId/rounds`
+- `GET /tournaments/:tournamentId/rounds/active`
+- `PATCH /tournaments/:tournamentId/rounds/:roundId/status`
+- `POST /rounds/:roundId/finish-evaluation`
+
+### Submissions
+
+- `POST /rounds/:roundId/submissions`
+- `GET /rounds/:roundId/submissions/me`
+- `GET /rounds/:roundId/submissions`
+
+### Evaluation
+
+- `POST /rounds/:roundId/assignments/distribute`
+- `GET /rounds/:roundId/assignments`
+- `GET /rounds/:roundId/assignments/me`
+- `POST /rounds/:roundId/assignments/:assignmentId/evaluation`
+
+### Announcements, messages, notifications
+
+- `GET /announcements`
+- `POST /announcements`
+- `PATCH /announcements/:id`
+- `GET /messages/dialogs`
+- `POST /messages/dialogs`
+- `GET /messages/dialogs/:id`
+- `POST /messages/dialogs/:id`
+- `GET /notifications`
+- `PATCH /notifications/read-state`
+
+### Tournament extras
+
+- `GET /tournaments/:tournamentId/archive`
+- `GET /tournaments/:tournamentId/schedule`
+- `POST /tournaments/:tournamentId/schedule`
+- `PATCH /tournaments/:tournamentId/schedule/:eventId`
+- `DELETE /tournaments/:tournamentId/schedule/:eventId`
+- `GET /tournaments/:tournamentId/certificate-template`
+- `PATCH /tournaments/:tournamentId/certificate-template`
+- `GET /tournaments/:tournamentId/certificates/teams/:teamId`
+
+## Автоматичні перевірки
+
+Backend:
 
 - `BASE_URL=http://localhost:4000 ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run smoke:mvp -w @falconarena/backend`
 - `BASE_URL=http://localhost:4000 ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run test:e2e:finish-evaluation -w @falconarena/backend`
 - `BASE_URL=http://localhost:4000 ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run test:e2e:profile-avatar -w @falconarena/backend`
+
+Типовые проверки:
+
+- `npm run lint -w @falconarena/frontend`
+- `npm run lint -w @falconarena/backend`
+- `npm test -w @falconarena/frontend`
+- `npm test -w @falconarena/backend`
+
+## CI / CD
+
+- Pull Request у `main`: lint + test + build
+- Merge у `main`: GitHub Actions запускає deploy
+- Продакшн працює через Docker Compose і Caddy
+- PostgreSQL і Redis доступні тільки у внутрішній Docker мережі
+
+Основні GitHub secrets для deploy:
+
+- `SSH_HOST`
+- `SSH_USER`
+- `SSH_PRIVATE_KEY`
+- `SSH_PORT`
+- `DEPLOY_PATH`
+- `GH_PULL_USERNAME`
+- `GH_PULL_TOKEN`
+- `POSTGRES_DB`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `JWT_SECRET`
+- `VITE_API_URL`
+- email secrets за потреби
+
+## Документація
+
+- `docs/project-brief.uk.md` - повне ТЗ
+- `docs/implementation-plan.uk.md` - план реалізації
+- `docs/deploy-quickstart.uk.md` - деплой
+- `docs/mvp-smoke-api.uk.md` - API smoke
+- `docs/ui-smoke-runbook.uk.md` - UI smoke
+- `docs/project-decisions.uk.md` - архітектурні рішення
+- `docs/acceptance-checklist.uk.md` - acceptance checklist
+
+## Статус
+
+Проєкт уже покриває основну частину конкурсного ТЗ і придатний для demo / захисту:
+
+- є end-to-end user flow для `TEAM`, `JURY`, `ADMIN`, `ORGANIZER`
+- є UI, backend, база даних, ролі, оцінювання, leaderboard, повідомлення, архів, сертифікати
+- є CI/CD, smoke checks, документація й міграції
+
+Це вже не просто scaffold або backend foundation, а повноцінний робочий MVP платформи.

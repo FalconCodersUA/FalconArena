@@ -14,6 +14,52 @@ function createPrismaMock() {
 }
 
 describe('NotificationsService', () => {
+  it('creates in-app notification and forwards it to email delivery', async () => {
+    const prisma = createPrismaMock();
+    prisma.notification.create.mockResolvedValue({
+      id: 'notification-1',
+      type: 'GENERAL',
+      audience: 'ALL',
+      userId: null,
+      title: 'Tournament update',
+      body: 'Registration is open.',
+      linkUrl: '/app/tournaments/t-1',
+      createdAt: new Date('2026-03-28T12:00:00.000Z'),
+    });
+    const emailService = {
+      deliver: vi.fn().mockResolvedValue({ status: 'sent', sent: 3 }),
+    };
+
+    const service = new NotificationsService(prisma as never, emailService as never);
+    const result = await service.create({
+      type: 'GENERAL',
+      audience: 'ALL',
+      title: 'Tournament update',
+      body: 'Registration is open.',
+      linkUrl: '/app/tournaments/t-1',
+    });
+
+    expect(prisma.notification.create).toHaveBeenCalledWith({
+      data: {
+        type: 'GENERAL',
+        audience: 'ALL',
+        userId: undefined,
+        title: 'Tournament update',
+        body: 'Registration is open.',
+        linkUrl: '/app/tournaments/t-1',
+      },
+    });
+    expect(emailService.deliver).toHaveBeenCalledWith({
+      type: 'GENERAL',
+      audience: 'ALL',
+      userId: undefined,
+      title: 'Tournament update',
+      body: 'Registration is open.',
+      linkUrl: '/app/tournaments/t-1',
+    });
+    expect(result.id).toBe('notification-1');
+  });
+
   it('lists notifications visible to TEAM role and maps unread state', async () => {
     const prisma = createPrismaMock();
     prisma.notification.findMany.mockResolvedValue([
@@ -36,7 +82,10 @@ describe('NotificationsService', () => {
         readStates: [{ readAt: new Date('2026-03-28T09:30:00.000Z') }],
       },
     ]);
-    const service = new NotificationsService(prisma as never);
+    const emailService = {
+      deliver: vi.fn(),
+    };
+    const service = new NotificationsService(prisma as never, emailService as never);
 
     const result = await service.listForUser('user-1', 'TEAM');
 
@@ -70,7 +119,10 @@ describe('NotificationsService', () => {
   it('marks provided notification ids as read', async () => {
     const prisma = createPrismaMock();
     prisma.notificationReadState.createMany.mockResolvedValue({ count: 2 });
-    const service = new NotificationsService(prisma as never);
+    const emailService = {
+      deliver: vi.fn(),
+    };
+    const service = new NotificationsService(prisma as never, emailService as never);
 
     const result = await service.markAsRead('user-1', ['notification-1', 'notification-2']);
 

@@ -4,6 +4,7 @@ import {
   NotificationType,
   Role,
 } from '@prisma/client';
+import { NotificationEmailService } from './notification-email.service';
 import { PrismaService } from './prisma/prisma.service';
 
 type CreateNotificationInput = {
@@ -17,13 +18,16 @@ type CreateNotificationInput = {
 
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationEmailService: NotificationEmailService,
+  ) {}
 
   async create(input: CreateNotificationInput) {
     const audience =
       input.userId && !input.audience ? NotificationAudience.USER : input.audience ?? NotificationAudience.ALL;
 
-    return this.prisma.notification.create({
+    const notification = await this.prisma.notification.create({
       data: {
         type: input.type,
         audience,
@@ -33,6 +37,17 @@ export class NotificationsService {
         linkUrl: input.linkUrl,
       },
     });
+
+    await this.notificationEmailService.deliver({
+      type: notification.type,
+      audience: notification.audience,
+      userId: notification.userId ?? undefined,
+      title: notification.title,
+      body: notification.body,
+      linkUrl: notification.linkUrl ?? undefined,
+    });
+
+    return notification;
   }
 
   async listForUser(userId: string, role: Role) {
