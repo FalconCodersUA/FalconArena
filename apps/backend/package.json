@@ -12,6 +12,7 @@
     "test:e2e:finish-evaluation": "node scripts/e2e-finish-evaluation.mjs",
     "test:e2e:profile-avatar": "node scripts/e2e-profile-avatar.mjs",
     "smoke:mvp": "node scripts/smoke-mvp.mjs",
+    "smoke:platform": "node scripts/smoke-mvp.mjs",
     "prisma:generate": "prisma generate",
     "prisma:db:push": "prisma db push",
     "prisma:seed": "node prisma/seed.js",

@@ -828,7 +828,7 @@ export default function MessagesPage() {
 
           {notificationsError ? <p className="form-error">{notificationsError}</p> : null}
           {!notificationsError && notifications.length === 0 ? (
-            <p>{t('messagesPage.notifications.empty')}</p>
+            <p className="state-callout subtle">{t('messagesPage.notifications.empty')}</p>
           ) : null}
 
           {notifications.length > 0 ? (
@@ -996,7 +996,9 @@ export default function MessagesPage() {
             <h2>{t('messagesPage.feedTitle')}</h2>
             {error ? <p className="form-error">{error}</p> : null}
             {refreshing ? <p>{t('messagesPage.refreshing')}</p> : null}
-            {!refreshing && announcements.length === 0 ? <p>{t('messagesPage.empty')}</p> : null}
+            {!refreshing && announcements.length === 0 ? (
+              <p className="state-callout subtle">{t('messagesPage.empty')}</p>
+            ) : null}
 
             {announcements.length > 0 ? (
               <div className="announcements-feed">
@@ -1119,7 +1121,7 @@ export default function MessagesPage() {
         <div className="messages-dialogs-layout">
           <div className="messages-dialog-list">
             {dialogs.length === 0 ? (
-              <p>{t('messagesPage.dialogs.empty')}</p>
+              <p className="state-callout subtle">{t('messagesPage.dialogs.empty')}</p>
             ) : (
               dialogs.map((dialog) => (
                 <button

@@ -431,7 +431,7 @@ export default function LeaderboardPage() {
             </div>
 
             {leaderboard.rows.length === 0 ? (
-              <p>{t('leaderboard.emptyRows')}</p>
+              <p className="state-callout subtle">{t('leaderboard.emptyRows')}</p>
             ) : (
               <div className="leaderboard-grid">
                 {leaderboard.rows.map((row) => (

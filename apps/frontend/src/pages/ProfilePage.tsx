@@ -1074,7 +1074,9 @@ export default function ProfilePage() {
       {summary.kind === 'TEAM' ? (
         <article className="card panel-card">
           <h2>{t('profile.team.title')}</h2>
-          {summary.items.length === 0 ? <p>{t('profile.team.empty')}</p> : null}
+          {summary.items.length === 0 ? (
+            <p className="state-callout subtle">{t('profile.team.empty')}</p>
+          ) : null}
           {summary.items.length > 0 ? (
             <div className="profile-role-grid">
               {summary.items.map((item) => (
@@ -1157,7 +1159,9 @@ export default function ProfilePage() {
       {summary.kind === 'JURY' ? (
         <article className="card panel-card">
           <h2>{t('profile.jury.title')}</h2>
-          {summary.items.length === 0 ? <p>{t('profile.jury.empty')}</p> : null}
+          {summary.items.length === 0 ? (
+            <p className="state-callout subtle">{t('profile.jury.empty')}</p>
+          ) : null}
 
           {summary.items.length > 0 ? (
             <>
@@ -1249,7 +1253,9 @@ export default function ProfilePage() {
       {summary.kind === 'ADMIN' ? (
         <article className="card panel-card">
           <h2>{t('profile.admin.title')}</h2>
-          {summary.items.length === 0 ? <p>{t('profile.admin.empty')}</p> : null}
+          {summary.items.length === 0 ? (
+            <p className="state-callout subtle">{t('profile.admin.empty')}</p>
+          ) : null}
           {summary.items.length > 0 ? (
             <div className="profile-role-grid">
               {summary.items.map((item) => (

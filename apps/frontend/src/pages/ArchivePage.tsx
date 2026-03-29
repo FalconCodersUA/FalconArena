@@ -771,7 +771,7 @@ export default function ArchivePage() {
                   <p className="inline-hint">{round.description}</p>
 
                   {round.submissions.length === 0 ? (
-                    <p className="archive-empty-note">{t('archivePage.noSubmissions')}</p>
+                    <p className="archive-empty-note state-callout subtle">{t('archivePage.noSubmissions')}</p>
                   ) : (
                     <div className="archive-submissions-grid">
                       {round.submissions.map((submission) => (

@@ -21,6 +21,10 @@ function statusOk(actual, expected) {
   return actual === expected;
 }
 
+function hasTitle(items, titlePart) {
+  return Array.isArray(items) && items.some((item) => item.title?.includes(titlePart));
+}
+
 async function request(method, path, options = {}) {
   const headers = {};
   if (options.token) {
@@ -62,7 +66,7 @@ async function request(method, path, options = {}) {
 }
 
 async function run() {
-  console.log(`Running MVP smoke against ${baseUrl}`);
+  console.log(`Running platform smoke against ${baseUrl}`);
 
   if (!adminEmail || !adminPassword) {
     throw new Error('Set ADMIN_EMAIL and ADMIN_PASSWORD for smoke script');
@@ -74,6 +78,11 @@ async function run() {
   });
   const adminToken = adminLogin.payload.accessToken;
   assert(adminToken, 'Missing admin token');
+
+  const platformDefaults = await request('GET', '/platform/defaults', {
+    expectedStatus: [200, 201],
+  });
+  assert(platformDefaults.payload?.teamMinMembers >= 2, 'Platform defaults must expose team limits');
 
   await request('POST', '/auth/admin/users', {
     token: adminToken,
@@ -109,7 +118,6 @@ async function run() {
   const teamToken = teamLogin.payload.accessToken;
   const juryToken = juryLogin.payload.accessToken;
 
-  assert(adminToken, 'Missing admin token');
   assert(teamToken, 'Missing team token');
   assert(juryToken, 'Missing jury token');
 
@@ -125,9 +133,10 @@ async function run() {
     expectedStatus: [200, 201],
     body: {
       title: `FalconArena Smoke Tournament ${timestamp}`,
-      description: 'MVP API smoke run',
-      registrationOpenAt: '2025-01-01T00:00:00.000Z',
-      registrationCloseAt: '2030-01-01T00:00:00.000Z',
+      description: 'End-to-end smoke run for demo readiness',
+      startsAt: '2028-01-02T09:00:00.000Z',
+      registrationOpenAt: '2028-01-01T09:00:00.000Z',
+      registrationCloseAt: '2028-01-15T09:00:00.000Z',
       maxTeams: 100,
     },
   });
@@ -135,13 +144,81 @@ async function run() {
   const tournamentId = createdTournament.payload.id;
   assert(tournamentId, 'Missing tournamentId');
 
+  const scheduleEvent = await request('POST', `/tournaments/${tournamentId}/schedule`, {
+    token: adminToken,
+    expectedStatus: [200, 201],
+    body: {
+      title: 'Opening consultation',
+      description: 'Kickoff Q&A for teams',
+      type: 'CONSULTATION',
+      startsAt: '2028-01-02T12:00:00.000Z',
+      endsAt: '2028-01-02T13:00:00.000Z',
+      location: 'Discord',
+    },
+  });
+  assert(scheduleEvent.payload.id, 'Missing schedule event id');
+
+  const schedule = await request('GET', `/tournaments/${tournamentId}/schedule`, {
+    expectedStatus: [200, 201],
+  });
+  assert(schedule.payload.length === 1, 'Schedule must contain the created event');
+
   await request('PATCH', `/tournaments/${tournamentId}/status`, {
     token: adminToken,
     expectedStatus: [200, 201],
     body: { status: 'REGISTRATION' },
   });
 
-  await request('POST', `/tournaments/${tournamentId}/teams/register`, {
+  const adminAnnouncement = await request('POST', '/announcements', {
+    token: adminToken,
+    expectedStatus: [200, 201],
+    body: {
+      title: `Smoke announcement ${timestamp}`,
+      body: 'Read the rules before registration and submission.',
+      audience: 'ALL',
+      isPinned: true,
+    },
+  });
+  assert(adminAnnouncement.payload.id, 'Missing announcement id');
+
+  const teamNotificationsAfterRegistration = await request('GET', '/notifications', {
+    token: teamToken,
+    expectedStatus: [200, 201],
+  });
+  assert(
+    hasTitle(teamNotificationsAfterRegistration.payload, 'Відкрита реєстрація'),
+    'Team must receive registration started notification',
+  );
+
+  const teamAnnouncements = await request('GET', '/announcements', {
+    token: teamToken,
+    expectedStatus: [200, 201],
+  });
+  assert(
+    hasTitle(teamAnnouncements.payload, `Smoke announcement ${timestamp}`),
+    'Team must see the announcement',
+  );
+  const latestAnnouncement = teamAnnouncements.payload.find((item) =>
+    item.title?.includes(`Smoke announcement ${timestamp}`),
+  );
+  assert(latestAnnouncement?.isUnread === true, 'New announcement must be unread');
+
+  await request('PATCH', '/announcements/read-state', {
+    token: teamToken,
+    expectedStatus: [200, 201],
+    body: { publishedAt: latestAnnouncement.publishedAt },
+  });
+
+  const teamAnnouncementsAfterRead = await request('GET', '/announcements', {
+    token: teamToken,
+    expectedStatus: [200, 201],
+  });
+  const sameAnnouncement = teamAnnouncementsAfterRead.payload.find((item) =>
+    item.title?.includes(`Smoke announcement ${timestamp}`),
+  );
+  assert(sameAnnouncement?.isUnread === false, 'Announcement must become read after markRead');
+
+  const registeredTeam = await request('POST', `/tournaments/${tournamentId}/teams/register`, {
     token: teamToken,
     expectedStatus: [200, 201],
     body: {
@@ -154,16 +231,57 @@ async function run() {
       ],
     },
   });
+  const teamId = registeredTeam.payload.id;
+  assert(teamId, 'Missing teamId');
+
+  const dialog = await request('POST', '/messages/dialogs', {
+    token: teamToken,
+    expectedStatus: [200, 201],
+    body: { recipientEmail: juryEmail },
+  });
+  const dialogId = dialog.payload.id;
+  assert(dialogId, 'Missing dialogId');
+
+  await request('POST', `/messages/dialogs/${dialogId}`, {
+    token: teamToken,
+    expectedStatus: [200, 201],
+    body: { body: 'Hello from smoke test team' },
+  });
+
+  const juryDialogsBeforeOpen = await request('GET', '/messages/dialogs', {
+    token: juryToken,
+    expectedStatus: [200, 201],
+  });
+  const juryDialogListItem = juryDialogsBeforeOpen.payload.find((item) => item.id === dialogId);
+  assert(juryDialogListItem?.isUnread === true, 'Jury dialog must be unread before opening');
+
+  const juryDialog = await request('GET', `/messages/dialogs/${dialogId}`, {
+    token: juryToken,
+    expectedStatus: [200, 201],
+  });
+  assert(
+    juryDialog.payload.messages.some((message) => message.body === 'Hello from smoke test team'),
+    'Dialog messages must include the sent message',
+  );
+
+  const juryDialogsAfterOpen = await request('GET', '/messages/dialogs', {
+    token: juryToken,
+    expectedStatus: [200, 201],
+  });
+  const juryDialogAfterOpen = juryDialogsAfterOpen.payload.find((item) => item.id === dialogId);
+  assert(juryDialogAfterOpen?.isUnread === false, 'Opening a dialog must clear unread state');
 
   const createdRound = await request('POST', `/tournaments/${tournamentId}/rounds`, {
     token: adminToken,
     expectedStatus: [200, 201],
     body: {
       title: 'Round 1',
-      description: 'Build and submit MVP',
+      description: 'Build and submit the FalconArena MVP.',
       mustHave: ['Auth', 'Team registration', 'Submission form'],
-      startsAt: '2025-01-01T00:00:00.000Z',
-      deadlineAt: '2030-01-01T00:00:00.000Z',
+      technologyRequirements: ['React or compatible frontend', 'Backend API', 'Database storage'],
+      additionalMaterials: ['https://falconarena.live/app/register'],
+      startsAt: '2028-01-16T09:00:00.000Z',
+      deadlineAt: '2028-01-17T08:00:00.000Z',
     },
   });
 
@@ -179,7 +297,19 @@ async function run() {
   const tournamentAfterActivate = await request('GET', `/tournaments/${tournamentId}`, {
     expectedStatus: [200, 201],
   });
-  assert(tournamentAfterActivate.payload.status === 'RUNNING', 'Tournament must be RUNNING after round activation');
+  assert(
+    tournamentAfterActivate.payload.status === 'RUNNING',
+    'Tournament must be RUNNING after round activation',
+  );
+
+  const notificationsAfterRoundStart = await request('GET', '/notifications', {
+    token: teamToken,
+    expectedStatus: [200, 201],
+  });
+  assert(
+    hasTitle(notificationsAfterRoundStart.payload, 'Стартував раунд'),
+    'Team must receive round started notification',
+  );
 
   await request('POST', `/rounds/${roundId}/submissions`, {
     token: teamToken,
@@ -198,6 +328,30 @@ async function run() {
   });
   assert(mySubmission.payload.isEditable === true, 'Submission should be editable during active round');
 
+  const teamNotificationsAfterSubmission = await request('GET', '/notifications', {
+    token: teamToken,
+    expectedStatus: [200, 201],
+  });
+  const submissionNotification = teamNotificationsAfterSubmission.payload.find((item) =>
+    item.title?.includes('Сабміт збережено'),
+  );
+  assert(submissionNotification, 'Team must receive submission notification');
+
+  await request('PATCH', '/notifications/read-state', {
+    token: teamToken,
+    expectedStatus: [200, 201],
+    body: { notificationIds: [submissionNotification.id] },
+  });
+
+  const teamNotificationsAfterRead = await request('GET', '/notifications', {
+    token: teamToken,
+    expectedStatus: [200, 201],
+  });
+  const readSubmissionNotification = teamNotificationsAfterRead.payload.find(
+    (item) => item.id === submissionNotification.id,
+  );
+  assert(readSubmissionNotification?.isUnread === false, 'Notification must become read after markAsRead');
+
   await request('POST', `/rounds/${roundId}/assignments/distribute`, {
     token: adminToken,
     expectedStatus: [200, 201],
@@ -212,7 +366,6 @@ async function run() {
     token: juryToken,
     expectedStatus: [200, 201],
   });
-
   const assignmentId = assignments.payload[0]?.id;
   assert(assignmentId, 'Missing assignmentId');
 
@@ -228,7 +381,7 @@ async function run() {
         stability: 88,
         usability: 90,
       },
-      comment: 'Solid MVP submission',
+      comment: 'Solid platform smoke submission',
     },
   });
 
@@ -254,19 +407,86 @@ async function run() {
   const tournamentAfterFinish = await request('GET', `/tournaments/${tournamentId}`, {
     expectedStatus: [200, 201],
   });
-  assert(tournamentAfterFinish.payload.status === 'FINISHED', 'Tournament must be FINISHED when all rounds are evaluated');
+  assert(
+    tournamentAfterFinish.payload.status === 'FINISHED',
+    'Tournament must be FINISHED when all rounds are evaluated',
+  );
+
+  const archive = await request('GET', `/tournaments/${tournamentId}/archive`, {
+    expectedStatus: [200, 201],
+  });
+  assert(archive.payload.summary.teamsCount === 1, 'Archive must include the registered team');
+  assert(archive.payload.summary.submissionsCount === 1, 'Archive must include the submission');
+  assert(archive.payload.teams[0]?.rank === 1, 'Team must be first in archive leaderboard');
 
   const leaderboard = await request('GET', `/tournaments/${tournamentId}/leaderboard`, {
     expectedStatus: [200, 201],
   });
   assert(Array.isArray(leaderboard.payload.rows), 'Leaderboard rows must be an array');
+  assert(leaderboard.payload.rows[0]?.rank === 1, 'Leaderboard must rank the team first');
 
-  console.log('MVP smoke passed');
+  const certificateTemplate = await request('GET', `/tournaments/${tournamentId}/certificate-template`, {
+    token: adminToken,
+    expectedStatus: [200, 201],
+  });
+  assert(certificateTemplate.payload.title, 'Certificate template must be available');
+
+  await request('PATCH', `/tournaments/${tournamentId}/certificate-template`, {
+    token: adminToken,
+    expectedStatus: [200, 201],
+    body: {
+      title: 'Smoke Certificate',
+      subtitle: 'Demo ready',
+      body: 'Awarded to {{teamName}} for the FalconArena smoke pass.',
+      signatureName: 'Falcon Admin',
+      signatureTitle: 'Tournament Director',
+      accentColor: '#5E17EB',
+    },
+  });
+
+  const participationCertificate = await request(
+    'GET',
+    `/tournaments/${tournamentId}/certificates/teams/${teamId}?kind=participation`,
+    {
+      token: adminToken,
+      expectedStatus: [200, 201],
+    },
+  );
+  assert(
+    participationCertificate.payload.certificate.kind === 'participation',
+    'Participation certificate must be generated',
+  );
+
+  const winnerCertificate = await request(
+    'GET',
+    `/tournaments/${tournamentId}/certificates/teams/${teamId}?kind=winner`,
+    {
+      token: adminToken,
+      expectedStatus: [200, 201],
+    },
+  );
+  assert(
+    winnerCertificate.payload.certificate.kind === 'winner',
+    'Winner certificate must be generated for the first ranked team',
+  );
+
+  const notificationsAfterFinish = await request('GET', '/notifications', {
+    token: adminToken,
+    expectedStatus: [200, 201],
+  });
+  const finishNotification = notificationsAfterFinish.payload.find((item) =>
+    item.title?.includes('Турнір завершено'),
+  );
+  assert(finishNotification?.linkUrl?.includes('/app/archive'), 'Finish notification must link to archive');
+
+  console.log('Platform smoke passed');
   console.log(
     JSON.stringify(
       {
         tournamentId,
         roundId,
+        teamId,
+        dialogId,
         assignmentId,
       },
       null,
@@ -276,7 +496,7 @@ async function run() {
 }
 
 run().catch((error) => {
-  console.error('MVP smoke failed');
+  console.error('Platform smoke failed');
   console.error(error instanceof Error ? error.message : error);
   process.exit(1);
 });

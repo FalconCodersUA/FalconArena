@@ -1559,6 +1559,12 @@ a {
   font-family: 'Chakra Petch', sans-serif;
 }
 
+.state-card p {
+  margin: 0;
+  color: #51647b;
+  line-height: 1.5;
+}
+
 .section-header {
   margin-bottom: 14px;
 }
@@ -3056,6 +3062,10 @@ a {
   margin: 0;
 }
 
+.messages-controls-text p {
+  max-width: 62ch;
+}
+
 .announcements-feed {
   display: grid;
   gap: 10px;
@@ -3980,8 +3990,73 @@ a {
     grid-template-columns: 1fr;
   }
 
+  .messages-controls {
+    align-items: stretch;
+  }
+
+  .messages-controls > .button,
+  .messages-controls > .button-group,
+  .messages-controls > .filters-row {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .messages-section-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .messages-section-tabs .button {
+    flex: 0 0 auto;
+  }
+
   .messages-dialogs-layout {
     grid-template-columns: 1fr;
+  }
+
+  .messages-dialog-list,
+  .messages-dialog-thread,
+  .archive-round-card,
+  .leaderboard-row-card,
+  .profile-settings-shell {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .messages-thread-feed {
+    min-height: 160px;
+    max-height: 300px;
+    padding: 10px;
+  }
+
+  .messages-thread-item {
+    max-width: 100%;
+  }
+
+  .leaderboard-row-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .leaderboard-row-head span {
+    font-size: 0.8rem;
+  }
+
+  .archive-link-list {
+    gap: 8px;
+  }
+
+  .state-card {
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .state-callout,
+  .state-callout.subtle {
+    padding: 10px 12px;
+    border-radius: 14px;
   }
 
   .leaderboard-metrics {
@@ -3998,6 +4073,14 @@ a {
 
   .profile-grid {
     grid-template-columns: 1fr;
+  }
+
+  .profile-settings-actions {
+    justify-content: stretch;
+  }
+
+  .profile-settings-actions .button {
+    width: 100%;
   }
 
   .certificate-page-shell {
@@ -4020,5 +4103,58 @@ a {
 
   .datetime-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .panel-card,
+  .section-card,
+  .section-card.card,
+  .card.panel-card {
+    padding: 14px;
+  }
+
+  .messages-dialog-item {
+    padding: 10px;
+  }
+
+  .messages-dialog-item strong,
+  .messages-thread-head strong,
+  .leaderboard-row-card h3 {
+    font-size: 0.92rem;
+  }
+
+  .messages-dialog-item p,
+  .messages-thread-item p,
+  .archive-empty-note,
+  .inline-hint,
+  .state-card p {
+    font-size: 0.82rem;
+  }
+
+  .leaderboard-metrics,
+  .leaderboard-category-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .leaderboard-rounds-list {
+    grid-template-columns: 1fr;
+  }
+
+  .leaderboard-metric,
+  .leaderboard-category-item,
+  .leaderboard-round-item,
+  .profile-item,
+  .profile-history-card {
+    padding: 10px;
+  }
+
+  .profile-settings-tabs {
+    gap: 8px;
+  }
+
+  .profile-settings-tab {
+    width: 100%;
+    justify-content: center;
   }
 }
