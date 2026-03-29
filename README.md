@@ -128,6 +128,7 @@ infra/
 - `/app/archive` - архів завершених турнірів
 - `/app/messages` - оголошення, сповіщення, діалоги
 - `/app/profile` - профіль і налаштування
+- `/app/integrations` - admin-only інтеграції та системні налаштування
 - `/app/certificates` - printable certificate preview
 
 ## Рольова модель
@@ -211,6 +212,8 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 - `GOOGLE_SHEETS_WEBHOOK_SECRET`
 - `GOOGLE_SHEETS_DEFAULT_SHEET_NAME`
 
+Примітка: ці env-параметри працюють як fallback. Основне налаштування Google Sheets можна зберігати через `/app/integrations` у базі даних.
+
 ## Seed і міграції
 
 Seed admin:
@@ -284,6 +287,12 @@ SEED_ADMIN_EMAIL=admin@falconarena.live SEED_ADMIN_PASSWORD=change_me npm run pr
 - `GET /notifications`
 - `PATCH /notifications/read-state`
 
+### System integrations
+
+- `GET /admin/system-integrations/google-sheets`
+- `PATCH /admin/system-integrations/google-sheets`
+- `POST /admin/system-integrations/google-sheets/test`
+
 ### Tournament extras
 
 - `GET /tournaments/:tournamentId/archive`
@@ -348,10 +357,7 @@ Backend:
 Поточна реалізація зроблена у прагматичному форматі через webhook:
 
 1. Створіть Google Apps Script або інший сумісний endpoint, який приймає `POST` JSON.
-2. Додайте в env:
-   - `GOOGLE_SHEETS_WEBHOOK_URL`
-   - `GOOGLE_SHEETS_WEBHOOK_SECRET` (optional, але бажано)
-   - `GOOGLE_SHEETS_DEFAULT_SHEET_NAME` (optional)
+2. Або додайте `GOOGLE_SHEETS_*` у env як bootstrap/fallback, або відкрийте `/app/integrations` під `ADMIN` і збережіть webhook у базі даних.
 3. У `Лідерборді` або `Архіві` натисніть `Експортувати в Google Sheets`.
 
 Backend надсилає:

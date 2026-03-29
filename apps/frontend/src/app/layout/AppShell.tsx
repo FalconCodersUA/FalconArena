@@ -179,18 +179,24 @@ export default function AppShell() {
   const isRoleWorkspacePath = /^\/app\/(admin|team|jury)(\/|$)/.test(location.pathname);
   const isDashboardView =
     location.pathname.startsWith('/app/dashboard') || isRoleWorkspacePath;
+  const authRole = getAuthUser()?.role ?? null;
+  const canManageIntegrations = authRole === 'ADMIN';
 
   const searchItems = useMemo(
-    () => [
-      { path: dashboardPath, label: t('shell.dashboard') },
-      { path: '/app/teams', label: t('shell.teams') },
-      { path: '/app/tournaments', label: t('shell.tournamentsNav') },
-      { path: '/app/archive', label: t('shell.archive') },
-      { path: '/app/leaderboard', label: t('shell.leaderboard') },
-      { path: '/app/messages', label: t('shell.messages') },
-      { path: '/app/profile', label: t('shell.settings') },
-    ],
-    [dashboardPath, t],
+    () =>
+      [
+        { path: dashboardPath, label: t('shell.dashboard') },
+        { path: '/app/teams', label: t('shell.teams') },
+        { path: '/app/tournaments', label: t('shell.tournamentsNav') },
+        { path: '/app/archive', label: t('shell.archive') },
+        { path: '/app/leaderboard', label: t('shell.leaderboard') },
+        { path: '/app/messages', label: t('shell.messages') },
+        { path: '/app/profile', label: t('shell.settings') },
+        canManageIntegrations
+          ? { path: '/app/integrations', label: t('shell.integrations') }
+          : null,
+      ].filter((item): item is { path: string; label: string } => !!item),
+    [canManageIntegrations, dashboardPath, t],
   );
   const normalizedSearchQuery = searchQuery.trim().toLowerCase();
   const filteredSearchItems = useMemo(() => {
@@ -237,6 +243,10 @@ export default function AppShell() {
 
     if (location.pathname.startsWith('/app/profile')) {
       return t('shell.settings');
+    }
+
+    if (location.pathname.startsWith('/app/integrations')) {
+      return t('shell.integrations');
     }
 
     if (location.pathname.startsWith('/app/leaderboard')) {
@@ -566,6 +576,25 @@ export default function AppShell() {
               </span>
               <span>{t('shell.settings')}</span>
             </NavLink>
+
+            {canManageIntegrations ? (
+              <NavLink to="/app/integrations" className="app-sidebar-link">
+                <span className="app-sidebar-icon" aria-hidden>
+                  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M5.6 5.8H14.4M5.6 10H14.4M5.6 14.2H11.6"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                    <circle cx="13.8" cy="14.2" r="1.5" fill="currentColor" />
+                    <circle cx="6.2" cy="10" r="1.5" fill="currentColor" />
+                    <circle cx="11.4" cy="5.8" r="1.5" fill="currentColor" />
+                  </svg>
+                </span>
+                <span>{t('shell.integrations')}</span>
+              </NavLink>
+            ) : null}
           </nav>
 
           <div className="app-sidebar-footer">
