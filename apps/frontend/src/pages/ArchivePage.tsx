@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useI18n } from '../i18n/I18nProvider';
+import { getAuthRole, isAuthenticated } from '../lib/auth';
 import { apiRequest, buildApiUrl } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
 
@@ -105,6 +106,20 @@ type ArchiveResponse = {
   }>;
 };
 
+type CertificateTemplateView = {
+  id: string | null;
+  tournamentId: string;
+  isDefault: boolean;
+  name: string;
+  title: string;
+  subtitle: string;
+  body: string;
+  footer: string;
+  signerName: string;
+  signerRole: string;
+  accentColor: string;
+};
+
 type CategoryKey = keyof CategoryAverages;
 
 const CATEGORY_KEYS: CategoryKey[] = [
@@ -124,14 +139,20 @@ export default function ArchivePage() {
   const { language, t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const [initialTournamentId] = useState(() => searchParams.get('tournamentId') ?? '');
+  const isManager = isAuthenticated() && ['ADMIN', 'ORGANIZER'].includes(getAuthRole() ?? '');
 
   const [tournaments, setTournaments] = useState<TournamentOption[]>([]);
   const [selectedTournamentId, setSelectedTournamentId] = useState('');
   const [archive, setArchive] = useState<ArchiveResponse | null>(null);
+  const [certificateTemplate, setCertificateTemplate] = useState<CertificateTemplateView | null>(null);
   const [loadingTournaments, setLoadingTournaments] = useState(true);
   const [loadingArchive, setLoadingArchive] = useState(false);
+  const [loadingTemplate, setLoadingTemplate] = useState(false);
   const [tournamentsError, setTournamentsError] = useState('');
   const [archiveError, setArchiveError] = useState('');
+  const [templateError, setTemplateError] = useState('');
+  const [templateNotice, setTemplateNotice] = useState('');
+  const [savingTemplate, setSavingTemplate] = useState(false);
 
   const leader = archive?.leaderboard?.rows[0] ?? null;
   const selectedTournament = useMemo(
@@ -193,6 +214,33 @@ export default function ArchivePage() {
     }
   }
 
+  async function loadCertificateTemplate(tournamentId: string) {
+    if (!isManager) {
+      setCertificateTemplate(null);
+      setTemplateError('');
+      return;
+    }
+
+    setLoadingTemplate(true);
+    setTemplateError('');
+
+    try {
+      const data = await apiRequest<CertificateTemplateView>(
+        `/tournaments/${tournamentId}/certificate-template`,
+      );
+      setCertificateTemplate(data);
+    } catch (requestError) {
+      setTemplateError(
+        requestError instanceof Error
+          ? requestError.message
+          : t('archivePage.certificates.loadTemplateFailed'),
+      );
+      setCertificateTemplate(null);
+    } finally {
+      setLoadingTemplate(false);
+    }
+  }
+
   useEffect(() => {
     void loadTournaments();
   }, []);
@@ -204,7 +252,47 @@ export default function ArchivePage() {
 
     setSearchParams({ tournamentId: selectedTournamentId }, { replace: true });
     void loadArchive(selectedTournamentId);
+    void loadCertificateTemplate(selectedTournamentId);
   }, [selectedTournamentId, setSearchParams]);
+
+  async function saveCertificateTemplate() {
+    if (!selectedTournamentId || !certificateTemplate) {
+      return;
+    }
+
+    setSavingTemplate(true);
+    setTemplateError('');
+    setTemplateNotice('');
+
+    try {
+      const saved = await apiRequest<CertificateTemplateView>(
+        `/tournaments/${selectedTournamentId}/certificate-template`,
+        {
+          method: 'PATCH',
+          body: {
+            name: certificateTemplate.name,
+            title: certificateTemplate.title,
+            subtitle: certificateTemplate.subtitle,
+            body: certificateTemplate.body,
+            footer: certificateTemplate.footer,
+            signerName: certificateTemplate.signerName,
+            signerRole: certificateTemplate.signerRole,
+            accentColor: certificateTemplate.accentColor,
+          },
+        },
+      );
+      setCertificateTemplate(saved);
+      setTemplateNotice(t('archivePage.certificates.saved'));
+    } catch (requestError) {
+      setTemplateError(
+        requestError instanceof Error
+          ? requestError.message
+          : t('archivePage.certificates.saveFailed'),
+      );
+    } finally {
+      setSavingTemplate(false);
+    }
+  }
 
   if (loadingTournaments) {
     return <article className="card state-card">{t('archivePage.loadingTournaments')}</article>;
@@ -333,6 +421,146 @@ export default function ArchivePage() {
             </div>
           </article>
 
+          {isManager ? (
+            <article className="card panel-card">
+              <div className="tournament-head">
+                <h2>{t('archivePage.certificates.title')}</h2>
+                <span className="status-pill">
+                  {certificateTemplate?.isDefault
+                    ? t('archivePage.certificates.defaultTemplate')
+                    : t('archivePage.certificates.customTemplate')}
+                </span>
+              </div>
+
+              <p className="inline-hint">{t('archivePage.certificates.lead')}</p>
+
+              {loadingTemplate ? (
+                <p>{t('archivePage.certificates.loadingTemplate')}</p>
+              ) : null}
+              {templateError ? <p className="form-error">{templateError}</p> : null}
+              {templateNotice ? <p className="form-success">{templateNotice}</p> : null}
+
+              {certificateTemplate ? (
+                <>
+                  <div className="profile-settings-fields two-col">
+                    <label className="field">
+                      <span>{t('archivePage.certificates.form.name')}</span>
+                      <input
+                        value={certificateTemplate.name}
+                        onChange={(event) =>
+                          setCertificateTemplate((current) =>
+                            current ? { ...current, name: event.target.value } : current,
+                          )
+                        }
+                      />
+                    </label>
+                    <label className="field">
+                      <span>{t('archivePage.certificates.form.accentColor')}</span>
+                      <input
+                        type="color"
+                        value={certificateTemplate.accentColor}
+                        onChange={(event) =>
+                          setCertificateTemplate((current) =>
+                            current ? { ...current, accentColor: event.target.value } : current,
+                          )
+                        }
+                      />
+                    </label>
+                    <label className="field">
+                      <span>{t('archivePage.certificates.form.title')}</span>
+                      <input
+                        value={certificateTemplate.title}
+                        onChange={(event) =>
+                          setCertificateTemplate((current) =>
+                            current ? { ...current, title: event.target.value } : current,
+                          )
+                        }
+                      />
+                    </label>
+                    <label className="field">
+                      <span>{t('archivePage.certificates.form.subtitle')}</span>
+                      <input
+                        value={certificateTemplate.subtitle}
+                        onChange={(event) =>
+                          setCertificateTemplate((current) =>
+                            current ? { ...current, subtitle: event.target.value } : current,
+                          )
+                        }
+                      />
+                    </label>
+                    <label className="field field-full">
+                      <span>{t('archivePage.certificates.form.body')}</span>
+                      <textarea
+                        className="textarea-input"
+                        rows={4}
+                        value={certificateTemplate.body}
+                        onChange={(event) =>
+                          setCertificateTemplate((current) =>
+                            current ? { ...current, body: event.target.value } : current,
+                          )
+                        }
+                      />
+                    </label>
+                    <label className="field field-full">
+                      <span>{t('archivePage.certificates.form.footer')}</span>
+                      <input
+                        value={certificateTemplate.footer}
+                        onChange={(event) =>
+                          setCertificateTemplate((current) =>
+                            current ? { ...current, footer: event.target.value } : current,
+                          )
+                        }
+                      />
+                    </label>
+                    <label className="field">
+                      <span>{t('archivePage.certificates.form.signerName')}</span>
+                      <input
+                        value={certificateTemplate.signerName}
+                        onChange={(event) =>
+                          setCertificateTemplate((current) =>
+                            current ? { ...current, signerName: event.target.value } : current,
+                          )
+                        }
+                      />
+                    </label>
+                    <label className="field">
+                      <span>{t('archivePage.certificates.form.signerRole')}</span>
+                      <input
+                        value={certificateTemplate.signerRole}
+                        onChange={(event) =>
+                          setCertificateTemplate((current) =>
+                            current ? { ...current, signerRole: event.target.value } : current,
+                          )
+                        }
+                      />
+                    </label>
+                  </div>
+
+                  <div className="state-callout subtle">
+                    <strong>{t('archivePage.certificates.placeholdersTitle')}</strong>
+                    <p>{t('archivePage.certificates.placeholdersLead')}</p>
+                    <p className="inline-hint">
+                      {'{{teamName}}, {{tournamentTitle}}, {{issuedAt}}, {{rank}}, {{totalScore}}, {{kindLabel}}, {{kindDescription}}'}
+                    </p>
+                  </div>
+
+                  <div className="status-actions">
+                    <button
+                      type="button"
+                      className="button button-primary"
+                      disabled={savingTemplate}
+                      onClick={() => void saveCertificateTemplate()}
+                    >
+                      {savingTemplate
+                        ? t('archivePage.certificates.saving')
+                        : t('archivePage.certificates.save')}
+                    </button>
+                  </div>
+                </>
+              ) : null}
+            </article>
+          ) : null}
+
           {archive.leaderboard ? (
             <article className="card panel-card">
               <h2>{t('archivePage.resultsTitle')}</h2>
@@ -410,6 +638,25 @@ export default function ArchivePage() {
                       <strong>{formatScore(team.totalScore)}</strong>
                     </div>
                   </div>
+
+                  {isManager ? (
+                    <div className="status-actions">
+                      <Link
+                        to={`/app/certificates?tournamentId=${archive.tournament.id}&teamId=${team.id}&kind=participation`}
+                        className="button button-soft"
+                      >
+                        {t('archivePage.certificates.participation')}
+                      </Link>
+                      {team.rank === 1 ? (
+                        <Link
+                          to={`/app/certificates?tournamentId=${archive.tournament.id}&teamId=${team.id}&kind=winner`}
+                          className="button button-primary"
+                        >
+                          {t('archivePage.certificates.winner')}
+                        </Link>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </article>
               ))}
             </div>
