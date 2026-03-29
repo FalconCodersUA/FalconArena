@@ -358,6 +358,16 @@ model SystemIntegrationSettings {
   notifySubmissionReceived     Boolean?
   notifyDeadlineReminder       Boolean?
   notifySubmissionClosed       Boolean?
+  minTeamMembers               Int?
+  maxTeamMembers               Int?
+  defaultMinReviewersPerSubmission Int?
+  defaultProjectTimeZone       String?
+  hideTeamsUntilRegistrationClose Boolean?
+  defaultTournamentMaxTeams    Int?
+  defaultRegistrationWindowHours Int?
+  defaultRoundDurationHours    Int?
+  defaultTournamentDescription String?
+  defaultRoundDescription      String?
   updatedByUserId              String?
   createdAt                    DateTime @default(now())
   updatedAt                    DateTime @updatedAt

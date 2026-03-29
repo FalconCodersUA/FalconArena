@@ -1644,9 +1644,18 @@ a {
 
 .members-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+.field-hint {
+  display: block;
+  margin-top: 4px;
+  color: #5f7288;
+  font-size: 0.8rem;
+  line-height: 1.45;
 }
 
 .member-row {

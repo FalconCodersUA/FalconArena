@@ -31,6 +31,21 @@ describe('AdminDashboardPage user creation', () => {
 
   it('creates a jury user from the admin panel', async () => {
     mockedApiRequest.mockImplementation(async (path: string, options?: { method?: string; body?: unknown }) => {
+      if (path === '/platform/defaults') {
+        return {
+          minTeamMembers: 2,
+          maxTeamMembers: 8,
+          defaultMinReviewersPerSubmission: 2,
+          defaultProjectTimeZone: 'Europe/Kyiv',
+          hideTeamsUntilRegistrationClose: true,
+          defaultTournamentMaxTeams: null,
+          defaultRegistrationWindowHours: 24,
+          defaultRoundDurationHours: 24,
+          defaultTournamentDescription: '',
+          defaultRoundDescription: '',
+        };
+      }
+
       if (path === '/auth/me') {
         return {
           id: 'admin-1',
@@ -89,6 +104,21 @@ describe('AdminDashboardPage user creation', () => {
 
   it('hides ADMIN role option for organizer', async () => {
     mockedApiRequest.mockImplementation(async (path: string) => {
+      if (path === '/platform/defaults') {
+        return {
+          minTeamMembers: 2,
+          maxTeamMembers: 8,
+          defaultMinReviewersPerSubmission: 2,
+          defaultProjectTimeZone: 'Europe/Kyiv',
+          hideTeamsUntilRegistrationClose: true,
+          defaultTournamentMaxTeams: null,
+          defaultRegistrationWindowHours: 24,
+          defaultRoundDurationHours: 24,
+          defaultTournamentDescription: '',
+          defaultRoundDescription: '',
+        };
+      }
+
       if (path === '/auth/me') {
         return {
           id: 'organizer-1',

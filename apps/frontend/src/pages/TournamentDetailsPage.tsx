@@ -21,6 +21,7 @@ type Tournament = {
   registrationCloseAt: string;
   maxTeams: number | null;
   canTeamRegister: boolean;
+  hideTeamsUntilRegistrationClose: boolean;
 };
 
 type Round = {
@@ -45,6 +46,10 @@ type TeamRow = {
 };
 
 function canShowTeamsList(tournament: Tournament) {
+  if (!tournament.hideTeamsUntilRegistrationClose) {
+    return true;
+  }
+
   if (tournament.status === 'RUNNING' || tournament.status === 'FINISHED') {
     return true;
   }

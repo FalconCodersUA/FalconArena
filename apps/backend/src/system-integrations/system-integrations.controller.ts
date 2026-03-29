@@ -7,6 +7,7 @@ import { TestGoogleSheetsConnectionDto } from './dto/test-google-sheets-connecti
 import { UpdateEmailSettingsDto } from './dto/update-email-settings.dto';
 import { UpdateGoogleSheetsSettingsDto } from './dto/update-google-sheets-settings.dto';
 import { UpdateNotificationRulesDto } from './dto/update-notification-rules.dto';
+import { UpdateTournamentDefaultsDto } from './dto/update-tournament-defaults.dto';
 import { SystemIntegrationsService } from './system-integrations.service';
 
 @Controller('admin/system-integrations')
@@ -68,6 +69,22 @@ export class SystemIntegrationsController {
     @Req() request: { user: AuthUser },
   ) {
     return this.systemIntegrationsService.updateNotificationRules(
+      dto,
+      request.user.userId,
+    );
+  }
+
+  @Get('tournament-defaults')
+  getTournamentDefaults() {
+    return this.systemIntegrationsService.getTournamentDefaults();
+  }
+
+  @Patch('tournament-defaults')
+  updateTournamentDefaults(
+    @Body() dto: UpdateTournamentDefaultsDto,
+    @Req() request: { user: AuthUser },
+  ) {
+    return this.systemIntegrationsService.updateTournamentDefaults(
       dto,
       request.user.userId,
     );
