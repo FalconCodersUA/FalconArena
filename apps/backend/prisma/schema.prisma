@@ -123,6 +123,7 @@ model Tournament {
   teams              Team[]
   rounds             Round[]
   scheduleEvents     TournamentScheduleEvent[]
+  certificateTemplate CertificateTemplate?
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
 }
@@ -318,4 +319,20 @@ model TournamentScheduleEvent {
   updatedAt    DateTime                    @updatedAt
 
   @@index([tournamentId, startsAt])
+}
+
+model CertificateTemplate {
+  id          String     @id @default(cuid())
+  tournamentId String    @unique
+  tournament  Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  name        String     @default("Основний шаблон")
+  title       String
+  subtitle    String?
+  body        String
+  footer      String?
+  signerName  String?
+  signerRole  String?
+  accentColor String     @default("#5E17EB")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }

@@ -4,6 +4,7 @@ import { AuthRole, getAuthRole, isAuthenticated } from '../lib/auth';
 import AdminDashboardPage from '../pages/AdminDashboardPage';
 import ArchivePage from '../pages/ArchivePage';
 import AppShell from './layout/AppShell';
+import CertificatePreviewPage from '../pages/CertificatePreviewPage';
 import JuryDashboardPage from '../pages/JuryDashboardPage';
 import LeaderboardPage from '../pages/LeaderboardPage';
 import LoginPage from '../pages/LoginPage';
@@ -57,6 +58,14 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <Navigate to="/app" replace />,
+  },
+  {
+    path: '/app/certificates',
+    element: (
+      <ProtectedRoute roles={['ADMIN', 'ORGANIZER']}>
+        <CertificatePreviewPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/app',
