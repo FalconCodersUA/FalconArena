@@ -756,6 +756,86 @@ export default function MessagesPage() {
         <p className="lead">{t('messagesPage.lead')}</p>
       </header>
 
+      <article className="card panel-card messages-workspace-card">
+        <div className="messages-workspace-head">
+          <div className="messages-workspace-copy">
+            <p className="eyebrow dashboard-workspace-eyebrow">
+              {t('messagesPage.workspaceEyebrow')}
+            </p>
+            <h2>{t('messagesPage.workspaceTitle')}</h2>
+            <p>{t('messagesPage.workspaceLead')}</p>
+          </div>
+          <div className="dashboard-workspace-status messages-workspace-status">
+            <span>{t('messagesPage.workspaceStatusLabel')}</span>
+            <strong>{unreadNotificationsCount + unreadDialogsCount}</strong>
+            <p>{t('messagesPage.workspaceStatusLead')}</p>
+          </div>
+        </div>
+
+        <div className="dashboard-toolset-grid messages-toolset-grid">
+          <button
+            type="button"
+            className="dashboard-tool-card dashboard-tool-button"
+            onClick={() => setActiveSection('notifications')}
+          >
+            <span>{t('messagesPage.sections.notifications')}</span>
+            <strong>{t('messagesPage.workspaceCards.notificationsTitle')}</strong>
+            <p>{t('messagesPage.workspaceCards.notificationsLead')}</p>
+            <em>
+              {unreadNotificationsCount} {t('messagesPage.workspaceCards.unreadSuffix')}
+            </em>
+          </button>
+          <button
+            type="button"
+            className="dashboard-tool-card dashboard-tool-button"
+            onClick={() => setActiveSection('announcements')}
+          >
+            <span>{t('messagesPage.sections.announcements')}</span>
+            <strong>{t('messagesPage.workspaceCards.announcementsTitle')}</strong>
+            <p>{t('messagesPage.workspaceCards.announcementsLead')}</p>
+            <em>
+              {pinnedCount} {t('messagesPage.workspaceCards.pinnedSuffix')}
+            </em>
+          </button>
+          <button
+            type="button"
+            className="dashboard-tool-card dashboard-tool-button"
+            onClick={() => setActiveSection('dialogs')}
+          >
+            <span>{t('messagesPage.sections.dialogs')}</span>
+            <strong>{t('messagesPage.workspaceCards.dialogsTitle')}</strong>
+            <p>{t('messagesPage.workspaceCards.dialogsLead')}</p>
+            <em>
+              {dialogs.length} {t('messagesPage.workspaceCards.dialogsSuffix')}
+            </em>
+          </button>
+          <button
+            type="button"
+            className="dashboard-tool-card dashboard-tool-button"
+            onClick={() => {
+              refreshNotifications();
+              refreshFeed();
+              refreshDialogs();
+            }}
+          >
+            <span>{t('messagesPage.workspaceCards.syncLabel')}</span>
+            <strong>{t('messagesPage.workspaceCards.syncTitle')}</strong>
+            <p>{t('messagesPage.workspaceCards.syncLead')}</p>
+            <em>
+              {lastRealtimeSyncAt
+                ? new Date(lastRealtimeSyncAt).toLocaleTimeString(
+                    language === 'uk' ? 'uk-UA' : 'en-US',
+                    {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    },
+                  )
+                : t('messagesPage.workspaceCards.syncEmpty')}
+            </em>
+          </button>
+        </div>
+      </article>
+
       <article className="card panel-card">
         <div className="summary-grid compact-summary-grid">
           <div className="summary-card">
@@ -811,7 +891,7 @@ export default function MessagesPage() {
       </article>
 
       {showNotifications ? (
-        <article className="card panel-card">
+        <article id="messages-notifications" className="card panel-card">
           <div className="messages-controls">
             <div className="messages-controls-text">
               <h2>{t('messagesPage.notifications.title')}</h2>
@@ -828,7 +908,10 @@ export default function MessagesPage() {
 
           {notificationsError ? <p className="form-error">{notificationsError}</p> : null}
           {!notificationsError && notifications.length === 0 ? (
-            <p className="state-callout subtle">{t('messagesPage.notifications.empty')}</p>
+            <div className="state-callout featured">
+              <strong>{t('messagesPage.notifications.title')}</strong>
+              <p>{t('messagesPage.notifications.empty')}</p>
+            </div>
           ) : null}
 
           {notifications.length > 0 ? (
@@ -876,7 +959,7 @@ export default function MessagesPage() {
       {showAnnouncements ? (
         <>
           {isManager ? (
-            <article className="card panel-card">
+            <article id="messages-announcements-manage" className="card panel-card">
               <div className="messages-controls">
                 <div className="messages-controls-text">
                   <h2>{t('messagesPage.manager.title')}</h2>
@@ -976,8 +1059,8 @@ export default function MessagesPage() {
               </form>
             </article>
           ) : (
-            <article className="card panel-card">
-              <div className="state-callout subtle">
+            <article id="messages-announcements-view" className="card panel-card">
+              <div className="state-callout featured">
                 <strong>{t('messagesPage.viewer.title')}</strong>
                 <p>{t('messagesPage.viewer.lead')}</p>
               </div>
@@ -992,12 +1075,15 @@ export default function MessagesPage() {
             </article>
           )}
 
-          <article className="card panel-card">
+          <article id="messages-announcements-feed" className="card panel-card">
             <h2>{t('messagesPage.feedTitle')}</h2>
             {error ? <p className="form-error">{error}</p> : null}
             {refreshing ? <p>{t('messagesPage.refreshing')}</p> : null}
             {!refreshing && announcements.length === 0 ? (
-              <p className="state-callout subtle">{t('messagesPage.empty')}</p>
+              <div className="state-callout featured">
+                <strong>{t('messagesPage.feedTitle')}</strong>
+                <p>{t('messagesPage.empty')}</p>
+              </div>
             ) : null}
 
             {announcements.length > 0 ? (
@@ -1079,7 +1165,7 @@ export default function MessagesPage() {
       ) : null}
 
       {showDialogs ? (
-        <article className="card panel-card">
+        <article id="messages-dialogs" className="card panel-card">
         <div className="messages-controls">
           <div className="messages-controls-text">
             <h2>{t('messagesPage.dialogs.title')}</h2>
@@ -1121,7 +1207,10 @@ export default function MessagesPage() {
         <div className="messages-dialogs-layout">
           <div className="messages-dialog-list">
             {dialogs.length === 0 ? (
-              <p className="state-callout subtle">{t('messagesPage.dialogs.empty')}</p>
+              <div className="state-callout featured">
+                <strong>{t('messagesPage.dialogs.title')}</strong>
+                <p>{t('messagesPage.dialogs.empty')}</p>
+              </div>
             ) : (
               dialogs.map((dialog) => (
                 <button
@@ -1157,7 +1246,10 @@ export default function MessagesPage() {
 
           <div className="messages-dialog-thread">
             {!selectedDialog ? (
-              <p>{t('messagesPage.dialogs.pickDialog')}</p>
+              <div className="state-callout featured">
+                <strong>{t('messagesPage.dialogs.title')}</strong>
+                <p>{t('messagesPage.dialogs.pickDialog')}</p>
+              </div>
             ) : (
               <>
                 <header className="messages-thread-head">
@@ -1173,7 +1265,10 @@ export default function MessagesPage() {
                 ) : (
                   <div className="messages-thread-feed">
                     {dialogMessages.length === 0 ? (
-                      <p>{t('messagesPage.dialogs.noMessages')}</p>
+                      <div className="state-callout subtle">
+                        <strong>{t('messagesPage.dialogs.title')}</strong>
+                        <p>{t('messagesPage.dialogs.noMessages')}</p>
+                      </div>
                     ) : (
                       dialogMessages.map((item) => (
                         <article

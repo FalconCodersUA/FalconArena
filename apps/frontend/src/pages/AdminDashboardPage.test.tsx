@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { apiRequest } from '../lib/api';
@@ -16,9 +17,11 @@ const mockedApiRequest = vi.mocked(apiRequest);
 
 function renderAdminPage() {
   return render(
-    <I18nProvider>
-      <AdminDashboardPage />
-    </I18nProvider>,
+    <MemoryRouter initialEntries={['/app/admin']}>
+      <I18nProvider>
+        <AdminDashboardPage />
+      </I18nProvider>
+    </MemoryRouter>,
   );
 }
 

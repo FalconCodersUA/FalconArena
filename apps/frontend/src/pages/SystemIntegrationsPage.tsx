@@ -358,6 +358,55 @@ export default function SystemIntegrationsPage() {
     : emailSettings.isConfigured
       ? 'active'
       : 'incomplete';
+  const enabledRuleCount = [
+    notificationRules.registrationStarted,
+    notificationRules.roundStarted,
+    notificationRules.submissionReceived,
+    notificationRules.deadlineReminder,
+    notificationRules.submissionClosed,
+  ].filter(Boolean).length;
+  const configuredToolCount = [googleSheets.isConfigured, emailStatusKey === 'active', true, true]
+    .filter(Boolean)
+    .length;
+  const operationalCards = [
+    {
+      id: 'integrations-google-sheets',
+      eyebrow: t('systemIntegrations.googleSheets.title'),
+      title: t('systemIntegrations.workspaceCards.googleSheetsTitle'),
+      lead: googleSheets.isConfigured
+        ? t('systemIntegrations.workspaceCards.googleSheetsReady')
+        : t('systemIntegrations.workspaceCards.googleSheetsPending'),
+      status: googleSheets.isConfigured
+        ? t('systemIntegrations.googleSheets.configured')
+        : t('systemIntegrations.googleSheets.notConfigured'),
+    },
+    {
+      id: 'integrations-email',
+      eyebrow: t('systemIntegrations.email.title'),
+      title: t('systemIntegrations.workspaceCards.emailTitle'),
+      lead:
+        emailStatusKey === 'active'
+          ? t('systemIntegrations.workspaceCards.emailReady')
+          : t('systemIntegrations.workspaceCards.emailPending'),
+      status: t(`systemIntegrations.email.status.${emailStatusKey}`),
+    },
+    {
+      id: 'integrations-defaults',
+      eyebrow: t('systemIntegrations.tournamentDefaults.title'),
+      title: t('systemIntegrations.workspaceCards.defaultsTitle'),
+      lead: t('systemIntegrations.workspaceCards.defaultsLead'),
+      status: t(
+        `systemIntegrations.tournamentDefaults.sources.${tournamentDefaults.source}`,
+      ),
+    },
+    {
+      id: 'integrations-rules',
+      eyebrow: t('systemIntegrations.notificationRules.title'),
+      title: t('systemIntegrations.workspaceCards.rulesTitle'),
+      lead: `${enabledRuleCount} ${t('systemIntegrations.workspaceCards.rulesLead')}`,
+      status: t(`systemIntegrations.notificationRules.sources.${notificationRules.source}`),
+    },
+  ];
 
   return (
     <section className="team-dashboard">
@@ -367,7 +416,35 @@ export default function SystemIntegrationsPage() {
         <p className="lead">{t('systemIntegrations.lead')}</p>
       </header>
 
-      <article className="card panel-card">
+      <article className="card panel-card integrations-workspace-card">
+        <div className="integrations-workspace-head">
+          <div className="integrations-workspace-copy">
+            <p className="eyebrow dashboard-workspace-eyebrow">
+              {t('systemIntegrations.workspaceEyebrow')}
+            </p>
+            <h2>{t('systemIntegrations.workspaceTitle')}</h2>
+            <p>{t('systemIntegrations.workspaceLead')}</p>
+          </div>
+          <div className="dashboard-workspace-status integrations-workspace-status">
+            <span>{t('systemIntegrations.workspaceStatusLabel')}</span>
+            <strong>{configuredToolCount}/4</strong>
+            <p>{t('systemIntegrations.workspaceStatusLead')}</p>
+          </div>
+        </div>
+
+        <div className="dashboard-toolset-grid integrations-toolset-grid">
+          {operationalCards.map((card) => (
+            <a key={card.id} href={`#${card.id}`} className="dashboard-tool-card">
+              <span>{card.eyebrow}</span>
+              <strong>{card.title}</strong>
+              <p>{card.lead}</p>
+              <em>{card.status}</em>
+            </a>
+          ))}
+        </div>
+      </article>
+
+      <article id="integrations-google-sheets" className="card panel-card">
         <div className="tournament-head">
           <h2>{t('systemIntegrations.googleSheets.title')}</h2>
           <span className={`status-pill${googleSheets.isConfigured ? ' active' : ''}`}>
@@ -476,7 +553,7 @@ export default function SystemIntegrationsPage() {
         {googleError ? <p className="form-error">{googleError}</p> : null}
       </article>
 
-      <article className="card panel-card">
+      <article id="integrations-email" className="card panel-card">
         <div className="tournament-head">
           <h2>{t('systemIntegrations.email.title')}</h2>
           <span className={`status-pill${emailStatusKey === 'active' ? ' active' : ''}`}>
@@ -605,7 +682,7 @@ export default function SystemIntegrationsPage() {
         {emailError ? <p className="form-error">{emailError}</p> : null}
       </article>
 
-      <article className="card panel-card">
+      <article id="integrations-defaults" className="card panel-card">
         <div className="tournament-head">
           <h2>{t('systemIntegrations.tournamentDefaults.title')}</h2>
           <span className="status-pill active">
@@ -846,7 +923,7 @@ export default function SystemIntegrationsPage() {
         {defaultsError ? <p className="form-error">{defaultsError}</p> : null}
       </article>
 
-      <article className="card panel-card">
+      <article id="integrations-rules" className="card panel-card">
         <div className="tournament-head">
           <h2>{t('systemIntegrations.notificationRules.title')}</h2>
           <span className="status-pill active">

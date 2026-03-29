@@ -98,3 +98,4 @@
 
 1. Фінальний UX/mobile pass.
 2. За потреби: більш просунутий realtime (WebSocket / SSE).
+3. Окремий UI redesign pass для `Admin Dashboard`, `Інтеграцій` і shared visual system.

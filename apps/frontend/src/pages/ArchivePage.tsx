@@ -381,6 +381,72 @@ export default function ArchivePage() {
         <p className="lead">{t('archivePage.lead')}</p>
       </header>
 
+      <article className="card panel-card archive-workspace-card">
+        <div className="archive-workspace-head">
+          <div className="archive-workspace-copy">
+            <p className="eyebrow dashboard-workspace-eyebrow">
+              {t('archivePage.workspaceEyebrow')}
+            </p>
+            <h2>{t('archivePage.workspaceTitle')}</h2>
+            <p>{t('archivePage.workspaceLead')}</p>
+          </div>
+          <div className="dashboard-workspace-status archive-workspace-status">
+            <span>{t('archivePage.workspaceStatusLabel')}</span>
+            <strong>{tournaments.length}</strong>
+            <p>{t('archivePage.workspaceStatusLead')}</p>
+          </div>
+        </div>
+
+        <div className="dashboard-toolset-grid archive-toolset-grid">
+          <button
+            type="button"
+            className="dashboard-tool-card dashboard-tool-button"
+            onClick={() => document.getElementById('archive-summary')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          >
+            <span>{t('archivePage.summaryTitle')}</span>
+            <strong>{t('archivePage.workspaceCards.summaryTitle')}</strong>
+            <p>{t('archivePage.workspaceCards.summaryLead')}</p>
+            <em>{archive ? `${archive.summary.teamsCount} ${t('archivePage.workspaceCards.teamsSuffix')}` : `0 ${t('archivePage.workspaceCards.teamsSuffix')}`}</em>
+          </button>
+          <button
+            type="button"
+            className="dashboard-tool-card dashboard-tool-button"
+            onClick={() => document.getElementById('archive-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          >
+            <span>{t('archivePage.resultsTitle')}</span>
+            <strong>{t('archivePage.workspaceCards.resultsTitle')}</strong>
+            <p>{t('archivePage.workspaceCards.resultsLead')}</p>
+            <em>{leader ? `#1 ${leader.teamName}` : t('archivePage.workspaceCards.noLeader')}</em>
+          </button>
+          <button
+            type="button"
+            className="dashboard-tool-card dashboard-tool-button"
+            onClick={() => document.getElementById('archive-rounds')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          >
+            <span>{t('archivePage.roundsTitle')}</span>
+            <strong>{t('archivePage.workspaceCards.roundsTitle')}</strong>
+            <p>{t('archivePage.workspaceCards.roundsLead')}</p>
+            <em>{archive ? `${archive.summary.roundsCount} ${t('archivePage.workspaceCards.roundsSuffix')}` : `0 ${t('archivePage.workspaceCards.roundsSuffix')}`}</em>
+          </button>
+          {isManager ? (
+            <button
+              type="button"
+              className="dashboard-tool-card dashboard-tool-button"
+              onClick={() => document.getElementById('archive-certificates')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            >
+              <span>{t('archivePage.certificates.title')}</span>
+              <strong>{t('archivePage.workspaceCards.certificatesTitle')}</strong>
+              <p>{t('archivePage.workspaceCards.certificatesLead')}</p>
+              <em>
+                {certificateTemplate?.isDefault
+                  ? t('archivePage.certificates.defaultTemplate')
+                  : t('archivePage.certificates.customTemplate')}
+              </em>
+            </button>
+          ) : null}
+        </div>
+      </article>
+
       <article className="card panel-card">
         <label className="field" htmlFor="archive-tournament-select">
           <span>{t('archivePage.tournamentLabel')}</span>
@@ -407,12 +473,20 @@ export default function ArchivePage() {
       </article>
 
       {loadingArchive ? (
-        <article className="card panel-card">{t('archivePage.loadingArchive')}</article>
+        <article className="card panel-card">
+          <div className="state-callout featured">
+            <strong>{t('archivePage.title')}</strong>
+            <p>{t('archivePage.loadingArchive')}</p>
+          </div>
+        </article>
       ) : null}
 
       {archiveError ? (
         <article className="card panel-card">
-          <p className="form-error">{archiveError}</p>
+          <div className="state-callout featured">
+            <strong>{t('archivePage.title')}</strong>
+            <p>{archiveError}</p>
+          </div>
           <button
             type="button"
             className="button button-soft"
@@ -425,7 +499,7 @@ export default function ArchivePage() {
 
       {!loadingArchive && !archiveError && archive ? (
         <>
-          <article className="card panel-card">
+          <article id="archive-summary" className="card panel-card">
             <h2>{t('archivePage.summaryTitle')}</h2>
             <div className="summary-grid">
               <div className="summary-card">
@@ -497,7 +571,7 @@ export default function ArchivePage() {
           </article>
 
           {isManager ? (
-            <article className="card panel-card">
+            <article id="archive-certificates" className="card panel-card">
               <div className="tournament-head">
                 <h2>{t('archivePage.certificates.title')}</h2>
                 <span className="status-pill">
@@ -637,7 +711,7 @@ export default function ArchivePage() {
           ) : null}
 
           {archive.leaderboard ? (
-            <article className="card panel-card">
+            <article id="archive-results" className="card panel-card">
               <h2>{t('archivePage.resultsTitle')}</h2>
               <div className="leaderboard-scoring">
                 <p>
@@ -690,7 +764,7 @@ export default function ArchivePage() {
             </article>
           ) : null}
 
-          <article className="card panel-card">
+          <article id="archive-rounds" className="card panel-card">
             <h2>{t('archivePage.teamsTitle')}</h2>
             <div className="leaderboard-grid">
               {archive.teams.map((team) => (
