@@ -1,0 +1,54 @@
+# Smoke Checklist
+
+Цей сценарій потрібен для швидкої перевірки готовності платформи перед показом або після деплою.
+
+## Автоматичний smoke
+
+Запуск:
+
+```bash
+BASE_URL=https://falconarena.live \
+ADMIN_EMAIL=admin@falconarena.live \
+ADMIN_PASSWORD=your-password \
+TEST_USER_PASSWORD=StrongPass123! \
+npm run smoke:platform -w @falconarena/backend
+```
+
+Що перевіряє скрипт:
+
+1. `ADMIN` входить у систему.
+2. Публічні platform defaults доступні.
+3. `ADMIN` створює тестових `TEAM` і `JURY` користувачів.
+4. Створюється турнір.
+5. Для турніру створюється подія розкладу.
+6. Турнір переводиться в `REGISTRATION`.
+7. Створюється оголошення, і `TEAM` бачить його як unread.
+8. `TEAM` реєструє команду.
+9. `TEAM` створює direct dialog з `JURY`, надсилає повідомлення, unread/read для діалогу працює.
+10. `ADMIN` створює раунд з `mustHave`, `technologyRequirements`, `additionalMaterials`.
+11. Раунд активується, турнір переходить у `RUNNING`.
+12. `TEAM` подає submission і отримує персональне notification.
+13. `ADMIN` розподіляє оцінювання на `JURY`.
+14. `JURY` виставляє оцінку.
+15. `ADMIN` завершує evaluation.
+16. Турнір переходить у `FINISHED`.
+17. Доступні `leaderboard` та `archive`.
+18. Доступні `participation` і `winner` certificates.
+19. Фінальне notification веде в archive.
+
+## Короткий ручний smoke для демо
+
+1. Увійти під `ADMIN`.
+2. Відкрити `/app/integrations` і переконатися, що системні налаштування відкриваються.
+3. Відкрити `/app/admin` і перевірити quick actions, створення турніру та раунду.
+4. Відкрити `/app/tournaments` і перейти в `Деталі турніру`.
+5. Увійти під `TEAM`, перевірити `/app/team`, `Повідомлення`, `Профіль`.
+6. Увійти під `JURY`, перевірити `/app/jury`, призначені роботи та `Повідомлення`.
+7. Під `ADMIN` відкрити `/app/leaderboard` і `/app/archive`.
+8. В archive перевірити сертифікат участі та сертифікат переможця.
+
+## Коли запускати
+
+- після merge в `main`
+- після застосування Prisma migrations на сервері
+- перед демонстрацією або захистом
