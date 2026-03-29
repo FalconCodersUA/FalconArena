@@ -290,8 +290,90 @@ export default function LeaderboardPage() {
         <p className="lead">{t('leaderboard.lead')}</p>
       </header>
 
+      <article className="card panel-card leaderboard-workspace-card">
+        <div className="leaderboard-workspace-head">
+          <div className="leaderboard-workspace-copy">
+            <p className="eyebrow dashboard-workspace-eyebrow">
+              {t('leaderboard.workspaceEyebrow')}
+            </p>
+            <h2>{t('leaderboard.workspaceTitle')}</h2>
+            <p>{t('leaderboard.workspaceLead')}</p>
+          </div>
+          <div className="dashboard-workspace-status leaderboard-workspace-status">
+            <span>{t('leaderboard.workspaceStatusLabel')}</span>
+            <strong>{leaderboard?.rows.length ?? 0}</strong>
+            <p>{t('leaderboard.workspaceStatusLead')}</p>
+          </div>
+        </div>
+
+        <div className="dashboard-toolset-grid leaderboard-toolset-grid">
+          <button
+            type="button"
+            className="dashboard-tool-card dashboard-tool-button"
+            onClick={() =>
+              document
+                .getElementById('leaderboard-summary')
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }
+          >
+            <span>{t('leaderboard.summaryTitle')}</span>
+            <strong>{t('leaderboard.workspaceCards.summaryTitle')}</strong>
+            <p>{t('leaderboard.workspaceCards.summaryLead')}</p>
+            <em>{selectedTournament ? t(`tournaments.status.${selectedTournament.status}`) : '-'}</em>
+          </button>
+          <button
+            type="button"
+            className="dashboard-tool-card dashboard-tool-button"
+            onClick={() =>
+              document
+                .getElementById('leaderboard-results')
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }
+          >
+            <span>{t('leaderboard.resultsTitle')}</span>
+            <strong>{t('leaderboard.workspaceCards.resultsTitle')}</strong>
+            <p>{t('leaderboard.workspaceCards.resultsLead')}</p>
+            <em>{leaderRow ? `#1 ${leaderRow.teamName}` : t('leaderboard.workspaceCards.noLeader')}</em>
+          </button>
+          <button
+            type="button"
+            className="dashboard-tool-card dashboard-tool-button"
+            onClick={() => void loadLeaderboard(selectedTournamentId)}
+            disabled={!selectedTournamentId}
+          >
+            <span>{t('leaderboard.workspaceCards.syncLabel')}</span>
+            <strong>{t('leaderboard.workspaceCards.syncTitle')}</strong>
+            <p>{t('leaderboard.workspaceCards.syncLead')}</p>
+            <em>
+              {lastUpdatedAt
+                ? new Date(lastUpdatedAt).toLocaleTimeString(
+                    language === 'uk' ? 'uk-UA' : 'en-US',
+                    {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    },
+                  )
+                : t('leaderboard.workspaceCards.syncEmpty')}
+            </em>
+          </button>
+          {selectedTournamentId ? (
+            <a
+              href={buildApiUrl(
+                `/tournaments/${selectedTournamentId}/leaderboard/export.csv`,
+              )}
+              className="dashboard-tool-card"
+            >
+              <span>{t('leaderboard.exportCsv')}</span>
+              <strong>{t('leaderboard.workspaceCards.exportTitle')}</strong>
+              <p>{t('leaderboard.workspaceCards.exportLead')}</p>
+              <em>{t('leaderboard.workspaceCards.exportHint')}</em>
+            </a>
+          ) : null}
+        </div>
+      </article>
+
       {leaderboard ? (
-        <article className="card panel-card">
+        <article id="leaderboard-summary" className="card panel-card">
           <h2>{t('leaderboard.summaryTitle')}</h2>
           <div className="summary-grid">
             <div className="summary-card">
@@ -352,7 +434,7 @@ export default function LeaderboardPage() {
         </div>
       </article>
 
-      <article className="card panel-card">
+      <article id="leaderboard-results" className="card panel-card">
         <div className="messages-controls">
           <div className="messages-controls-text">
             <h2>{t('leaderboard.resultsTitle')}</h2>
@@ -397,11 +479,19 @@ export default function LeaderboardPage() {
         {googleSheetsNotice ? <p className="form-success">{googleSheetsNotice}</p> : null}
         {googleSheetsError ? <p className="form-error">{googleSheetsError}</p> : null}
 
-        {loadingLeaderboard ? <p>{t('leaderboard.loadingLeaderboard')}</p> : null}
+        {loadingLeaderboard ? (
+          <div className="state-callout featured">
+            <strong>{t('leaderboard.resultsTitle')}</strong>
+            <p>{t('leaderboard.loadingLeaderboard')}</p>
+          </div>
+        ) : null}
 
         {leaderboardError ? (
           <>
-            <p className="form-error">{leaderboardError}</p>
+            <div className="state-callout featured">
+              <strong>{t('leaderboard.resultsTitle')}</strong>
+              <p>{leaderboardError}</p>
+            </div>
             <button
               type="button"
               className="button button-soft"
@@ -431,7 +521,10 @@ export default function LeaderboardPage() {
             </div>
 
             {leaderboard.rows.length === 0 ? (
-              <p className="state-callout subtle">{t('leaderboard.emptyRows')}</p>
+              <div className="state-callout featured">
+                <strong>{t('leaderboard.resultsTitle')}</strong>
+                <p>{t('leaderboard.emptyRows')}</p>
+              </div>
             ) : (
               <div className="leaderboard-grid">
                 {leaderboard.rows.map((row) => (

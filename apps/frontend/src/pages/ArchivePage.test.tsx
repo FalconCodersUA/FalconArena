@@ -156,7 +156,7 @@ describe('ArchivePage', () => {
 
     renderArchivePage();
 
-    await screen.findByText('Final results');
+    await screen.findByRole('heading', { name: 'Final results', level: 2 });
 
     expect(screen.getAllByText('Falcon Final 2026').length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Falcons/).length).toBeGreaterThan(0);

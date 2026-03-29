@@ -242,7 +242,7 @@ describe('MessagesPage', () => {
 
     renderMessagesPage();
 
-    await screen.findByText('Personal dialogs');
+    await screen.findByRole('heading', { name: 'Personal dialogs', level: 2 });
 
     fireEvent.change(screen.getByLabelText('Message'), {
       target: { value: 'Hello jury!' },
@@ -402,7 +402,7 @@ describe('MessagesPage', () => {
 
     renderMessagesPage('/app/messages?section=notifications&notification=notification-1');
 
-    await screen.findByText('System notifications');
+    await screen.findByRole('heading', { name: 'System notifications', level: 2 });
     expect(screen.getByText('Round is active')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Notifications' })).toHaveClass('active');
   });

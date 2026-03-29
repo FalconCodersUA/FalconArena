@@ -414,9 +414,45 @@ export default function AdminDashboardPage() {
   const quickTeamsPreview = quickTeams.slice(0, 3);
   const activityCurve = toSizedSeries(metrics.activity, 8);
   const activityPath = buildSparkPath(activityCurve);
-  const hasWeeklyMetrics = weeklyReviewedRaw.some((value) => value > 0) || weeklySubmissionRaw.some((value) => value > 0);
+  const hasWeeklyMetrics =
+    weeklyReviewedRaw.some((value) => value > 0) ||
+    weeklySubmissionRaw.some((value) => value > 0);
   const hasStatusMetrics = statusTotal > 0;
   const hasActivityMetrics = activityCurve.some((value) => value > 0);
+  const checklistItems = [
+    {
+      id: 'tournaments',
+      done: tournaments.length > 0,
+      title: t('adminDashboard.workspaceChecklist.items.tournaments.title'),
+      description: tournaments.length > 0
+        ? t('adminDashboard.workspaceChecklist.items.tournaments.ready')
+        : t('adminDashboard.workspaceChecklist.items.tournaments.pending'),
+    },
+    {
+      id: 'schedule',
+      done: scheduleEvents.length > 0,
+      title: t('adminDashboard.workspaceChecklist.items.schedule.title'),
+      description: scheduleEvents.length > 0
+        ? t('adminDashboard.workspaceChecklist.items.schedule.ready')
+        : t('adminDashboard.workspaceChecklist.items.schedule.pending'),
+    },
+    {
+      id: 'rounds',
+      done: rounds.length > 0,
+      title: t('adminDashboard.workspaceChecklist.items.rounds.title'),
+      description: rounds.length > 0
+        ? t('adminDashboard.workspaceChecklist.items.rounds.ready')
+        : t('adminDashboard.workspaceChecklist.items.rounds.pending'),
+    },
+    {
+      id: 'evaluation',
+      done: activeRounds + closedRounds + evaluatedRounds > 0,
+      title: t('adminDashboard.workspaceChecklist.items.evaluation.title'),
+      description: activeRounds + closedRounds + evaluatedRounds > 0
+        ? t('adminDashboard.workspaceChecklist.items.evaluation.ready')
+        : t('adminDashboard.workspaceChecklist.items.evaluation.pending'),
+    },
+  ];
 
   function openQuickModal(modal: Exclude<AdminQuickModal, 'none'>) {
     setCreateTournamentError('');
@@ -1121,6 +1157,116 @@ export default function AdminDashboardPage() {
         <p className="lead">{t('adminDashboard.lead')}</p>
       </header>
 
+      <article className="card panel-card dashboard-workspace-card">
+        <div className="dashboard-workspace-head">
+          <div className="dashboard-workspace-copy">
+            <p className="eyebrow dashboard-workspace-eyebrow">
+              {t('adminDashboard.workspaceEyebrow')}
+            </p>
+            <h2>{t('adminDashboard.workspaceTitle')}</h2>
+            <p>{t('adminDashboard.workspaceLead')}</p>
+          </div>
+
+          <div className="dashboard-workspace-status">
+            <span>{t('adminDashboard.workspaceCurrentTournament')}</span>
+            <strong>
+              {selectedTournament?.title ?? t('adminDashboard.workspaceNoTournament')}
+            </strong>
+            <p>
+              {selectedTournament
+                ? t(`tournaments.status.${selectedTournament.status}`)
+                : t('adminDashboard.workspaceStatusEmpty')}
+            </p>
+          </div>
+        </div>
+
+        <div className="dashboard-workspace-grid">
+          <div className="dashboard-quick-actions dashboard-quick-actions--workspace">
+            <div className="dashboard-quick-head">
+              <div>
+                <strong>{t('shell.quickActions')}</strong>
+                <p>{t('adminDashboard.workspaceActionsLead')}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="button dashboard-action is-teal"
+              onClick={() => openQuickModal('createTournament')}
+            >
+              {t('adminDashboard.form.createTournament')}
+            </button>
+            <a href="#admin-manage-tournament" className="button dashboard-action is-orange">
+              {t('adminDashboard.manageTournamentTitle')}
+            </a>
+            <button
+              type="button"
+              className="button dashboard-action is-cobalt"
+              onClick={() => openQuickModal('createRound')}
+              disabled={!selectedTournament}
+            >
+              {t('adminDashboard.form.createRound')}
+            </button>
+            <button
+              type="button"
+              className="button dashboard-action is-purple"
+              onClick={() => openQuickModal('createUser')}
+            >
+              {t('adminDashboard.userForm.createUser')}
+            </button>
+          </div>
+
+          <article className="dashboard-workspace-panel">
+            <div className="dashboard-workspace-panel-head">
+              <h3>{t('adminDashboard.workspaceChecklistTitle')}</h3>
+              <p>{t('adminDashboard.workspaceChecklistLead')}</p>
+            </div>
+            <div className="dashboard-checklist">
+              {checklistItems.map((item) => (
+                <div
+                  key={item.id}
+                  className={`dashboard-checklist-item${item.done ? ' is-done' : ''}`}
+                >
+                  <span className="dashboard-checklist-bullet" aria-hidden />
+                  <div>
+                    <strong>{item.title}</strong>
+                    <p>{item.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="dashboard-workspace-panel">
+            <div className="dashboard-workspace-panel-head">
+              <h3>{t('adminDashboard.workspaceToolsTitle')}</h3>
+              <p>{t('adminDashboard.workspaceToolsLead')}</p>
+            </div>
+            <div className="dashboard-toolset-grid">
+              <Link to="/app/integrations" className="dashboard-tool-card">
+                <span>{t('shell.integrations')}</span>
+                <strong>{t('adminDashboard.workspaceTools.integrationsTitle')}</strong>
+                <p>{t('adminDashboard.workspaceTools.integrationsLead')}</p>
+              </Link>
+              <Link to="/app/leaderboard" className="dashboard-tool-card">
+                <span>{t('shell.leaderboard')}</span>
+                <strong>{t('adminDashboard.workspaceTools.leaderboardTitle')}</strong>
+                <p>{t('adminDashboard.workspaceTools.leaderboardLead')}</p>
+              </Link>
+              <Link to="/app/archive" className="dashboard-tool-card">
+                <span>{t('shell.archive')}</span>
+                <strong>{t('adminDashboard.workspaceTools.archiveTitle')}</strong>
+                <p>{t('adminDashboard.workspaceTools.archiveLead')}</p>
+              </Link>
+              <Link to="/app/messages" className="dashboard-tool-card">
+                <span>{t('shell.messages')}</span>
+                <strong>{t('adminDashboard.workspaceTools.messagesTitle')}</strong>
+                <p>{t('adminDashboard.workspaceTools.messagesLead')}</p>
+              </Link>
+            </div>
+          </article>
+        </div>
+      </article>
+
       <article className="card panel-card dashboard-overview-card">
         <div className="dashboard-overview-top">
           <div className="dashboard-summary-tiles">
@@ -1152,36 +1298,29 @@ export default function AdminDashboardPage() {
             </article>
           </div>
 
-          <div className="dashboard-quick-actions">
-            <div className="dashboard-quick-head">
-              <strong>{t('shell.quickActions')}</strong>
+          <article className="dashboard-insight-card">
+            <div className="dashboard-insight-head">
+              <span>{t('adminDashboard.focusTitle')}</span>
+              <a href="#admin-manage-tournament">{t('shell.open')}</a>
             </div>
-            <button
-              type="button"
-              className="button dashboard-action is-teal"
-              onClick={() => openQuickModal('createTournament')}
-            >
-              {t('adminDashboard.form.createTournament')}
-            </button>
-            <a href="#admin-manage-tournament" className="button dashboard-action is-orange">
-              {t('adminDashboard.manageTournamentTitle')}
-            </a>
-            <button
-              type="button"
-              className="button dashboard-action is-cobalt"
-              onClick={() => openQuickModal('createRound')}
-              disabled={!selectedTournament}
-            >
-              {t('adminDashboard.form.createRound')}
-            </button>
-            <button
-              type="button"
-              className="button dashboard-action is-purple"
-              onClick={() => openQuickModal('createUser')}
-            >
-              {t('adminDashboard.userForm.createUser')}
-            </button>
-          </div>
+            <strong>
+              {selectedTournament?.title ?? t('adminDashboard.workspaceNoTournament')}
+            </strong>
+            <p>
+              {selectedTournament
+                ? `${t(`tournaments.status.${selectedTournament.status}`)} · ${rounds.length} ${t('adminDashboard.summary.rounds').toLowerCase()}`
+                : t('adminDashboard.focusEmpty')}
+            </p>
+            <div className="dashboard-insight-metrics">
+              <span>
+                {metrics.summary.registrationTournaments}{' '}
+                {t('adminDashboard.focusMetrics.registrationShort')}
+              </span>
+              <span>
+                {activeRounds} {t('adminDashboard.focusMetrics.activeRoundsShort')}
+              </span>
+            </div>
+          </article>
         </div>
 
         <div className="dashboard-overview-bottom">
