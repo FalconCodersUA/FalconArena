@@ -42,6 +42,20 @@ type NotificationRulesResponse = {
   source: 'database' | 'default';
 };
 
+type TournamentDefaultsResponse = {
+  minTeamMembers: number;
+  maxTeamMembers: number;
+  defaultMinReviewersPerSubmission: number;
+  defaultProjectTimeZone: string;
+  hideTeamsUntilRegistrationClose: boolean;
+  defaultTournamentMaxTeams: number | null;
+  defaultRegistrationWindowHours: number;
+  defaultRoundDurationHours: number;
+  defaultTournamentDescription: string;
+  defaultRoundDescription: string;
+  source: 'database' | 'default';
+};
+
 function trimToUndefined(value: string) {
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : undefined;
@@ -60,6 +74,8 @@ export default function SystemIntegrationsPage() {
   const [googleSheets, setGoogleSheets] = useState<GoogleSheetsSettingsResponse | null>(null);
   const [emailSettings, setEmailSettings] = useState<EmailSettingsResponse | null>(null);
   const [notificationRules, setNotificationRules] = useState<NotificationRulesResponse | null>(null);
+  const [tournamentDefaults, setTournamentDefaults] =
+    useState<TournamentDefaultsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [googleSaving, setGoogleSaving] = useState(false);
@@ -72,20 +88,27 @@ export default function SystemIntegrationsPage() {
   const [emailNotice, setEmailNotice] = useState('');
   const [rulesError, setRulesError] = useState('');
   const [rulesNotice, setRulesNotice] = useState('');
+  const [defaultsSaving, setDefaultsSaving] = useState(false);
+  const [defaultsError, setDefaultsError] = useState('');
+  const [defaultsNotice, setDefaultsNotice] = useState('');
 
   async function loadSettings() {
     setLoading(true);
     setLoadError('');
 
     try {
-      const [googleData, emailData, rulesData] = await Promise.all([
+      const [googleData, emailData, rulesData, defaultsData] = await Promise.all([
         apiRequest<GoogleSheetsSettingsResponse>('/admin/system-integrations/google-sheets'),
         apiRequest<EmailSettingsResponse>('/admin/system-integrations/email'),
         apiRequest<NotificationRulesResponse>('/admin/system-integrations/notification-rules'),
+        apiRequest<TournamentDefaultsResponse>(
+          '/admin/system-integrations/tournament-defaults',
+        ),
       ]);
       setGoogleSheets(googleData);
       setEmailSettings(emailData);
       setNotificationRules(rulesData);
+      setTournamentDefaults(defaultsData);
     } catch (requestError) {
       setLoadError(
         requestError instanceof Error
@@ -95,6 +118,7 @@ export default function SystemIntegrationsPage() {
       setGoogleSheets(null);
       setEmailSettings(null);
       setNotificationRules(null);
+      setTournamentDefaults(null);
     } finally {
       setLoading(false);
     }
@@ -254,11 +278,63 @@ export default function SystemIntegrationsPage() {
     }
   }
 
+  async function saveTournamentDefaults() {
+    if (!tournamentDefaults) {
+      return;
+    }
+
+    setDefaultsSaving(true);
+    setDefaultsNotice('');
+    setDefaultsError('');
+
+    try {
+      const saved = await apiRequest<TournamentDefaultsResponse>(
+        '/admin/system-integrations/tournament-defaults',
+        {
+          method: 'PATCH',
+          body: {
+            minTeamMembers: tournamentDefaults.minTeamMembers,
+            maxTeamMembers: tournamentDefaults.maxTeamMembers,
+            defaultMinReviewersPerSubmission:
+              tournamentDefaults.defaultMinReviewersPerSubmission,
+            defaultProjectTimeZone: trimToUndefined(
+              tournamentDefaults.defaultProjectTimeZone,
+            ),
+            hideTeamsUntilRegistrationClose:
+              tournamentDefaults.hideTeamsUntilRegistrationClose,
+            defaultTournamentMaxTeams:
+              tournamentDefaults.defaultTournamentMaxTeams ?? undefined,
+            defaultRegistrationWindowHours:
+              tournamentDefaults.defaultRegistrationWindowHours,
+            defaultRoundDurationHours:
+              tournamentDefaults.defaultRoundDurationHours,
+            defaultTournamentDescription: trimToUndefined(
+              tournamentDefaults.defaultTournamentDescription,
+            ),
+            defaultRoundDescription: trimToUndefined(
+              tournamentDefaults.defaultRoundDescription,
+            ),
+          },
+        },
+      );
+      setTournamentDefaults(saved);
+      setDefaultsNotice(t('systemIntegrations.saved'));
+    } catch (requestError) {
+      setDefaultsError(
+        requestError instanceof Error
+          ? requestError.message
+          : t('systemIntegrations.saveFailed'),
+      );
+    } finally {
+      setDefaultsSaving(false);
+    }
+  }
+
   if (loading) {
     return <article className="card state-card">{t('systemIntegrations.loading')}</article>;
   }
 
-  if (!googleSheets && !emailSettings && !notificationRules) {
+  if (!googleSheets && !emailSettings && !notificationRules && !tournamentDefaults) {
     return (
       <article className="card state-card">
         <p className="form-error">{loadError || t('systemIntegrations.loadFailed')}</p>
@@ -269,7 +345,7 @@ export default function SystemIntegrationsPage() {
     );
   }
 
-  if (!googleSheets || !emailSettings || !notificationRules) {
+  if (!googleSheets || !emailSettings || !notificationRules || !tournamentDefaults) {
     return (
       <article className="card state-card">
         <p className="form-error">{loadError || t('systemIntegrations.loadFailed')}</p>
@@ -527,6 +603,247 @@ export default function SystemIntegrationsPage() {
 
         {emailNotice ? <p className="form-success">{emailNotice}</p> : null}
         {emailError ? <p className="form-error">{emailError}</p> : null}
+      </article>
+
+      <article className="card panel-card">
+        <div className="tournament-head">
+          <h2>{t('systemIntegrations.tournamentDefaults.title')}</h2>
+          <span className="status-pill active">
+            {t(`systemIntegrations.tournamentDefaults.sources.${tournamentDefaults.source}`)}
+          </span>
+        </div>
+
+        <p className="inline-hint">{t('systemIntegrations.tournamentDefaults.lead')}</p>
+        <div className="state-callout subtle">
+          <strong>
+            {t(`systemIntegrations.tournamentDefaults.sources.${tournamentDefaults.source}`)}
+          </strong>
+          <p>
+            {t(
+              `systemIntegrations.tournamentDefaults.sourceHints.${tournamentDefaults.source}`,
+            )}
+          </p>
+        </div>
+
+        <div className="profile-settings-fields two-col">
+          <label className="field">
+            <span>{t('systemIntegrations.tournamentDefaults.form.minTeamMembers')}</span>
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={tournamentDefaults.minTeamMembers}
+              onChange={(event) =>
+                setTournamentDefaults((current) =>
+                  current
+                    ? {
+                        ...current,
+                        minTeamMembers: Number(event.target.value) || 1,
+                      }
+                    : current,
+                )
+              }
+            />
+          </label>
+          <label className="field">
+            <span>{t('systemIntegrations.tournamentDefaults.form.maxTeamMembers')}</span>
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={tournamentDefaults.maxTeamMembers}
+              onChange={(event) =>
+                setTournamentDefaults((current) =>
+                  current
+                    ? {
+                        ...current,
+                        maxTeamMembers: Number(event.target.value) || 1,
+                      }
+                    : current,
+                )
+              }
+            />
+          </label>
+          <label className="field">
+            <span>
+              {t('systemIntegrations.tournamentDefaults.form.defaultMinReviewersPerSubmission')}
+            </span>
+            <input
+              type="number"
+              min={1}
+              max={12}
+              value={tournamentDefaults.defaultMinReviewersPerSubmission}
+              onChange={(event) =>
+                setTournamentDefaults((current) =>
+                  current
+                    ? {
+                        ...current,
+                        defaultMinReviewersPerSubmission:
+                          Number(event.target.value) || 1,
+                      }
+                    : current,
+                )
+              }
+            />
+          </label>
+          <label className="field">
+            <span>{t('systemIntegrations.tournamentDefaults.form.defaultProjectTimeZone')}</span>
+            <input
+              value={tournamentDefaults.defaultProjectTimeZone}
+              onChange={(event) =>
+                setTournamentDefaults((current) =>
+                  current
+                    ? {
+                        ...current,
+                        defaultProjectTimeZone: event.target.value,
+                      }
+                    : current,
+                )
+              }
+            />
+          </label>
+          <label className="field">
+            <span>{t('systemIntegrations.tournamentDefaults.form.defaultTournamentMaxTeams')}</span>
+            <input
+              type="number"
+              min={1}
+              max={500}
+              value={tournamentDefaults.defaultTournamentMaxTeams ?? ''}
+              onChange={(event) =>
+                setTournamentDefaults((current) =>
+                  current
+                    ? {
+                        ...current,
+                        defaultTournamentMaxTeams: event.target.value
+                          ? Number(event.target.value)
+                          : null,
+                      }
+                    : current,
+                )
+              }
+            />
+          </label>
+          <label className="field">
+            <span>
+              {t('systemIntegrations.tournamentDefaults.form.defaultRegistrationWindowHours')}
+            </span>
+            <input
+              type="number"
+              min={1}
+              max={720}
+              value={tournamentDefaults.defaultRegistrationWindowHours}
+              onChange={(event) =>
+                setTournamentDefaults((current) =>
+                  current
+                    ? {
+                        ...current,
+                        defaultRegistrationWindowHours:
+                          Number(event.target.value) || 1,
+                      }
+                    : current,
+                )
+              }
+            />
+          </label>
+          <label className="field">
+            <span>{t('systemIntegrations.tournamentDefaults.form.defaultRoundDurationHours')}</span>
+            <input
+              type="number"
+              min={1}
+              max={720}
+              value={tournamentDefaults.defaultRoundDurationHours}
+              onChange={(event) =>
+                setTournamentDefaults((current) =>
+                  current
+                    ? {
+                        ...current,
+                        defaultRoundDurationHours:
+                          Number(event.target.value) || 1,
+                      }
+                    : current,
+                )
+              }
+            />
+          </label>
+        </div>
+
+        <div className="profile-preferences-block">
+          <label
+            className="profile-toggle-row"
+            htmlFor="tournament-default-hide-teams-until-close"
+          >
+            <button
+              id="tournament-default-hide-teams-until-close"
+              type="button"
+              className={`settings-toggle${tournamentDefaults.hideTeamsUntilRegistrationClose ? ' on' : ''}`}
+              onClick={() =>
+                setTournamentDefaults((current) =>
+                  current
+                    ? {
+                        ...current,
+                        hideTeamsUntilRegistrationClose:
+                          !current.hideTeamsUntilRegistrationClose,
+                      }
+                    : current,
+                )
+              }
+              aria-label={t('systemIntegrations.tournamentDefaults.form.hideTeamsUntilRegistrationClose')}
+              aria-pressed={tournamentDefaults.hideTeamsUntilRegistrationClose}
+            />
+            <span>
+              {t('systemIntegrations.tournamentDefaults.form.hideTeamsUntilRegistrationClose')}
+            </span>
+          </label>
+        </div>
+
+        <div className="profile-settings-fields">
+          <label className="field">
+            <span>{t('systemIntegrations.tournamentDefaults.form.defaultTournamentDescription')}</span>
+            <textarea
+              value={tournamentDefaults.defaultTournamentDescription}
+              onChange={(event) =>
+                setTournamentDefaults((current) =>
+                  current
+                    ? {
+                        ...current,
+                        defaultTournamentDescription: event.target.value,
+                      }
+                    : current,
+                )
+              }
+            />
+          </label>
+          <label className="field">
+            <span>{t('systemIntegrations.tournamentDefaults.form.defaultRoundDescription')}</span>
+            <textarea
+              value={tournamentDefaults.defaultRoundDescription}
+              onChange={(event) =>
+                setTournamentDefaults((current) =>
+                  current
+                    ? {
+                        ...current,
+                        defaultRoundDescription: event.target.value,
+                      }
+                    : current,
+                )
+              }
+            />
+          </label>
+        </div>
+
+        <div className="status-actions">
+          <button
+            type="button"
+            className="button button-primary"
+            onClick={() => void saveTournamentDefaults()}
+            disabled={defaultsSaving}
+          >
+            {defaultsSaving ? t('systemIntegrations.saving') : t('systemIntegrations.save')}
+          </button>
+        </div>
+
+        {defaultsNotice ? <p className="form-success">{defaultsNotice}</p> : null}
+        {defaultsError ? <p className="form-error">{defaultsError}</p> : null}
       </article>
 
       <article className="card panel-card">

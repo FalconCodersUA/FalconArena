@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
+import { PlatformDefaultsController } from './platform-defaults.controller';
 import { SystemIntegrationsController } from './system-integrations.controller';
 import { SystemIntegrationsService } from './system-integrations.service';
 
 @Module({
-  controllers: [SystemIntegrationsController],
+  controllers: [SystemIntegrationsController, PlatformDefaultsController],
   providers: [SystemIntegrationsService],
   exports: [SystemIntegrationsService],
 })

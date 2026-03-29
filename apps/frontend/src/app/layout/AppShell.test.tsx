@@ -69,6 +69,12 @@ describe('AppShell', () => {
     seedAuthedUser();
 
     mockedApiRequest.mockImplementation(async (path: string) => {
+      if (path === '/platform/defaults') {
+        return {
+          defaultProjectTimeZone: 'Europe/Kyiv',
+        };
+      }
+
       if (path === '/auth/me') {
         return {
           id: 'user-1',
@@ -141,6 +147,12 @@ describe('AppShell', () => {
     seedAuthedUser();
 
     mockedApiRequest.mockImplementation(async (path: string) => {
+      if (path === '/platform/defaults') {
+        return {
+          defaultProjectTimeZone: 'Europe/Kyiv',
+        };
+      }
+
       if (path === '/auth/me') {
         return {
           id: 'user-1',
@@ -194,6 +206,12 @@ describe('AppShell', () => {
     seedAuthedUser();
 
     mockedApiRequest.mockImplementation(async (path: string) => {
+      if (path === '/platform/defaults') {
+        return {
+          defaultProjectTimeZone: 'Europe/Kyiv',
+        };
+      }
+
       if (path === '/auth/me') {
         return {
           id: 'user-1',

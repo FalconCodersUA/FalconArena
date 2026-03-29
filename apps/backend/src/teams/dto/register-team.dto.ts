@@ -53,8 +53,8 @@ export class RegisterTeamDto {
   contactHandle?: string;
 
   @IsArray()
-  @ArrayMinSize(2)
-  @ArrayMaxSize(8)
+  @ArrayMinSize(1)
+  @ArrayMaxSize(20)
   @ValidateNested({ each: true })
   @Type(() => RegisterTeamMemberDto)
   members!: RegisterTeamMemberDto[];

@@ -72,6 +72,22 @@ describe('SystemIntegrationsPage', () => {
         };
       }
 
+      if (path === '/admin/system-integrations/tournament-defaults' && !options?.method) {
+        return {
+          minTeamMembers: 2,
+          maxTeamMembers: 8,
+          defaultMinReviewersPerSubmission: 2,
+          defaultProjectTimeZone: 'Europe/Kyiv',
+          hideTeamsUntilRegistrationClose: true,
+          defaultTournamentMaxTeams: 24,
+          defaultRegistrationWindowHours: 48,
+          defaultRoundDurationHours: 72,
+          defaultTournamentDescription: 'Default tournament description',
+          defaultRoundDescription: 'Default round description',
+          source: 'database',
+        };
+      }
+
       if (path === '/admin/system-integrations/google-sheets' && options?.method === 'PATCH') {
         expect(options.body).toEqual({
           webhookUrl: 'https://script.google.com/macros/s/updated/exec',
@@ -148,6 +164,35 @@ describe('SystemIntegrationsPage', () => {
         };
       }
 
+      if (path === '/admin/system-integrations/tournament-defaults' && options?.method === 'PATCH') {
+        expect(options.body).toEqual({
+          minTeamMembers: 2,
+          maxTeamMembers: 10,
+          defaultMinReviewersPerSubmission: 2,
+          defaultProjectTimeZone: 'Europe/Kyiv',
+          hideTeamsUntilRegistrationClose: true,
+          defaultTournamentMaxTeams: 24,
+          defaultRegistrationWindowHours: 48,
+          defaultRoundDurationHours: 72,
+          defaultTournamentDescription: 'Default tournament description',
+          defaultRoundDescription: 'Default round description',
+        });
+
+        return {
+          minTeamMembers: 2,
+          maxTeamMembers: 10,
+          defaultMinReviewersPerSubmission: 2,
+          defaultProjectTimeZone: 'Europe/Kyiv',
+          hideTeamsUntilRegistrationClose: true,
+          defaultTournamentMaxTeams: 24,
+          defaultRegistrationWindowHours: 48,
+          defaultRoundDurationHours: 72,
+          defaultTournamentDescription: 'Default tournament description',
+          defaultRoundDescription: 'Default round description',
+          source: 'database',
+        };
+      }
+
       throw new Error(`Unexpected request: ${path}`);
     });
 
@@ -185,6 +230,12 @@ describe('SystemIntegrationsPage', () => {
     expect((await screen.findAllByText('Integration settings were saved.')).length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getByRole('button', { name: 'Round started' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Save settings' })[3]);
+    expect((await screen.findAllByText('Integration settings were saved.')).length).toBeGreaterThan(0);
+
+    fireEvent.change(screen.getByDisplayValue('8'), {
+      target: { value: '10' },
+    });
     fireEvent.click(screen.getAllByRole('button', { name: 'Save settings' })[2]);
     expect((await screen.findAllByText('Integration settings were saved.')).length).toBeGreaterThan(0);
   });

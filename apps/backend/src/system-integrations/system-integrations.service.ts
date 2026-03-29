@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { NotificationType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { TestGoogleSheetsConnectionDto } from './dto/test-google-sheets-connection.dto';
 import { UpdateEmailSettingsDto } from './dto/update-email-settings.dto';
 import { UpdateGoogleSheetsSettingsDto } from './dto/update-google-sheets-settings.dto';
 import { UpdateNotificationRulesDto } from './dto/update-notification-rules.dto';
+import { UpdateTournamentDefaultsDto } from './dto/update-tournament-defaults.dto';
 
 type GoogleSheetsConfig = {
   webhookUrl: string;
@@ -30,6 +31,33 @@ type NotificationRules = {
   submissionClosed: boolean;
   source: 'database' | 'default';
 };
+
+export type TournamentDefaultsConfig = {
+  minTeamMembers: number;
+  maxTeamMembers: number;
+  defaultMinReviewersPerSubmission: number;
+  defaultProjectTimeZone: string;
+  hideTeamsUntilRegistrationClose: boolean;
+  defaultTournamentMaxTeams: number | null;
+  defaultRegistrationWindowHours: number;
+  defaultRoundDurationHours: number;
+  defaultTournamentDescription: string;
+  defaultRoundDescription: string;
+  source: 'database' | 'default';
+};
+
+const TOURNAMENT_DEFAULTS_FALLBACK = {
+  minTeamMembers: 2,
+  maxTeamMembers: 8,
+  defaultMinReviewersPerSubmission: 2,
+  defaultProjectTimeZone: 'Europe/Kyiv',
+  hideTeamsUntilRegistrationClose: true,
+  defaultTournamentMaxTeams: null,
+  defaultRegistrationWindowHours: 24,
+  defaultRoundDurationHours: 24,
+  defaultTournamentDescription: '',
+  defaultRoundDescription: '',
+} satisfies Omit<TournamentDefaultsConfig, 'source'>;
 
 @Injectable()
 export class SystemIntegrationsService {
@@ -199,6 +227,70 @@ export class SystemIntegrationsService {
     return this.getNotificationRules();
   }
 
+  async getTournamentDefaults() {
+    const settings = await this.getSettingsRow();
+    const config = this.toTournamentDefaults(settings);
+
+    return {
+      ...config,
+      source: this.hasDatabaseTournamentDefaultOverride(settings)
+        ? ('database' as const)
+        : ('default' as const),
+    };
+  }
+
+  async getPublicTournamentDefaults() {
+    const config = await this.getTournamentDefaultsConfig();
+
+    return {
+      minTeamMembers: config.minTeamMembers,
+      maxTeamMembers: config.maxTeamMembers,
+      defaultMinReviewersPerSubmission: config.defaultMinReviewersPerSubmission,
+      defaultProjectTimeZone: config.defaultProjectTimeZone,
+      hideTeamsUntilRegistrationClose: config.hideTeamsUntilRegistrationClose,
+      defaultTournamentMaxTeams: config.defaultTournamentMaxTeams,
+      defaultRegistrationWindowHours: config.defaultRegistrationWindowHours,
+      defaultRoundDurationHours: config.defaultRoundDurationHours,
+      defaultTournamentDescription: config.defaultTournamentDescription,
+      defaultRoundDescription: config.defaultRoundDescription,
+    };
+  }
+
+  async updateTournamentDefaults(
+    dto: UpdateTournamentDefaultsDto,
+    userId: string,
+  ) {
+    const nextMin = dto.minTeamMembers ?? null;
+    const nextMax = dto.maxTeamMembers ?? null;
+
+    if (nextMin && nextMax && nextMin > nextMax) {
+      throw new BadRequestException(
+        'minTeamMembers cannot be greater than maxTeamMembers',
+      );
+    }
+
+    await this.upsertSettings({
+      minTeamMembers: nextMin,
+      maxTeamMembers: nextMax,
+      defaultMinReviewersPerSubmission:
+        dto.defaultMinReviewersPerSubmission ?? null,
+      defaultProjectTimeZone: this.normalizeOptionalString(dto.defaultProjectTimeZone),
+      hideTeamsUntilRegistrationClose: dto.hideTeamsUntilRegistrationClose ?? null,
+      defaultTournamentMaxTeams: dto.defaultTournamentMaxTeams ?? null,
+      defaultRegistrationWindowHours: dto.defaultRegistrationWindowHours ?? null,
+      defaultRoundDurationHours: dto.defaultRoundDurationHours ?? null,
+      defaultTournamentDescription: this.normalizeOptionalString(
+        dto.defaultTournamentDescription,
+      ),
+      defaultRoundDescription: this.normalizeOptionalString(
+        dto.defaultRoundDescription,
+      ),
+      updatedByUserId: userId,
+    });
+
+    return this.getTournamentDefaults();
+  }
+
   async getGoogleSheetsConfig() {
     const settings = await this.getSettingsRow();
     if (settings?.googleSheetsWebhookUrl) {
@@ -237,6 +329,10 @@ export class SystemIntegrationsService {
 
   async getNotificationRulesConfig(): Promise<NotificationRules> {
     return this.getNotificationRules();
+  }
+
+  async getTournamentDefaultsConfig(): Promise<TournamentDefaultsConfig> {
+    return this.getTournamentDefaults();
   }
 
   async shouldCreateNotification(type: NotificationType) {
@@ -339,6 +435,72 @@ export class SystemIntegrationsService {
         settings.notifyDeadlineReminder !== null ||
         settings.notifySubmissionClosed !== null)
     );
+  }
+
+  private hasDatabaseTournamentDefaultOverride(
+    settings: Awaited<ReturnType<SystemIntegrationsService['getSettingsRow']>>,
+  ) {
+    return !!(
+      settings &&
+      (settings.minTeamMembers !== null ||
+        settings.maxTeamMembers !== null ||
+        settings.defaultMinReviewersPerSubmission !== null ||
+        settings.defaultProjectTimeZone !== null ||
+        settings.hideTeamsUntilRegistrationClose !== null ||
+        settings.defaultTournamentMaxTeams !== null ||
+        settings.defaultRegistrationWindowHours !== null ||
+        settings.defaultRoundDurationHours !== null ||
+        settings.defaultTournamentDescription !== null ||
+        settings.defaultRoundDescription !== null)
+    );
+  }
+
+  private toTournamentDefaults(
+    settings: Awaited<ReturnType<SystemIntegrationsService['getSettingsRow']>>,
+  ): TournamentDefaultsConfig {
+    const sanitizedMinTeamMembers =
+      settings?.minTeamMembers && settings.minTeamMembers > 0
+        ? settings.minTeamMembers
+        : TOURNAMENT_DEFAULTS_FALLBACK.minTeamMembers;
+    const sanitizedMaxTeamMembers =
+      settings?.maxTeamMembers && settings.maxTeamMembers > 0
+        ? settings.maxTeamMembers
+        : TOURNAMENT_DEFAULTS_FALLBACK.maxTeamMembers;
+
+    return {
+      minTeamMembers: sanitizedMinTeamMembers,
+      maxTeamMembers:
+        Number.isInteger(sanitizedMaxTeamMembers) && sanitizedMaxTeamMembers > 0
+          ? Math.max(sanitizedMaxTeamMembers, sanitizedMinTeamMembers)
+          : TOURNAMENT_DEFAULTS_FALLBACK.maxTeamMembers,
+      defaultMinReviewersPerSubmission:
+        settings?.defaultMinReviewersPerSubmission ??
+        TOURNAMENT_DEFAULTS_FALLBACK.defaultMinReviewersPerSubmission,
+      defaultProjectTimeZone:
+        settings?.defaultProjectTimeZone ??
+        TOURNAMENT_DEFAULTS_FALLBACK.defaultProjectTimeZone,
+      hideTeamsUntilRegistrationClose:
+        settings?.hideTeamsUntilRegistrationClose ??
+        TOURNAMENT_DEFAULTS_FALLBACK.hideTeamsUntilRegistrationClose,
+      defaultTournamentMaxTeams:
+        settings?.defaultTournamentMaxTeams ??
+        TOURNAMENT_DEFAULTS_FALLBACK.defaultTournamentMaxTeams,
+      defaultRegistrationWindowHours:
+        settings?.defaultRegistrationWindowHours ??
+        TOURNAMENT_DEFAULTS_FALLBACK.defaultRegistrationWindowHours,
+      defaultRoundDurationHours:
+        settings?.defaultRoundDurationHours ??
+        TOURNAMENT_DEFAULTS_FALLBACK.defaultRoundDurationHours,
+      defaultTournamentDescription:
+        settings?.defaultTournamentDescription ??
+        TOURNAMENT_DEFAULTS_FALLBACK.defaultTournamentDescription,
+      defaultRoundDescription:
+        settings?.defaultRoundDescription ??
+        TOURNAMENT_DEFAULTS_FALLBACK.defaultRoundDescription,
+      source: this.hasDatabaseTournamentDefaultOverride(settings)
+        ? 'database'
+        : 'default',
+    };
   }
 
   private getEnvGoogleSheetsFallback(): GoogleSheetsConfig | null {

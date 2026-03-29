@@ -96,6 +96,19 @@ type AdminDashboardMetrics = {
   activity: number[];
 };
 
+type PlatformDefaults = {
+  minTeamMembers: number;
+  maxTeamMembers: number;
+  defaultMinReviewersPerSubmission: number;
+  defaultProjectTimeZone: string;
+  hideTeamsUntilRegistrationClose: boolean;
+  defaultTournamentMaxTeams: number | null;
+  defaultRegistrationWindowHours: number;
+  defaultRoundDurationHours: number;
+  defaultTournamentDescription: string;
+  defaultRoundDescription: string;
+};
+
 const EMPTY_OP_STATE: RoundOperationState = {
   loading: false,
   notice: '',
@@ -106,6 +119,19 @@ const EMPTY_SCHEDULE_OP_STATE: ScheduleOperationState = {
   loading: false,
   notice: '',
   error: '',
+};
+
+const DEFAULT_PLATFORM_DEFAULTS: PlatformDefaults = {
+  minTeamMembers: 2,
+  maxTeamMembers: 8,
+  defaultMinReviewersPerSubmission: 2,
+  defaultProjectTimeZone: 'Europe/Kyiv',
+  hideTeamsUntilRegistrationClose: true,
+  defaultTournamentMaxTeams: null,
+  defaultRegistrationWindowHours: 24,
+  defaultRoundDurationHours: 24,
+  defaultTournamentDescription: '',
+  defaultRoundDescription: '',
 };
 
 const DEFAULT_WEEK_LABELS = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
@@ -146,6 +172,10 @@ function toInputDateTime(value: Date) {
 
 function fromInputDateTime(value: string) {
   return new Date(value).toISOString();
+}
+
+function addHours(value: Date, hours: number) {
+  return new Date(value.getTime() + hours * 60 * 60 * 1000);
 }
 
 function isPositiveInteger(value: string) {
@@ -278,6 +308,9 @@ export default function AdminDashboardPage() {
   const [rounds, setRounds] = useState<Round[]>([]);
   const [scheduleEvents, setScheduleEvents] = useState<TournamentScheduleEvent[]>([]);
   const [metrics, setMetrics] = useState<AdminDashboardMetrics>(EMPTY_ADMIN_METRICS);
+  const [platformDefaults, setPlatformDefaults] = useState<PlatformDefaults>(
+    DEFAULT_PLATFORM_DEFAULTS,
+  );
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -392,6 +425,35 @@ export default function AdminDashboardPage() {
     setCreateRoundNotice('');
     setCreateUserError('');
     setCreateUserNotice('');
+    if (modal === 'createTournament') {
+      const current = new Date();
+      setTitle('');
+      setTournamentStartsAt('');
+      setRegistrationOpenAt(toInputDateTime(current));
+      setRegistrationCloseAt(
+        toInputDateTime(
+          addHours(current, platformDefaults.defaultRegistrationWindowHours),
+        ),
+      );
+      setDescription(platformDefaults.defaultTournamentDescription);
+      setMaxTeams(
+        platformDefaults.defaultTournamentMaxTeams
+          ? String(platformDefaults.defaultTournamentMaxTeams)
+          : '',
+      );
+    }
+    if (modal === 'createRound') {
+      const current = new Date();
+      setRoundTitle('');
+      setRoundDescription(platformDefaults.defaultRoundDescription);
+      setMustHaveRaw('');
+      setTechnologyRequirementsRaw('');
+      setAdditionalMaterialsRaw('');
+      setRoundStartsAt(toInputDateTime(current));
+      setRoundDeadlineAt(
+        toInputDateTime(addHours(current, platformDefaults.defaultRoundDurationHours)),
+      );
+    }
     setQuickModal(modal);
   }
 
@@ -512,8 +574,14 @@ export default function AdminDashboardPage() {
     setLoading(true);
     setError('');
     try {
-      const [meData] = await Promise.all([apiRequest<AuthMe>('/auth/me')]);
+      const [meData, defaultsResult] = await Promise.all([
+        apiRequest<AuthMe>('/auth/me'),
+        apiRequest<PlatformDefaults>('/platform/defaults').catch(
+          () => DEFAULT_PLATFORM_DEFAULTS,
+        ),
+      ]);
       setMe(meData);
+      setPlatformDefaults(defaultsResult);
       if (meData.role === 'ADMIN' || meData.role === 'ORGANIZER') {
         await loadTournaments();
       }
@@ -945,7 +1013,9 @@ export default function AdminDashboardPage() {
     updateRoundOperationState(roundId, { loading: true, error: '', notice: '' });
 
     try {
-      const minReviewers = minReviewersByRoundId[roundId] ?? 2;
+      const minReviewers =
+        minReviewersByRoundId[roundId] ??
+        platformDefaults.defaultMinReviewersPerSubmission;
       const resetExisting = resetByRoundId[roundId] ?? true;
 
       if (!Number.isInteger(minReviewers) || minReviewers < 1) {
@@ -1639,7 +1709,10 @@ export default function AdminDashboardPage() {
                         id={`min-reviewers-${round.id}`}
                         type="number"
                         min={1}
-                        value={minReviewersByRoundId[round.id] ?? 2}
+                        value={
+                          minReviewersByRoundId[round.id] ??
+                          platformDefaults.defaultMinReviewersPerSubmission
+                        }
                         onChange={(event) =>
                           setMinReviewersByRoundId((current) => ({
                             ...current,
@@ -1693,6 +1766,11 @@ export default function AdminDashboardPage() {
         {createTournamentNotice ? <p className="form-success">{createTournamentNotice}</p> : null}
 
         <form className="panel-form" onSubmit={submitTournament} noValidate>
+          <div className="state-callout subtle">
+            <strong>{t('systemIntegrations.tournamentDefaults.title')}</strong>
+            <p>{t('adminDashboard.formHints.tournamentDefaults')}</p>
+          </div>
+
           <label className="field" htmlFor="admin-tournament-title">
             <span>{t('adminDashboard.form.tournamentTitle')}</span>
             <input
@@ -1708,6 +1786,9 @@ export default function AdminDashboardPage() {
 
           <label className="field" htmlFor="admin-tournament-description">
             <span>{t('adminDashboard.form.tournamentDescription')}</span>
+            <small className="field-hint">
+              {t('adminDashboard.formHints.tournamentDescription')}
+            </small>
             <textarea
               id="admin-tournament-description"
               value={description}
@@ -1718,6 +1799,11 @@ export default function AdminDashboardPage() {
 
           <label className="field" htmlFor="admin-tournament-start">
             <span>{t('adminDashboard.form.tournamentStartsAt')}</span>
+            <small className="field-hint">
+              {language === 'uk'
+                ? `Часовий пояс системи: ${platformDefaults.defaultProjectTimeZone}`
+                : `System time zone: ${platformDefaults.defaultProjectTimeZone}`}
+            </small>
             <input
               id="admin-tournament-start"
               type="datetime-local"
@@ -1726,30 +1812,49 @@ export default function AdminDashboardPage() {
             />
           </label>
 
-          <label className="field" htmlFor="admin-registration-open">
-            <span>{t('adminDashboard.form.registrationOpenAt')}</span>
-            <input
-              id="admin-registration-open"
-              type="datetime-local"
-              value={registrationOpenAt}
-              onChange={(event) => setRegistrationOpenAt(event.target.value)}
-              required
-            />
-          </label>
+          <div className="datetime-grid">
+            <label className="field" htmlFor="admin-registration-open">
+              <span>{t('adminDashboard.form.registrationOpenAt')}</span>
+              <small className="field-hint">
+                {t('adminDashboard.formHints.registrationWindow')}
+              </small>
+              <input
+                id="admin-registration-open"
+                type="datetime-local"
+                value={registrationOpenAt}
+                onChange={(event) => setRegistrationOpenAt(event.target.value)}
+                required
+              />
+            </label>
 
-          <label className="field" htmlFor="admin-registration-close">
-            <span>{t('adminDashboard.form.registrationCloseAt')}</span>
-            <input
-              id="admin-registration-close"
-              type="datetime-local"
-              value={registrationCloseAt}
-              onChange={(event) => setRegistrationCloseAt(event.target.value)}
-              required
-            />
-          </label>
+            <label className="field" htmlFor="admin-registration-close">
+              <span>{t('adminDashboard.form.registrationCloseAt')}</span>
+              <small className="field-hint">
+                {language === 'uk'
+                  ? `За замовчуванням: ${platformDefaults.defaultRegistrationWindowHours} год.`
+                  : `Default: ${platformDefaults.defaultRegistrationWindowHours} hours.`}
+              </small>
+              <input
+                id="admin-registration-close"
+                type="datetime-local"
+                value={registrationCloseAt}
+                onChange={(event) => setRegistrationCloseAt(event.target.value)}
+                required
+              />
+            </label>
+          </div>
 
           <label className="field" htmlFor="admin-max-teams">
             <span>{t('adminDashboard.form.maxTeams')}</span>
+            <small className="field-hint">
+              {language === 'uk'
+                ? platformDefaults.defaultTournamentMaxTeams
+                  ? `Системний default: ${platformDefaults.defaultTournamentMaxTeams} команд.`
+                  : 'Залиште порожнім, якщо ліміт команд не потрібен.'
+                : platformDefaults.defaultTournamentMaxTeams
+                  ? `System default: ${platformDefaults.defaultTournamentMaxTeams} teams.`
+                  : 'Leave empty when no team cap is required.'}
+            </small>
             <input
               id="admin-max-teams"
               type="number"
@@ -1865,6 +1970,11 @@ export default function AdminDashboardPage() {
         {createRoundNotice ? <p className="form-success">{createRoundNotice}</p> : null}
 
         <form className="panel-form" onSubmit={submitRound} noValidate>
+          <div className="state-callout subtle">
+            <strong>{t('systemIntegrations.tournamentDefaults.roundDefaultsTitle')}</strong>
+            <p>{t('adminDashboard.formHints.roundDefaults')}</p>
+          </div>
+
           <label className="field" htmlFor="admin-round-title">
             <span>{t('adminDashboard.form.roundTitle')}</span>
             <input
@@ -1880,6 +1990,9 @@ export default function AdminDashboardPage() {
 
           <label className="field" htmlFor="admin-round-description">
             <span>{t('adminDashboard.form.roundDescription')}</span>
+            <small className="field-hint">
+              {t('adminDashboard.formHints.roundDescription')}
+            </small>
             <textarea
               id="admin-round-description"
               value={roundDescription}
@@ -1892,6 +2005,9 @@ export default function AdminDashboardPage() {
 
           <label className="field" htmlFor="admin-round-must-have">
             <span>{t('adminDashboard.form.mustHave')}</span>
+            <small className="field-hint">
+              {t('adminDashboard.formHints.mustHave')}
+            </small>
             <textarea
               id="admin-round-must-have"
               value={mustHaveRaw}
@@ -1901,6 +2017,9 @@ export default function AdminDashboardPage() {
 
           <label className="field" htmlFor="admin-round-tech-req">
             <span>{t('adminDashboard.form.technologyRequirements')}</span>
+            <small className="field-hint">
+              {t('adminDashboard.formHints.technologyRequirements')}
+            </small>
             <textarea
               id="admin-round-tech-req"
               value={technologyRequirementsRaw}
@@ -1910,6 +2029,9 @@ export default function AdminDashboardPage() {
 
           <label className="field" htmlFor="admin-round-materials">
             <span>{t('adminDashboard.form.additionalMaterials')}</span>
+            <small className="field-hint">
+              {t('adminDashboard.formHints.additionalMaterials')}
+            </small>
             <textarea
               id="admin-round-materials"
               value={additionalMaterialsRaw}
@@ -1920,6 +2042,11 @@ export default function AdminDashboardPage() {
           <div className="datetime-grid">
             <label className="field" htmlFor="admin-round-starts-at">
               <span>{t('adminDashboard.form.roundStartsAt')}</span>
+              <small className="field-hint">
+                {language === 'uk'
+                  ? `Часовий пояс системи: ${platformDefaults.defaultProjectTimeZone}`
+                  : `System time zone: ${platformDefaults.defaultProjectTimeZone}`}
+              </small>
               <input
                 id="admin-round-starts-at"
                 type="datetime-local"
@@ -1931,6 +2058,11 @@ export default function AdminDashboardPage() {
 
             <label className="field" htmlFor="admin-round-deadline-at">
               <span>{t('adminDashboard.form.roundDeadlineAt')}</span>
+              <small className="field-hint">
+                {language === 'uk'
+                  ? `За замовчуванням: ${platformDefaults.defaultRoundDurationHours} год.`
+                  : `Default: ${platformDefaults.defaultRoundDurationHours} hours.`}
+              </small>
               <input
                 id="admin-round-deadline-at"
                 type="datetime-local"

@@ -36,6 +36,24 @@ function createPrismaMock() {
   };
 }
 
+function createSystemIntegrationsServiceMock() {
+  return {
+    getTournamentDefaultsConfig: vi.fn().mockResolvedValue({
+      minTeamMembers: 2,
+      maxTeamMembers: 8,
+      defaultMinReviewersPerSubmission: 2,
+      defaultProjectTimeZone: 'Europe/Kyiv',
+      hideTeamsUntilRegistrationClose: true,
+      defaultTournamentMaxTeams: null,
+      defaultRegistrationWindowHours: 24,
+      defaultRoundDurationHours: 24,
+      defaultTournamentDescription: '',
+      defaultRoundDescription: '',
+      source: 'default',
+    }),
+  };
+}
+
 describe('EvaluationService', () => {
   it('blocks finish when round is active and not forced before deadline', async () => {
     const prisma = createPrismaMock();
@@ -51,7 +69,10 @@ describe('EvaluationService', () => {
       },
     });
 
-    const service = new EvaluationService(prisma as never);
+    const service = new EvaluationService(
+      prisma as never,
+      createSystemIntegrationsServiceMock() as never,
+    );
 
     await expect(
       service.finishRoundEvaluation('round-1', { force: false }),
@@ -75,7 +96,10 @@ describe('EvaluationService', () => {
       },
     });
 
-    const service = new EvaluationService(prisma as never);
+    const service = new EvaluationService(
+      prisma as never,
+      createSystemIntegrationsServiceMock() as never,
+    );
     const result = await service.finishRoundEvaluation('round-1', { force: true });
 
     expect(result.alreadyEvaluated).toBe(true);

@@ -95,6 +95,12 @@ type TeamDashboardMetrics = {
   activity: number[];
 };
 
+type PlatformDefaults = {
+  minTeamMembers: number;
+  maxTeamMembers: number;
+  defaultProjectTimeZone: string;
+};
+
 type MemberDraft = {
   fullName: string;
   email: string;
@@ -104,6 +110,12 @@ const DEFAULT_MEMBERS: MemberDraft[] = [
   { fullName: '', email: '' },
   { fullName: '', email: '' },
 ];
+
+const DEFAULT_PLATFORM_DEFAULTS: PlatformDefaults = {
+  minTeamMembers: 2,
+  maxTeamMembers: 8,
+  defaultProjectTimeZone: 'Europe/Kyiv',
+};
 
 const DEFAULT_WEEK_LABELS = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 
@@ -239,6 +251,9 @@ export default function TeamDashboardPage() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedTournamentId, setSelectedTournamentId] = useState('');
   const [metrics, setMetrics] = useState<TeamDashboardMetrics>(EMPTY_TEAM_METRICS);
+  const [platformDefaults, setPlatformDefaults] = useState<PlatformDefaults>(
+    DEFAULT_PLATFORM_DEFAULTS,
+  );
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -363,6 +378,25 @@ export default function TeamDashboardPage() {
     return () => window.clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    setMembers((current) => {
+      if (current.length > platformDefaults.maxTeamMembers) {
+        return current.slice(0, platformDefaults.maxTeamMembers);
+      }
+
+      if (current.length >= platformDefaults.minTeamMembers) {
+        return current;
+      }
+
+      return [
+        ...current,
+        ...new Array(platformDefaults.minTeamMembers - current.length)
+          .fill(null)
+          .map(() => emptyMember()),
+      ];
+    });
+  }, [platformDefaults.maxTeamMembers, platformDefaults.minTeamMembers]);
+
   function applySubmissionDraft(value: TeamSubmission | null) {
     setSubmission(value);
     setRepoUrl(value?.repoUrl ?? '');
@@ -376,13 +410,17 @@ export default function TeamDashboardPage() {
     setError('');
 
     try {
-      const [meData, tournamentData] = await Promise.all([
+      const [meData, tournamentData, defaultsData] = await Promise.all([
         apiRequest<AuthMe>('/auth/me'),
         apiRequest<Tournament[]>('/tournaments'),
+        apiRequest<PlatformDefaults>('/platform/defaults').catch(
+          () => DEFAULT_PLATFORM_DEFAULTS,
+        ),
       ]);
 
       setMe(meData);
       setTournaments(tournamentData);
+      setPlatformDefaults(defaultsData);
 
       if (tournamentData.length > 0) {
         setSelectedTournamentId((current) => current || tournamentData[0].id);
@@ -543,11 +581,19 @@ export default function TeamDashboardPage() {
   }
 
   function addMember() {
-    setMembers((current) => (current.length >= 8 ? current : [...current, emptyMember()]));
+    setMembers((current) =>
+      current.length >= platformDefaults.maxTeamMembers
+        ? current
+        : [...current, emptyMember()],
+    );
   }
 
   function removeMember(index: number) {
-    setMembers((current) => (current.length <= 2 ? current : current.filter((_, i) => i !== index)));
+    setMembers((current) =>
+      current.length <= platformDefaults.minTeamMembers
+        ? current
+        : current.filter((_, i) => i !== index),
+    );
   }
 
   async function submitTeamRegistration(event: FormEvent<HTMLFormElement>) {
@@ -569,6 +615,18 @@ export default function TeamDashboardPage() {
       fullName: member.fullName.trim(),
       email: member.email.trim().toLowerCase(),
     }));
+
+    if (
+      normalizedMembers.length < platformDefaults.minTeamMembers ||
+      normalizedMembers.length > platformDefaults.maxTeamMembers
+    ) {
+      setTeamError(
+        language === 'uk'
+          ? `Команда має містити від ${platformDefaults.minTeamMembers} до ${platformDefaults.maxTeamMembers} учасників.`
+          : `The team must contain between ${platformDefaults.minTeamMembers} and ${platformDefaults.maxTeamMembers} members.`,
+      );
+      return;
+    }
 
     const emails = new Set<string>(me?.email ? [me.email.toLowerCase()] : []);
     for (const member of normalizedMembers) {
@@ -1011,12 +1069,19 @@ export default function TeamDashboardPage() {
 
                 <div className="members-block">
                   <div className="members-head">
-                    <h3>{t('teamDashboard.form.membersTitle')}</h3>
+                    <div>
+                      <h3>{t('teamDashboard.form.membersTitle')}</h3>
+                      <p className="inline-hint">
+                        {language === 'uk'
+                          ? `Мінімум ${platformDefaults.minTeamMembers}, максимум ${platformDefaults.maxTeamMembers} учасників без капітана.`
+                          : `Minimum ${platformDefaults.minTeamMembers}, maximum ${platformDefaults.maxTeamMembers} members without the captain.`}
+                      </p>
+                    </div>
                     <button
                       type="button"
                       className="button button-soft"
                       onClick={addMember}
-                      disabled={members.length >= 8}
+                      disabled={members.length >= platformDefaults.maxTeamMembers}
                     >
                       {t('teamDashboard.form.addMember')}
                     </button>
@@ -1044,7 +1109,7 @@ export default function TeamDashboardPage() {
                         type="button"
                         className="button button-soft"
                         onClick={() => removeMember(index)}
-                        disabled={members.length <= 2}
+                        disabled={members.length <= platformDefaults.minTeamMembers}
                       >
                         {t('teamDashboard.form.removeMember')}
                       </button>

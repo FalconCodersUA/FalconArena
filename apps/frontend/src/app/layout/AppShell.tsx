@@ -10,6 +10,7 @@ import {
   isAuthenticated,
   setAuthUser,
 } from '../../lib/auth';
+import { setSystemDefaultTimeZone } from '../../lib/dateTime';
 
 type MeResponse = {
   id: string;
@@ -32,6 +33,10 @@ type ProfileSettingsResponse = {
   edit?: {
     avatarUrl?: string;
   };
+};
+
+type PlatformDefaultsResponse = {
+  defaultProjectTimeZone: string;
 };
 
 function profileAvatarKey(userId: string) {
@@ -104,6 +109,19 @@ export default function AppShell() {
   const searchRef = useRef<HTMLDivElement | null>(null);
   const alertsRef = useRef<HTMLDivElement | null>(null);
   const isAuthRoute = location.pathname === '/app/login' || location.pathname === '/app/register';
+
+  useEffect(() => {
+    async function syncPlatformDefaults() {
+      try {
+        const defaults = await apiRequest<PlatformDefaultsResponse>('/platform/defaults');
+        setSystemDefaultTimeZone(defaults.defaultProjectTimeZone);
+      } catch {
+        // Keep existing local fallback when platform defaults are unavailable.
+      }
+    }
+
+    void syncPlatformDefaults();
+  }, []);
 
   useEffect(() => {
     if (!authed) {

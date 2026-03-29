@@ -8,6 +8,10 @@ import { NotificationType, Tournament, TournamentStatus } from '@prisma/client';
 import { LeaderboardService } from '../leaderboard/leaderboard.service';
 import { NotificationsService } from '../notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
+import {
+  SystemIntegrationsService,
+  TournamentDefaultsConfig,
+} from '../system-integrations/system-integrations.service';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { ListTournamentsDto } from './dto/list-tournaments.dto';
 
@@ -16,6 +20,8 @@ type TournamentView = Tournament & {
   registrationHasStarted: boolean;
   registrationIsClosed: boolean;
   canTeamRegister: boolean;
+  hideTeamsUntilRegistrationClose: boolean;
+  defaultProjectTimeZone: string;
 };
 
 type ScoresPayload = {
@@ -33,10 +39,13 @@ export class TournamentsService {
     private readonly prisma: PrismaService,
     @Optional() private readonly leaderboardService?: LeaderboardService,
     @Optional() private readonly notificationsService?: NotificationsService,
+    @Optional()
+    private readonly systemIntegrationsService?: SystemIntegrationsService,
   ) {}
 
   async create(dto: CreateTournamentDto, createdById: string): Promise<TournamentView> {
     this.validateRegistrationWindow(dto.registrationOpenAt, dto.registrationCloseAt);
+    const defaults = await this.getTournamentDefaults();
 
     const tournament = await this.prisma.tournament.create({
       data: {
@@ -50,10 +59,11 @@ export class TournamentsService {
       },
     });
 
-    return this.mapTournamentView(tournament);
+    return this.mapTournamentView(tournament, defaults);
   }
 
   async list(query: ListTournamentsDto): Promise<TournamentView[]> {
+    const defaults = await this.getTournamentDefaults();
     const tournaments = await this.prisma.tournament.findMany({
       where: {
         status: query.status,
@@ -63,10 +73,11 @@ export class TournamentsService {
       },
     });
 
-    return tournaments.map((tournament) => this.mapTournamentView(tournament));
+    return tournaments.map((tournament) => this.mapTournamentView(tournament, defaults));
   }
 
   async findById(id: string): Promise<TournamentView> {
+    const defaults = await this.getTournamentDefaults();
     const tournament = await this.prisma.tournament.findUnique({
       where: { id },
     });
@@ -75,7 +86,7 @@ export class TournamentsService {
       throw new NotFoundException('Tournament not found');
     }
 
-    return this.mapTournamentView(tournament);
+    return this.mapTournamentView(tournament, defaults);
   }
 
   async getArchive(id: string) {
@@ -199,8 +210,10 @@ export class TournamentsService {
       };
     });
 
+    const defaults = await this.getTournamentDefaults();
+
     return {
-      tournament: this.mapTournamentView(tournament),
+      tournament: this.mapTournamentView(tournament, defaults),
       summary: {
         teamsCount: teams.length,
         roundsCount: mappedRounds.length,
@@ -247,7 +260,8 @@ export class TournamentsService {
     this.assertStatusTransition(existing.status, status);
 
     if (existing.status === status) {
-      return this.mapTournamentView(existing);
+      const defaults = await this.getTournamentDefaults();
+      return this.mapTournamentView(existing, defaults);
     }
 
     const tournament = await this.prisma.tournament.update({
@@ -275,7 +289,8 @@ export class TournamentsService {
       });
     }
 
-    return this.mapTournamentView(tournament);
+    const defaults = await this.getTournamentDefaults();
+    return this.mapTournamentView(tournament, defaults);
   }
 
   private assertStatusTransition(
@@ -311,7 +326,10 @@ export class TournamentsService {
     }
   }
 
-  private mapTournamentView(tournament: Tournament): TournamentView {
+  private mapTournamentView(
+    tournament: Tournament,
+    defaults: TournamentDefaultsConfig,
+  ): TournamentView {
     const now = Date.now();
     const openAt = tournament.registrationOpenAt.getTime();
     const closeAt = tournament.registrationCloseAt.getTime();
@@ -325,9 +343,29 @@ export class TournamentsService {
       registrationHasStarted,
       registrationIsClosed,
       registrationIsOpen,
+      hideTeamsUntilRegistrationClose: defaults.hideTeamsUntilRegistrationClose,
+      defaultProjectTimeZone: defaults.defaultProjectTimeZone,
       canTeamRegister:
         tournament.status === TournamentStatus.REGISTRATION && registrationIsOpen,
     };
+  }
+
+  private async getTournamentDefaults() {
+    return (
+      (await this.systemIntegrationsService?.getTournamentDefaultsConfig()) ?? {
+        minTeamMembers: 2,
+        maxTeamMembers: 8,
+        defaultMinReviewersPerSubmission: 2,
+        defaultProjectTimeZone: 'Europe/Kyiv',
+        hideTeamsUntilRegistrationClose: true,
+        defaultTournamentMaxTeams: null,
+        defaultRegistrationWindowHours: 24,
+        defaultRoundDurationHours: 24,
+        defaultTournamentDescription: '',
+        defaultRoundDescription: '',
+        source: 'default' as const,
+      }
+    );
   }
 
   private calculateCategoryAverages(scoresList: unknown[]): Required<ScoresPayload> {

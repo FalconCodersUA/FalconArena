@@ -20,6 +20,24 @@ function createPrismaMock() {
   };
 }
 
+function createSystemIntegrationsServiceMock() {
+  return {
+    getTournamentDefaultsConfig: vi.fn().mockResolvedValue({
+      minTeamMembers: 2,
+      maxTeamMembers: 8,
+      defaultMinReviewersPerSubmission: 2,
+      defaultProjectTimeZone: 'Europe/Kyiv',
+      hideTeamsUntilRegistrationClose: true,
+      defaultTournamentMaxTeams: null,
+      defaultRegistrationWindowHours: 24,
+      defaultRoundDurationHours: 24,
+      defaultTournamentDescription: '',
+      defaultRoundDescription: '',
+      source: 'default',
+    }),
+  };
+}
+
 describe('TournamentsService', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -74,12 +92,18 @@ describe('TournamentsService', () => {
       },
     ]);
 
-    const service = new TournamentsService(prisma as never);
+    const service = new TournamentsService(
+      prisma as never,
+      undefined,
+      undefined,
+      createSystemIntegrationsServiceMock() as never,
+    );
     const items = await service.list({});
 
     expect(items).toHaveLength(3);
     expect(items[0].registrationIsOpen).toBe(true);
     expect(items[0].canTeamRegister).toBe(true);
+    expect(items[0].hideTeamsUntilRegistrationClose).toBe(true);
     expect(items[1].registrationIsOpen).toBe(true);
     expect(items[1].canTeamRegister).toBe(false);
     expect(items[2].registrationIsClosed).toBe(true);
@@ -102,7 +126,12 @@ describe('TournamentsService', () => {
       updatedAt: new Date('2026-03-09T10:00:00.000Z'),
     });
 
-    const service = new TournamentsService(prisma as never);
+    const service = new TournamentsService(
+      prisma as never,
+      undefined,
+      undefined,
+      createSystemIntegrationsServiceMock() as never,
+    );
 
     await expect(
       service.updateStatus('t-1', TournamentStatus.RUNNING),
@@ -114,7 +143,12 @@ describe('TournamentsService', () => {
   it('throws not found for missing tournament', async () => {
     const prisma = createPrismaMock();
     prisma.tournament.findUnique.mockResolvedValue(null);
-    const service = new TournamentsService(prisma as never);
+    const service = new TournamentsService(
+      prisma as never,
+      undefined,
+      undefined,
+      createSystemIntegrationsServiceMock() as never,
+    );
 
     await expect(service.findById('missing')).rejects.toBeInstanceOf(NotFoundException);
   });
@@ -240,6 +274,8 @@ describe('TournamentsService', () => {
     const service = new TournamentsService(
       prisma as never,
       leaderboardService as never,
+      undefined,
+      createSystemIntegrationsServiceMock() as never,
     );
 
     const archive = await service.getArchive('t-finished');

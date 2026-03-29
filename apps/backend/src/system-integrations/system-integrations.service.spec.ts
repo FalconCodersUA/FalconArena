@@ -107,11 +107,22 @@ describe('SystemIntegrationsService', () => {
       notifySubmissionReceived: true,
       notifyDeadlineReminder: true,
       notifySubmissionClosed: false,
+      minTeamMembers: 3,
+      maxTeamMembers: 6,
+      defaultMinReviewersPerSubmission: 4,
+      defaultProjectTimeZone: 'Europe/Warsaw',
+      hideTeamsUntilRegistrationClose: false,
+      defaultTournamentMaxTeams: 40,
+      defaultRegistrationWindowHours: 72,
+      defaultRoundDurationHours: 96,
+      defaultTournamentDescription: 'Default tournament description',
+      defaultRoundDescription: 'Default round description',
     });
 
     const service = new SystemIntegrationsService(prisma as never);
     const emailSettings = await service.getEmailSettings();
     const rules = await service.getNotificationRules();
+    const defaults = await service.getTournamentDefaults();
 
     expect(emailSettings).toMatchObject({
       enabled: true,
@@ -128,6 +139,19 @@ describe('SystemIntegrationsService', () => {
       submissionReceived: true,
       deadlineReminder: true,
       submissionClosed: false,
+      source: 'database',
+    });
+    expect(defaults).toMatchObject({
+      minTeamMembers: 3,
+      maxTeamMembers: 6,
+      defaultMinReviewersPerSubmission: 4,
+      defaultProjectTimeZone: 'Europe/Warsaw',
+      hideTeamsUntilRegistrationClose: false,
+      defaultTournamentMaxTeams: 40,
+      defaultRegistrationWindowHours: 72,
+      defaultRoundDurationHours: 96,
+      defaultTournamentDescription: 'Default tournament description',
+      defaultRoundDescription: 'Default round description',
       source: 'database',
     });
   });
@@ -187,6 +211,68 @@ describe('SystemIntegrationsService', () => {
         emailFrom: 'no-reply@falconarena.live',
         emailReplyTo: 'team@falconarena.live',
         resendApiKey: 'secret',
+        updatedByUserId: 'admin-1',
+      },
+    });
+
+    vi.clearAllMocks();
+    prisma.systemIntegrationSettings.findUnique.mockResolvedValue({
+      id: 'default',
+      minTeamMembers: 2,
+      maxTeamMembers: 8,
+      defaultMinReviewersPerSubmission: 2,
+      defaultProjectTimeZone: 'Europe/Kyiv',
+      hideTeamsUntilRegistrationClose: true,
+      defaultTournamentMaxTeams: 24,
+      defaultRegistrationWindowHours: 48,
+      defaultRoundDurationHours: 72,
+      defaultTournamentDescription: 'Default tournament description',
+      defaultRoundDescription: 'Default round description',
+    });
+
+    await service.updateTournamentDefaults(
+      {
+        minTeamMembers: 2,
+        maxTeamMembers: 10,
+        defaultMinReviewersPerSubmission: 3,
+        defaultProjectTimeZone: 'Europe/Warsaw',
+        hideTeamsUntilRegistrationClose: false,
+        defaultTournamentMaxTeams: 30,
+        defaultRegistrationWindowHours: 24,
+        defaultRoundDurationHours: 48,
+        defaultTournamentDescription: 'Tournament default',
+        defaultRoundDescription: 'Round default',
+      },
+      'admin-1',
+    );
+
+    expect(prisma.systemIntegrationSettings.upsert).toHaveBeenCalledWith({
+      where: { id: 'default' },
+      update: {
+        minTeamMembers: 2,
+        maxTeamMembers: 10,
+        defaultMinReviewersPerSubmission: 3,
+        defaultProjectTimeZone: 'Europe/Warsaw',
+        hideTeamsUntilRegistrationClose: false,
+        defaultTournamentMaxTeams: 30,
+        defaultRegistrationWindowHours: 24,
+        defaultRoundDurationHours: 48,
+        defaultTournamentDescription: 'Tournament default',
+        defaultRoundDescription: 'Round default',
+        updatedByUserId: 'admin-1',
+      },
+      create: {
+        id: 'default',
+        minTeamMembers: 2,
+        maxTeamMembers: 10,
+        defaultMinReviewersPerSubmission: 3,
+        defaultProjectTimeZone: 'Europe/Warsaw',
+        hideTeamsUntilRegistrationClose: false,
+        defaultTournamentMaxTeams: 30,
+        defaultRegistrationWindowHours: 24,
+        defaultRoundDurationHours: 48,
+        defaultTournamentDescription: 'Tournament default',
+        defaultRoundDescription: 'Round default',
         updatedByUserId: 'admin-1',
       },
     });

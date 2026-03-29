@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Prisma, TournamentStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { SystemIntegrationsService } from '../system-integrations/system-integrations.service';
 import { RegisterTeamDto } from './dto/register-team.dto';
 
 type TeamPublicView = {
@@ -37,7 +38,10 @@ type TeamPrivateView = {
 
 @Injectable()
 export class TeamsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly systemIntegrationsService: SystemIntegrationsService,
+  ) {}
 
   async register(
     tournamentId: string,
@@ -64,10 +68,13 @@ export class TeamsService {
       throw new BadRequestException('Registration window is closed');
     }
 
-    const maxMemberCount = this.getMaxTeamMembers();
-    if (dto.members.length > maxMemberCount) {
+    const defaults = await this.systemIntegrationsService.getTournamentDefaultsConfig();
+    const minMemberCount = defaults.minTeamMembers;
+    const maxMemberCount = defaults.maxTeamMembers;
+
+    if (dto.members.length < minMemberCount || dto.members.length > maxMemberCount) {
       throw new BadRequestException(
-        `Members limit exceeded. Max members allowed: ${maxMemberCount}`,
+        `Team must contain between ${minMemberCount} and ${maxMemberCount} members`,
       );
     }
 
@@ -166,11 +173,26 @@ export class TeamsService {
   async listByTournament(tournamentId: string): Promise<TeamPublicView[]> {
     const tournament = await this.prisma.tournament.findUnique({
       where: { id: tournamentId },
-      select: { id: true },
+      select: {
+        id: true,
+        status: true,
+        registrationCloseAt: true,
+      },
     });
 
     if (!tournament) {
       throw new NotFoundException('Tournament not found');
+    }
+
+    const defaults = await this.systemIntegrationsService.getTournamentDefaultsConfig();
+    const shouldHideTeams =
+      defaults.hideTeamsUntilRegistrationClose &&
+      tournament.status !== TournamentStatus.RUNNING &&
+      tournament.status !== TournamentStatus.FINISHED &&
+      Date.now() <= tournament.registrationCloseAt.getTime();
+
+    if (shouldHideTeams) {
+      return [];
     }
 
     const teams = await this.prisma.team.findMany({
@@ -236,14 +258,5 @@ export class TeamsService {
       members: team.members,
       createdAt: team.createdAt,
     };
-  }
-
-  private getMaxTeamMembers() {
-    const raw = Number(process.env.MAX_TEAM_MEMBERS ?? 8);
-    if (!Number.isInteger(raw) || raw < 2) {
-      return 8;
-    }
-
-    return raw;
   }
 }

@@ -12,6 +12,7 @@ import {
   TournamentStatus,
 } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { SystemIntegrationsService } from '../system-integrations/system-integrations.service';
 import { DistributeAssignmentsDto } from './dto/distribute-assignments.dto';
 import { FinishEvaluationDto } from './dto/finish-evaluation.dto';
 import { EvaluationScoresDto, SubmitEvaluationDto } from './dto/submit-evaluation.dto';
@@ -22,7 +23,10 @@ type JuryCandidate = {
 
 @Injectable()
 export class EvaluationService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly systemIntegrationsService: SystemIntegrationsService,
+  ) {}
 
   async distributeAssignments(roundId: string, dto: DistributeAssignmentsDto) {
     const round = await this.prisma.round.findUnique({
@@ -70,7 +74,9 @@ export class EvaluationService {
       throw new BadRequestException('No submissions found for this round');
     }
 
-    const minReviewersPerSubmission = dto.minReviewersPerSubmission ?? 2;
+    const defaults = await this.systemIntegrationsService.getTournamentDefaultsConfig();
+    const minReviewersPerSubmission =
+      dto.minReviewersPerSubmission ?? defaults.defaultMinReviewersPerSubmission;
     const juryPool = await this.resolveJuryPool(dto.juryUserIds);
 
     if (juryPool.length < minReviewersPerSubmission) {
