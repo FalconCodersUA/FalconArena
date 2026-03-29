@@ -91,6 +91,11 @@ Required repository secrets for deploy:
 - `POSTGRES_PASSWORD`
 - `JWT_SECRET`
 - `VITE_API_URL` (optional, fallback supported)
+- `EMAIL_NOTIFICATIONS_ENABLED` (optional, `true/false`)
+- `EMAIL_PROVIDER` (optional, `console` or `resend`)
+- `EMAIL_FROM` (required for real email sending)
+- `EMAIL_REPLY_TO` (optional)
+- `RESEND_API_KEY` (required only for `EMAIL_PROVIDER=resend`)
 
 Required repository secrets for manual smoke check:
 
@@ -183,6 +188,12 @@ Ukrainian docs:
   - `POST /messages/dialogs` (create/open dialog by recipient email)
   - `GET /messages/dialogs/:id`
   - `POST /messages/dialogs/:id` (send message)
+- Notification endpoints:
+  - `GET /notifications`
+  - `PATCH /notifications/read-state`
+- Email delivery:
+  - system notifications can also be delivered by email
+  - supported providers: `console`, `resend`
 
 Optional env setting:
 
