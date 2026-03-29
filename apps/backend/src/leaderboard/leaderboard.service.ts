@@ -5,6 +5,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { SystemIntegrationsService } from '../system-integrations/system-integrations.service';
 
 type ScoresPayload = {
   technicalBackend?: number;
@@ -26,7 +27,10 @@ type GoogleSheetsExportOptions = {
 
 @Injectable()
 export class LeaderboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly systemIntegrationsService: SystemIntegrationsService,
+  ) {}
 
   async getTournamentLeaderboard(tournamentId: string) {
     const tournament = await this.prisma.tournament.findUnique({
@@ -246,8 +250,8 @@ export class LeaderboardService {
     tournamentId: string,
     options: GoogleSheetsExportOptions = {},
   ) {
-    const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL?.trim();
-    if (!webhookUrl) {
+    const config = await this.systemIntegrationsService.getGoogleSheetsConfig();
+    if (!config?.webhookUrl) {
       throw new ServiceUnavailableException(
         'Google Sheets export is not configured',
       );
@@ -264,19 +268,19 @@ export class LeaderboardService {
       generatedAt: new Date().toISOString(),
       sheetName:
         options.sheetName?.trim() ||
-        process.env.GOOGLE_SHEETS_DEFAULT_SHEET_NAME?.trim() ||
+        config.defaultSheetName ||
         `${sheet.tournament.title} Leaderboard`,
       exportedBy: options.exportedBy ?? null,
+      configSource: config.source,
     };
 
-    const response = await fetch(webhookUrl, {
+    const response = await fetch(config.webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(process.env.GOOGLE_SHEETS_WEBHOOK_SECRET?.trim()
+        ...(config.secret
           ? {
-              'x-falconarena-export-secret':
-                process.env.GOOGLE_SHEETS_WEBHOOK_SECRET.trim(),
+              'x-falconarena-export-secret': config.secret,
             }
           : {}),
       },

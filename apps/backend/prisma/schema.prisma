@@ -336,3 +336,16 @@ model CertificateTemplate {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 }
+
+model SystemIntegrationSettings {
+  id                           String   @id @default("default")
+  googleSheetsWebhookUrl       String?
+  googleSheetsWebhookSecret    String?
+  googleSheetsDefaultSheetName String?
+  googleSheetsLastCheckedAt    DateTime?
+  googleSheetsLastCheckStatus  String?
+  googleSheetsLastCheckMessage String?
+  updatedByUserId              String?
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
+}

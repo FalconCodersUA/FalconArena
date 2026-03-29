@@ -12,6 +12,7 @@ import MessagesPage from '../pages/MessagesPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import ProfilePage from '../pages/ProfilePage';
 import RegisterPage from '../pages/RegisterPage';
+import SystemIntegrationsPage from '../pages/SystemIntegrationsPage';
 import TeamDashboardPage from '../pages/TeamDashboardPage';
 import TeamsPage from '../pages/TeamsPage';
 import TournamentDetailsPage from '../pages/TournamentDetailsPage';
@@ -148,6 +149,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute roles={['ADMIN', 'ORGANIZER']}>
             <AdminDashboardPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'integrations',
+        element: (
+          <ProtectedRoute roles={['ADMIN']}>
+            <SystemIntegrationsPage />
           </ProtectedRoute>
         ),
       },

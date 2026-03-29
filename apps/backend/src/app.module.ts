@@ -16,6 +16,7 @@ import { ProfileSettingsController } from './profile-settings.controller';
 import { ProfileSettingsService } from './profile-settings.service';
 import { RoundsModule } from './rounds/rounds.module';
 import { SubmissionsModule } from './submissions/submissions.module';
+import { SystemIntegrationsModule } from './system-integrations/system-integrations.module';
 import { TeamsModule } from './teams/teams.module';
 import { TournamentsModule } from './tournaments/tournaments.module';
 
@@ -30,6 +31,7 @@ import { TournamentsModule } from './tournaments/tournaments.module';
     SubmissionsModule,
     EvaluationModule,
     LeaderboardModule,
+    SystemIntegrationsModule,
   ],
   controllers: [
     AppController,

@@ -17,16 +17,20 @@ function createPrismaMock() {
   };
 }
 
+function createSystemIntegrationsServiceMock() {
+  return {
+    getGoogleSheetsConfig: vi.fn(),
+  };
+}
+
 describe('LeaderboardService', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
-    delete process.env.GOOGLE_SHEETS_WEBHOOK_URL;
-    delete process.env.GOOGLE_SHEETS_WEBHOOK_SECRET;
-    delete process.env.GOOGLE_SHEETS_DEFAULT_SHEET_NAME;
   });
 
   it('builds sorted leaderboard rows with computed totals and categories', async () => {
     const prisma = createPrismaMock();
+    const systemIntegrationsService = createSystemIntegrationsServiceMock();
     prisma.tournament.findUnique.mockResolvedValue({
       id: 'tournament-1',
       title: 'Falcon Arena',
@@ -89,18 +93,19 @@ describe('LeaderboardService', () => {
       },
     ]);
 
-    const service = new LeaderboardService(prisma as never);
+    const service = new LeaderboardService(
+      prisma as never,
+      systemIntegrationsService as never,
+    );
     const result = await service.getTournamentLeaderboard('tournament-1');
 
     expect(result.tournament.id).toBe('tournament-1');
     expect(result.rows).toHaveLength(2);
-
     expect(result.rows[0].teamName).toBe('Alpha');
     expect(result.rows[0].rank).toBe(1);
     expect(result.rows[0].totalScore).toBe(178);
     expect(result.rows[0].averageScore).toBe(89);
     expect(result.rows[0].categoryAverages.technicalBackend).toBe(91);
-
     expect(result.rows[1].teamName).toBe('Beta');
     expect(result.rows[1].rank).toBe(2);
     expect(result.rows[1].totalScore).toBe(95);
@@ -108,8 +113,13 @@ describe('LeaderboardService', () => {
 
   it('throws not found for missing tournament', async () => {
     const prisma = createPrismaMock();
+    const systemIntegrationsService = createSystemIntegrationsServiceMock();
     prisma.tournament.findUnique.mockResolvedValue(null);
-    const service = new LeaderboardService(prisma as never);
+
+    const service = new LeaderboardService(
+      prisma as never,
+      systemIntegrationsService as never,
+    );
 
     await expect(
       service.getTournamentLeaderboard('missing-id'),
@@ -118,6 +128,7 @@ describe('LeaderboardService', () => {
 
   it('exports leaderboard rows as csv', async () => {
     const prisma = createPrismaMock();
+    const systemIntegrationsService = createSystemIntegrationsServiceMock();
     prisma.tournament.findUnique.mockResolvedValue({
       id: 'tournament-1',
       title: 'Falcon Arena',
@@ -145,7 +156,10 @@ describe('LeaderboardService', () => {
       },
     ]);
 
-    const service = new LeaderboardService(prisma as never);
+    const service = new LeaderboardService(
+      prisma as never,
+      systemIntegrationsService as never,
+    );
     const csv = await service.exportTournamentLeaderboardCsv('tournament-1');
 
     expect(csv).toContain(
@@ -156,11 +170,14 @@ describe('LeaderboardService', () => {
   });
 
   it('exports leaderboard payload to Google Sheets webhook', async () => {
-    process.env.GOOGLE_SHEETS_WEBHOOK_URL = 'https://example.com/google-sheets-webhook';
-    process.env.GOOGLE_SHEETS_WEBHOOK_SECRET = 'secret-token';
-    process.env.GOOGLE_SHEETS_DEFAULT_SHEET_NAME = 'Falcon Export';
-
     const prisma = createPrismaMock();
+    const systemIntegrationsService = createSystemIntegrationsServiceMock();
+    systemIntegrationsService.getGoogleSheetsConfig.mockResolvedValue({
+      webhookUrl: 'https://example.com/google-sheets-webhook',
+      secret: 'secret-token',
+      defaultSheetName: 'Falcon Export',
+      source: 'database',
+    });
     prisma.tournament.findUnique.mockResolvedValue({
       id: 'tournament-1',
       title: 'Falcon Arena',
@@ -201,7 +218,10 @@ describe('LeaderboardService', () => {
     });
     vi.stubGlobal('fetch', fetchMock);
 
-    const service = new LeaderboardService(prisma as never);
+    const service = new LeaderboardService(
+      prisma as never,
+      systemIntegrationsService as never,
+    );
     const result = await service.exportTournamentLeaderboardToGoogleSheets(
       'tournament-1',
       {
@@ -227,6 +247,7 @@ describe('LeaderboardService', () => {
     const [, requestInit] = fetchMock.mock.calls[0] as [string, { body: string }];
     const payload = JSON.parse(requestInit.body);
     expect(payload.sheetName).toBe('Falcon Export');
+    expect(payload.configSource).toBe('database');
     expect(payload.rowObjects[0]).toMatchObject({
       rank: 1,
       teamName: 'Alpha',
