@@ -1,4 +1,9 @@
-import { Controller, Get, Param, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Roles } from '../common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { AuthUser } from '../common/types/auth-user.type';
+import { ExportGoogleSheetsDto } from './dto/export-google-sheets.dto';
 import { LeaderboardService } from './leaderboard.service';
 
 @Controller('tournaments/:tournamentId/leaderboard')
@@ -29,5 +34,26 @@ export class LeaderboardController {
     );
 
     return csv;
+  }
+
+  @Post('export.google-sheets')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'ORGANIZER')
+  exportTournamentLeaderboardGoogleSheets(
+    @Param('tournamentId') tournamentId: string,
+    @Body() dto: ExportGoogleSheetsDto,
+    @Req() request: { user: AuthUser },
+  ) {
+    return this.leaderboardService.exportTournamentLeaderboardToGoogleSheets(
+      tournamentId,
+      {
+        sheetName: dto.sheetName,
+        exportedBy: {
+          userId: request.user.userId,
+          email: request.user.email,
+          role: request.user.role,
+        },
+      },
+    );
   }
 }

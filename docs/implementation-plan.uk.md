@@ -47,6 +47,11 @@
   - підтримка `console` fallback для dev/demo
   - підтримка `resend` provider через env-конфіг
   - доставка листів для існуючих системних сповіщень з урахуванням user preferences
+- Додано `Google Sheets` інтеграцію для leaderboard:
+  - окремий backend export endpoint
+  - webhook-інтеграція без важкого Google SDK
+  - кнопки експорту в `Лідерборді` та `Архіві`
+  - підтримка `GOOGLE_SHEETS_WEBHOOK_URL` і optional secret/default sheet name
 
 ## Обов'язковий функціонал, який ще варто закрити
 
@@ -69,9 +74,8 @@
 
 ### 3. Інтеграції та розширення
 
-- За бажанням: інтеграція CSV-експорту з Google Sheets.
 - За потреби: перехід з polling на websocket/SSE для ще більш живих оновлень.
 
 ## Порядок виконання
 
-1. Опціональні інтеграції (Google Sheets / більш просунутий realtime).
+1. Більш просунутий realtime (WebSocket / SSE).

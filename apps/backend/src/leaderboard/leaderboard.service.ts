@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadGatewayException,
+  Injectable,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 type ScoresPayload = {
@@ -8,6 +13,15 @@ type ScoresPayload = {
   mustHave?: number;
   stability?: number;
   usability?: number;
+};
+
+type GoogleSheetsExportOptions = {
+  sheetName?: string;
+  exportedBy?: {
+    userId: string;
+    email: string;
+    role: string;
+  };
 };
 
 @Injectable()
@@ -221,6 +235,80 @@ export class LeaderboardService {
   }
 
   async exportTournamentLeaderboardCsv(tournamentId: string) {
+    const sheet = await this.buildTournamentLeaderboardSheet(tournamentId);
+
+    return [sheet.headers, ...sheet.rows]
+      .map((entry) => entry.map((value) => this.escapeCsv(value)).join(','))
+      .join('\n');
+  }
+
+  async exportTournamentLeaderboardToGoogleSheets(
+    tournamentId: string,
+    options: GoogleSheetsExportOptions = {},
+  ) {
+    const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL?.trim();
+    if (!webhookUrl) {
+      throw new ServiceUnavailableException(
+        'Google Sheets export is not configured',
+      );
+    }
+
+    const sheet = await this.buildTournamentLeaderboardSheet(tournamentId);
+    const payload = {
+      event: 'leaderboard_export',
+      tournament: sheet.tournament,
+      scoring: sheet.scoring,
+      headers: sheet.headers,
+      rows: sheet.rows,
+      rowObjects: sheet.rowObjects,
+      generatedAt: new Date().toISOString(),
+      sheetName:
+        options.sheetName?.trim() ||
+        process.env.GOOGLE_SHEETS_DEFAULT_SHEET_NAME?.trim() ||
+        `${sheet.tournament.title} Leaderboard`,
+      exportedBy: options.exportedBy ?? null,
+    };
+
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(process.env.GOOGLE_SHEETS_WEBHOOK_SECRET?.trim()
+          ? {
+              'x-falconarena-export-secret':
+                process.env.GOOGLE_SHEETS_WEBHOOK_SECRET.trim(),
+            }
+          : {}),
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new BadGatewayException(
+        `Google Sheets webhook responded with ${response.status}`,
+      );
+    }
+
+    const contentType = response.headers.get('content-type') ?? '';
+    let responsePayload: unknown = null;
+
+    if (contentType.includes('application/json')) {
+      responsePayload = (await response.json()) as unknown;
+    } else {
+      const text = await response.text();
+      responsePayload = text.length > 0 ? text : null;
+    }
+
+    return {
+      ok: true,
+      destination: 'google-sheets',
+      sheetName: payload.sheetName,
+      rowsExported: sheet.rowObjects.length,
+      response: responsePayload,
+    };
+  }
+
+  async buildTournamentLeaderboardSheet(tournamentId: string) {
     const leaderboard = await this.getTournamentLeaderboard(tournamentId);
     const headers = [
       'rank',
@@ -238,30 +326,50 @@ export class LeaderboardService {
       'rounds',
     ];
 
-    const rows = leaderboard.rows.map((row) => [
-      row.rank,
-      row.teamName,
-      row.organization ?? '',
-      row.totalScore,
-      row.averageScore,
-      row.evaluationsCount,
-      row.categoryAverages.technicalBackend,
-      row.categoryAverages.technicalDatabase,
-      row.categoryAverages.technicalFrontend,
-      row.categoryAverages.mustHave,
-      row.categoryAverages.stability,
-      row.categoryAverages.usability,
-      row.rounds
+    const rowObjects = leaderboard.rows.map((row) => ({
+      rank: row.rank,
+      teamName: row.teamName,
+      organization: row.organization ?? '',
+      totalScore: row.totalScore,
+      averageScore: row.averageScore,
+      evaluationsCount: row.evaluationsCount,
+      technicalBackend: row.categoryAverages.technicalBackend,
+      technicalDatabase: row.categoryAverages.technicalDatabase,
+      technicalFrontend: row.categoryAverages.technicalFrontend,
+      mustHave: row.categoryAverages.mustHave,
+      stability: row.categoryAverages.stability,
+      usability: row.categoryAverages.usability,
+      rounds: row.rounds
         .map(
           (round) =>
             `${round.roundTitle}: avg=${round.averageScore}, evaluations=${round.evaluationsCount}`,
         )
         .join(' | '),
+    }));
+
+    const rows = rowObjects.map((row) => [
+      row.rank,
+      row.teamName,
+      row.organization,
+      row.totalScore,
+      row.averageScore,
+      row.evaluationsCount,
+      row.technicalBackend,
+      row.technicalDatabase,
+      row.technicalFrontend,
+      row.mustHave,
+      row.stability,
+      row.usability,
+      row.rounds,
     ]);
 
-    return [headers, ...rows]
-      .map((entry) => entry.map((value) => this.escapeCsv(value)).join(','))
-      .join('\n');
+    return {
+      tournament: leaderboard.tournament,
+      scoring: leaderboard.scoring,
+      headers,
+      rows,
+      rowObjects,
+    };
   }
 
   private round2(value: number) {

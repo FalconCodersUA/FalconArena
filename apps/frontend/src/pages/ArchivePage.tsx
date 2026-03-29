@@ -120,6 +120,20 @@ type CertificateTemplateView = {
   accentColor: string;
 };
 
+type GoogleSheetsExportResponse = {
+  ok: boolean;
+  destination: string;
+  sheetName: string;
+  rowsExported: number;
+  response?:
+    | {
+        spreadsheetUrl?: string;
+        url?: string;
+      }
+    | string
+    | null;
+};
+
 type CategoryKey = keyof CategoryAverages;
 
 const CATEGORY_KEYS: CategoryKey[] = [
@@ -153,12 +167,23 @@ export default function ArchivePage() {
   const [templateError, setTemplateError] = useState('');
   const [templateNotice, setTemplateNotice] = useState('');
   const [savingTemplate, setSavingTemplate] = useState(false);
+  const [exportingGoogleSheets, setExportingGoogleSheets] = useState(false);
+  const [googleSheetsNotice, setGoogleSheetsNotice] = useState('');
+  const [googleSheetsError, setGoogleSheetsError] = useState('');
 
   const leader = archive?.leaderboard?.rows[0] ?? null;
   const selectedTournament = useMemo(
     () => tournaments.find((entry) => entry.id === selectedTournamentId) ?? null,
     [selectedTournamentId, tournaments],
   );
+
+  function resolveSheetsUrl(response: GoogleSheetsExportResponse['response']) {
+    if (!response || typeof response === 'string') {
+      return '';
+    }
+
+    return response.spreadsheetUrl ?? response.url ?? '';
+  }
 
   function resolveDefaultTournamentId(list: TournamentOption[]) {
     if (initialTournamentId && list.some((entry) => entry.id === initialTournamentId)) {
@@ -294,6 +319,41 @@ export default function ArchivePage() {
     }
   }
 
+  async function exportGoogleSheets() {
+    if (!archive || !isManager) {
+      return;
+    }
+
+    setExportingGoogleSheets(true);
+    setGoogleSheetsNotice('');
+    setGoogleSheetsError('');
+
+    try {
+      const result = await apiRequest<GoogleSheetsExportResponse>(
+        `/tournaments/${archive.tournament.id}/leaderboard/export.google-sheets`,
+        {
+          method: 'POST',
+          body: {},
+        },
+      );
+      const sheetUrl = resolveSheetsUrl(result.response);
+      setGoogleSheetsNotice(
+        sheetUrl ? t('archivePage.exportGoogleSheetsSuccessWithLink') : t('archivePage.exportGoogleSheetsSuccess'),
+      );
+      if (sheetUrl) {
+        window.open(sheetUrl, '_blank', 'noopener,noreferrer');
+      }
+    } catch (requestError) {
+      setGoogleSheetsError(
+        requestError instanceof Error
+          ? requestError.message
+          : t('archivePage.exportGoogleSheetsFailed'),
+      );
+    } finally {
+      setExportingGoogleSheets(false);
+    }
+  }
+
   if (loadingTournaments) {
     return <article className="card state-card">{t('archivePage.loadingTournaments')}</article>;
   }
@@ -412,6 +472,18 @@ export default function ArchivePage() {
               >
                 {t('archivePage.exportCsv')}
               </a>
+              {isManager ? (
+                <button
+                  type="button"
+                  className="button button-soft"
+                  onClick={() => void exportGoogleSheets()}
+                  disabled={exportingGoogleSheets}
+                >
+                  {exportingGoogleSheets
+                    ? t('archivePage.exportGoogleSheetsSubmitting')
+                    : t('archivePage.exportGoogleSheets')}
+                </button>
+              ) : null}
               <Link
                 to={`/app/leaderboard?tournamentId=${archive.tournament.id}`}
                 className="button button-primary"
@@ -419,6 +491,9 @@ export default function ArchivePage() {
                 {t('archivePage.openLeaderboard')}
               </Link>
             </div>
+
+            {googleSheetsNotice ? <p className="form-success">{googleSheetsNotice}</p> : null}
+            {googleSheetsError ? <p className="form-error">{googleSheetsError}</p> : null}
           </article>
 
           {isManager ? (

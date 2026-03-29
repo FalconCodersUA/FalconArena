@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useI18n } from '../i18n/I18nProvider';
+import { getAuthRole, isAuthenticated } from '../lib/auth';
 import { apiRequest, buildApiUrl } from '../lib/api';
 
 type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
@@ -54,6 +55,20 @@ type LeaderboardResponse = {
   rows: LeaderboardRow[];
 };
 
+type GoogleSheetsExportResponse = {
+  ok: boolean;
+  destination: string;
+  sheetName: string;
+  rowsExported: number;
+  response?:
+    | {
+        spreadsheetUrl?: string;
+        url?: string;
+      }
+    | string
+    | null;
+};
+
 type CategoryKey = keyof CategoryAverages;
 
 const CATEGORY_KEYS: CategoryKey[] = [
@@ -73,6 +88,7 @@ export default function LeaderboardPage() {
   const { language, t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const [initialTournamentId] = useState(() => searchParams.get('tournamentId') ?? '');
+  const isManager = isAuthenticated() && ['ADMIN', 'ORGANIZER'].includes(getAuthRole() ?? '');
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedTournamentId, setSelectedTournamentId] = useState('');
@@ -83,6 +99,17 @@ export default function LeaderboardPage() {
   const [tournamentsError, setTournamentsError] = useState('');
   const [leaderboardError, setLeaderboardError] = useState('');
   const [lastUpdatedAt, setLastUpdatedAt] = useState('');
+  const [isExportingGoogleSheets, setIsExportingGoogleSheets] = useState(false);
+  const [googleSheetsNotice, setGoogleSheetsNotice] = useState('');
+  const [googleSheetsError, setGoogleSheetsError] = useState('');
+
+  function resolveSheetsUrl(response: GoogleSheetsExportResponse['response']) {
+    if (!response || typeof response === 'string') {
+      return '';
+    }
+
+    return response.spreadsheetUrl ?? response.url ?? '';
+  }
 
   const selectedTournament = useMemo(
     () => tournaments.find((entry) => entry.id === selectedTournamentId) ?? null,
@@ -165,6 +192,41 @@ export default function LeaderboardPage() {
       if (showLoading) {
         setLoadingLeaderboard(false);
       }
+    }
+  }
+
+  async function exportGoogleSheets() {
+    if (!selectedTournamentId) {
+      return;
+    }
+
+    setIsExportingGoogleSheets(true);
+    setGoogleSheetsNotice('');
+    setGoogleSheetsError('');
+
+    try {
+      const result = await apiRequest<GoogleSheetsExportResponse>(
+        `/tournaments/${selectedTournamentId}/leaderboard/export.google-sheets`,
+        {
+          method: 'POST',
+          body: {},
+        },
+      );
+      const sheetUrl = resolveSheetsUrl(result.response);
+      setGoogleSheetsNotice(
+        sheetUrl ? t('leaderboard.exportGoogleSheetsSuccessWithLink') : t('leaderboard.exportGoogleSheetsSuccess'),
+      );
+      if (sheetUrl) {
+        window.open(sheetUrl, '_blank', 'noopener,noreferrer');
+      }
+    } catch (requestError) {
+      setGoogleSheetsError(
+        requestError instanceof Error
+          ? requestError.message
+          : t('leaderboard.exportGoogleSheetsFailed'),
+      );
+    } finally {
+      setIsExportingGoogleSheets(false);
     }
   }
 
@@ -307,16 +369,33 @@ export default function LeaderboardPage() {
             </p>
           </div>
           {selectedTournamentId ? (
-            <a
-              href={buildApiUrl(
-                `/tournaments/${selectedTournamentId}/leaderboard/export.csv`,
-              )}
-              className="button button-soft announcement-action-btn"
-            >
-              {t('leaderboard.exportCsv')}
-            </a>
+            <div className="status-actions">
+              <a
+                href={buildApiUrl(
+                  `/tournaments/${selectedTournamentId}/leaderboard/export.csv`,
+                )}
+                className="button button-soft announcement-action-btn"
+              >
+                {t('leaderboard.exportCsv')}
+              </a>
+              {isManager ? (
+                <button
+                  type="button"
+                  className="button button-soft announcement-action-btn"
+                  onClick={() => void exportGoogleSheets()}
+                  disabled={isExportingGoogleSheets}
+                >
+                  {isExportingGoogleSheets
+                    ? t('leaderboard.exportGoogleSheetsSubmitting')
+                    : t('leaderboard.exportGoogleSheets')}
+                </button>
+              ) : null}
+            </div>
           ) : null}
         </div>
+
+        {googleSheetsNotice ? <p className="form-success">{googleSheetsNotice}</p> : null}
+        {googleSheetsError ? <p className="form-error">{googleSheetsError}</p> : null}
 
         {loadingLeaderboard ? <p>{t('leaderboard.loadingLeaderboard')}</p> : null}
 
