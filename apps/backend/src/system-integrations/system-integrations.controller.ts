@@ -4,7 +4,9 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { AuthUser } from '../common/types/auth-user.type';
 import { TestGoogleSheetsConnectionDto } from './dto/test-google-sheets-connection.dto';
+import { UpdateEmailSettingsDto } from './dto/update-email-settings.dto';
 import { UpdateGoogleSheetsSettingsDto } from './dto/update-google-sheets-settings.dto';
+import { UpdateNotificationRulesDto } from './dto/update-notification-rules.dto';
 import { SystemIntegrationsService } from './system-integrations.service';
 
 @Controller('admin/system-integrations')
@@ -37,5 +39,37 @@ export class SystemIntegrationsController {
     @Req() request: { user: AuthUser },
   ) {
     return this.systemIntegrationsService.testGoogleSheetsConnection(dto, request.user);
+  }
+
+  @Get('email')
+  getEmailSettings() {
+    return this.systemIntegrationsService.getEmailSettings();
+  }
+
+  @Patch('email')
+  updateEmailSettings(
+    @Body() dto: UpdateEmailSettingsDto,
+    @Req() request: { user: AuthUser },
+  ) {
+    return this.systemIntegrationsService.updateEmailSettings(
+      dto,
+      request.user.userId,
+    );
+  }
+
+  @Get('notification-rules')
+  getNotificationRules() {
+    return this.systemIntegrationsService.getNotificationRules();
+  }
+
+  @Patch('notification-rules')
+  updateNotificationRules(
+    @Body() dto: UpdateNotificationRulesDto,
+    @Req() request: { user: AuthUser },
+  ) {
+    return this.systemIntegrationsService.updateNotificationRules(
+      dto,
+      request.user.userId,
+    );
   }
 }

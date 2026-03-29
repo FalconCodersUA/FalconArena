@@ -6,6 +6,7 @@ import {
 } from '@prisma/client';
 import { NotificationEmailService } from './notification-email.service';
 import { PrismaService } from './prisma/prisma.service';
+import { SystemIntegrationsService } from './system-integrations/system-integrations.service';
 
 type CreateNotificationInput = {
   type: NotificationType;
@@ -21,9 +22,17 @@ export class NotificationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationEmailService: NotificationEmailService,
+    private readonly systemIntegrationsService: SystemIntegrationsService,
   ) {}
 
   async create(input: CreateNotificationInput) {
+    const shouldCreate = await this.systemIntegrationsService.shouldCreateNotification(
+      input.type,
+    );
+    if (!shouldCreate) {
+      return null;
+    }
+
     const audience =
       input.userId && !input.audience ? NotificationAudience.USER : input.audience ?? NotificationAudience.ALL;
 

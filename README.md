@@ -65,6 +65,7 @@ FalconArena - це вебплатформа для командного турн
 - Printable сертифікати участі та переможця
 - Збереження сертифікатів у PDF через браузерний print dialog
 - Експорт leaderboard у Google Sheets через webhook
+- Admin-only `Інтеграції / Налаштування системи` для Google Sheets, email delivery і глобальних правил сповіщень
 
 ## Поточний статус щодо ТЗ
 
@@ -212,7 +213,7 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 - `GOOGLE_SHEETS_WEBHOOK_SECRET`
 - `GOOGLE_SHEETS_DEFAULT_SHEET_NAME`
 
-Примітка: ці env-параметри працюють як fallback. Основне налаштування Google Sheets можна зберігати через `/app/integrations` у базі даних.
+Примітка: ці env-параметри працюють як fallback. Основні налаштування Google Sheets, email delivery і глобальних правил сповіщень тепер можна зберігати через `/app/integrations` у базі даних.
 
 ## Seed і міграції
 
@@ -292,6 +293,10 @@ SEED_ADMIN_EMAIL=admin@falconarena.live SEED_ADMIN_PASSWORD=change_me npm run pr
 - `GET /admin/system-integrations/google-sheets`
 - `PATCH /admin/system-integrations/google-sheets`
 - `POST /admin/system-integrations/google-sheets/test`
+- `GET /admin/system-integrations/email`
+- `PATCH /admin/system-integrations/email`
+- `GET /admin/system-integrations/notification-rules`
+- `PATCH /admin/system-integrations/notification-rules`
 
 ### Tournament extras
 

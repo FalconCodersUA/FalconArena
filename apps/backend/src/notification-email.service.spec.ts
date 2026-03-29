@@ -15,6 +15,27 @@ function createPrismaMock() {
 describe('NotificationEmailService', () => {
   const originalEnv = { ...process.env };
 
+  function createSystemIntegrationsServiceMock(overrides?: Partial<{
+    enabled: boolean;
+    provider: 'console' | 'resend';
+    from: string;
+    replyTo: string;
+    resendApiKey: string;
+    source: 'database' | 'env' | 'default';
+  }>) {
+    return {
+      getEmailConfig: vi.fn().mockResolvedValue({
+        enabled: true,
+        provider: 'console',
+        from: 'no-reply@falconarena.live',
+        replyTo: 'team@falconarena.live',
+        resendApiKey: '',
+        source: 'database',
+        ...overrides,
+      }),
+    };
+  }
+
   beforeEach(() => {
     process.env.EMAIL_NOTIFICATIONS_ENABLED = 'true';
     process.env.EMAIL_PROVIDER = 'console';
@@ -46,7 +67,11 @@ describe('NotificationEmailService', () => {
     ]);
 
     const loggerSpy = vi.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
-    const service = new NotificationEmailService(prisma as never);
+    const systemIntegrationsService = createSystemIntegrationsServiceMock();
+    const service = new NotificationEmailService(
+      prisma as never,
+      systemIntegrationsService as never,
+    );
 
     const result = await service.deliver({
       type: NotificationType.ROUND_STARTED,
@@ -76,7 +101,11 @@ describe('NotificationEmailService', () => {
     });
 
     const loggerSpy = vi.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
-    const service = new NotificationEmailService(prisma as never);
+    const systemIntegrationsService = createSystemIntegrationsServiceMock();
+    const service = new NotificationEmailService(
+      prisma as never,
+      systemIntegrationsService as never,
+    );
 
     const result = await service.deliver({
       type: NotificationType.SUBMISSION_RECEIVED,
@@ -98,10 +127,14 @@ describe('NotificationEmailService', () => {
   });
 
   it('skips delivery entirely when email notifications are disabled', async () => {
-    process.env.EMAIL_NOTIFICATIONS_ENABLED = 'false';
-
     const prisma = createPrismaMock();
-    const service = new NotificationEmailService(prisma as never);
+    const systemIntegrationsService = createSystemIntegrationsServiceMock({
+      enabled: false,
+    });
+    const service = new NotificationEmailService(
+      prisma as never,
+      systemIntegrationsService as never,
+    );
 
     const result = await service.deliver({
       type: NotificationType.GENERAL,
