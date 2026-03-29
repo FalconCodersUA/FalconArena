@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NotificationAudience, NotificationType, Role } from '@prisma/client';
 import { PrismaService } from './prisma/prisma.service';
+import { SystemIntegrationsService } from './system-integrations/system-integrations.service';
 
 type DeliverNotificationEmailInput = {
   type: NotificationType;
@@ -29,10 +30,14 @@ type UserWithSettings = {
 export class NotificationEmailService {
   private readonly logger = new Logger(NotificationEmailService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly systemIntegrationsService: SystemIntegrationsService,
+  ) {}
 
   async deliver(input: DeliverNotificationEmailInput) {
-    if (!this.isEnabled()) {
+    const emailConfig = await this.systemIntegrationsService.getEmailConfig();
+    if (!emailConfig.enabled) {
       return { status: 'disabled' as const, sent: 0 };
     }
 
@@ -52,6 +57,7 @@ export class NotificationEmailService {
         subject,
         text,
         html,
+        config: emailConfig,
       });
 
       return { status: 'sent' as const, sent: recipients.length };
@@ -135,10 +141,6 @@ export class NotificationEmailService {
     return user.settings ? user.settings[preferenceKey] : true;
   }
 
-  private isEnabled() {
-    return process.env.EMAIL_NOTIFICATIONS_ENABLED === 'true';
-  }
-
   private buildAbsoluteUrl(linkUrl?: string) {
     if (!linkUrl) {
       return null;
@@ -199,8 +201,9 @@ export class NotificationEmailService {
     subject: string;
     text: string;
     html: string;
+    config: Awaited<ReturnType<SystemIntegrationsService['getEmailConfig']>>;
   }) {
-    const provider = (process.env.EMAIL_PROVIDER ?? 'console').trim().toLowerCase();
+    const provider = input.config.provider;
     if (provider === 'console') {
       this.logger.log(
         `EMAIL(console) to=${input.to.join(', ')} subject="${input.subject}"`,
@@ -212,9 +215,9 @@ export class NotificationEmailService {
       throw new Error(`Unsupported email provider: ${provider}`);
     }
 
-    const apiKey = process.env.RESEND_API_KEY?.trim();
-    const from = process.env.EMAIL_FROM?.trim();
-    const replyTo = process.env.EMAIL_REPLY_TO?.trim();
+    const apiKey = input.config.resendApiKey.trim();
+    const from = input.config.from.trim();
+    const replyTo = input.config.replyTo.trim();
 
     if (!apiKey || !from) {
       throw new Error('RESEND_API_KEY and EMAIL_FROM must be configured');

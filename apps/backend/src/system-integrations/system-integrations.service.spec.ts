@@ -84,6 +84,156 @@ describe('SystemIntegrationsService', () => {
     });
   });
 
+  it('returns database-backed email settings and notification rules', async () => {
+    const prisma = createPrismaMock();
+    prisma.systemIntegrationSettings.findUnique.mockResolvedValue({
+      id: 'default',
+      googleSheetsWebhookUrl: null,
+      googleSheetsWebhookSecret: null,
+      googleSheetsDefaultSheetName: null,
+      googleSheetsLastCheckedAt: null,
+      googleSheetsLastCheckStatus: null,
+      googleSheetsLastCheckMessage: null,
+      emailNotificationsEnabled: true,
+      emailProvider: 'resend',
+      emailFrom: 'no-reply@falconarena.live',
+      emailReplyTo: 'team@falconarena.live',
+      resendApiKey: 'resend-secret',
+      emailLastCheckedAt: null,
+      emailLastCheckStatus: null,
+      emailLastCheckMessage: null,
+      notifyRegistrationStarted: true,
+      notifyRoundStarted: false,
+      notifySubmissionReceived: true,
+      notifyDeadlineReminder: true,
+      notifySubmissionClosed: false,
+    });
+
+    const service = new SystemIntegrationsService(prisma as never);
+    const emailSettings = await service.getEmailSettings();
+    const rules = await service.getNotificationRules();
+
+    expect(emailSettings).toMatchObject({
+      enabled: true,
+      provider: 'resend',
+      from: 'no-reply@falconarena.live',
+      replyTo: 'team@falconarena.live',
+      resendApiKey: 'resend-secret',
+      source: 'database',
+      isConfigured: true,
+    });
+    expect(rules).toMatchObject({
+      registrationStarted: true,
+      roundStarted: false,
+      submissionReceived: true,
+      deadlineReminder: true,
+      submissionClosed: false,
+      source: 'database',
+    });
+  });
+
+  it('updates email settings and notification rules in the database', async () => {
+    const prisma = createPrismaMock();
+    prisma.systemIntegrationSettings.findUnique.mockResolvedValue({
+      id: 'default',
+      googleSheetsWebhookUrl: null,
+      googleSheetsWebhookSecret: null,
+      googleSheetsDefaultSheetName: null,
+      googleSheetsLastCheckedAt: null,
+      googleSheetsLastCheckStatus: null,
+      googleSheetsLastCheckMessage: null,
+      emailNotificationsEnabled: false,
+      emailProvider: 'console',
+      emailFrom: '',
+      emailReplyTo: '',
+      resendApiKey: '',
+      emailLastCheckedAt: null,
+      emailLastCheckStatus: null,
+      emailLastCheckMessage: null,
+      notifyRegistrationStarted: true,
+      notifyRoundStarted: true,
+      notifySubmissionReceived: true,
+      notifyDeadlineReminder: true,
+      notifySubmissionClosed: true,
+    });
+
+    const service = new SystemIntegrationsService(prisma as never);
+
+    await service.updateEmailSettings(
+      {
+        enabled: true,
+        provider: 'resend',
+        from: 'no-reply@falconarena.live',
+        replyTo: 'team@falconarena.live',
+        resendApiKey: 'secret',
+      },
+      'admin-1',
+    );
+
+    expect(prisma.systemIntegrationSettings.upsert).toHaveBeenCalledWith({
+      where: { id: 'default' },
+      update: {
+        emailNotificationsEnabled: true,
+        emailProvider: 'resend',
+        emailFrom: 'no-reply@falconarena.live',
+        emailReplyTo: 'team@falconarena.live',
+        resendApiKey: 'secret',
+        updatedByUserId: 'admin-1',
+      },
+      create: {
+        id: 'default',
+        emailNotificationsEnabled: true,
+        emailProvider: 'resend',
+        emailFrom: 'no-reply@falconarena.live',
+        emailReplyTo: 'team@falconarena.live',
+        resendApiKey: 'secret',
+        updatedByUserId: 'admin-1',
+      },
+    });
+
+    vi.clearAllMocks();
+    prisma.systemIntegrationSettings.findUnique.mockResolvedValue({
+      id: 'default',
+      notifyRegistrationStarted: false,
+      notifyRoundStarted: true,
+      notifySubmissionReceived: false,
+      notifyDeadlineReminder: true,
+      notifySubmissionClosed: true,
+    });
+
+    await service.updateNotificationRules(
+      {
+        registrationStarted: false,
+        roundStarted: true,
+        submissionReceived: false,
+        deadlineReminder: true,
+        submissionClosed: true,
+      },
+      'admin-1',
+    );
+
+    expect(prisma.systemIntegrationSettings.upsert).toHaveBeenCalledWith({
+      where: { id: 'default' },
+      update: {
+        notifyRegistrationStarted: false,
+        notifyRoundStarted: true,
+        notifySubmissionReceived: false,
+        notifyDeadlineReminder: true,
+        notifySubmissionClosed: true,
+        updatedByUserId: 'admin-1',
+      },
+      create: {
+        id: 'default',
+        notifyRegistrationStarted: false,
+        notifyRoundStarted: true,
+        notifySubmissionReceived: false,
+        notifyDeadlineReminder: true,
+        notifySubmissionClosed: true,
+        updatedByUserId: 'admin-1',
+      },
+    });
+  });
+
   it('tests Google Sheets connection and stores successful status', async () => {
     const prisma = createPrismaMock();
     prisma.systemIntegrationSettings.upsert.mockResolvedValue({

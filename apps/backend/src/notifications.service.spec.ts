@@ -29,8 +29,15 @@ describe('NotificationsService', () => {
     const emailService = {
       deliver: vi.fn().mockResolvedValue({ status: 'sent', sent: 3 }),
     };
+    const systemIntegrationsService = {
+      shouldCreateNotification: vi.fn().mockResolvedValue(true),
+    };
 
-    const service = new NotificationsService(prisma as never, emailService as never);
+    const service = new NotificationsService(
+      prisma as never,
+      emailService as never,
+      systemIntegrationsService as never,
+    );
     const result = await service.create({
       type: 'GENERAL',
       audience: 'ALL',
@@ -85,7 +92,14 @@ describe('NotificationsService', () => {
     const emailService = {
       deliver: vi.fn(),
     };
-    const service = new NotificationsService(prisma as never, emailService as never);
+    const systemIntegrationsService = {
+      shouldCreateNotification: vi.fn().mockResolvedValue(true),
+    };
+    const service = new NotificationsService(
+      prisma as never,
+      emailService as never,
+      systemIntegrationsService as never,
+    );
 
     const result = await service.listForUser('user-1', 'TEAM');
 
@@ -122,7 +136,14 @@ describe('NotificationsService', () => {
     const emailService = {
       deliver: vi.fn(),
     };
-    const service = new NotificationsService(prisma as never, emailService as never);
+    const systemIntegrationsService = {
+      shouldCreateNotification: vi.fn().mockResolvedValue(true),
+    };
+    const service = new NotificationsService(
+      prisma as never,
+      emailService as never,
+      systemIntegrationsService as never,
+    );
 
     const result = await service.markAsRead('user-1', ['notification-1', 'notification-2']);
 
@@ -134,5 +155,31 @@ describe('NotificationsService', () => {
       skipDuplicates: true,
     });
     expect(result.updated).toBe(2);
+  });
+
+  it('skips notification creation when global rule disables the event type', async () => {
+    const prisma = createPrismaMock();
+    const emailService = {
+      deliver: vi.fn(),
+    };
+    const systemIntegrationsService = {
+      shouldCreateNotification: vi.fn().mockResolvedValue(false),
+    };
+    const service = new NotificationsService(
+      prisma as never,
+      emailService as never,
+      systemIntegrationsService as never,
+    );
+
+    const result = await service.create({
+      type: 'ROUND_STARTED',
+      audience: 'ALL',
+      title: 'Round started',
+      body: 'The round is live now.',
+    });
+
+    expect(result).toBeNull();
+    expect(prisma.notification.create).not.toHaveBeenCalled();
+    expect(emailService.deliver).not.toHaveBeenCalled();
   });
 });

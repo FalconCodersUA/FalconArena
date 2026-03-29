@@ -31,7 +31,7 @@ describe('SystemIntegrationsPage', () => {
     localStorage.setItem('falconarena_language', 'en');
   });
 
-  it('loads Google Sheets settings and normalizes empty values on save and test', async () => {
+  it('loads integrations settings and saves Google Sheets, email, and notification rules', async () => {
     mockedApiRequest.mockImplementation(async (path: string, options?: { method?: string; body?: unknown }) => {
       if (path === '/admin/system-integrations/google-sheets' && !options?.method) {
         return {
@@ -42,6 +42,32 @@ describe('SystemIntegrationsPage', () => {
           lastCheckedAt: null,
           lastCheckStatus: null,
           lastCheckMessage: null,
+          source: 'database',
+        };
+      }
+
+      if (path === '/admin/system-integrations/email' && !options?.method) {
+        return {
+          enabled: true,
+          provider: 'console',
+          from: 'no-reply@falconarena.live',
+          replyTo: 'team@falconarena.live',
+          resendApiKey: '',
+          isConfigured: true,
+          lastCheckedAt: null,
+          lastCheckStatus: null,
+          lastCheckMessage: null,
+          source: 'database',
+        };
+      }
+
+      if (path === '/admin/system-integrations/notification-rules' && !options?.method) {
+        return {
+          registrationStarted: true,
+          roundStarted: true,
+          submissionReceived: true,
+          deadlineReminder: true,
+          submissionClosed: true,
           source: 'database',
         };
       }
@@ -80,6 +106,48 @@ describe('SystemIntegrationsPage', () => {
         };
       }
 
+      if (path === '/admin/system-integrations/email' && options?.method === 'PATCH') {
+        expect(options.body).toEqual({
+          enabled: true,
+          provider: 'resend',
+          from: 'alerts@falconarena.live',
+          replyTo: 'team@falconarena.live',
+          resendApiKey: 'resend-key',
+        });
+
+        return {
+          enabled: true,
+          provider: 'resend',
+          from: 'alerts@falconarena.live',
+          replyTo: 'team@falconarena.live',
+          resendApiKey: 'resend-key',
+          isConfigured: true,
+          lastCheckedAt: null,
+          lastCheckStatus: null,
+          lastCheckMessage: null,
+          source: 'database',
+        };
+      }
+
+      if (path === '/admin/system-integrations/notification-rules' && options?.method === 'PATCH') {
+        expect(options.body).toEqual({
+          registrationStarted: true,
+          roundStarted: false,
+          submissionReceived: true,
+          deadlineReminder: true,
+          submissionClosed: true,
+        });
+
+        return {
+          registrationStarted: true,
+          roundStarted: false,
+          submissionReceived: true,
+          deadlineReminder: true,
+          submissionClosed: true,
+          source: 'database',
+        };
+      }
+
       throw new Error(`Unexpected request: ${path}`);
     });
 
@@ -94,11 +162,30 @@ describe('SystemIntegrationsPage', () => {
       },
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Save settings' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Save settings' })[0]);
     expect(await screen.findByText('Integration settings were saved.')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Test connection' }));
     const successMessages = await screen.findAllByText('Connection test passed successfully');
     expect(successMessages.length).toBeGreaterThan(0);
+
+    fireEvent.change(screen.getByLabelText('Sender email'), {
+      target: { value: 'alerts@falconarena.live' },
+    });
+    fireEvent.change(screen.getByLabelText('Reply-To'), {
+      target: { value: 'team@falconarena.live' },
+    });
+    fireEvent.change(screen.getByLabelText('Email provider'), {
+      target: { value: 'resend' },
+    });
+    fireEvent.change(screen.getByLabelText('Resend API key'), {
+      target: { value: 'resend-key' },
+    });
+    fireEvent.click(screen.getAllByRole('button', { name: 'Save settings' })[1]);
+    expect((await screen.findAllByText('Integration settings were saved.')).length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Round started' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Save settings' })[2]);
+    expect((await screen.findAllByText('Integration settings were saved.')).length).toBeGreaterThan(0);
   });
 });

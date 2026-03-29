@@ -345,6 +345,19 @@ model SystemIntegrationSettings {
   googleSheetsLastCheckedAt    DateTime?
   googleSheetsLastCheckStatus  String?
   googleSheetsLastCheckMessage String?
+  emailNotificationsEnabled    Boolean?
+  emailProvider                String?
+  emailFrom                    String?
+  emailReplyTo                 String?
+  resendApiKey                 String?
+  emailLastCheckedAt           DateTime?
+  emailLastCheckStatus         String?
+  emailLastCheckMessage        String?
+  notifyRegistrationStarted    Boolean?
+  notifyRoundStarted           Boolean?
+  notifySubmissionReceived     Boolean?
+  notifyDeadlineReminder       Boolean?
+  notifySubmissionClosed       Boolean?
   updatedByUserId              String?
   createdAt                    DateTime @default(now())
   updatedAt                    DateTime @updatedAt
