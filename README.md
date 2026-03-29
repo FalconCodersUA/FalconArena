@@ -64,6 +64,7 @@ FalconArena - це вебплатформа для командного турн
 - Часовий пояс
 - Printable сертифікати участі та переможця
 - Збереження сертифікатів у PDF через браузерний print dialog
+- Експорт leaderboard у Google Sheets через webhook
 
 ## Поточний статус щодо ТЗ
 
@@ -204,6 +205,12 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 - `EMAIL_REPLY_TO`
 - `RESEND_API_KEY`
 
+Для Google Sheets:
+
+- `GOOGLE_SHEETS_WEBHOOK_URL`
+- `GOOGLE_SHEETS_WEBHOOK_SECRET`
+- `GOOGLE_SHEETS_DEFAULT_SHEET_NAME`
+
 ## Seed і міграції
 
 Seed admin:
@@ -236,6 +243,7 @@ SEED_ADMIN_EMAIL=admin@falconarena.live SEED_ADMIN_PASSWORD=change_me npm run pr
 - `PATCH /tournaments/:id/status`
 - `GET /tournaments/:tournamentId/leaderboard`
 - `GET /tournaments/:tournamentId/leaderboard/export.csv`
+- `POST /tournaments/:tournamentId/leaderboard/export.google-sheets`
 
 ### Teams
 
@@ -334,6 +342,27 @@ Backend:
 - `docs/ui-smoke-runbook.uk.md` - UI smoke
 - `docs/project-decisions.uk.md` - архітектурні рішення
 - `docs/acceptance-checklist.uk.md` - acceptance checklist
+
+## Google Sheets export
+
+Поточна реалізація зроблена у прагматичному форматі через webhook:
+
+1. Створіть Google Apps Script або інший сумісний endpoint, який приймає `POST` JSON.
+2. Додайте в env:
+   - `GOOGLE_SHEETS_WEBHOOK_URL`
+   - `GOOGLE_SHEETS_WEBHOOK_SECRET` (optional, але бажано)
+   - `GOOGLE_SHEETS_DEFAULT_SHEET_NAME` (optional)
+3. У `Лідерборді` або `Архіві` натисніть `Експортувати в Google Sheets`.
+
+Backend надсилає:
+
+- metadata турніру
+- scoring model
+- headers
+- rows
+- rowObjects
+- generatedAt
+- exportedBy
 
 ## Статус
 

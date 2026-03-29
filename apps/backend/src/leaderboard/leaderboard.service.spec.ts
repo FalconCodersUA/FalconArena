@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { TournamentStatus } from '@prisma/client';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LeaderboardService } from './leaderboard.service';
 
 function createPrismaMock() {
@@ -18,6 +18,13 @@ function createPrismaMock() {
 }
 
 describe('LeaderboardService', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    delete process.env.GOOGLE_SHEETS_WEBHOOK_URL;
+    delete process.env.GOOGLE_SHEETS_WEBHOOK_SECRET;
+    delete process.env.GOOGLE_SHEETS_DEFAULT_SHEET_NAME;
+  });
+
   it('builds sorted leaderboard rows with computed totals and categories', async () => {
     const prisma = createPrismaMock();
     prisma.tournament.findUnique.mockResolvedValue({
@@ -146,5 +153,94 @@ describe('LeaderboardService', () => {
     );
     expect(csv).toContain('1,Alpha,School A,90,90,1,92,88,90,94,89,87');
     expect(csv).toContain('Round 1: avg=90, evaluations=1');
+  });
+
+  it('exports leaderboard payload to Google Sheets webhook', async () => {
+    process.env.GOOGLE_SHEETS_WEBHOOK_URL = 'https://example.com/google-sheets-webhook';
+    process.env.GOOGLE_SHEETS_WEBHOOK_SECRET = 'secret-token';
+    process.env.GOOGLE_SHEETS_DEFAULT_SHEET_NAME = 'Falcon Export';
+
+    const prisma = createPrismaMock();
+    prisma.tournament.findUnique.mockResolvedValue({
+      id: 'tournament-1',
+      title: 'Falcon Arena',
+      status: TournamentStatus.FINISHED,
+    });
+    prisma.team.findMany.mockResolvedValue([
+      { id: 'team-a', name: 'Alpha', organization: 'School A' },
+    ]);
+    prisma.evaluation.findMany.mockResolvedValue([
+      {
+        totalScore: 90,
+        scores: {
+          technicalBackend: 92,
+          technicalDatabase: 88,
+          technicalFrontend: 90,
+          mustHave: 94,
+          stability: 89,
+          usability: 87,
+        },
+        assignment: {
+          roundId: 'round-1',
+          round: { title: 'Round 1' },
+          submission: { teamId: 'team-a' },
+        },
+      },
+    ]);
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: {
+        get: vi.fn().mockReturnValue('application/json'),
+      },
+      json: vi.fn().mockResolvedValue({
+        ok: true,
+        spreadsheetUrl: 'https://docs.google.com/spreadsheets/d/123',
+      }),
+      text: vi.fn(),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const service = new LeaderboardService(prisma as never);
+    const result = await service.exportTournamentLeaderboardToGoogleSheets(
+      'tournament-1',
+      {
+        exportedBy: {
+          userId: 'admin-1',
+          email: 'admin@example.com',
+          role: 'ADMIN',
+        },
+      },
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://example.com/google-sheets-webhook',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          'Content-Type': 'application/json',
+          'x-falconarena-export-secret': 'secret-token',
+        }),
+      }),
+    );
+
+    const [, requestInit] = fetchMock.mock.calls[0] as [string, { body: string }];
+    const payload = JSON.parse(requestInit.body);
+    expect(payload.sheetName).toBe('Falcon Export');
+    expect(payload.rowObjects[0]).toMatchObject({
+      rank: 1,
+      teamName: 'Alpha',
+      totalScore: 90,
+    });
+    expect(result).toEqual({
+      ok: true,
+      destination: 'google-sheets',
+      sheetName: 'Falcon Export',
+      rowsExported: 1,
+      response: {
+        ok: true,
+        spreadsheetUrl: 'https://docs.google.com/spreadsheets/d/123',
+      },
+    });
   });
 });
