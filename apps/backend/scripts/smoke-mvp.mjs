@@ -435,11 +435,12 @@ async function run() {
     token: adminToken,
     expectedStatus: [200, 201],
     body: {
+      name: 'Smoke Default Template',
       title: 'Smoke Certificate',
       subtitle: 'Demo ready',
       body: 'Awarded to {{teamName}} for the FalconArena smoke pass.',
-      signatureName: 'Falcon Admin',
-      signatureTitle: 'Tournament Director',
+      signerName: 'Falcon Admin',
+      signerRole: 'Tournament Director',
       accentColor: '#5E17EB',
     },
   });
