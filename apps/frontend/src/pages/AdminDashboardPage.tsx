@@ -96,6 +96,14 @@ type AdminDashboardMetrics = {
   activity: number[];
 };
 
+type AdminActivityFeedItem = {
+  id: string;
+  title: string;
+  meta: string;
+  timestamp: number;
+  accent: 'purple' | 'teal' | 'orange' | 'cobalt';
+};
+
 type PlatformDefaults = {
   minTeamMembers: number;
   maxTeamMembers: number;
@@ -372,6 +380,7 @@ export default function AdminDashboardPage() {
   const [userPassword, setUserPassword] = useState('');
   const [userRole, setUserRole] = useState<ManagedUserRole>('JURY');
   const [quickModal, setQuickModal] = useState<AdminQuickModal>('none');
+  const [recentCreatedUsers, setRecentCreatedUsers] = useState<CreatedUser[]>([]);
 
   const selectedTournament =
     tournaments.find((entry) => entry.id === selectedTournamentId) ?? null;
@@ -453,6 +462,75 @@ export default function AdminDashboardPage() {
         : t('adminDashboard.workspaceChecklist.items.evaluation.pending'),
     },
   ];
+  const adminActivityFeed = useMemo<AdminActivityFeedItem[]>(() => {
+    const items: AdminActivityFeedItem[] = [];
+
+    recentCreatedUsers.forEach((user) => {
+      items.push({
+        id: `user-${user.id}`,
+        title: user.fullName,
+        meta: t('adminDashboard.activityFeed.userCreated')
+          .replace('{role}', t(`profile.role.${user.role}`))
+          .replace('{date}', formatDateTime(user.createdAt, language)),
+        timestamp: new Date(user.createdAt).getTime(),
+        accent: 'cobalt',
+      });
+    });
+
+    if (selectedTournament) {
+      items.push({
+        id: `tournament-registration-${selectedTournament.id}`,
+        title: selectedTournament.title,
+        meta: t('adminDashboard.activityFeed.registrationCloses').replace(
+          '{date}',
+          formatDateTime(selectedTournament.registrationCloseAt, language),
+        ),
+        timestamp: new Date(selectedTournament.registrationCloseAt).getTime(),
+        accent: 'orange',
+      });
+
+      if (selectedTournament.startsAt) {
+        items.push({
+          id: `tournament-start-${selectedTournament.id}`,
+          title: selectedTournament.title,
+          meta: t('adminDashboard.activityFeed.tournamentStarts').replace(
+            '{date}',
+            formatDateTime(selectedTournament.startsAt, language),
+          ),
+          timestamp: new Date(selectedTournament.startsAt).getTime(),
+          accent: 'purple',
+        });
+      }
+    }
+
+    rounds.forEach((round) => {
+      items.push({
+        id: `round-deadline-${round.id}`,
+        title: round.title,
+        meta: t('adminDashboard.activityFeed.roundDeadline')
+          .replace('{status}', t(`adminDashboard.roundStatus.${round.status}`))
+          .replace('{date}', formatDateTime(round.deadlineAt, language)),
+        timestamp: new Date(round.deadlineAt).getTime(),
+        accent: round.status === 'ACTIVE' ? 'teal' : round.status === 'EVALUATED' ? 'cobalt' : 'purple',
+      });
+    });
+
+    scheduleEvents.forEach((event) => {
+      items.push({
+        id: `schedule-${event.id}`,
+        title: event.title,
+        meta: t('adminDashboard.activityFeed.scheduleEvent')
+          .replace('{type}', t(`schedule.types.${event.type}`))
+          .replace('{date}', formatDateTime(event.startsAt, language)),
+        timestamp: new Date(event.startsAt).getTime(),
+        accent: event.type === 'DEADLINE' ? 'orange' : event.type === 'ROUND' ? 'purple' : 'teal',
+      });
+    });
+
+    return items
+      .sort((left, right) => right.timestamp - left.timestamp)
+      .slice(0, 6);
+  }, [language, recentCreatedUsers, rounds, scheduleEvents, selectedTournament, t]);
 
   function openQuickModal(modal: Exclude<AdminQuickModal, 'none'>) {
     setCreateTournamentError('');
@@ -887,6 +965,7 @@ export default function AdminDashboardPage() {
       setCreateUserNotice(
         t('adminDashboard.createUserSuccess').replace('{role}', t(`profile.role.${created.role}`)),
       );
+      setRecentCreatedUsers((current) => [created, ...current].slice(0, 6));
       notifySuccess(
         t('adminDashboard.createUserSuccess').replace('{role}', t(`profile.role.${created.role}`)),
       );
@@ -1431,14 +1510,28 @@ export default function AdminDashboardPage() {
 
           <article className="dashboard-mini-card">
             <h3>{t('shell.activityHistory')}</h3>
+            <p className="dashboard-mini-lead">{t('adminDashboard.activityFeed.lead')}</p>
             {hasActivityMetrics ? (
               <div className="dashboard-line-wrap">
                 <svg viewBox="0 0 320 96" preserveAspectRatio="none" className="dashboard-line-svg" aria-hidden>
                   <path d={activityPath} />
                 </svg>
               </div>
+            ) : null}
+            {adminActivityFeed.length > 0 ? (
+              <div className="activity-feed-list">
+                {adminActivityFeed.map((item) => (
+                  <article key={item.id} className={`activity-feed-item is-${item.accent}`}>
+                    <span className="activity-feed-dot" aria-hidden />
+                    <div>
+                      <strong>{item.title}</strong>
+                      <p>{item.meta}</p>
+                    </div>
+                  </article>
+                ))}
+              </div>
             ) : (
-              <p className="dashboard-empty-note">{t('adminDashboard.metrics.noActivity')}</p>
+              <p className="dashboard-empty-note">{t('adminDashboard.activityFeed.empty')}</p>
             )}
           </article>
         </div>
