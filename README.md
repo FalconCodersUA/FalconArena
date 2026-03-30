@@ -90,8 +90,8 @@ FalconArena - це вебплатформа для командного турн
 
 Ще можна посилювати як optional / next step:
 
-- інтеграцію з Google Sheets
 - більш production-grade realtime через WebSocket або SSE
+- production-grade PDF generation для сертифікатів
 
 ## Технологічний стек
 
