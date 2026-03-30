@@ -39,6 +39,40 @@ type PlatformDefaultsResponse = {
   defaultProjectTimeZone: string;
 };
 
+type SearchCatalogTournament = {
+  id: string;
+  title: string;
+  status: 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
+};
+
+type SearchCatalogTeam = {
+  id: string;
+  name: string;
+  organization: string | null;
+  membersCount: number;
+};
+
+type SearchCatalogDialog = {
+  id: string;
+  otherUser: {
+    id: string;
+    email: string;
+    fullName: string;
+    role: AuthRole;
+  };
+  lastMessage: {
+    body: string;
+  } | null;
+  isUnread: boolean;
+};
+
+type SearchItem = {
+  path: string;
+  label: string;
+  meta?: string;
+  category: string;
+};
+
 function profileAvatarKey(userId: string) {
   return `falconarena_avatar_url_${userId}`;
 }
@@ -99,6 +133,7 @@ export default function AppShell() {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchCatalogItems, setSearchCatalogItems] = useState<SearchItem[]>([]);
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [alertsLoading, setAlertsLoading] = useState(false);
   const [alertsError, setAlertsError] = useState('');
@@ -203,29 +238,77 @@ export default function AppShell() {
   const searchItems = useMemo(
     () =>
       [
-        { path: dashboardPath, label: t('shell.dashboard') },
-        { path: '/app/teams', label: t('shell.teams') },
-        { path: '/app/tournaments', label: t('shell.tournamentsNav') },
-        { path: '/app/archive', label: t('shell.archive') },
-        { path: '/app/leaderboard', label: t('shell.leaderboard') },
-        { path: '/app/messages', label: t('shell.messages') },
-        { path: '/app/profile', label: t('shell.settings') },
+        {
+          path: dashboardPath,
+          label: t('shell.dashboard'),
+          category: t('shell.searchCategories.sections'),
+        },
+        {
+          path: '/app/teams',
+          label: t('shell.teams'),
+          category: t('shell.searchCategories.sections'),
+        },
+        {
+          path: '/app/tournaments',
+          label: t('shell.tournamentsNav'),
+          category: t('shell.searchCategories.sections'),
+        },
+        {
+          path: '/app/archive',
+          label: t('shell.archive'),
+          category: t('shell.searchCategories.sections'),
+        },
+        {
+          path: '/app/leaderboard',
+          label: t('shell.leaderboard'),
+          category: t('shell.searchCategories.sections'),
+        },
+        {
+          path: '/app/messages',
+          label: t('shell.messages'),
+          category: t('shell.searchCategories.sections'),
+        },
+        {
+          path: '/app/profile',
+          label: t('shell.settings'),
+          category: t('shell.searchCategories.sections'),
+        },
         canManageIntegrations
-          ? { path: '/app/integrations', label: t('shell.integrations') }
+          ? {
+              path: '/app/integrations',
+              label: t('shell.integrations'),
+              category: t('shell.searchCategories.sections'),
+            }
           : null,
-      ].filter((item): item is { path: string; label: string } => !!item),
+      ].filter((item): item is SearchItem => !!item),
     [canManageIntegrations, dashboardPath, t],
   );
+  const searchPool = useMemo(() => {
+    const deduplicated = new Map<string, SearchItem>();
+
+    [...searchItems, ...searchCatalogItems].forEach((item) => {
+      const key = `${item.path}:${item.label}:${item.category}`;
+      if (!deduplicated.has(key)) {
+        deduplicated.set(key, item);
+      }
+    });
+
+    return [...deduplicated.values()];
+  }, [searchCatalogItems, searchItems]);
   const normalizedSearchQuery = searchQuery.trim().toLowerCase();
   const filteredSearchItems = useMemo(() => {
     if (!normalizedSearchQuery) {
-      return searchItems;
+      return searchPool.slice(0, 8);
     }
 
-    return searchItems.filter((item) =>
-      item.label.toLowerCase().includes(normalizedSearchQuery),
-    );
-  }, [normalizedSearchQuery, searchItems]);
+    return searchPool
+      .filter((item) =>
+        [item.label, item.meta, item.category]
+          .filter(Boolean)
+          .some((value) => value!.toLowerCase().includes(normalizedSearchQuery)),
+      )
+      .slice(0, 10);
+  }, [normalizedSearchQuery, searchPool]);
   const visibleAlerts = useMemo(() => {
     if (!showOnlyUnreadAlerts) {
       return alerts;
@@ -327,6 +410,90 @@ export default function AppShell() {
 
     void loadTopbarAlerts({ showLoading: false, markAsSeen: false });
   }, [authed, currentUserId, isAuthRoute]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSearchCatalog() {
+      const catalog: SearchItem[] = [];
+
+      try {
+        const tournaments = await apiRequest<SearchCatalogTournament[]>('/tournaments');
+        if (cancelled) {
+          return;
+        }
+
+        tournaments.forEach((tournament) => {
+          catalog.push({
+            path: `/app/tournaments/${tournament.id}`,
+            label: tournament.title,
+            meta: t(`tournaments.status.${tournament.status}`),
+            category: t('shell.searchCategories.tournaments'),
+          });
+        });
+
+        const teamSource = tournaments
+          .filter((item) => item.status === 'RUNNING' || item.status === 'REGISTRATION')
+          .slice(0, 4);
+
+        const teamsByTournament = await Promise.allSettled(
+          teamSource.map(async (tournament) => {
+            const teams = await apiRequest<SearchCatalogTeam[]>(`/tournaments/${tournament.id}/teams`);
+            return { tournament, teams };
+          }),
+        );
+
+        if (cancelled) {
+          return;
+        }
+
+        teamsByTournament.forEach((entry) => {
+          if (entry.status !== 'fulfilled') {
+            return;
+          }
+
+          entry.value.teams.slice(0, 12).forEach((team) => {
+            catalog.push({
+              path: `/app/teams?tournamentId=${entry.value.tournament.id}`,
+              label: team.name,
+              meta: entry.value.tournament.title,
+              category: t('shell.searchCategories.teams'),
+            });
+          });
+        });
+      } catch {
+        // Keep search functional even when dynamic catalog endpoints are unavailable.
+      }
+
+      if (authed) {
+        try {
+          const dialogs = await apiRequest<SearchCatalogDialog[]>('/messages/dialogs');
+          if (!cancelled) {
+            dialogs.slice(0, 12).forEach((dialog) => {
+              catalog.push({
+                path: `/app/messages?section=dialogs&dialog=${dialog.id}`,
+                label: dialog.otherUser.fullName || dialog.otherUser.email,
+                meta: dialog.lastMessage?.body || dialog.otherUser.email,
+                category: t('shell.searchCategories.dialogs'),
+              });
+            });
+          }
+        } catch {
+          // Ignore dialog search failures to avoid blocking the rest of the shell.
+        }
+      }
+
+      if (!cancelled) {
+        setSearchCatalogItems(catalog);
+      }
+    }
+
+    void loadSearchCatalog();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authed, t]);
 
   useEffect(() => {
     if (!authed || !currentUserId || isAuthRoute) {
@@ -663,12 +830,17 @@ export default function AppShell() {
                     ) : (
                       filteredSearchItems.map((item) => (
                         <button
-                          key={`search-item-${item.path}-${item.label}`}
+                          key={`search-item-${item.path}-${item.label}-${item.category}`}
                           type="button"
                           className="app-search-item"
                           onClick={() => goToSearchItem(item.path)}
                         >
-                          {item.label}
+                          <span>{item.label}</span>
+                          {item.meta || item.category ? (
+                            <small>
+                              {[item.category, item.meta].filter(Boolean).join(' · ')}
+                            </small>
+                          ) : null}
                         </button>
                       ))
                     )}

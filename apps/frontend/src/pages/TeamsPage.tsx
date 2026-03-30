@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useI18n } from '../i18n/I18nProvider';
 import { apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
@@ -21,6 +22,8 @@ type TeamRow = {
 
 export default function TeamsPage() {
   const { language, t } = useI18n();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [initialTournamentId] = useState(() => searchParams.get('tournamentId') ?? '');
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedTournamentId, setSelectedTournamentId] = useState('');
   const [teams, setTeams] = useState<TeamRow[]>([]);
@@ -50,7 +53,13 @@ export default function TeamsPage() {
 
       const running = data.find((item) => item.status === 'RUNNING');
       const registration = data.find((item) => item.status === 'REGISTRATION');
-      const defaultId = running?.id ?? registration?.id ?? data[0].id;
+      const defaultId =
+        (initialTournamentId && data.some((item) => item.id === initialTournamentId)
+          ? initialTournamentId
+          : null) ??
+        running?.id ??
+        registration?.id ??
+        data[0].id;
       setSelectedTournamentId((current) => current || defaultId);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : t('teamsPage.loadFailed'));
@@ -87,8 +96,15 @@ export default function TeamsPage() {
       return;
     }
 
+    setSearchParams(
+      (current) => {
+        current.set('tournamentId', selectedTournamentId);
+        return current;
+      },
+      { replace: true },
+    );
     void loadTeams(selectedTournamentId);
-  }, [selectedTournamentId]);
+  }, [selectedTournamentId, setSearchParams]);
 
   const hasData = useMemo(
     () => !loadingTournaments && tournaments.length > 0,
@@ -121,6 +137,48 @@ export default function TeamsPage() {
         <h1>{t('teamsPage.title')}</h1>
         <p className="lead">{t('teamsPage.lead')}</p>
       </header>
+
+      <article className="card panel-card teams-workspace-card">
+        <div className="teams-workspace-head">
+          <div className="teams-workspace-copy">
+            <p className="eyebrow dashboard-workspace-eyebrow">{t('teamsPage.workspaceEyebrow')}</p>
+            <h2>{t('teamsPage.workspaceTitle')}</h2>
+            <p>{t('teamsPage.workspaceLead')}</p>
+          </div>
+          <div className="dashboard-workspace-status teams-workspace-status">
+            <span>{t('teamsPage.workspaceStatusLabel')}</span>
+            <strong>{teams.length}</strong>
+            <p>{t('teamsPage.workspaceStatusLead')}</p>
+          </div>
+        </div>
+
+        <div className="dashboard-toolset-grid teams-toolset-grid">
+          <article className="dashboard-tool-card">
+            <span>{t('teamsPage.summary.teams')}</span>
+            <strong>{t('teamsPage.workspaceCards.directoryTitle')}</strong>
+            <p>{t('teamsPage.workspaceCards.directoryLead')}</p>
+            <em>{teams.length} {t('teamsPage.workspaceCards.directorySuffix')}</em>
+          </article>
+          <article className="dashboard-tool-card">
+            <span>{t('teamsPage.summary.averageMembers')}</span>
+            <strong>{t('teamsPage.workspaceCards.densityTitle')}</strong>
+            <p>{t('teamsPage.workspaceCards.densityLead')}</p>
+            <em>{averageMembers} {t('teamsPage.workspaceCards.densitySuffix')}</em>
+          </article>
+          <Link to={`/app/tournaments/${selectedTournamentId}`} className="dashboard-tool-card">
+            <span>{t('shell.tournamentsNav')}</span>
+            <strong>{t('teamsPage.workspaceCards.tournamentTitle')}</strong>
+            <p>{t('teamsPage.workspaceCards.tournamentLead')}</p>
+            <em>{selectedTournament?.title ?? '-'}</em>
+          </Link>
+          <Link to={`/app/leaderboard?tournamentId=${selectedTournamentId}`} className="dashboard-tool-card">
+            <span>{t('shell.leaderboard')}</span>
+            <strong>{t('teamsPage.workspaceCards.resultsTitle')}</strong>
+            <p>{t('teamsPage.workspaceCards.resultsLead')}</p>
+            <em>{t(`tournaments.status.${selectedTournament?.status ?? 'DRAFT'}`)}</em>
+          </Link>
+        </div>
+      </article>
 
       <article className="card panel-card">
         <label className="field" htmlFor="teams-page-tournament-select">
@@ -161,9 +219,19 @@ export default function TeamsPage() {
       <article className="card panel-card">
         <h2>{t('teamsPage.resultsTitle')}</h2>
 
-        {loadingTeams ? <p>{t('teamsPage.loadingTeams')}</p> : null}
+        {loadingTeams ? (
+          <div className="state-callout featured">
+            <strong>{t('teamsPage.resultsTitle')}</strong>
+            <p>{t('teamsPage.loadingTeams')}</p>
+          </div>
+        ) : null}
         {error ? <p className="form-error">{error}</p> : null}
-        {!loadingTeams && teams.length === 0 ? <p>{t('teamsPage.emptyTeams')}</p> : null}
+        {!loadingTeams && teams.length === 0 ? (
+          <div className="state-callout subtle">
+            <strong>{t('teamsPage.resultsTitle')}</strong>
+            <p>{t('teamsPage.emptyTeams')}</p>
+          </div>
+        ) : null}
 
         {teams.length > 0 ? (
           <div className="team-grid">
@@ -174,9 +242,16 @@ export default function TeamsPage() {
                   <span className="status-pill">{t('teamsPage.membersCount')}: {team.membersCount}</span>
                 </div>
                 <p className="inline-hint">{team.organization || t('teamsPage.noOrganization')}</p>
-                <p className="inline-hint">
-                    {t('teamsPage.createdAt')}: {formatDateTime(team.createdAt, language)}
-                </p>
+                <div className="leaderboard-metrics team-list-metrics">
+                  <div className="leaderboard-metric">
+                    <span>{t('teamsPage.membersCount')}</span>
+                    <strong>{team.membersCount}</strong>
+                  </div>
+                  <div className="leaderboard-metric">
+                    <span>{t('teamsPage.createdAt')}</span>
+                    <strong>{formatDateTime(team.createdAt, language)}</strong>
+                  </div>
+                </div>
               </article>
             ))}
           </div>

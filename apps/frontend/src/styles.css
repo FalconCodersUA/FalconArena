@@ -503,11 +503,25 @@ a {
   text-align: left;
   padding: 0 10px;
   cursor: pointer;
+  display: grid;
+  gap: 2px;
 }
 
 .app-search-item:hover {
   background: #f1ebff;
   color: #46268f;
+}
+
+.app-search-item span {
+  display: block;
+}
+
+.app-search-item small {
+  display: block;
+  color: #76819c;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .app-search-empty {
@@ -2849,6 +2863,13 @@ a {
   font-size: 0.98rem;
 }
 
+.dashboard-mini-lead {
+  margin: -2px 0 0;
+  color: #697488;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
 .dashboard-mini-list {
   display: grid;
   gap: 8px;
@@ -3005,11 +3026,32 @@ a {
   font-weight: 700;
 }
 
+.tournaments-workspace-card,
+.teams-workspace-card,
+.profile-workspace-card,
 .messages-workspace-card,
 .archive-workspace-card,
 .leaderboard-workspace-card {
   display: grid;
   gap: 16px;
+}
+
+.tournaments-workspace-card {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(248, 137, 10, 0.08) 0%, transparent 30%),
+    linear-gradient(180deg, #ffffff 0%, #fffaf5 100%);
+}
+
+.teams-workspace-card {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(46, 201, 195, 0.08) 0%, transparent 30%),
+    linear-gradient(180deg, #ffffff 0%, #f8fcfc 100%);
+}
+
+.profile-workspace-card {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.08) 0%, transparent 30%),
+    linear-gradient(180deg, #ffffff 0%, #faf7ff 100%);
 }
 
 .messages-workspace-card {
@@ -3030,6 +3072,9 @@ a {
     linear-gradient(180deg, #ffffff 0%, #f8fcfc 100%);
 }
 
+.tournaments-workspace-head,
+.teams-workspace-head,
+.profile-workspace-head,
 .messages-workspace-head,
 .archive-workspace-head,
 .leaderboard-workspace-head {
@@ -3039,6 +3084,9 @@ a {
   align-items: start;
 }
 
+.tournaments-workspace-copy,
+.teams-workspace-copy,
+.profile-workspace-copy,
 .messages-workspace-copy,
 .archive-workspace-copy,
 .leaderboard-workspace-copy {
@@ -3046,6 +3094,9 @@ a {
   gap: 10px;
 }
 
+.tournaments-workspace-copy h2,
+.teams-workspace-copy h2,
+.profile-workspace-copy h2,
 .messages-workspace-copy h2,
 .archive-workspace-copy h2,
 .leaderboard-workspace-copy h2 {
@@ -3054,6 +3105,9 @@ a {
   font-size: clamp(1.35rem, 2.3vw, 1.9rem);
 }
 
+.tournaments-workspace-copy p,
+.teams-workspace-copy p,
+.profile-workspace-copy p,
 .messages-workspace-copy p,
 .archive-workspace-copy p,
 .leaderboard-workspace-copy p {
@@ -3063,17 +3117,27 @@ a {
   line-height: 1.6;
 }
 
+.tournaments-workspace-status,
+.teams-workspace-status,
+.profile-workspace-status,
 .messages-workspace-status,
 .archive-workspace-status,
 .leaderboard-workspace-status {
   background: rgba(255, 255, 255, 0.92);
 }
 
+.tournaments-toolset-grid .dashboard-tool-card em,
+.teams-toolset-grid .dashboard-tool-card em,
+.profile-toolset-grid .dashboard-tool-card em,
 .messages-toolset-grid .dashboard-tool-card em,
 .archive-toolset-grid .dashboard-tool-card em,
 .leaderboard-toolset-grid .dashboard-tool-card em {
   color: #46596c;
   font-weight: 700;
+}
+
+.team-list-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .app-toast-stack {
@@ -3382,6 +3446,59 @@ a {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+.activity-feed-list {
+  display: grid;
+  gap: 10px;
+}
+
+.activity-feed-item {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  border: 1px solid #ebe4f3;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
+  padding: 12px;
+}
+
+.activity-feed-item strong {
+  display: block;
+  color: #2b2f54;
+  font-size: 0.88rem;
+}
+
+.activity-feed-item p {
+  margin: 3px 0 0;
+  color: #5d677c;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.activity-feed-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  margin-top: 4px;
+  background: #7a43f3;
+  box-shadow: 0 0 0 4px rgba(122, 67, 243, 0.1);
+}
+
+.activity-feed-item.is-teal .activity-feed-dot {
+  background: #2ec9c3;
+  box-shadow: 0 0 0 4px rgba(46, 201, 195, 0.1);
+}
+
+.activity-feed-item.is-orange .activity-feed-dot {
+  background: #f8890a;
+  box-shadow: 0 0 0 4px rgba(248, 137, 10, 0.12);
+}
+
+.activity-feed-item.is-cobalt .activity-feed-dot {
+  background: #2f6fe4;
+  box-shadow: 0 0 0 4px rgba(47, 111, 228, 0.1);
 }
 
 .leaderboard-round-item {
@@ -4140,6 +4257,9 @@ a {
 
   .dashboard-workspace-head,
   .integrations-workspace-head,
+  .tournaments-workspace-head,
+  .teams-workspace-head,
+  .profile-workspace-head,
   .messages-workspace-head,
   .archive-workspace-head,
   .leaderboard-workspace-head,
@@ -4285,6 +4405,12 @@ a {
 
   .dashboard-toolset-grid {
     grid-template-columns: 1fr;
+  }
+
+  .tournaments-toolset-grid,
+  .teams-toolset-grid,
+  .profile-toolset-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .dashboard-bars {
@@ -4473,6 +4599,13 @@ a {
   .state-callout.subtle {
     padding: 10px 12px;
     border-radius: 14px;
+  }
+
+  .team-list-metrics,
+  .tournaments-toolset-grid,
+  .teams-toolset-grid,
+  .profile-toolset-grid {
+    grid-template-columns: 1fr;
   }
 
   .leaderboard-metrics {

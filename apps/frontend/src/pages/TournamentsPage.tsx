@@ -194,6 +194,10 @@ export default function TournamentsPage() {
     () => filteredItems.filter((item) => item.status === 'RUNNING'),
     [filteredItems],
   );
+  const registrationOpenItems = useMemo(
+    () => items.filter((item) => item.canTeamRegister),
+    [items],
+  );
   const upcomingItems = useMemo(
     () =>
       filteredItems.filter(
@@ -246,6 +250,60 @@ export default function TournamentsPage() {
         <p className="lead">{t('tournaments.lead')}</p>
       </header>
 
+      <article className="card panel-card tournaments-workspace-card">
+        <div className="tournaments-workspace-head">
+          <div className="tournaments-workspace-copy">
+            <p className="eyebrow dashboard-workspace-eyebrow">{t('tournaments.workspaceEyebrow')}</p>
+            <h2>{t('tournaments.workspaceTitle')}</h2>
+            <p>{t('tournaments.workspaceLead')}</p>
+          </div>
+          <div className="dashboard-workspace-status tournaments-workspace-status">
+            <span>{t('tournaments.workspaceStatusLabel')}</span>
+            <strong>{filteredItems.length}</strong>
+            <p>{t('tournaments.workspaceStatusLead')}</p>
+          </div>
+        </div>
+
+        <div className="dashboard-toolset-grid tournaments-toolset-grid">
+          <button
+            type="button"
+            className="dashboard-tool-card dashboard-tool-button"
+            onClick={() => setFilter('registrationOpen')}
+          >
+            <span>{t('tournaments.filters.registrationOpen')}</span>
+            <strong>{t('tournaments.workspaceCards.registrationTitle')}</strong>
+            <p>{t('tournaments.workspaceCards.registrationLead')}</p>
+            <em>{registrationOpenItems.length} {t('tournaments.workspaceCards.registrationSuffix')}</em>
+          </button>
+          <button
+            type="button"
+            className="dashboard-tool-card dashboard-tool-button"
+            onClick={() => setFilter('running')}
+          >
+            <span>{t('tournaments.filters.running')}</span>
+            <strong>{t('tournaments.workspaceCards.runningTitle')}</strong>
+            <p>{t('tournaments.workspaceCards.runningLead')}</p>
+            <em>{activeItems.length} {t('tournaments.workspaceCards.runningSuffix')}</em>
+          </button>
+          <button
+            type="button"
+            className="dashboard-tool-card dashboard-tool-button"
+            onClick={() => setFilter('finished')}
+          >
+            <span>{t('tournaments.filters.finished')}</span>
+            <strong>{t('tournaments.workspaceCards.archiveTitle')}</strong>
+            <p>{t('tournaments.workspaceCards.archiveLead')}</p>
+            <em>{finishedItems.length} {t('tournaments.workspaceCards.archiveSuffix')}</em>
+          </button>
+          <Link to="/app/teams" className="dashboard-tool-card">
+            <span>{t('shell.teams')}</span>
+            <strong>{t('tournaments.workspaceCards.directoryTitle')}</strong>
+            <p>{t('tournaments.workspaceCards.directoryLead')}</p>
+            <em>{t('tournaments.workspaceCards.directoryHint')}</em>
+          </Link>
+        </div>
+      </article>
+
       <article className="card panel-card">
         <h2>{t('tournaments.summaryTitle')}</h2>
         <div className="summary-grid">
@@ -272,7 +330,12 @@ export default function TournamentsPage() {
           <h2>{t('tournaments.quickBlock.title')}</h2>
           <p className="inline-hint">{t('tournaments.quickBlock.lead')}</p>
 
-          {quickLoading ? <p>{t('tournaments.quickBlock.loading')}</p> : null}
+          {quickLoading ? (
+            <div className="state-callout featured">
+              <strong>{t('tournaments.quickBlock.title')}</strong>
+              <p>{t('tournaments.quickBlock.loading')}</p>
+            </div>
+          ) : null}
 
           {quickError ? (
             <>
@@ -288,7 +351,10 @@ export default function TournamentsPage() {
           ) : null}
 
           {!quickLoading && !quickError && quickRole === 'TEAM' && !quickData ? (
-            <p>{t('tournaments.quickBlock.noTournament')}</p>
+            <div className="state-callout subtle">
+              <strong>{t('tournaments.quickBlock.nextStepTitle')}</strong>
+              <p>{t('tournaments.quickBlock.noTournament')}</p>
+            </div>
           ) : null}
 
           {!quickLoading && !quickError && quickData ? (
@@ -377,7 +443,12 @@ export default function TournamentsPage() {
       </p>
 
       {filteredItems.length === 0 ? (
-        <article className="card state-card">{t('tournaments.emptyFiltered')}</article>
+        <article className="card panel-card">
+          <div className="state-callout featured">
+            <strong>{t('tournaments.summaryTitle')}</strong>
+            <p>{t('tournaments.emptyFiltered')}</p>
+          </div>
+        </article>
       ) : (
         <div className="sections-stack">
           {sections.map((section) =>

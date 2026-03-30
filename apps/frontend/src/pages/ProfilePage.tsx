@@ -22,6 +22,7 @@ type Tournament = {
   title: string;
   status: TournamentStatus;
   createdById: string;
+  startsAt: string | null;
 };
 
 type TeamProfile = {
@@ -127,6 +128,7 @@ type AdminSummaryItem = {
   tournamentTitle: string;
   tournamentStatus: TournamentStatus;
   roundsCount: number;
+  startsAt: string | null;
 };
 
 type TeamRoleSummary = {
@@ -149,6 +151,13 @@ type AdminRoleSummary = {
 
 type RoleSummary = TeamRoleSummary | JuryRoleSummary | AdminRoleSummary;
 type ProfileSettingsTab = 'edit' | 'preferences' | 'security';
+type ProfileActivityItem = {
+  id: string;
+  title: string;
+  meta: string;
+  timestamp: number;
+  accent: 'purple' | 'teal' | 'orange' | 'cobalt';
+};
 
 type ProfileSettingsPayload = {
   edit: {
@@ -466,6 +475,7 @@ export default function ProfilePage() {
           tournamentTitle: tournament.title,
           tournamentStatus: tournament.status,
           roundsCount: rounds.length,
+          startsAt: tournament.startsAt,
         } satisfies AdminSummaryItem;
       }),
     );
@@ -585,25 +595,6 @@ export default function ProfilePage() {
     reader.readAsDataURL(file);
   }
 
-  if (loading) {
-    return <article className="card state-card">{t('profile.loading')}</article>;
-  }
-
-  if (error) {
-    return (
-      <article className="card state-card">
-        <p className="form-error">{error}</p>
-        <button type="button" className="button button-soft" onClick={loadProfile}>
-          {t('profile.retry')}
-        </button>
-      </article>
-    );
-  }
-
-  if (!me || !summary) {
-    return <article className="card state-card">{t('profile.loadFailed')}</article>;
-  }
-
   async function saveSettings(tab: ProfileSettingsTab) {
     setSettingsSaving(true);
     setSettingsError('');
@@ -687,6 +678,117 @@ export default function ProfilePage() {
     } finally {
       setSettingsSaving(false);
     }
+  }
+
+  const profileWorkspacePrimaryValue =
+    !summary
+      ? 0
+      : summary.kind === 'TEAM'
+      ? summary.items.reduce((acc, item) => acc + item.submissionsCount, 0)
+      : summary.kind === 'JURY'
+        ? summary.totalAssignments - summary.evaluatedAssignments
+        : summary.items.reduce((acc, item) => acc + item.roundsCount, 0);
+
+  const profileWorkspacePrimaryLabel =
+    !summary
+      ? '-'
+      : summary.kind === 'TEAM'
+      ? t('profile.workspaceStatus.team')
+      : summary.kind === 'JURY'
+        ? t('profile.workspaceStatus.jury')
+        : t('profile.workspaceStatus.admin');
+
+  const profileWorkspaceLead =
+    !summary
+      ? t('profile.lead')
+      : summary.kind === 'TEAM'
+      ? t('profile.workspaceLead.TEAM')
+      : summary.kind === 'JURY'
+        ? t('profile.workspaceLead.JURY')
+        : t('profile.workspaceLead.ADMIN');
+  const profileActivityFeed = useMemo<ProfileActivityItem[]>(() => {
+    if (!summary) {
+      return [];
+    }
+
+    if (summary.kind === 'TEAM') {
+      return summary.items
+        .flatMap((item) =>
+          item.submissionHistory.map<ProfileActivityItem>((entry) => ({
+            id: `team-${item.tournamentId}-${entry.roundId}`,
+            title: `${t('profile.team.round')}: ${entry.roundTitle}`,
+            meta: t('profile.activityFeed.team')
+              .replace('{status}', t(`profile.submission.${entry.submissionStatus}`))
+              .replace('{date}', formatDateTime(entry.submittedAt, language)),
+            timestamp: new Date(entry.submittedAt).getTime(),
+            accent: entry.submissionStatus === 'SUBMITTED' ? 'teal' : 'purple',
+          })),
+        )
+        .sort((left, right) => right.timestamp - left.timestamp)
+        .slice(0, 6);
+    }
+
+    if (summary.kind === 'JURY') {
+      return summary.history
+        .map<ProfileActivityItem>((entry) => ({
+          id: `jury-${entry.assignmentId}`,
+          title: `${t('profile.jury.team')}: ${entry.teamName}`,
+          meta: entry.evaluated
+            ? t('profile.activityFeed.juryEvaluated')
+                .replace('{score}', entry.totalScore !== null ? String(entry.totalScore) : '-')
+                .replace('{date}', formatDateTime(entry.assignedAt, language))
+            : t('profile.activityFeed.juryPending').replace(
+                '{date}',
+                formatDateTime(entry.assignedAt, language),
+              ),
+          timestamp: new Date(entry.assignedAt).getTime(),
+          accent: entry.evaluated ? 'cobalt' : 'orange',
+        }))
+        .sort((left, right) => right.timestamp - left.timestamp)
+        .slice(0, 6);
+    }
+
+    return summary.items
+      .map<ProfileActivityItem>((item) => ({
+        id: `admin-${item.tournamentId}`,
+        title: `${t('profile.admin.title')}: ${item.tournamentTitle}`,
+        meta: item.startsAt
+          ? t('profile.activityFeed.adminScheduled')
+              .replace('{status}', t(`profile.status.${item.tournamentStatus}`))
+              .replace('{date}', formatDateTime(item.startsAt, language))
+          : t('profile.activityFeed.adminDraft').replace(
+              '{status}',
+              t(`profile.status.${item.tournamentStatus}`),
+            ),
+        timestamp: item.startsAt ? new Date(item.startsAt).getTime() : 0,
+        accent:
+          item.tournamentStatus === 'RUNNING'
+            ? 'teal'
+            : item.tournamentStatus === 'FINISHED'
+              ? 'cobalt'
+              : 'purple',
+      }))
+      .sort((left, right) => right.timestamp - left.timestamp)
+      .slice(0, 6);
+  }, [language, summary, t]);
+
+  if (loading) {
+    return <article className="card state-card">{t('profile.loading')}</article>;
+  }
+
+  if (error) {
+    return (
+      <article className="card state-card">
+        <p className="form-error">{error}</p>
+        <button type="button" className="button button-soft" onClick={loadProfile}>
+          {t('profile.retry')}
+        </button>
+      </article>
+    );
+  }
+
+  if (!me || !summary) {
+    return <article className="card state-card">{t('profile.loadFailed')}</article>;
   }
 
   function renderSettingsContent() {
@@ -970,6 +1072,46 @@ export default function ProfilePage() {
         <p className="lead">{t('profile.lead')}</p>
       </header>
 
+      <article className="card panel-card profile-workspace-card">
+        <div className="profile-workspace-head">
+          <div className="profile-workspace-copy">
+            <p className="eyebrow dashboard-workspace-eyebrow">{t('profile.workspaceEyebrow')}</p>
+            <h2>{t('profile.workspaceTitle')}</h2>
+            <p>{profileWorkspaceLead}</p>
+          </div>
+          <div className="dashboard-workspace-status profile-workspace-status">
+            <span>{profileWorkspacePrimaryLabel}</span>
+            <strong>{profileWorkspacePrimaryValue}</strong>
+            <p>{t('profile.workspaceStatusLead')}</p>
+          </div>
+        </div>
+
+        <div className="dashboard-toolset-grid profile-toolset-grid">
+          {(['edit', 'preferences', 'security'] as ProfileSettingsTab[]).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              className="dashboard-tool-card dashboard-tool-button"
+              onClick={() => {
+                setActiveSettingsTab(tab);
+                setSettingsNotice('');
+              }}
+            >
+              <span>{t('profile.workspaceCards.settingsLabel')}</span>
+              <strong>{t(`profile.settings.tabs.${tab}`)}</strong>
+              <p>{t(`profile.workspaceCards.${tab}`)}</p>
+              <em>{activeSettingsTab === tab ? t('profile.workspaceCards.active') : t('profile.workspaceCards.open')}</em>
+            </button>
+          ))}
+          <article className="dashboard-tool-card">
+            <span>{t('profile.workspaceCards.activityLabel')}</span>
+            <strong>{t('profile.overviewTitle')}</strong>
+            <p>{t('profile.workspaceCards.activityLead')}</p>
+            <em>{roleLabel}</em>
+          </article>
+        </div>
+      </article>
+
       <article className="card profile-settings-shell">
         <h2>{t('profile.settings.title')}</h2>
 
@@ -993,10 +1135,14 @@ export default function ProfilePage() {
 
         {settingsNotice ? <p className="form-success">{settingsNotice}</p> : null}
         {settingsError ? <p className="form-error">{settingsError}</p> : null}
+        <div className="state-callout subtle">
+          <strong>{t(`profile.settings.help.${activeSettingsTab}.title`)}</strong>
+          <p>{t(`profile.settings.help.${activeSettingsTab}.lead`)}</p>
+        </div>
         {renderSettingsContent()}
       </article>
 
-      <article className="card panel-card">
+      <article className="card panel-card" id="profile-basics">
         <h2>{t('profile.basics.title')}</h2>
         <div className="profile-grid">
           <div className="profile-item">
@@ -1018,7 +1164,7 @@ export default function ProfilePage() {
         </div>
       </article>
 
-      <article className="card panel-card">
+      <article className="card panel-card" id="profile-overview">
         <h2>{t('profile.overviewTitle')}</h2>
         {summary.kind === 'TEAM' ? (
           <div className="summary-grid compact-summary-grid">
@@ -1069,6 +1215,26 @@ export default function ProfilePage() {
           <strong>{t('profile.nextStepTitle')}</strong>
           <p>{t(`profile.nextStep.${summary.kind}`)}</p>
         </div>
+      </article>
+
+      <article className="card panel-card">
+        <h2>{t('profile.activityFeed.title')}</h2>
+        <p className="dashboard-mini-lead">{t('profile.activityFeed.lead')}</p>
+        {profileActivityFeed.length === 0 ? (
+          <p className="state-callout subtle">{t('profile.activityFeed.empty')}</p>
+        ) : (
+          <div className="activity-feed-list">
+            {profileActivityFeed.map((item) => (
+              <article key={item.id} className={`activity-feed-item is-${item.accent}`}>
+                <span className="activity-feed-dot" aria-hidden />
+                <div>
+                  <strong>{item.title}</strong>
+                  <p>{item.meta}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </article>
 
       {summary.kind === 'TEAM' ? (
