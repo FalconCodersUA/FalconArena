@@ -14,6 +14,28 @@ TEST_USER_PASSWORD=StrongPass123! \
 npm run smoke:platform -w @falconarena/backend
 ```
 
+Окремий жорсткий e2e для головного турнірного сценарію:
+
+```bash
+BASE_URL=https://falconarena.live \
+ADMIN_EMAIL=admin@falconarena.live \
+ADMIN_PASSWORD=your-password \
+TEST_USER_PASSWORD=StrongPass123! \
+npm run test:e2e:admin-team-jury-leaderboard -w @falconarena/backend
+```
+
+Що перевіряє цей e2e:
+
+1. `ADMIN` створює `TEAM` і `JURY`.
+2. `TEAM` реєструє команду в новому турнірі.
+3. `ADMIN` створює та активує раунд.
+4. `TEAM` подає submission.
+5. `ADMIN` розподіляє assignment на `JURY`.
+6. `JURY` виставляє evaluation.
+7. `ADMIN` завершує evaluation.
+8. `Leaderboard` містить команду на `rank = 1` з очікуваним `averageScore/totalScore`.
+9. `CSV export` повертає коректний рядок з цією командою.
+
 Що перевіряє скрипт:
 
 1. `ADMIN` входить у систему.

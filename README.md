@@ -316,6 +316,7 @@ SEED_ADMIN_EMAIL=admin@falconarena.live SEED_ADMIN_PASSWORD=change_me npm run pr
 Backend:
 
 - `BASE_URL=http://localhost:4000 ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run smoke:mvp -w @falconarena/backend`
+- `BASE_URL=http://localhost:4000 ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run test:e2e:admin-team-jury-leaderboard -w @falconarena/backend`
 - `BASE_URL=http://localhost:4000 ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run test:e2e:finish-evaluation -w @falconarena/backend`
 - `BASE_URL=http://localhost:4000 ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run test:e2e:profile-avatar -w @falconarena/backend`
 
@@ -332,6 +333,7 @@ Backend:
 - Merge у `main`: GitHub Actions запускає deploy
 - Продакшн працює через Docker Compose і Caddy
 - PostgreSQL і Redis доступні тільки у внутрішній Docker мережі
+- Backend uploads/storage живе в окремому persistent Docker volume
 
 Основні GitHub secrets для deploy:
 
@@ -355,6 +357,7 @@ Backend:
 - `docs/implementation-plan.uk.md` - план реалізації
 - `docs/deploy-quickstart.uk.md` - деплой
 - `docs/ops-runbook.uk.md` - deploy / rollback / backup / logs
+- `docs/backup-restore-drill.uk.md` - rehearsal для backup / restore БД та uploads
 - `docs/release-checklist.uk.md` - короткий checklist перед merge / deploy
 - `docs/admin-runbook.uk.md` - щоденний workflow для ADMIN
 - `docs/support-troubleshooting.uk.md` - типові проблеми і їх розбір

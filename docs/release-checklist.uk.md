@@ -31,6 +31,7 @@
 2. Якщо є міграції:
    - підготувати команду `prisma migrate deploy`;
    - зрозуміти, який ризик rollback у разі невдачі.
+   - якщо міграція або реліз зачіпає uploads/storage, зробити backup не тільки БД, а й storage archive.
 3. Переконатися, що потрібні env-змінні вже є на сервері.
 4. Якщо зачіпали інтеграції:
    - перевірити `Google Sheets`;
@@ -74,6 +75,8 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 5. якщо міняли інтеграції:
    - `Send test email`
    - `Google Sheets export`
+6. якщо міняли upload/storage logic:
+   - перевірити, що аватар або інший upload переживає rebuild контейнера.
 
 ## 5. Якщо щось пішло не так
 
