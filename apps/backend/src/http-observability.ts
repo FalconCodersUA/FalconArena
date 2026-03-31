@@ -12,7 +12,7 @@ export type HttpRequestLike = {
   ip?: string;
   requestId?: string;
   user?: {
-    id?: string;
+    userId?: string;
     role?: string;
     email?: string;
   };
@@ -64,7 +64,7 @@ export function buildHttpLogEntry({
     statusCode: response?.statusCode ?? 500,
     durationMs,
     ip: request.ip ?? null,
-    userId: request.user?.id ?? null,
+    userId: request.user?.userId ?? null,
     userRole: request.user?.role ?? null,
     userEmail: request.user?.email ?? null,
     error: errorMessage ?? null,
