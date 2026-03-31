@@ -1,6 +1,6 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useNotifications } from '../app/notifications/NotificationsProvider';
-import { ApiError, apiRequest } from '../lib/api';
+import { ApiError, apiRequest, resolveApiAssetUrl } from '../lib/api';
 import { formatDateTime, setPreferredTimeZone } from '../lib/dateTime';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/messages';
@@ -786,7 +786,10 @@ export default function ProfilePage() {
             <div className="profile-edit-avatar-wrap">
               <div className={`profile-edit-avatar${editAvatarUrl ? ' has-image' : ''}`}>
                 {editAvatarUrl ? (
-                  <img src={editAvatarUrl} alt={t('profile.settings.editAvatar')} />
+                  <img
+                    src={resolveApiAssetUrl(editAvatarUrl)}
+                    alt={t('profile.settings.editAvatar')}
+                  />
                 ) : (
                   initialsFromName(editFullName)
                 )}

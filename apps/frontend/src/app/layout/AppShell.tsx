@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useI18n } from '../../i18n/I18nProvider';
 import { SUPPORTED_LANGUAGES } from '../../i18n/messages';
-import { ApiError, apiRequest } from '../../lib/api';
+import { ApiError, apiRequest, resolveApiAssetUrl } from '../../lib/api';
 import {
   AuthRole,
   clearToken,
@@ -1016,7 +1016,7 @@ export default function AppShell() {
               {authed ? (
                 <Link to="/app/profile" className="app-avatar" aria-label={t('shell.profile')}>
                   {profileAvatarUrl ? (
-                    <img src={profileAvatarUrl} alt={t('shell.profile')} />
+                    <img src={resolveApiAssetUrl(profileAvatarUrl)} alt={t('shell.profile')} />
                   ) : (
                     initialsFromName(fullName)
                   )}
