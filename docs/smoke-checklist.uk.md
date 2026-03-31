@@ -36,6 +36,25 @@ npm run test:e2e:admin-team-jury-leaderboard -w @falconarena/backend
 8. `Leaderboard` містить команду на `rank = 1` з очікуваним `averageScore/totalScore`.
 9. `CSV export` повертає коректний рядок з цією командою.
 
+Окремий e2e для фінального сценарію `archive -> certificates -> export`:
+
+```bash
+BASE_URL=https://falconarena.live \
+ADMIN_EMAIL=admin@falconarena.live \
+ADMIN_PASSWORD=your-password \
+TEST_USER_PASSWORD=StrongPass123! \
+npm run test:e2e:archive-certificate-export -w @falconarena/backend
+```
+
+Що перевіряє цей e2e:
+
+1. Турнір проходить повний цикл до `FINISHED`.
+2. `Archive` містить фінальні summary/rounds/submissions.
+3. `Certificate template` доступний і оновлюється.
+4. `Participation` і `winner` certificate реально генеруються.
+5. `CSV export` містить фінальний archived row.
+6. `Google Sheets export` перевіряється, якщо webhook уже налаштований в системі.
+
 Що перевіряє скрипт:
 
 1. `ADMIN` входить у систему.
