@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { NotificationType } from '@prisma/client';
 import { AuditLogsService } from '../audit-logs.service';
 import { AuthUser } from '../common/types/auth-user.type';
@@ -91,6 +91,8 @@ export class SystemIntegrationsService {
     dto: UpdateGoogleSheetsSettingsDto,
     actor: AuthUser,
   ) {
+    this.assertAdminActor(actor);
+
     await this.upsertSettings({
       googleSheetsWebhookUrl: this.normalizeOptionalString(dto.webhookUrl),
       googleSheetsWebhookSecret: this.normalizeOptionalString(dto.secret),
@@ -121,6 +123,8 @@ export class SystemIntegrationsService {
     dto: TestGoogleSheetsConnectionDto,
     user: { userId: string; email: string; role: string },
   ) {
+    this.assertAdminActor(user);
+
     const config = await this.resolveGoogleSheetsConfig(dto);
     if (!config) {
       return this.persistGoogleSheetsTestResult({
@@ -205,6 +209,8 @@ export class SystemIntegrationsService {
   }
 
   async updateEmailSettings(dto: UpdateEmailSettingsDto, actor: AuthUser) {
+    this.assertAdminActor(actor);
+
     await this.upsertSettings({
       emailNotificationsEnabled: dto.enabled ?? null,
       emailProvider: this.normalizeOptionalString(dto.provider),
@@ -252,6 +258,8 @@ export class SystemIntegrationsService {
     dto: UpdateNotificationRulesDto,
     actor: AuthUser,
   ) {
+    this.assertAdminActor(actor);
+
     await this.upsertSettings({
       notifyRegistrationStarted: dto.registrationStarted ?? null,
       notifyRoundStarted: dto.roundStarted ?? null,
@@ -309,6 +317,8 @@ export class SystemIntegrationsService {
     dto: UpdateTournamentDefaultsDto,
     actor: AuthUser,
   ) {
+    this.assertAdminActor(actor);
+
     const nextMin = dto.minTeamMembers ?? null;
     const nextMax = dto.maxTeamMembers ?? null;
 
@@ -610,6 +620,12 @@ export class SystemIntegrationsService {
 
   private normalizeEmailProvider(value: string | undefined): EmailConfig['provider'] {
     return value?.trim().toLowerCase() === 'resend' ? 'resend' : 'console';
+  }
+
+  private assertAdminActor(actor: { role: string }) {
+    if (actor.role !== 'ADMIN') {
+      throw new ForbiddenException('Only admins can manage system integrations');
+    }
   }
 
   private normalizeOptionalString(value: string | undefined | null) {

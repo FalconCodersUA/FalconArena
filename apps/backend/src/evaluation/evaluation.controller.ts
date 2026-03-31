@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { RateLimit } from '../common/decorators/rate-limit.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { RateLimitGuard } from '../common/guards/rate-limit.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { AuthUser } from '../common/types/auth-user.type';
 import { DistributeAssignmentsDto } from './dto/distribute-assignments.dto';
@@ -12,8 +14,14 @@ export class EvaluationController {
   constructor(private readonly evaluationService: EvaluationService) {}
 
   @Post('distribute')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, RateLimitGuard)
   @Roles('ADMIN', 'ORGANIZER')
+  @RateLimit({
+    bucket: 'evaluation-distribute',
+    limit: 5,
+    windowSeconds: 60,
+    keyStrategy: 'user',
+  })
   distribute(
     @Param('roundId') roundId: string,
     @Body() dto: DistributeAssignmentsDto,
@@ -40,8 +48,14 @@ export class EvaluationController {
   }
 
   @Post(':assignmentId/evaluation')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, RateLimitGuard)
   @Roles('JURY')
+  @RateLimit({
+    bucket: 'jury-submit-evaluation',
+    limit: 20,
+    windowSeconds: 60,
+    keyStrategy: 'user',
+  })
   submitEvaluation(
     @Param('roundId') roundId: string,
     @Param('assignmentId') assignmentId: string,
