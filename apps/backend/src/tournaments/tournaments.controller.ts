@@ -29,7 +29,7 @@ export class TournamentsController {
     @Body() dto: CreateTournamentDto,
     @Req() request: { user: AuthUser },
   ) {
-    return this.tournamentsService.create(dto, request.user.userId);
+    return this.tournamentsService.create(dto, request.user);
   }
 
   @Get()
@@ -53,7 +53,8 @@ export class TournamentsController {
   updateStatus(
     @Param('id') id: string,
     @Body() dto: UpdateTournamentStatusDto,
+    @Req() request: { user: AuthUser },
   ) {
-    return this.tournamentsService.updateStatus(id, dto.status);
+    return this.tournamentsService.updateStatus(id, dto.status, request.user);
   }
 }

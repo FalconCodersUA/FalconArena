@@ -159,6 +159,16 @@ type ProfileActivityItem = {
   accent: 'purple' | 'teal' | 'orange' | 'cobalt';
 };
 
+type AuditActivityEntry = {
+  id: string;
+  actorName: string | null;
+  action: string;
+  entityLabel: string | null;
+  title: string;
+  description: string;
+  createdAt: string;
+};
+
 type ProfileSettingsPayload = {
   edit: {
     avatarUrl?: string;
@@ -247,6 +257,22 @@ function normalizeStoredTimeZone(value: string | null | undefined) {
     : 'Europe/Kyiv';
 }
 
+function getProfileActivityAccent(action: string): ProfileActivityItem['accent'] {
+  if (action.startsWith('evaluation.')) {
+    return 'cobalt';
+  }
+
+  if (action.startsWith('submission.')) {
+    return 'teal';
+  }
+
+  if (action.startsWith('schedule.') || action.startsWith('certificate.')) {
+    return 'orange';
+  }
+
+  return 'purple';
+}
+
 export default function ProfilePage() {
   const { language, setLanguage, t } = useI18n();
   const { notifyError, notifySuccess } = useNotifications();
@@ -256,6 +282,7 @@ export default function ProfilePage() {
   const [error, setError] = useState('');
   const [me, setMe] = useState<AuthMe | null>(null);
   const [summary, setSummary] = useState<RoleSummary | null>(null);
+  const [activityEntries, setActivityEntries] = useState<AuditActivityEntry[]>([]);
   const [activeSettingsTab, setActiveSettingsTab] = useState<ProfileSettingsTab>('edit');
   const [settingsNotice, setSettingsNotice] = useState('');
   const [settingsError, setSettingsError] = useState('');
@@ -543,10 +570,18 @@ export default function ProfilePage() {
       } else {
         setSummary(await loadAdminSummary(meData, tournamentData));
       }
+
+      try {
+        const activity = await apiRequest<AuditActivityEntry[]>('/activity/mine');
+        setActivityEntries(Array.isArray(activity) ? activity : []);
+      } catch {
+        setActivityEntries([]);
+      }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : t('profile.loadFailed'));
       setSummary(null);
       setMe(null);
+      setActivityEntries([]);
     } finally {
       setLoading(false);
     }
@@ -706,71 +741,17 @@ export default function ProfilePage() {
       : summary.kind === 'JURY'
         ? t('profile.workspaceLead.JURY')
         : t('profile.workspaceLead.ADMIN');
-  const profileActivityFeed = useMemo<ProfileActivityItem[]>(() => {
-    if (!summary) {
-      return [];
-    }
-
-    if (summary.kind === 'TEAM') {
-      return summary.items
-        .flatMap((item) =>
-          item.submissionHistory.map<ProfileActivityItem>((entry) => ({
-            id: `team-${item.tournamentId}-${entry.roundId}`,
-            title: `${t('profile.team.round')}: ${entry.roundTitle}`,
-            meta: t('profile.activityFeed.team')
-              .replace('{status}', t(`profile.submission.${entry.submissionStatus}`))
-              .replace('{date}', formatDateTime(entry.submittedAt, language)),
-            timestamp: new Date(entry.submittedAt).getTime(),
-            accent: entry.submissionStatus === 'SUBMITTED' ? 'teal' : 'purple',
-          })),
-        )
-        .sort((left, right) => right.timestamp - left.timestamp)
-        .slice(0, 6);
-    }
-
-    if (summary.kind === 'JURY') {
-      return summary.history
-        .map<ProfileActivityItem>((entry) => ({
-          id: `jury-${entry.assignmentId}`,
-          title: `${t('profile.jury.team')}: ${entry.teamName}`,
-          meta: entry.evaluated
-            ? t('profile.activityFeed.juryEvaluated')
-                .replace('{score}', entry.totalScore !== null ? String(entry.totalScore) : '-')
-                .replace('{date}', formatDateTime(entry.assignedAt, language))
-            : t('profile.activityFeed.juryPending').replace(
-                '{date}',
-                formatDateTime(entry.assignedAt, language),
-              ),
-          timestamp: new Date(entry.assignedAt).getTime(),
-          accent: entry.evaluated ? 'cobalt' : 'orange',
-        }))
-        .sort((left, right) => right.timestamp - left.timestamp)
-        .slice(0, 6);
-    }
-
-    return summary.items
-      .map<ProfileActivityItem>((item) => ({
-        id: `admin-${item.tournamentId}`,
-        title: `${t('profile.admin.title')}: ${item.tournamentTitle}`,
-        meta: item.startsAt
-          ? t('profile.activityFeed.adminScheduled')
-              .replace('{status}', t(`profile.status.${item.tournamentStatus}`))
-              .replace('{date}', formatDateTime(item.startsAt, language))
-          : t('profile.activityFeed.adminDraft').replace(
-              '{status}',
-              t(`profile.status.${item.tournamentStatus}`),
-            ),
-        timestamp: item.startsAt ? new Date(item.startsAt).getTime() : 0,
-        accent:
-          item.tournamentStatus === 'RUNNING'
-            ? 'teal'
-            : item.tournamentStatus === 'FINISHED'
-              ? 'cobalt'
-              : 'purple',
-      }))
-      .sort((left, right) => right.timestamp - left.timestamp)
-      .slice(0, 6);
-  }, [language, summary, t]);
+  const profileActivityFeed = useMemo<ProfileActivityItem[]>(
+    () =>
+      activityEntries.map((entry) => ({
+        id: entry.id,
+        title: entry.entityLabel || entry.title,
+        meta: `${entry.description} · ${formatDateTime(entry.createdAt, language)}`,
+        timestamp: new Date(entry.createdAt).getTime(),
+        accent: getProfileActivityAccent(entry.action),
+      })),
+    [activityEntries, language],
+  );
 
   if (loading) {
     return <article className="card state-card">{t('profile.loading')}</article>;

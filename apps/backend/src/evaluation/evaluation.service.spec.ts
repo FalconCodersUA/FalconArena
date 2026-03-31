@@ -54,6 +54,12 @@ function createSystemIntegrationsServiceMock() {
   };
 }
 
+function createAuditLogsServiceMock() {
+  return {
+    record: vi.fn().mockResolvedValue(undefined),
+  };
+}
+
 describe('EvaluationService', () => {
   it('blocks finish when round is active and not forced before deadline', async () => {
     const prisma = createPrismaMock();
@@ -72,10 +78,15 @@ describe('EvaluationService', () => {
     const service = new EvaluationService(
       prisma as never,
       createSystemIntegrationsServiceMock() as never,
+      createAuditLogsServiceMock() as never,
     );
 
     await expect(
-      service.finishRoundEvaluation('round-1', { force: false }),
+      service.finishRoundEvaluation('round-1', { force: false }, {
+        userId: 'admin-1',
+        role: 'ADMIN',
+        email: 'admin@example.com',
+      }),
     ).rejects.toBeInstanceOf(BadRequestException);
 
     expect(prisma.round.update).not.toHaveBeenCalled();
@@ -99,8 +110,13 @@ describe('EvaluationService', () => {
     const service = new EvaluationService(
       prisma as never,
       createSystemIntegrationsServiceMock() as never,
+      createAuditLogsServiceMock() as never,
     );
-    const result = await service.finishRoundEvaluation('round-1', { force: true });
+    const result = await service.finishRoundEvaluation('round-1', { force: true }, {
+      userId: 'admin-1',
+      role: 'ADMIN',
+      email: 'admin@example.com',
+    });
 
     expect(result.alreadyEvaluated).toBe(true);
     expect(result.roundStatus).toBe(RoundStatus.EVALUATED);

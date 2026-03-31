@@ -11,6 +11,8 @@ import {
   SubmissionStatus,
   TournamentStatus,
 } from '@prisma/client';
+import { AuditLogsService } from '../audit-logs.service';
+import { AuthUser } from '../common/types/auth-user.type';
 import { PrismaService } from '../prisma/prisma.service';
 import { SystemIntegrationsService } from '../system-integrations/system-integrations.service';
 import { DistributeAssignmentsDto } from './dto/distribute-assignments.dto';
@@ -26,9 +28,14 @@ export class EvaluationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly systemIntegrationsService: SystemIntegrationsService,
+    private readonly auditLogsService: AuditLogsService,
   ) {}
 
-  async distributeAssignments(roundId: string, dto: DistributeAssignmentsDto) {
+  async distributeAssignments(
+    roundId: string,
+    dto: DistributeAssignmentsDto,
+    actor: AuthUser,
+  ) {
     const round = await this.prisma.round.findUnique({
       where: { id: roundId },
       include: {
@@ -177,7 +184,7 @@ export class EvaluationService {
       where: { roundId },
     });
 
-    return {
+    const result = {
       roundId,
       submissionsCount: submissions.length,
       juryCount: juryPool.length,
@@ -186,6 +193,21 @@ export class EvaluationService {
       totalAssignments: allAssignmentsCount,
       resetExisting: !!dto.resetExisting,
     };
+
+    await this.auditLogsService.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'evaluation.assignments_distributed',
+      entityType: 'round',
+      entityId: round.id,
+      entityLabel: round.title,
+      tournamentId: round.tournament.id,
+      title: 'Distributed jury assignments',
+      description: `Assignments were distributed for ${round.title}.`,
+      metadata: result as unknown as Prisma.InputJsonValue,
+    });
+
+    return result;
   }
 
   async listRoundAssignments(roundId: string) {
@@ -313,6 +335,24 @@ export class EvaluationService {
       },
     });
 
+    await this.auditLogsService.record({
+      actorId: juryUserId,
+      actorRole: Role.JURY,
+      action: 'evaluation.submitted',
+      entityType: 'evaluation',
+      entityId: evaluation.id,
+      entityLabel: assignment.round.title,
+      tournamentId: assignment.round.tournamentId,
+      title: 'Submitted evaluation',
+      description: `Evaluation for ${assignment.submission.team.name} in ${assignment.round.title} was saved.`,
+      metadata: {
+        assignmentId,
+        totalScore,
+        teamId: assignment.submission.team.id,
+        teamName: assignment.submission.team.name,
+      },
+    });
+
     return {
       ...evaluation,
       submission: assignment.submission,
@@ -324,7 +364,11 @@ export class EvaluationService {
     };
   }
 
-  async finishRoundEvaluation(roundId: string, dto: FinishEvaluationDto) {
+  async finishRoundEvaluation(
+    roundId: string,
+    dto: FinishEvaluationDto,
+    actor: AuthUser,
+  ) {
     const round = await this.prisma.round.findUnique({
       where: { id: roundId },
       select: {
@@ -449,7 +493,7 @@ export class EvaluationService {
       tournamentStatus = updatedTournament.status;
     }
 
-    return {
+    const result = {
       roundId: updatedRound.id,
       roundTitle: updatedRound.title,
       roundStatus: updatedRound.status,
@@ -461,6 +505,27 @@ export class EvaluationService {
       pendingAssignments,
       completedAllRounds: totalRounds > 0 && evaluatedRounds === totalRounds,
     };
+
+    await this.auditLogsService.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'evaluation.finished',
+      entityType: 'round',
+      entityId: updatedRound.id,
+      entityLabel: updatedRound.title,
+      tournamentId: updatedRound.tournamentId,
+      title: 'Finished round evaluation',
+      description: `Evaluation was finished for ${updatedRound.title}.`,
+      metadata: {
+        forced: !!dto.force,
+        assignmentsCount,
+        evaluationsCount,
+        pendingAssignments,
+        completedAllRounds: totalRounds > 0 && evaluatedRounds === totalRounds,
+      },
+    });
+
+    return result;
   }
 
   private async resolveJuryPool(juryUserIds?: string[]): Promise<JuryCandidate[]> {

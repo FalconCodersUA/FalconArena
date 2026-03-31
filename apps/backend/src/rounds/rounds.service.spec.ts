@@ -37,10 +37,19 @@ describe('RoundsService', () => {
       },
     });
 
-    const service = new RoundsService(prisma as never);
+    const service = new RoundsService(
+      prisma as never,
+      undefined,
+      { record: vi.fn().mockResolvedValue(undefined) } as never,
+    );
 
     await expect(
-      service.updateStatus('t-1', 'round-1', RoundStatus.SUBMISSION_CLOSED),
+      service.updateStatus(
+        't-1',
+        'round-1',
+        RoundStatus.SUBMISSION_CLOSED,
+        { userId: 'admin-1', role: 'ADMIN', email: 'admin@example.com' },
+      ),
     ).rejects.toBeInstanceOf(BadRequestException);
 
     expect(prisma.$transaction).not.toHaveBeenCalled();
@@ -72,8 +81,17 @@ describe('RoundsService', () => {
       Promise.all(queries),
     );
 
-    const service = new RoundsService(prisma as never);
-    const result = await service.updateStatus('t-1', 'round-1', RoundStatus.ACTIVE);
+    const service = new RoundsService(
+      prisma as never,
+      undefined,
+      { record: vi.fn().mockResolvedValue(undefined) } as never,
+    );
+    const result = await service.updateStatus(
+      't-1',
+      'round-1',
+      RoundStatus.ACTIVE,
+      { userId: 'admin-1', role: 'ADMIN', email: 'admin@example.com' },
+    );
 
     expect(prisma.round.findFirst).toHaveBeenCalledWith({
       where: {
@@ -108,11 +126,16 @@ describe('RoundsService', () => {
       Promise.all(queries),
     );
 
-    const service = new RoundsService(prisma as never);
+    const service = new RoundsService(
+      prisma as never,
+      undefined,
+      { record: vi.fn().mockResolvedValue(undefined) } as never,
+    );
     const result = await service.updateStatus(
       't-1',
       'round-1',
       RoundStatus.SUBMISSION_CLOSED,
+      { userId: 'admin-1', role: 'ADMIN', email: 'admin@example.com' },
     );
 
     expect(prisma.submission.updateMany).toHaveBeenCalledWith({

@@ -24,7 +24,7 @@ export class AuthController {
     @Body() dto: CreateUserByAdminDto,
     @Req() request: { user: AuthUser },
   ) {
-    return this.authService.createUserByAdmin(dto, request.user.role);
+    return this.authService.createUserByAdmin(dto, request.user);
   }
 
   @Post('login')

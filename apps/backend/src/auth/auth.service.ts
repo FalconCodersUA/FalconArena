@@ -6,7 +6,9 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { AuditLogsService } from '../audit-logs.service';
 import { Role } from '../common/constants/roles';
+import { AuthUser } from '../common/types/auth-user.type';
 import { UsersService } from '../users/users.service';
 import { CreateUserByAdminDto } from './dto/create-user-by-admin.dto';
 import { LoginDto } from './dto/login.dto';
@@ -28,6 +30,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly auditLogsService: AuditLogsService,
   ) {}
 
   async register(dto: RegisterDto): Promise<AuthResponse> {
@@ -78,8 +81,8 @@ export class AuthService {
     };
   }
 
-  async createUserByAdmin(dto: CreateUserByAdminDto, actorRole: Role) {
-    if (actorRole === 'ORGANIZER' && dto.role === 'ADMIN') {
+  async createUserByAdmin(dto: CreateUserByAdminDto, actor: AuthUser) {
+    if (actor.role === 'ORGANIZER' && dto.role === 'ADMIN') {
       throw new ForbiddenException('Organizer cannot create admin users');
     }
 
@@ -94,6 +97,21 @@ export class AuthService {
       fullName: dto.fullName,
       passwordHash,
       role: dto.role,
+    });
+
+    await this.auditLogsService.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'user.created',
+      entityType: 'user',
+      entityId: user.id,
+      entityLabel: user.fullName,
+      title: 'Created platform user',
+      description: `${user.fullName} (${user.email}) was created with role ${user.role}.`,
+      metadata: {
+        email: user.email,
+        role: user.role,
+      },
     });
 
     return {

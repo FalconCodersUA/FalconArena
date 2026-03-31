@@ -4,6 +4,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { TournamentScheduleEventType } from '@prisma/client';
+import { AuditLogsService } from '../audit-logs.service';
+import { AuthUser } from '../common/types/auth-user.type';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreateTournamentScheduleEventDto,
@@ -12,7 +14,10 @@ import {
 
 @Injectable()
 export class TournamentScheduleService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditLogsService: AuditLogsService,
+  ) {}
 
   async list(tournamentId: string) {
     await this.ensureTournamentExists(tournamentId);
@@ -28,6 +33,7 @@ export class TournamentScheduleService {
   async create(
     tournamentId: string,
     dto: CreateTournamentScheduleEventDto,
+    actor: AuthUser,
   ) {
     await this.ensureTournamentExists(tournamentId);
     this.validateRange(dto.startsAt, dto.endsAt);
@@ -44,6 +50,23 @@ export class TournamentScheduleService {
       },
     });
 
+    await this.auditLogsService.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'schedule.created',
+      entityType: 'schedule_event',
+      entityId: event.id,
+      entityLabel: event.title,
+      tournamentId,
+      title: 'Created schedule event',
+      description: `${event.title} was added to the tournament schedule.`,
+      metadata: {
+        type: event.type,
+        startsAt: event.startsAt.toISOString(),
+        endsAt: event.endsAt?.toISOString() ?? null,
+      },
+    });
+
     return this.mapScheduleEventView(event);
   }
 
@@ -51,6 +74,7 @@ export class TournamentScheduleService {
     tournamentId: string,
     eventId: string,
     dto: UpdateTournamentScheduleEventDto,
+    actor: AuthUser,
   ) {
     const existing = await this.prisma.tournamentScheduleEvent.findFirst({
       where: {
@@ -79,16 +103,33 @@ export class TournamentScheduleService {
       },
     });
 
+    await this.auditLogsService.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'schedule.updated',
+      entityType: 'schedule_event',
+      entityId: event.id,
+      entityLabel: event.title,
+      tournamentId,
+      title: 'Updated schedule event',
+      description: `${event.title} was updated in the tournament schedule.`,
+      metadata: {
+        type: event.type,
+        startsAt: event.startsAt.toISOString(),
+        endsAt: event.endsAt?.toISOString() ?? null,
+      },
+    });
+
     return this.mapScheduleEventView(event);
   }
 
-  async remove(tournamentId: string, eventId: string) {
+  async remove(tournamentId: string, eventId: string, actor: AuthUser) {
     const existing = await this.prisma.tournamentScheduleEvent.findFirst({
       where: {
         id: eventId,
         tournamentId,
       },
-      select: { id: true },
+      select: { id: true, title: true, type: true, startsAt: true },
     });
 
     if (!existing) {
@@ -97,6 +138,22 @@ export class TournamentScheduleService {
 
     await this.prisma.tournamentScheduleEvent.delete({
       where: { id: eventId },
+    });
+
+    await this.auditLogsService.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'schedule.deleted',
+      entityType: 'schedule_event',
+      entityId: existing.id,
+      entityLabel: existing.title,
+      tournamentId,
+      title: 'Removed schedule event',
+      description: `${existing.title} was removed from the tournament schedule.`,
+      metadata: {
+        type: existing.type,
+        startsAt: existing.startsAt.toISOString(),
+      },
     });
 
     return { ok: true };

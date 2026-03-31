@@ -5,6 +5,8 @@ import {
   Optional,
 } from '@nestjs/common';
 import { CertificateTemplate, TournamentStatus } from '@prisma/client';
+import { AuditLogsService } from '../audit-logs.service';
+import { AuthUser } from '../common/types/auth-user.type';
 import { LeaderboardService } from '../leaderboard/leaderboard.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpsertCertificateTemplateDto } from './dto/upsert-certificate-template.dto';
@@ -32,6 +34,7 @@ export class TournamentCertificatesService {
   constructor(
     private readonly prisma: PrismaService,
     @Optional() private readonly leaderboardService?: LeaderboardService,
+    @Optional() private readonly auditLogsService?: AuditLogsService,
   ) {}
 
   async getTemplate(tournamentId: string): Promise<CertificateTemplateView> {
@@ -59,6 +62,7 @@ export class TournamentCertificatesService {
   async upsertTemplate(
     tournamentId: string,
     dto: UpsertCertificateTemplateDto,
+    actor: AuthUser,
   ): Promise<CertificateTemplateView> {
     const tournament = await this.prisma.tournament.findUnique({
       where: { id: tournamentId },
@@ -91,6 +95,22 @@ export class TournamentCertificatesService {
         signerName: dto.signerName?.trim() || null,
         signerRole: dto.signerRole?.trim() || null,
         accentColor: dto.accentColor ?? '#5E17EB',
+      },
+    });
+
+    await this.auditLogsService?.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'certificate.template_updated',
+      entityType: 'certificate_template',
+      entityId: template.id,
+      entityLabel: template.name,
+      tournamentId,
+      title: 'Updated certificate template',
+      description: `${template.name} was updated for tournament certificates.`,
+      metadata: {
+        accentColor: template.accentColor,
+        hasSigner: !!template.signerName || !!template.signerRole,
       },
     });
 

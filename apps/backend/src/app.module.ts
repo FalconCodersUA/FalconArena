@@ -3,6 +3,7 @@ import { AnnouncementsController } from './announcements.controller';
 import { AnnouncementsService } from './announcements.service';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuditLogsModule } from './audit-logs.module';
 import { AuthModule } from './auth/auth.module';
 import { DashboardMetricsController } from './dashboard-metrics.controller';
 import { DashboardMetricsService } from './dashboard-metrics.service';
@@ -23,6 +24,7 @@ import { TournamentsModule } from './tournaments/tournaments.module';
 @Module({
   imports: [
     PrismaModule,
+    AuditLogsModule,
     AuthModule,
     NotificationsModule,
     TournamentsModule,

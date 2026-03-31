@@ -30,7 +30,7 @@ export class SystemIntegrationsController {
   ) {
     return this.systemIntegrationsService.updateGoogleSheetsSettings(
       dto,
-      request.user.userId,
+      request.user,
     );
   }
 
@@ -54,7 +54,7 @@ export class SystemIntegrationsController {
   ) {
     return this.systemIntegrationsService.updateEmailSettings(
       dto,
-      request.user.userId,
+      request.user,
     );
   }
 
@@ -70,7 +70,7 @@ export class SystemIntegrationsController {
   ) {
     return this.systemIntegrationsService.updateNotificationRules(
       dto,
-      request.user.userId,
+      request.user,
     );
   }
 
@@ -86,7 +86,7 @@ export class SystemIntegrationsController {
   ) {
     return this.systemIntegrationsService.updateTournamentDefaults(
       dto,
-      request.user.userId,
+      request.user,
     );
   }
 }

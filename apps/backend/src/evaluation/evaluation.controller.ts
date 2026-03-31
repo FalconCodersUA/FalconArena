@@ -17,8 +17,9 @@ export class EvaluationController {
   distribute(
     @Param('roundId') roundId: string,
     @Body() dto: DistributeAssignmentsDto,
+    @Req() request: { user: AuthUser },
   ) {
-    return this.evaluationService.distributeAssignments(roundId, dto);
+    return this.evaluationService.distributeAssignments(roundId, dto, request.user);
   }
 
   @Get()

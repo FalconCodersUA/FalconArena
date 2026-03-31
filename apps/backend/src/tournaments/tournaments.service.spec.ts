@@ -97,6 +97,7 @@ describe('TournamentsService', () => {
       undefined,
       undefined,
       createSystemIntegrationsServiceMock() as never,
+      undefined,
     );
     const items = await service.list({});
 
@@ -131,10 +132,15 @@ describe('TournamentsService', () => {
       undefined,
       undefined,
       createSystemIntegrationsServiceMock() as never,
+      undefined,
     );
 
     await expect(
-      service.updateStatus('t-1', TournamentStatus.RUNNING),
+      service.updateStatus('t-1', TournamentStatus.RUNNING, {
+        userId: 'admin-1',
+        role: 'ADMIN',
+        email: 'admin@example.com',
+      }),
     ).rejects.toBeInstanceOf(BadRequestException);
 
     expect(prisma.tournament.update).not.toHaveBeenCalled();
@@ -148,6 +154,7 @@ describe('TournamentsService', () => {
       undefined,
       undefined,
       createSystemIntegrationsServiceMock() as never,
+      undefined,
     );
 
     await expect(service.findById('missing')).rejects.toBeInstanceOf(NotFoundException);
@@ -276,6 +283,7 @@ describe('TournamentsService', () => {
       leaderboardService as never,
       undefined,
       createSystemIntegrationsServiceMock() as never,
+      undefined,
     );
 
     const archive = await service.getArchive('t-finished');

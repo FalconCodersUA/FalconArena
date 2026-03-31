@@ -28,7 +28,7 @@ export class SubmissionsController {
   ) {
     return this.submissionsService.upsertMySubmission(
       roundId,
-      request.user.userId,
+      request.user,
       dto,
     );
   }

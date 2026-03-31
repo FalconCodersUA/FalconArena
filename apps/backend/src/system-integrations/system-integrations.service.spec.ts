@@ -10,6 +10,12 @@ function createPrismaMock() {
   };
 }
 
+function createAuditLogsServiceMock() {
+  return {
+    record: vi.fn().mockResolvedValue(undefined),
+  };
+}
+
 describe('SystemIntegrationsService', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -30,7 +36,10 @@ describe('SystemIntegrationsService', () => {
       googleSheetsLastCheckMessage: 'ok',
     });
 
-    const service = new SystemIntegrationsService(prisma as never);
+    const service = new SystemIntegrationsService(
+      prisma as never,
+      createAuditLogsServiceMock() as never,
+    );
     const result = await service.getGoogleSheetsSettings();
 
     expect(result).toMatchObject({
@@ -56,14 +65,17 @@ describe('SystemIntegrationsService', () => {
       googleSheetsLastCheckMessage: null,
     });
 
-    const service = new SystemIntegrationsService(prisma as never);
+    const service = new SystemIntegrationsService(
+      prisma as never,
+      createAuditLogsServiceMock() as never,
+    );
     await service.updateGoogleSheetsSettings(
       {
         webhookUrl: 'https://script.google.com/macros/s/example/exec',
         secret: 'new-secret',
         defaultSheetName: 'FalconArena Export',
       },
-      'admin-1',
+      { userId: 'admin-1', role: 'ADMIN', email: 'admin@example.com' },
     );
 
     expect(prisma.systemIntegrationSettings.upsert).toHaveBeenCalledWith({
@@ -119,7 +131,10 @@ describe('SystemIntegrationsService', () => {
       defaultRoundDescription: 'Default round description',
     });
 
-    const service = new SystemIntegrationsService(prisma as never);
+    const service = new SystemIntegrationsService(
+      prisma as never,
+      createAuditLogsServiceMock() as never,
+    );
     const emailSettings = await service.getEmailSettings();
     const rules = await service.getNotificationRules();
     const defaults = await service.getTournamentDefaults();
@@ -181,7 +196,10 @@ describe('SystemIntegrationsService', () => {
       notifySubmissionClosed: true,
     });
 
-    const service = new SystemIntegrationsService(prisma as never);
+    const service = new SystemIntegrationsService(
+      prisma as never,
+      createAuditLogsServiceMock() as never,
+    );
 
     await service.updateEmailSettings(
       {
@@ -191,7 +209,7 @@ describe('SystemIntegrationsService', () => {
         replyTo: 'team@falconarena.live',
         resendApiKey: 'secret',
       },
-      'admin-1',
+      { userId: 'admin-1', role: 'ADMIN', email: 'admin@example.com' },
     );
 
     expect(prisma.systemIntegrationSettings.upsert).toHaveBeenCalledWith({
@@ -243,7 +261,7 @@ describe('SystemIntegrationsService', () => {
         defaultTournamentDescription: 'Tournament default',
         defaultRoundDescription: 'Round default',
       },
-      'admin-1',
+      { userId: 'admin-1', role: 'ADMIN', email: 'admin@example.com' },
     );
 
     expect(prisma.systemIntegrationSettings.upsert).toHaveBeenCalledWith({
@@ -295,7 +313,7 @@ describe('SystemIntegrationsService', () => {
         deadlineReminder: true,
         submissionClosed: true,
       },
-      'admin-1',
+      { userId: 'admin-1', role: 'ADMIN', email: 'admin@example.com' },
     );
 
     expect(prisma.systemIntegrationSettings.upsert).toHaveBeenCalledWith({
@@ -331,7 +349,10 @@ describe('SystemIntegrationsService', () => {
     });
     vi.stubGlobal('fetch', fetchMock);
 
-    const service = new SystemIntegrationsService(prisma as never);
+    const service = new SystemIntegrationsService(
+      prisma as never,
+      createAuditLogsServiceMock() as never,
+    );
     const result = await service.testGoogleSheetsConnection(
       {
         webhookUrl: 'https://script.google.com/macros/s/example/exec',
