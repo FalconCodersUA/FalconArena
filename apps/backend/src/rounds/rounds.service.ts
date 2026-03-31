@@ -6,7 +6,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
-  NotificationType,
   Round,
   RoundStatus,
   SubmissionStatus,
@@ -15,7 +14,6 @@ import {
 import { AuditLogsService } from '../audit-logs.service';
 import { AuthUser } from '../common/types/auth-user.type';
 import { JobsService } from '../jobs/jobs.service';
-import { NotificationsService } from '../notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRoundDto } from './dto/create-round.dto';
 
@@ -23,7 +21,6 @@ import { CreateRoundDto } from './dto/create-round.dto';
 export class RoundsService {
   constructor(
     private readonly prisma: PrismaService,
-    @Optional() private readonly notificationsService?: NotificationsService,
     @Optional() private readonly jobsService?: JobsService,
     @Optional() private readonly auditLogsService?: AuditLogsService,
   ) {}
@@ -182,12 +179,10 @@ export class RoundsService {
         deadlineAt: updatedRound.deadlineAt,
       });
 
-      await this.notificationsService?.create({
-        type: NotificationType.ROUND_STARTED,
-        audience: 'ALL',
-        title: `Стартував раунд: ${updatedRound.title}`,
-        body: 'Активний раунд відкрито. Перевірте вимоги, дедлайн і подайте роботу вчасно.',
-        linkUrl: `/app/tournaments/${tournamentId}`,
+      await this.jobsService?.scheduleRoundStartedNotification({
+        roundId: updatedRound.id,
+        roundTitle: updatedRound.title,
+        tournamentId,
       });
 
       await this.auditLogsService?.record({
@@ -327,17 +322,15 @@ export class RoundsService {
 
     const affectedRounds = await this.prisma.round.findMany({
       where: { id: { in: roundIds } },
-      select: { title: true, tournamentId: true },
+      select: { id: true, title: true, tournamentId: true },
     });
 
     await Promise.all(
       affectedRounds.map((round) =>
-        this.notificationsService?.create({
-          type: NotificationType.SUBMISSION_CLOSED,
-          audience: 'ALL',
-          title: `Сабміти закрито: ${round.title}`,
-          body: 'Прийом робіт для цього раунду завершено.',
-          linkUrl: `/app/tournaments/${round.tournamentId}`,
+        this.jobsService?.scheduleSubmissionClosedNotification({
+          roundId: round.id,
+          roundTitle: round.title,
+          tournamentId: round.tournamentId,
         }),
       ) ?? [],
     );
@@ -393,12 +386,10 @@ export class RoundsService {
       }),
     ]);
 
-    await this.notificationsService?.create({
-      type: NotificationType.SUBMISSION_CLOSED,
-      audience: 'ALL',
-      title: `Сабміти закрито: ${updatedRound.title}`,
-      body: 'Прийом робіт для цього раунду завершено.',
-      linkUrl: `/app/tournaments/${updatedRound.tournamentId}`,
+    await this.jobsService?.scheduleSubmissionClosedNotification({
+      roundId: updatedRound.id,
+      roundTitle: updatedRound.title,
+      tournamentId: updatedRound.tournamentId,
     });
 
     return updatedRound;

@@ -102,6 +102,14 @@ function announcementsPath(role: UserRole, includeInactive: boolean) {
   return '/announcements';
 }
 
+function ensureListResponse<T>(value: unknown, errorMessage: string): T[] {
+  if (!Array.isArray(value)) {
+    throw new Error(errorMessage);
+  }
+
+  return value as T[];
+}
+
 export default function MessagesPage() {
   const { language, t } = useI18n();
   const location = useLocation();
@@ -219,7 +227,11 @@ export default function MessagesPage() {
     setNotificationsError('');
 
     try {
-      const data = await apiRequest<NotificationItem[]>('/notifications');
+      const payload = await apiRequest<unknown>('/notifications');
+      const data = ensureListResponse<NotificationItem>(
+        payload,
+        t('messagesPage.notifications.loadFailed'),
+      );
       if (markAsRead) {
         await markNotificationsRead(data);
         setNotifications(data.map((item) => ({ ...item, isUnread: false })));
@@ -267,8 +279,12 @@ export default function MessagesPage() {
     setError('');
 
     try {
-      const data = await apiRequest<Announcement[]>(
+      const payload = await apiRequest<unknown>(
         announcementsPath(role, includeInactiveValue),
+      );
+      const data = ensureListResponse<Announcement>(
+        payload,
+        t('messagesPage.loadFailed'),
       );
       if (!includeInactiveValue) {
         await markAnnouncementsRead(data);
@@ -292,7 +308,11 @@ export default function MessagesPage() {
     setDialogsError('');
 
     try {
-      const data = await apiRequest<DialogListItem[]>('/messages/dialogs');
+      const payload = await apiRequest<unknown>('/messages/dialogs');
+      const data = ensureListResponse<DialogListItem>(
+        payload,
+        t('messagesPage.dialogs.loadFailed'),
+      );
       setDialogs(data);
 
       if (data.length === 0) {

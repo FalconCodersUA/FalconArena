@@ -40,7 +40,6 @@ describe('RoundsService', () => {
     const service = new RoundsService(
       prisma as never,
       undefined,
-      undefined,
       { record: vi.fn().mockResolvedValue(undefined) } as never,
     );
 
@@ -72,7 +71,9 @@ describe('RoundsService', () => {
     prisma.round.update.mockResolvedValue({
       id: 'round-1',
       tournamentId: 't-1',
+      title: 'Round 1',
       status: RoundStatus.ACTIVE,
+      deadlineAt: new Date('2099-01-01T00:00:00.000Z'),
     });
     prisma.tournament.update.mockResolvedValue({
       id: 't-1',
@@ -82,10 +83,13 @@ describe('RoundsService', () => {
       Promise.all(queries),
     );
 
+    const jobsService = {
+      scheduleRoundStartedNotification: vi.fn().mockResolvedValue({ id: 'job-2' }),
+      scheduleDeadlineReminderForRound: vi.fn().mockResolvedValue({ id: 'job-1' }),
+    };
     const service = new RoundsService(
       prisma as never,
-      undefined,
-      undefined,
+      jobsService as never,
       { record: vi.fn().mockResolvedValue(undefined) } as never,
     );
     const result = await service.updateStatus(
@@ -103,6 +107,17 @@ describe('RoundsService', () => {
       },
     });
     expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(jobsService.scheduleDeadlineReminderForRound).toHaveBeenCalledWith({
+      id: 'round-1',
+      title: 'Round 1',
+      tournamentId: 't-1',
+      deadlineAt: new Date('2099-01-01T00:00:00.000Z'),
+    });
+    expect(jobsService.scheduleRoundStartedNotification).toHaveBeenCalledWith({
+      roundId: 'round-1',
+      roundTitle: 'Round 1',
+      tournamentId: 't-1',
+    });
     expect(result.status).toBe(RoundStatus.ACTIVE);
   });
 
@@ -121,6 +136,7 @@ describe('RoundsService', () => {
     prisma.round.update.mockResolvedValue({
       id: 'round-1',
       tournamentId: 't-1',
+      title: 'Round 1',
       status: RoundStatus.SUBMISSION_CLOSED,
     });
     prisma.submission.updateMany.mockResolvedValue({ count: 2 });
@@ -128,10 +144,12 @@ describe('RoundsService', () => {
       Promise.all(queries),
     );
 
+    const jobsService = {
+      scheduleSubmissionClosedNotification: vi.fn().mockResolvedValue({ id: 'job-3' }),
+    };
     const service = new RoundsService(
       prisma as never,
-      undefined,
-      undefined,
+      jobsService as never,
       { record: vi.fn().mockResolvedValue(undefined) } as never,
     );
     const result = await service.updateStatus(
@@ -149,6 +167,11 @@ describe('RoundsService', () => {
       data: {
         status: SubmissionStatus.LOCKED,
       },
+    });
+    expect(jobsService.scheduleSubmissionClosedNotification).toHaveBeenCalledWith({
+      roundId: 'round-1',
+      roundTitle: 'Round 1',
+      tournamentId: 't-1',
     });
     expect(result.status).toBe(RoundStatus.SUBMISSION_CLOSED);
   });
@@ -186,7 +209,7 @@ describe('RoundsService', () => {
       scheduleDeadlineReminderForRound: vi.fn().mockResolvedValue({ id: 'job-1' }),
     };
 
-    const service = new RoundsService(prisma as never, undefined, jobsService as never);
+    const service = new RoundsService(prisma as never, jobsService as never, undefined);
     const result = await service.getActiveRound('t-1');
 
     expect(jobsService.scheduleDeadlineReminderForRound).toHaveBeenCalledWith({

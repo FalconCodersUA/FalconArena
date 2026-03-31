@@ -96,6 +96,7 @@ describe('TournamentsService', () => {
       prisma as never,
       undefined,
       undefined,
+      undefined,
       createSystemIntegrationsServiceMock() as never,
       undefined,
     );
@@ -131,6 +132,7 @@ describe('TournamentsService', () => {
       prisma as never,
       undefined,
       undefined,
+      undefined,
       createSystemIntegrationsServiceMock() as never,
       undefined,
     );
@@ -151,6 +153,7 @@ describe('TournamentsService', () => {
     prisma.tournament.findUnique.mockResolvedValue(null);
     const service = new TournamentsService(
       prisma as never,
+      undefined,
       undefined,
       undefined,
       createSystemIntegrationsServiceMock() as never,
@@ -282,6 +285,7 @@ describe('TournamentsService', () => {
       prisma as never,
       leaderboardService as never,
       undefined,
+      undefined,
       createSystemIntegrationsServiceMock() as never,
       undefined,
     );
@@ -293,5 +297,59 @@ describe('TournamentsService', () => {
     expect(archive.summary.submissionsCount).toBe(1);
     expect(archive.teams[0].rank).toBe(1);
     expect(archive.rounds[0].submissions[0].averageScore).toBe(90);
+  });
+
+  it('queues registration-started notification when tournament moves to registration', async () => {
+    const prisma = createPrismaMock();
+    prisma.tournament.findUnique.mockResolvedValue({
+      id: 't-1',
+      title: 'Falcon Cup',
+      description: null,
+      startsAt: null,
+      registrationOpenAt: new Date('2026-03-10T10:00:00.000Z'),
+      registrationCloseAt: new Date('2026-03-20T14:00:00.000Z'),
+      maxTeams: null,
+      status: TournamentStatus.DRAFT,
+      createdById: 'admin-1',
+      createdAt: new Date('2026-03-09T10:00:00.000Z'),
+      updatedAt: new Date('2026-03-09T10:00:00.000Z'),
+    });
+    prisma.tournament.update.mockResolvedValue({
+      id: 't-1',
+      title: 'Falcon Cup',
+      description: null,
+      startsAt: null,
+      registrationOpenAt: new Date('2026-03-10T10:00:00.000Z'),
+      registrationCloseAt: new Date('2026-03-20T14:00:00.000Z'),
+      maxTeams: null,
+      status: TournamentStatus.REGISTRATION,
+      createdById: 'admin-1',
+      createdAt: new Date('2026-03-09T10:00:00.000Z'),
+      updatedAt: new Date('2026-03-09T10:00:00.000Z'),
+    });
+    const jobsService = {
+      scheduleRegistrationStartedNotification: vi.fn().mockResolvedValue({ id: 'job-1' }),
+    };
+
+    const service = new TournamentsService(
+      prisma as never,
+      undefined,
+      undefined,
+      jobsService as never,
+      createSystemIntegrationsServiceMock() as never,
+      { record: vi.fn().mockResolvedValue(undefined) } as never,
+    );
+
+    const result = await service.updateStatus('t-1', TournamentStatus.REGISTRATION, {
+      userId: 'admin-1',
+      role: 'ADMIN',
+      email: 'admin@example.com',
+    });
+
+    expect(jobsService.scheduleRegistrationStartedNotification).toHaveBeenCalledWith({
+      tournamentId: 't-1',
+      tournamentTitle: 'Falcon Cup',
+    });
+    expect(result.status).toBe(TournamentStatus.REGISTRATION);
   });
 });

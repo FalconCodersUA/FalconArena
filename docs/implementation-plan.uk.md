@@ -107,7 +107,7 @@
 - Додано structured HTTP logging для backend.
 - Додано окремий `ops runbook` для deploy / rollback / backup / logs.
 - Додано окремий `release checklist` для merge / deploy / post-deploy verification.
-- Додано DB-backed `background jobs` для `deadline reminder` з retry/idempotency і backend worker.
+- Додано DB-backed `background jobs` для `deadline reminder`, `registration started`, `round started` і `submission closed` з retry/idempotency і backend worker.
 - Збереження нових аватарів переведено з `base64` у БД на локальні upload-файли з URL `/uploads/avatars/...`.
 - Backend uploads/storage винесено в persistent Docker volume, додано helper-скрипти і drill-doc для backup / restore БД та storage.
 - Додано окремий `e2e` сценарій `ADMIN -> TEAM -> JURY -> LEADERBOARD` з перевіркою leaderboard row та CSV export.

@@ -114,4 +114,78 @@ describe('JobsService', () => {
       },
     });
   });
+
+  it('creates an immediate registration-started notification job only once per tournament', async () => {
+    const prisma = createPrismaMock();
+    prisma.backgroundJob.findUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        id: 'job-registration-1',
+        dedupeKey: 'registration-started:t-1',
+        status: 'PENDING',
+      });
+    prisma.backgroundJob.create.mockResolvedValue({
+      id: 'job-registration-1',
+      dedupeKey: 'registration-started:t-1',
+      status: 'PENDING',
+    });
+
+    const service = new JobsService(
+      prisma as never,
+      { create: vi.fn() } as never,
+    );
+
+    await service.scheduleRegistrationStartedNotification({
+      tournamentId: 't-1',
+      tournamentTitle: 'Falcon Cup',
+    });
+
+    await service.scheduleRegistrationStartedNotification({
+      tournamentId: 't-1',
+      tournamentTitle: 'Falcon Cup',
+    });
+
+    expect(prisma.backgroundJob.create).toHaveBeenCalledTimes(1);
+  });
+
+  it('processes a due round-started notification job', async () => {
+    const prisma = createPrismaMock();
+    const notificationsService = {
+      create: vi.fn().mockResolvedValue({ id: 'notification-round-1' }),
+    };
+
+    prisma.backgroundJob.findMany.mockResolvedValue([
+      {
+        id: 'job-2',
+        type: 'ROUND_STARTED_NOTIFICATION',
+        status: 'PENDING',
+        runAt: new Date('2026-03-30T10:00:00.000Z'),
+        attempts: 0,
+        maxAttempts: 3,
+        lastError: null,
+        dedupeKey: 'round-started:round-1',
+        payload: {
+          roundId: 'round-1',
+          roundTitle: 'Round 1',
+          tournamentId: 't-1',
+        },
+      },
+    ]);
+    prisma.backgroundJob.updateMany.mockResolvedValue({ count: 1 });
+    prisma.backgroundJob.update.mockResolvedValue({
+      id: 'job-2',
+      status: 'COMPLETED',
+    });
+
+    const service = new JobsService(prisma as never, notificationsService as never);
+    await service.processDueJobsOnce();
+
+    expect(notificationsService.create).toHaveBeenCalledWith({
+      type: 'ROUND_STARTED',
+      audience: 'ALL',
+      title: 'Стартував раунд: Round 1',
+      body: 'Активний раунд відкрито. Перевірте вимоги, дедлайн і подайте роботу вчасно.',
+      linkUrl: '/app/tournaments/t-1',
+    });
+  });
 });
