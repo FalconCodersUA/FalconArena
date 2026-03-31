@@ -334,6 +334,7 @@ function AdminActionModal({
 
 export default function AdminDashboardPage() {
   const { language, t } = useI18n();
+  const dateTimeInputLang = language === 'uk' ? 'uk-UA' : 'en-US';
   const { notifyError, notifySuccess } = useNotifications();
 
   const [me, setMe] = useState<AuthMe | null>(null);
@@ -1402,7 +1403,7 @@ export default function AdminDashboardPage() {
                         {t('adminDashboard.form.createRound')}
                       </button>
                       <a href="#admin-schedule" className="button button-ghost">
-                        {t('adminDashboard.schedule.title')}
+                        {t('schedule.title')}
                       </a>
                     </>
                   ) : null}
@@ -1770,23 +1771,25 @@ export default function AdminDashboardPage() {
           <div className="datetime-grid">
             <label className="field" htmlFor="admin-schedule-start">
               <span>{t('schedule.form.startsAt')}</span>
-              <input
-                id="admin-schedule-start"
-                type="datetime-local"
-                value={scheduleStartsAt}
-                onChange={(event) => setScheduleStartsAt(event.target.value)}
-                required
-              />
+            <input
+              id="admin-schedule-start"
+              type="datetime-local"
+              lang={dateTimeInputLang}
+              value={scheduleStartsAt}
+              onChange={(event) => setScheduleStartsAt(event.target.value)}
+              required
+            />
             </label>
 
             <label className="field" htmlFor="admin-schedule-end">
               <span>{t('schedule.form.endsAt')}</span>
-              <input
-                id="admin-schedule-end"
-                type="datetime-local"
-                value={scheduleEndsAt}
-                onChange={(event) => setScheduleEndsAt(event.target.value)}
-              />
+            <input
+              id="admin-schedule-end"
+              type="datetime-local"
+              lang={dateTimeInputLang}
+              value={scheduleEndsAt}
+              onChange={(event) => setScheduleEndsAt(event.target.value)}
+            />
             </label>
           </div>
 
@@ -2120,6 +2123,7 @@ export default function AdminDashboardPage() {
             <input
               id="admin-tournament-start"
               type="datetime-local"
+              lang={dateTimeInputLang}
               value={tournamentStartsAt}
               onChange={(event) => setTournamentStartsAt(event.target.value)}
             />
@@ -2134,6 +2138,7 @@ export default function AdminDashboardPage() {
               <input
                 id="admin-registration-open"
                 type="datetime-local"
+                lang={dateTimeInputLang}
                 value={registrationOpenAt}
                 onChange={(event) => setRegistrationOpenAt(event.target.value)}
                 required
@@ -2150,6 +2155,7 @@ export default function AdminDashboardPage() {
               <input
                 id="admin-registration-close"
                 type="datetime-local"
+                lang={dateTimeInputLang}
                 value={registrationCloseAt}
                 onChange={(event) => setRegistrationCloseAt(event.target.value)}
                 required
@@ -2363,6 +2369,7 @@ export default function AdminDashboardPage() {
               <input
                 id="admin-round-starts-at"
                 type="datetime-local"
+                lang={dateTimeInputLang}
                 value={roundStartsAt}
                 onChange={(event) => setRoundStartsAt(event.target.value)}
                 required
@@ -2379,6 +2386,7 @@ export default function AdminDashboardPage() {
               <input
                 id="admin-round-deadline-at"
                 type="datetime-local"
+                lang={dateTimeInputLang}
                 value={roundDeadlineAt}
                 onChange={(event) => setRoundDeadlineAt(event.target.value)}
                 required

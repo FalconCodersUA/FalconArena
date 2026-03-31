@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthSplitLayout from '../app/layout/AuthSplitLayout';
-import { apiRequest } from '../lib/api';
+import { ApiError, apiRequest } from '../lib/api';
 import { AuthUser, isAuthenticated, setAuthUser, setToken } from '../lib/auth';
 import { useI18n } from '../i18n/I18nProvider';
 
@@ -59,6 +59,11 @@ export default function LoginPage() {
       setAuthUser(data.user);
       navigate('/app/dashboard', { replace: true });
     } catch (requestError) {
+      if (requestError instanceof ApiError && requestError.status === 401) {
+        setError(t('login.validation.invalidCredentials'));
+        return;
+      }
+
       setError(
         requestError instanceof Error ? requestError.message : t('login.requestFailed'),
       );

@@ -404,7 +404,7 @@ a {
   background:
     radial-gradient(circle at 0% 0%, rgba(90, 87, 215, 0.08) 0%, transparent 30%),
     radial-gradient(circle at 100% 0%, rgba(28, 174, 155, 0.06) 0%, transparent 24%),
-    linear-gradient(180deg, #fcfbf8 0%, #f7f5ef 58%, #ece9e3 100%);
+    linear-gradient(180deg, #faf8f3 0%, #f1ede5 58%, #e6e2da 100%);
 }
 
 .app-topbar {
@@ -419,7 +419,7 @@ a {
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  background: rgba(252, 251, 248, 0.84);
+  background: rgba(250, 248, 243, 0.92);
   backdrop-filter: blur(16px);
 }
 
@@ -2626,7 +2626,7 @@ a {
 }
 
 .dashboard-tool-card span {
-  color: #80789a;
+  color: #6b7286;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 0.67rem;
@@ -2634,7 +2634,7 @@ a {
 }
 
 .dashboard-tool-card strong {
-  color: #2e2a4d;
+  color: #1c293d;
   font-size: 0.92rem;
 }
 
@@ -2642,7 +2642,7 @@ a {
 .dashboard-tool-card em {
   margin: 0;
   font-style: normal;
-  color: #736d85;
+  color: #596474;
   font-size: 0.78rem;
   line-height: 1.45;
 }
@@ -3357,9 +3357,9 @@ a {
 
 .tournaments-workspace-card {
   background:
-    radial-gradient(circle at 100% 0%, rgba(214, 143, 71, 0.11) 0%, transparent 30%),
-    radial-gradient(circle at 0% 100%, rgba(90, 87, 215, 0.05) 0%, transparent 20%),
-    linear-gradient(180deg, #ffffff 0%, #fbf8f2 100%);
+    radial-gradient(circle at 100% 0%, rgba(214, 143, 71, 0.14) 0%, transparent 28%),
+    radial-gradient(circle at 0% 100%, rgba(90, 87, 215, 0.08) 0%, transparent 18%),
+    linear-gradient(180deg, #fffdfa 0%, #f6f0e6 100%);
 }
 
 .teams-workspace-card {
@@ -3434,7 +3434,7 @@ a {
 .leaderboard-workspace-copy p {
   margin: 0;
   max-width: 68ch;
-  color: #5f697c;
+  color: #505d6e;
   line-height: 1.6;
 }
 
@@ -3444,7 +3444,9 @@ a {
 .messages-workspace-status,
 .archive-workspace-status,
 .leaderboard-workspace-status {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.84);
+  border-color: rgba(205, 210, 224, 0.95);
+  box-shadow: 0 16px 32px rgba(18, 25, 42, 0.08);
 }
 
 .tournaments-toolset-grid .dashboard-tool-card em,
