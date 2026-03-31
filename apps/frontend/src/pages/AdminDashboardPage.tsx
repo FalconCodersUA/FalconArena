@@ -488,6 +488,23 @@ export default function AdminDashboardPage() {
         : t('adminDashboard.workspaceChecklist.items.evaluation.pending'),
     },
   ];
+  const onboardingSteps = [
+    {
+      id: 'tournament',
+      title: t('adminDashboard.onboarding.steps.tournament.title'),
+      lead: t('adminDashboard.onboarding.steps.tournament.lead'),
+    },
+    {
+      id: 'round',
+      title: t('adminDashboard.onboarding.steps.round.title'),
+      lead: t('adminDashboard.onboarding.steps.round.lead'),
+    },
+    {
+      id: 'evaluation',
+      title: t('adminDashboard.onboarding.steps.evaluation.title'),
+      lead: t('adminDashboard.onboarding.steps.evaluation.lead'),
+    },
+  ];
   const adminActivityFeed = useMemo<AdminActivityFeedItem[]>(
     () =>
       activityFeedEntries.map((entry) => ({
@@ -1347,6 +1364,63 @@ export default function AdminDashboardPage() {
             </div>
           </article>
         </div>
+
+        <article className="dashboard-onboarding-card">
+          <div className="dashboard-workspace-panel-head">
+            <h3>{t('adminDashboard.onboarding.title')}</h3>
+            <p>{t('adminDashboard.onboarding.lead')}</p>
+          </div>
+          <div className="onboarding-grid">
+            {onboardingSteps.map((step, index) => (
+              <article key={step.id} className="onboarding-card">
+                <span className="onboarding-step">{index + 1}</span>
+                <strong>{step.title}</strong>
+                <p>{step.lead}</p>
+                <div className="onboarding-card-actions">
+                  {step.id === 'tournament' ? (
+                    <>
+                      <button
+                        type="button"
+                        className="button button-soft"
+                        onClick={() => openQuickModal('createTournament')}
+                      >
+                        {t('adminDashboard.form.createTournament')}
+                      </button>
+                      <a href="#admin-manage-tournament" className="button button-ghost">
+                        {t('adminDashboard.manageTournamentTitle')}
+                      </a>
+                    </>
+                  ) : null}
+                  {step.id === 'round' ? (
+                    <>
+                      <button
+                        type="button"
+                        className="button button-soft"
+                        onClick={() => openQuickModal('createRound')}
+                        disabled={!selectedTournament}
+                      >
+                        {t('adminDashboard.form.createRound')}
+                      </button>
+                      <a href="#admin-schedule" className="button button-ghost">
+                        {t('adminDashboard.schedule.title')}
+                      </a>
+                    </>
+                  ) : null}
+                  {step.id === 'evaluation' ? (
+                    <>
+                      <a href="#admin-rounds" className="button button-soft">
+                        {t('adminDashboard.roundsTitle')}
+                      </a>
+                      <Link to="/app/leaderboard" className="button button-ghost">
+                        {t('shell.leaderboard')}
+                      </Link>
+                    </>
+                  ) : null}
+                </div>
+              </article>
+            ))}
+          </div>
+        </article>
       </article>
 
       <article className="card panel-card dashboard-overview-card">
@@ -1799,6 +1873,10 @@ export default function AdminDashboardPage() {
 
       <article id="admin-rounds" className="card panel-card">
         <h2>{t('adminDashboard.roundsTitle')}</h2>
+        <div className="state-callout subtle onboarding-inline-callout">
+          <strong>{t('adminDashboard.evaluationGuide.title')}</strong>
+          <p>{t('adminDashboard.evaluationGuide.lead')}</p>
+        </div>
 
         {roundsLoading ? <p>{t('adminDashboard.roundsLoading')}</p> : null}
         {roundsError ? (
