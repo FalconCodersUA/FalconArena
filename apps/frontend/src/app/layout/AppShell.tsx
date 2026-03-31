@@ -235,6 +235,7 @@ export default function AppShell() {
     location.pathname.startsWith('/app/dashboard') || isRoleWorkspacePath;
   const authRole = getAuthUser()?.role ?? null;
   const canManageIntegrations = authRole === 'ADMIN';
+  const canViewMonitoring = authRole === 'ADMIN';
 
   const searchItems = useMemo(
     () =>
@@ -281,8 +282,15 @@ export default function AppShell() {
               category: t('shell.searchCategories.sections'),
             }
           : null,
+        canViewMonitoring
+          ? {
+              path: '/app/monitoring',
+              label: t('shell.monitoring'),
+              category: t('shell.searchCategories.sections'),
+            }
+          : null,
       ].filter((item): item is SearchItem => !!item),
-    [canManageIntegrations, dashboardPath, t],
+    [canManageIntegrations, canViewMonitoring, dashboardPath, t],
   );
   const searchPool = useMemo(() => {
     const deduplicated = new Map<string, SearchItem>();
@@ -349,6 +357,10 @@ export default function AppShell() {
 
     if (location.pathname.startsWith('/app/integrations')) {
       return t('shell.integrations');
+    }
+
+    if (location.pathname.startsWith('/app/monitoring')) {
+      return t('shell.monitoring');
     }
 
     if (location.pathname.startsWith('/app/leaderboard')) {
@@ -796,6 +808,28 @@ export default function AppShell() {
                   </svg>
                 </span>
                 <span>{t('shell.integrations')}</span>
+              </NavLink>
+            ) : null}
+
+            {canViewMonitoring ? (
+              <NavLink to="/app/monitoring" className="app-sidebar-link">
+                <span className="app-sidebar-icon" aria-hidden>
+                  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M4.5 14.5L7.3 11.1L9.6 13.2L14.2 7.5L15.5 8.7"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M4 4.5H16V15.5H4V4.5Z"
+                      stroke="currentColor"
+                      strokeWidth="1.3"
+                    />
+                  </svg>
+                </span>
+                <span>{t('shell.monitoring')}</span>
               </NavLink>
             ) : null}
           </nav>
