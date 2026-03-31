@@ -60,6 +60,17 @@ enum NotificationType {
   GENERAL
 }
 
+enum BackgroundJobType {
+  DEADLINE_REMINDER
+}
+
+enum BackgroundJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 enum TournamentScheduleEventType {
   ROUND
   CONSULTATION
@@ -396,4 +407,23 @@ model AuditLog {
   @@index([createdAt])
   @@index([actorId, createdAt])
   @@index([tournamentId, createdAt])
+}
+
+model BackgroundJob {
+  id                 String              @id @default(cuid())
+  type               BackgroundJobType
+  status             BackgroundJobStatus @default(PENDING)
+  runAt              DateTime
+  attempts           Int                 @default(0)
+  maxAttempts        Int                 @default(3)
+  lastError          String?
+  dedupeKey          String              @unique
+  payload            Json
+  processingStartedAt DateTime?
+  completedAt        DateTime?
+  failedAt           DateTime?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@index([status, runAt])
 }

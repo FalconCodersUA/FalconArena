@@ -54,6 +54,7 @@ FalconArena - це вебплатформа для командного турн
 - Email-нотифікації:
   - `console` fallback для dev/demo
   - `resend` для реальної доставки
+- DB-backed background jobs для `deadline reminder` з retry/idempotency
 
 ### Додаткові можливості
 
@@ -66,6 +67,7 @@ FalconArena - це вебплатформа для командного турн
 - Збереження сертифікатів у PDF через браузерний print dialog
 - Експорт leaderboard у Google Sheets через webhook
 - Admin-only `Інтеграції / Налаштування системи` для Google Sheets, email delivery і глобальних правил сповіщень
+- Фоновий worker для deadline reminders без дублювання повідомлень
 
 ## Поточний статус щодо ТЗ
 
