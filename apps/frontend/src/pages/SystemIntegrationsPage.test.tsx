@@ -42,6 +42,10 @@ describe('SystemIntegrationsPage', () => {
           lastCheckedAt: null,
           lastCheckStatus: null,
           lastCheckMessage: null,
+          lastExportAt: null,
+          lastExportStatus: null,
+          lastExportMessage: null,
+          lastExportUrl: null,
           source: 'database',
         };
       }
@@ -103,6 +107,10 @@ describe('SystemIntegrationsPage', () => {
           lastCheckedAt: null,
           lastCheckStatus: null,
           lastCheckMessage: null,
+          lastExportAt: null,
+          lastExportStatus: null,
+          lastExportMessage: null,
+          lastExportUrl: null,
           source: 'database',
         };
       }
@@ -142,6 +150,19 @@ describe('SystemIntegrationsPage', () => {
           lastCheckStatus: null,
           lastCheckMessage: null,
           source: 'database',
+        };
+      }
+
+      if (path === '/admin/system-integrations/email/test' && options?.method === 'POST') {
+        expect(options.body).toEqual({
+          recipientEmail: 'ops@falconarena.live',
+        });
+
+        return {
+          ok: true,
+          status: 'sent',
+          message: 'Test email sent to ops@falconarena.live',
+          checkedAt: '2026-03-29T19:30:00.000Z',
         };
       }
 
@@ -228,6 +249,14 @@ describe('SystemIntegrationsPage', () => {
     });
     fireEvent.click(screen.getAllByRole('button', { name: 'Save settings' })[1]);
     expect((await screen.findAllByText('Integration settings were saved.')).length).toBeGreaterThan(0);
+
+    fireEvent.change(screen.getByLabelText('Test recipient email'), {
+      target: { value: 'ops@falconarena.live' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send test email' }));
+    expect(
+      (await screen.findAllByText('Test email sent to ops@falconarena.live')).length,
+    ).toBeGreaterThan(0);
 
     fireEvent.click(screen.getByRole('button', { name: 'Round started' }));
     fireEvent.click(screen.getAllByRole('button', { name: 'Save settings' })[3]);

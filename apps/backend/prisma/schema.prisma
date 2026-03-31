@@ -346,6 +346,10 @@ model SystemIntegrationSettings {
   googleSheetsLastCheckedAt    DateTime?
   googleSheetsLastCheckStatus  String?
   googleSheetsLastCheckMessage String?
+  googleSheetsLastExportAt     DateTime?
+  googleSheetsLastExportStatus String?
+  googleSheetsLastExportMessage String?
+  googleSheetsLastExportUrl    String?
   emailNotificationsEnabled    Boolean?
   emailProvider                String?
   emailFrom                    String?
