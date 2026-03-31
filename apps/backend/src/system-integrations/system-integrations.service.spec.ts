@@ -97,6 +97,23 @@ describe('SystemIntegrationsService', () => {
     });
   });
 
+  it('rejects integration updates from non-admin actors', async () => {
+    const prisma = createPrismaMock();
+    const service = new SystemIntegrationsService(
+      prisma as never,
+      createAuditLogsServiceMock() as never,
+    );
+
+    await expect(
+      service.updateGoogleSheetsSettings(
+        {
+          webhookUrl: 'https://script.google.com/macros/s/example/exec',
+        },
+        { userId: 'organizer-1', role: 'ORGANIZER', email: 'organizer@example.com' },
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
   it('returns database-backed email settings and notification rules', async () => {
     const prisma = createPrismaMock();
     prisma.systemIntegrationSettings.findUnique.mockResolvedValue({
