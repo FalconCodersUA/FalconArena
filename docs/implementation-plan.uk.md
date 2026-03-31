@@ -108,3 +108,4 @@
 - Додано окремий `ops runbook` для deploy / rollback / backup / logs.
 - Додано окремий `release checklist` для merge / deploy / post-deploy verification.
 - Додано DB-backed `background jobs` для `deadline reminder` з retry/idempotency і backend worker.
+- Збереження нових аватарів переведено з `base64` у БД на локальні upload-файли з URL `/uploads/avatars/...`.

@@ -72,3 +72,20 @@ export async function apiRequest<T>(
 export function buildApiUrl(path: string) {
   return `${API_BASE}${path}`;
 }
+
+export function resolveApiAssetUrl(path: string | null | undefined) {
+  const normalized = path?.trim() ?? '';
+  if (!normalized) {
+    return '';
+  }
+
+  if (
+    /^https?:\/\//i.test(normalized) ||
+    normalized.startsWith('data:') ||
+    normalized.startsWith('blob:')
+  ) {
+    return normalized;
+  }
+
+  return buildApiUrl(normalized.startsWith('/') ? normalized : `/${normalized}`);
+}

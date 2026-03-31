@@ -108,8 +108,9 @@ async function run() {
     token: firstToken,
     expectedStatus: [200, 201],
   });
+  const storedAvatarUrl = firstSettings.payload?.edit?.avatarUrl;
   assert(
-    firstSettings.payload?.edit?.avatarUrl === avatarDataUrl,
+    typeof storedAvatarUrl === 'string' && storedAvatarUrl.startsWith('/uploads/avatars/'),
     'Avatar URL was not saved after PATCH /profile/settings',
   );
 
@@ -131,7 +132,7 @@ async function run() {
     expectedStatus: [200, 201],
   });
   assert(
-    secondSettings.payload?.edit?.avatarUrl === avatarDataUrl,
+    secondSettings.payload?.edit?.avatarUrl === storedAvatarUrl,
     'Avatar URL was not persisted after re-login',
   );
 
@@ -152,4 +153,3 @@ run().catch((error) => {
   console.error(error instanceof Error ? error.message : error);
   process.exit(1);
 });
-
