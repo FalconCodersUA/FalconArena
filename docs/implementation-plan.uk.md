@@ -111,3 +111,4 @@
 - Збереження нових аватарів переведено з `base64` у БД на локальні upload-файли з URL `/uploads/avatars/...`.
 - Backend uploads/storage винесено в persistent Docker volume, додано helper-скрипти і drill-doc для backup / restore БД та storage.
 - Додано окремий `e2e` сценарій `ADMIN -> TEAM -> JURY -> LEADERBOARD` з перевіркою leaderboard row та CSV export.
+- Додано окремий `e2e` сценарій `ARCHIVE -> CERTIFICATE -> EXPORT` з перевіркою archive, certificate flow, CSV і conditional Google Sheets export.
