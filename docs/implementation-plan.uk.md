@@ -99,3 +99,10 @@
 1. Фінальний UX/mobile pass.
 2. За потреби: більш просунутий realtime (WebSocket / SSE).
 3. Окремий UI redesign pass для `Admin Dashboard`, `Інтеграцій` і shared visual system.
+
+## Product hardening
+
+- Додано backend audit trail і реальний `activity feed` для `Admin` та `Profile`.
+- Додано `X-Request-Id` на кожен HTTP request/response.
+- Додано structured HTTP logging для backend.
+- Додано окремий `ops runbook` для deploy / rollback / backup / logs.

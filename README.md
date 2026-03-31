@@ -352,6 +352,7 @@ Backend:
 - `docs/project-brief.uk.md` - повне ТЗ
 - `docs/implementation-plan.uk.md` - план реалізації
 - `docs/deploy-quickstart.uk.md` - деплой
+- `docs/ops-runbook.uk.md` - deploy / rollback / backup / logs
 - `docs/mvp-smoke-api.uk.md` - API smoke
 - `docs/ui-smoke-runbook.uk.md` - UI smoke
 - `docs/project-decisions.uk.md` - архітектурні рішення
