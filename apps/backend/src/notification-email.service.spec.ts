@@ -33,6 +33,7 @@ describe('NotificationEmailService', () => {
         source: 'database',
         ...overrides,
       }),
+      persistEmailDeliveryResult: vi.fn().mockResolvedValue(undefined),
     };
   }
 
@@ -146,5 +147,26 @@ describe('NotificationEmailService', () => {
     expect(result).toEqual({ status: 'disabled', sent: 0 });
     expect(prisma.user.findMany).not.toHaveBeenCalled();
     expect(prisma.user.findUnique).not.toHaveBeenCalled();
+  });
+
+  it('sends a test email and stores the latest delivery status', async () => {
+    const prisma = createPrismaMock();
+    const loggerSpy = vi.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
+    const systemIntegrationsService = createSystemIntegrationsServiceMock();
+    const service = new NotificationEmailService(
+      prisma as never,
+      systemIntegrationsService as never,
+    );
+
+    await service.sendTestEmail('ops@example.com');
+
+    expect(loggerSpy).toHaveBeenCalledWith(
+      'EMAIL(console) to=ops@example.com subject="FalconArena email integration test"',
+    );
+    expect(systemIntegrationsService.persistEmailDeliveryResult).toHaveBeenCalledWith({
+      ok: true,
+      status: 'sent',
+      message: 'Test email sent to ops@example.com',
+    });
   });
 });

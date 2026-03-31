@@ -252,6 +252,12 @@ export class LeaderboardService {
   ) {
     const config = await this.systemIntegrationsService.getGoogleSheetsConfig();
     if (!config?.webhookUrl) {
+      await this.systemIntegrationsService.persistGoogleSheetsExportResult({
+        ok: false,
+        status: 'not_configured',
+        message: 'Google Sheets export is not configured',
+        url: null,
+      });
       throw new ServiceUnavailableException(
         'Google Sheets export is not configured',
       );
@@ -274,42 +280,81 @@ export class LeaderboardService {
       configSource: config.source,
     };
 
-    const response = await fetch(config.webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(config.secret
-          ? {
-              'x-falconarena-export-secret': config.secret,
-            }
-          : {}),
-      },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch(config.webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(config.secret
+            ? {
+                'x-falconarena-export-secret': config.secret,
+              }
+            : {}),
+        },
+        body: JSON.stringify(payload),
+      });
 
-    if (!response.ok) {
-      throw new BadGatewayException(
-        `Google Sheets webhook responded with ${response.status}`,
-      );
+      if (!response.ok) {
+        await this.systemIntegrationsService.persistGoogleSheetsExportResult({
+          ok: false,
+          status: 'failed',
+          message: `Google Sheets webhook responded with ${response.status}`,
+          url: null,
+        });
+        throw new BadGatewayException(
+          `Google Sheets webhook responded with ${response.status}`,
+        );
+      }
+
+      const contentType = response.headers.get('content-type') ?? '';
+      let responsePayload: unknown = null;
+
+      if (contentType.includes('application/json')) {
+        responsePayload = (await response.json()) as unknown;
+      } else {
+        const text = await response.text();
+        responsePayload = text.length > 0 ? text : null;
+      }
+
+      const responseObject =
+        responsePayload && typeof responsePayload === 'object'
+          ? (responsePayload as Record<string, unknown>)
+          : null;
+      const exportUrl =
+        typeof responseObject?.spreadsheetUrl === 'string'
+          ? responseObject.spreadsheetUrl
+          : typeof responseObject?.url === 'string'
+            ? responseObject.url
+            : null;
+
+      await this.systemIntegrationsService.persistGoogleSheetsExportResult({
+        ok: true,
+        status: 'success',
+        message: `Exported ${sheet.rowObjects.length} rows to Google Sheets`,
+        url: exportUrl,
+      });
+
+      return {
+        ok: true,
+        destination: 'google-sheets',
+        sheetName: payload.sheetName,
+        rowsExported: sheet.rowObjects.length,
+        response: responsePayload,
+      };
+    } catch (error) {
+      if (error instanceof BadGatewayException) {
+        throw error;
+      }
+
+      await this.systemIntegrationsService.persistGoogleSheetsExportResult({
+        ok: false,
+        status: 'failed',
+        message: error instanceof Error ? error.message : 'Unknown export error',
+        url: null,
+      });
+
+      throw error;
     }
-
-    const contentType = response.headers.get('content-type') ?? '';
-    let responsePayload: unknown = null;
-
-    if (contentType.includes('application/json')) {
-      responsePayload = (await response.json()) as unknown;
-    } else {
-      const text = await response.text();
-      responsePayload = text.length > 0 ? text : null;
-    }
-
-    return {
-      ok: true,
-      destination: 'google-sheets',
-      sheetName: payload.sheetName,
-      rowsExported: sheet.rowObjects.length,
-      response: responsePayload,
-    };
   }
 
   async buildTournamentLeaderboardSheet(tournamentId: string) {

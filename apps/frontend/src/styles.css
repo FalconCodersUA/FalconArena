@@ -1958,6 +1958,16 @@ a {
   gap: 8px;
 }
 
+.inline-link {
+  color: var(--color-primary-600, #5e17eb);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.inline-link:hover {
+  text-decoration: underline;
+}
+
 .datetime-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

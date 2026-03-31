@@ -38,11 +38,21 @@ export class NotificationEmailService {
   async deliver(input: DeliverNotificationEmailInput) {
     const emailConfig = await this.systemIntegrationsService.getEmailConfig();
     if (!emailConfig.enabled) {
+      await this.systemIntegrationsService.persistEmailDeliveryResult({
+        ok: false,
+        status: 'disabled',
+        message: 'Email notifications are disabled',
+      });
       return { status: 'disabled' as const, sent: 0 };
     }
 
     const recipients = await this.resolveRecipients(input);
     if (recipients.length === 0) {
+      await this.systemIntegrationsService.persistEmailDeliveryResult({
+        ok: false,
+        status: 'skipped',
+        message: 'No eligible recipients for email delivery',
+      });
       return { status: 'skipped' as const, sent: 0 };
     }
 
@@ -60,11 +70,66 @@ export class NotificationEmailService {
         config: emailConfig,
       });
 
+      await this.systemIntegrationsService.persistEmailDeliveryResult({
+        ok: true,
+        status: 'sent',
+        message: `Sent ${recipients.length} email notification(s)`,
+      });
+
       return { status: 'sent' as const, sent: recipients.length };
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(`Failed to deliver notification email: ${message}`);
+      await this.systemIntegrationsService.persistEmailDeliveryResult({
+        ok: false,
+        status: 'failed',
+        message,
+      });
       return { status: 'failed' as const, sent: 0 };
+    }
+  }
+
+  async sendTestEmail(recipientEmail: string) {
+    const normalizedRecipient = recipientEmail.trim().toLowerCase();
+    const emailConfig = await this.systemIntegrationsService.getEmailConfig();
+
+    if (!normalizedRecipient) {
+      return this.systemIntegrationsService.persistEmailDeliveryResult({
+        ok: false,
+        status: 'not_configured',
+        message: 'Recipient email is required',
+      });
+    }
+
+    try {
+      await this.send({
+        to: [normalizedRecipient],
+        subject: 'FalconArena email integration test',
+        text: 'This is a test email from FalconArena integrations.',
+        html: this.buildHtmlBody(
+          {
+            type: NotificationType.GENERAL,
+            audience: NotificationAudience.USER,
+            title: 'FalconArena email integration test',
+            body: 'This is a test email from FalconArena integrations.',
+            linkUrl: '/app/integrations',
+          },
+          this.buildAbsoluteUrl('/app/integrations'),
+        ),
+        config: emailConfig,
+      });
+
+      return this.systemIntegrationsService.persistEmailDeliveryResult({
+        ok: true,
+        status: 'sent',
+        message: `Test email sent to ${normalizedRecipient}`,
+      });
+    } catch (error) {
+      return this.systemIntegrationsService.persistEmailDeliveryResult({
+        ok: false,
+        status: 'failed',
+        message: error instanceof Error ? error.message : 'Unknown email test error',
+      });
     }
   }
 

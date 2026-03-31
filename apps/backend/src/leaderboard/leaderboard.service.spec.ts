@@ -20,6 +20,7 @@ function createPrismaMock() {
 function createSystemIntegrationsServiceMock() {
   return {
     getGoogleSheetsConfig: vi.fn(),
+    persistGoogleSheetsExportResult: vi.fn().mockResolvedValue(undefined),
   };
 }
 

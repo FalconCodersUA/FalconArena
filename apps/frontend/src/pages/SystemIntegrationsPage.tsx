@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useI18n } from '../i18n/I18nProvider';
+import { getAuthUser } from '../lib/auth';
 import { apiRequest } from '../lib/api';
 
 type GoogleSheetsSettingsResponse = {
@@ -10,6 +11,10 @@ type GoogleSheetsSettingsResponse = {
   lastCheckedAt: string | null;
   lastCheckStatus: string | null;
   lastCheckMessage: string | null;
+  lastExportAt: string | null;
+  lastExportStatus: string | null;
+  lastExportMessage: string | null;
+  lastExportUrl: string | null;
   source: 'database' | 'env' | 'none';
 };
 
@@ -31,6 +36,13 @@ type EmailSettingsResponse = {
   lastCheckStatus: string | null;
   lastCheckMessage: string | null;
   source: 'database' | 'env' | 'default';
+};
+
+type EmailTestResponse = {
+  ok: boolean;
+  status: string;
+  message: string;
+  checkedAt: string;
 };
 
 type NotificationRulesResponse = {
@@ -71,6 +83,7 @@ function formatDateTime(value: string | null, language: 'uk' | 'en', fallback: s
 
 export default function SystemIntegrationsPage() {
   const { language, t } = useI18n();
+  const authUser = getAuthUser();
   const [googleSheets, setGoogleSheets] = useState<GoogleSheetsSettingsResponse | null>(null);
   const [emailSettings, setEmailSettings] = useState<EmailSettingsResponse | null>(null);
   const [notificationRules, setNotificationRules] = useState<NotificationRulesResponse | null>(null);
@@ -81,11 +94,13 @@ export default function SystemIntegrationsPage() {
   const [googleSaving, setGoogleSaving] = useState(false);
   const [googleTesting, setGoogleTesting] = useState(false);
   const [emailSaving, setEmailSaving] = useState(false);
+  const [emailTesting, setEmailTesting] = useState(false);
   const [rulesSaving, setRulesSaving] = useState(false);
   const [googleError, setGoogleError] = useState('');
   const [googleNotice, setGoogleNotice] = useState('');
   const [emailError, setEmailError] = useState('');
   const [emailNotice, setEmailNotice] = useState('');
+  const [emailTestRecipient, setEmailTestRecipient] = useState(authUser?.email ?? '');
   const [rulesError, setRulesError] = useState('');
   const [rulesNotice, setRulesNotice] = useState('');
   const [defaultsSaving, setDefaultsSaving] = useState(false);
@@ -239,6 +254,50 @@ export default function SystemIntegrationsPage() {
       );
     } finally {
       setEmailSaving(false);
+    }
+  }
+
+  async function testEmailDelivery() {
+    if (!emailTestRecipient.trim()) {
+      setEmailError(t('systemIntegrations.email.recipientRequired'));
+      setEmailNotice('');
+      return;
+    }
+
+    setEmailTesting(true);
+    setEmailNotice('');
+    setEmailError('');
+
+    try {
+      const result = await apiRequest<EmailTestResponse>(
+        '/admin/system-integrations/email/test',
+        {
+          method: 'POST',
+          body: {
+            recipientEmail: emailTestRecipient.trim(),
+          },
+        },
+      );
+
+      setEmailSettings((current) =>
+        current
+          ? {
+              ...current,
+              lastCheckedAt: result.checkedAt,
+              lastCheckStatus: result.status,
+              lastCheckMessage: result.message,
+            }
+          : current,
+      );
+      setEmailNotice(result.message);
+    } catch (requestError) {
+      setEmailError(
+        requestError instanceof Error
+          ? requestError.message
+          : t('systemIntegrations.testFailed'),
+      );
+    } finally {
+      setEmailTesting(false);
     }
   }
 
@@ -479,12 +538,46 @@ export default function SystemIntegrationsPage() {
             <dt>{t('systemIntegrations.googleSheets.lastStatus')}</dt>
             <dd>{googleSheets.lastCheckStatus || t('systemIntegrations.googleSheets.unknown')}</dd>
           </div>
+          <div>
+            <dt>{t('systemIntegrations.googleSheets.lastExport')}</dt>
+            <dd>
+              {formatDateTime(
+                googleSheets.lastExportAt,
+                language,
+                t('systemIntegrations.googleSheets.notExported'),
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt>{t('systemIntegrations.googleSheets.lastExportStatus')}</dt>
+            <dd>
+              {googleSheets.lastExportStatus ||
+                t('systemIntegrations.googleSheets.unknown')}
+            </dd>
+          </div>
         </div>
 
         {googleSheets.lastCheckMessage ? (
           <div className="state-callout subtle">
             <strong>{t('systemIntegrations.googleSheets.connectionMessage')}</strong>
             <p>{googleSheets.lastCheckMessage}</p>
+          </div>
+        ) : null}
+
+        {googleSheets.lastExportMessage ? (
+          <div className="state-callout subtle">
+            <strong>{t('systemIntegrations.googleSheets.exportMessage')}</strong>
+            <p>{googleSheets.lastExportMessage}</p>
+            {googleSheets.lastExportUrl ? (
+              <a
+                className="inline-link"
+                href={googleSheets.lastExportUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t('systemIntegrations.googleSheets.openLastExport')}
+              </a>
+            ) : null}
           </div>
         ) : null}
 
@@ -580,12 +673,33 @@ export default function SystemIntegrationsPage() {
             <dt>{t('systemIntegrations.email.deliveryStatus')}</dt>
             <dd>{t(`systemIntegrations.email.status.${emailStatusKey}`)}</dd>
           </div>
+          <div>
+            <dt>{t('systemIntegrations.email.lastDelivery')}</dt>
+            <dd>
+              {formatDateTime(
+                emailSettings.lastCheckedAt,
+                language,
+                t('systemIntegrations.email.notDelivered'),
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt>{t('systemIntegrations.email.lastDeliveryStatus')}</dt>
+            <dd>{emailSettings.lastCheckStatus || t('systemIntegrations.email.unknown')}</dd>
+          </div>
         </div>
 
         {emailStatusKey === 'incomplete' ? (
           <div className="state-callout subtle">
             <strong>{t('systemIntegrations.email.incompleteTitle')}</strong>
             <p>{t('systemIntegrations.email.incompleteLead')}</p>
+          </div>
+        ) : null}
+
+        {emailSettings.lastCheckMessage ? (
+          <div className="state-callout subtle">
+            <strong>{t('systemIntegrations.email.lastMessage')}</strong>
+            <p>{emailSettings.lastCheckMessage}</p>
           </div>
         ) : null}
 
@@ -665,9 +779,27 @@ export default function SystemIntegrationsPage() {
               }
             />
           </label>
+          <label className="field">
+            <span>{t('systemIntegrations.email.form.recipientEmail')}</span>
+            <input
+              type="email"
+              value={emailTestRecipient}
+              onChange={(event) => setEmailTestRecipient(event.target.value)}
+            />
+          </label>
         </div>
 
         <div className="status-actions">
+          <button
+            type="button"
+            className="button button-soft"
+            onClick={() => void testEmailDelivery()}
+            disabled={emailTesting}
+          >
+            {emailTesting
+              ? t('systemIntegrations.email.testing')
+              : t('systemIntegrations.email.testSend')}
+          </button>
           <button
             type="button"
             className="button button-primary"

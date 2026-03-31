@@ -79,6 +79,10 @@ export class SystemIntegrationsService {
       lastCheckedAt: settings?.googleSheetsLastCheckedAt?.toISOString() ?? null,
       lastCheckStatus: settings?.googleSheetsLastCheckStatus ?? null,
       lastCheckMessage: settings?.googleSheetsLastCheckMessage ?? null,
+      lastExportAt: settings?.googleSheetsLastExportAt?.toISOString() ?? null,
+      lastExportStatus: settings?.googleSheetsLastExportStatus ?? null,
+      lastExportMessage: settings?.googleSheetsLastExportMessage ?? null,
+      lastExportUrl: settings?.googleSheetsLastExportUrl ?? null,
       source: settings?.googleSheetsWebhookUrl
         ? 'database'
         : this.getEnvGoogleSheetsFallback()
@@ -205,6 +209,51 @@ export class SystemIntegrationsService {
       lastCheckStatus: settings?.emailLastCheckStatus ?? null,
       lastCheckMessage: settings?.emailLastCheckMessage ?? null,
       source,
+    };
+  }
+
+  async persistEmailDeliveryResult(input: {
+    ok: boolean;
+    status: string;
+    message: string;
+  }) {
+    const now = new Date();
+
+    await this.upsertSettings({
+      emailLastCheckedAt: now,
+      emailLastCheckStatus: input.status,
+      emailLastCheckMessage: input.message,
+    });
+
+    return {
+      ok: input.ok,
+      status: input.status,
+      message: input.message,
+      checkedAt: now.toISOString(),
+    };
+  }
+
+  async persistGoogleSheetsExportResult(input: {
+    ok: boolean;
+    status: string;
+    message: string;
+    url?: string | null;
+  }) {
+    const now = new Date();
+
+    await this.upsertSettings({
+      googleSheetsLastExportAt: now,
+      googleSheetsLastExportStatus: input.status,
+      googleSheetsLastExportMessage: input.message,
+      googleSheetsLastExportUrl: input.url ?? null,
+    });
+
+    return {
+      ok: input.ok,
+      status: input.status,
+      message: input.message,
+      url: input.url ?? null,
+      exportedAt: now.toISOString(),
     };
   }
 
