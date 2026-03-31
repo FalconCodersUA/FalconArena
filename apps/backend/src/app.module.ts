@@ -1,4 +1,5 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AnnouncementsController } from './announcements.controller';
 import { AnnouncementsService } from './announcements.service';
 import { AppController } from './app.controller';
@@ -10,6 +11,8 @@ import { DashboardMetricsService } from './dashboard-metrics.service';
 import { DirectMessagesController } from './direct-messages.controller';
 import { DirectMessagesService } from './direct-messages.service';
 import { EvaluationModule } from './evaluation/evaluation.module';
+import { HttpLoggingInterceptor } from './http-logging.interceptor';
+import { HttpRequestIdMiddleware } from './http-request-id.middleware';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { NotificationsModule } from './notifications.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -48,6 +51,14 @@ import { TournamentsModule } from './tournaments/tournaments.module';
     ProfileSettingsService,
     AnnouncementsService,
     DirectMessagesService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: HttpLoggingInterceptor,
+    },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(HttpRequestIdMiddleware).forRoutes('*');
+  }
+}
