@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { RateLimit } from '../common/decorators/rate-limit.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { RateLimitGuard } from '../common/guards/rate-limit.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { AuthUser } from '../common/types/auth-user.type';
 import { CreateUserByAdminDto } from './dto/create-user-by-admin.dto';
@@ -18,8 +20,14 @@ export class AuthController {
   }
 
   @Post('admin/users')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, RateLimitGuard)
   @Roles('ADMIN', 'ORGANIZER')
+  @RateLimit({
+    bucket: 'admin-create-user',
+    limit: 10,
+    windowSeconds: 60,
+    keyStrategy: 'user',
+  })
   createUserByAdmin(
     @Body() dto: CreateUserByAdminDto,
     @Req() request: { user: AuthUser },
@@ -28,6 +36,13 @@ export class AuthController {
   }
 
   @Post('login')
+  @UseGuards(RateLimitGuard)
+  @RateLimit({
+    bucket: 'auth-login',
+    limit: 5,
+    windowSeconds: 60,
+    keyStrategy: 'email',
+  })
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
   }

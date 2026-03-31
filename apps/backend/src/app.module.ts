@@ -11,6 +11,7 @@ import { DashboardMetricsService } from './dashboard-metrics.service';
 import { DirectMessagesController } from './direct-messages.controller';
 import { DirectMessagesService } from './direct-messages.service';
 import { EvaluationModule } from './evaluation/evaluation.module';
+import { CommonSecurityModule } from './common/common-security.module';
 import { HttpLoggingInterceptor } from './http-logging.interceptor';
 import { HttpRequestIdMiddleware } from './http-request-id.middleware';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
@@ -26,6 +27,7 @@ import { TournamentsModule } from './tournaments/tournaments.module';
 
 @Module({
   imports: [
+    CommonSecurityModule,
     PrismaModule,
     AuditLogsModule,
     AuthModule,

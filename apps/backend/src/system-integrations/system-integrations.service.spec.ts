@@ -1,3 +1,4 @@
+import { ForbiddenException } from '@nestjs/common';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SystemIntegrationsService } from './system-integrations.service';
 
@@ -382,5 +383,26 @@ describe('SystemIntegrationsService', () => {
       message: 'Connection test passed successfully',
     });
     expect(prisma.systemIntegrationSettings.upsert).toHaveBeenCalled();
+  });
+
+  it('rejects non-admin actors for mutable system integrations actions', async () => {
+    const prisma = createPrismaMock();
+    const service = new SystemIntegrationsService(
+      prisma as never,
+      createAuditLogsServiceMock() as never,
+    );
+
+    await expect(
+      service.updateNotificationRules(
+        {
+          registrationStarted: true,
+          roundStarted: true,
+          submissionReceived: true,
+          deadlineReminder: true,
+          submissionClosed: true,
+        },
+        { userId: 'org-1', role: 'ORGANIZER', email: 'org@example.com' },
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 });

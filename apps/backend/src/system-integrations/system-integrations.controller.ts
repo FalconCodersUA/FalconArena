@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { RateLimit } from '../common/decorators/rate-limit.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { RateLimitGuard } from '../common/guards/rate-limit.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { AuthUser } from '../common/types/auth-user.type';
 import { TestGoogleSheetsConnectionDto } from './dto/test-google-sheets-connection.dto';
@@ -24,6 +26,13 @@ export class SystemIntegrationsController {
   }
 
   @Patch('google-sheets')
+  @UseGuards(RateLimitGuard)
+  @RateLimit({
+    bucket: 'system-integrations-update',
+    limit: 10,
+    windowSeconds: 60,
+    keyStrategy: 'user',
+  })
   updateGoogleSheetsSettings(
     @Body() dto: UpdateGoogleSheetsSettingsDto,
     @Req() request: { user: AuthUser },
@@ -35,6 +44,13 @@ export class SystemIntegrationsController {
   }
 
   @Post('google-sheets/test')
+  @UseGuards(RateLimitGuard)
+  @RateLimit({
+    bucket: 'system-integrations-test',
+    limit: 10,
+    windowSeconds: 60,
+    keyStrategy: 'user',
+  })
   testGoogleSheetsConnection(
     @Body() dto: TestGoogleSheetsConnectionDto,
     @Req() request: { user: AuthUser },
@@ -48,6 +64,13 @@ export class SystemIntegrationsController {
   }
 
   @Patch('email')
+  @UseGuards(RateLimitGuard)
+  @RateLimit({
+    bucket: 'system-integrations-update',
+    limit: 10,
+    windowSeconds: 60,
+    keyStrategy: 'user',
+  })
   updateEmailSettings(
     @Body() dto: UpdateEmailSettingsDto,
     @Req() request: { user: AuthUser },
@@ -64,6 +87,13 @@ export class SystemIntegrationsController {
   }
 
   @Patch('notification-rules')
+  @UseGuards(RateLimitGuard)
+  @RateLimit({
+    bucket: 'system-integrations-update',
+    limit: 10,
+    windowSeconds: 60,
+    keyStrategy: 'user',
+  })
   updateNotificationRules(
     @Body() dto: UpdateNotificationRulesDto,
     @Req() request: { user: AuthUser },
@@ -80,6 +110,13 @@ export class SystemIntegrationsController {
   }
 
   @Patch('tournament-defaults')
+  @UseGuards(RateLimitGuard)
+  @RateLimit({
+    bucket: 'system-integrations-update',
+    limit: 10,
+    windowSeconds: 60,
+    keyStrategy: 'user',
+  })
   updateTournamentDefaults(
     @Body() dto: UpdateTournamentDefaultsDto,
     @Req() request: { user: AuthUser },
