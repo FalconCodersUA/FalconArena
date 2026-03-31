@@ -149,6 +149,22 @@ function formatScore(value: number) {
   return Number.isInteger(value) ? String(value) : value.toFixed(2);
 }
 
+function formatScoringFormula(
+  formula: string,
+  t: (key: string) => string,
+) {
+  switch (formula) {
+    case 'sum(roundAverageScore)':
+      return t('archivePage.formulaDescriptions.total');
+    case 'average(juryEvaluationTotals)':
+      return t('archivePage.formulaDescriptions.round');
+    case 'average(6 category scores)':
+      return t('archivePage.formulaDescriptions.evaluation');
+    default:
+      return formula;
+  }
+}
+
 export default function ArchivePage() {
   const { language, t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -718,7 +734,8 @@ export default function ArchivePage() {
                   <strong>{t('archivePage.scoreScale')}:</strong> {archive.leaderboard.scoring.scale}
                 </p>
                 <p>
-                  <strong>{t('archivePage.totalFormula')}:</strong> {archive.leaderboard.scoring.totalFormula}
+                  <strong>{t('archivePage.totalFormula')}:</strong>{' '}
+                  {formatScoringFormula(archive.leaderboard.scoring.totalFormula, t)}
                 </p>
               </div>
 

@@ -84,6 +84,22 @@ function formatScore(value: number) {
   return Number.isInteger(value) ? String(value) : value.toFixed(2);
 }
 
+function formatScoringFormula(
+  formula: string,
+  t: (key: string) => string,
+) {
+  switch (formula) {
+    case 'sum(roundAverageScore)':
+      return t('leaderboard.formulaDescriptions.total');
+    case 'average(juryEvaluationTotals)':
+      return t('leaderboard.formulaDescriptions.round');
+    case 'average(6 category scores)':
+      return t('leaderboard.formulaDescriptions.evaluation');
+    default:
+      return formula;
+  }
+}
+
 export default function LeaderboardPage() {
   const { language, t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -394,7 +410,7 @@ export default function LeaderboardPage() {
             <div className="summary-card">
               <span>{t('leaderboard.summary.formula')}</span>
               <strong>{leaderboard.scoring.scale}</strong>
-              <p>{leaderboard.scoring.totalFormula}</p>
+              <p>{formatScoringFormula(leaderboard.scoring.totalFormula, t)}</p>
             </div>
           </div>
 
@@ -509,14 +525,16 @@ export default function LeaderboardPage() {
                 <strong>{t('leaderboard.scoreScale')}:</strong> {leaderboard.scoring.scale}
               </p>
               <p>
-                <strong>{t('leaderboard.totalFormula')}:</strong> {leaderboard.scoring.totalFormula}
+                <strong>{t('leaderboard.totalFormula')}:</strong>{' '}
+                {formatScoringFormula(leaderboard.scoring.totalFormula, t)}
               </p>
               <p>
-                <strong>{t('leaderboard.roundFormula')}:</strong> {leaderboard.scoring.roundFormula}
+                <strong>{t('leaderboard.roundFormula')}:</strong>{' '}
+                {formatScoringFormula(leaderboard.scoring.roundFormula, t)}
               </p>
               <p>
                 <strong>{t('leaderboard.evaluationFormula')}:</strong>{' '}
-                {leaderboard.scoring.evaluationFormula}
+                {formatScoringFormula(leaderboard.scoring.evaluationFormula, t)}
               </p>
             </div>
 

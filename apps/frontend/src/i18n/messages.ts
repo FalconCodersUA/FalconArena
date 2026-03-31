@@ -90,6 +90,7 @@ export const messages: TranslationMap = {
         emailRequired: 'Вкажіть email.',
         emailInvalid: 'Вкажіть коректний email.',
         passwordRequired: 'Вкажіть пароль.',
+        invalidCredentials: 'Неправильний email або пароль.',
       },
     },
     register: {
@@ -258,9 +259,14 @@ export const messages: TranslationMap = {
       emptyRows: 'У цьому турнірі ще немає оцінених результатів.',
       noOrganization: 'Без організації',
       scoreScale: 'Шкала',
-      totalFormula: 'Формула total',
-      roundFormula: 'Формула round',
-      evaluationFormula: 'Формула evaluation',
+      totalFormula: 'Формула підсумку',
+      roundFormula: 'Формула раунду',
+      evaluationFormula: 'Формула оцінювання',
+      formulaDescriptions: {
+        total: 'Сума середніх балів з усіх раундів.',
+        round: 'Середнє значення всіх оцінок журі в раунді.',
+        evaluation: 'Середнє значення шести категорій оцінювання.',
+      },
       exportCsv: 'Експортувати CSV',
       exportGoogleSheets: 'Експортувати в Google Sheets',
       exportGoogleSheetsSubmitting: 'Експорт у Google Sheets...',
@@ -341,6 +347,11 @@ export const messages: TranslationMap = {
       noOrganization: 'Без організації',
       scoreScale: 'Шкала',
       totalFormula: 'Формула підсумку',
+      formulaDescriptions: {
+        total: 'Сума середніх балів з усіх раундів.',
+        round: 'Середнє значення всіх оцінок журі в раунді.',
+        evaluation: 'Середнє значення шести категорій оцінювання.',
+      },
       summary: {
         tournament: 'Турнір',
         winner: 'Переможець',
@@ -933,6 +944,7 @@ export const messages: TranslationMap = {
       createRoundSuccess: 'Раунд успішно створено.',
       createRoundFailed: 'Не вдалося створити раунд',
       schedule: {
+        title: 'Розклад турніру',
         lead: 'Додавайте ключові етапи турніру, консультації, дедлайни та службові події.',
         created: 'Подію розкладу створено.',
         updated: 'Подію розкладу оновлено.',
@@ -1549,6 +1561,7 @@ export const messages: TranslationMap = {
         emailRequired: 'Email is required.',
         emailInvalid: 'Enter a valid email address.',
         passwordRequired: 'Password is required.',
+        invalidCredentials: 'Invalid email or password.',
       },
     },
     register: {
@@ -1715,6 +1728,11 @@ export const messages: TranslationMap = {
       totalFormula: 'Total formula',
       roundFormula: 'Round formula',
       evaluationFormula: 'Evaluation formula',
+      formulaDescriptions: {
+        total: 'Sum of average scores from all rounds.',
+        round: 'Average of all jury evaluation totals inside a round.',
+        evaluation: 'Average value across the six scoring categories.',
+      },
       exportCsv: 'Export CSV',
       exportGoogleSheets: 'Export to Google Sheets',
       exportGoogleSheetsSubmitting: 'Exporting to Google Sheets...',
@@ -1805,6 +1823,11 @@ export const messages: TranslationMap = {
       noOrganization: 'No organization',
       scoreScale: 'Scale',
       totalFormula: 'Total formula',
+      formulaDescriptions: {
+        total: 'Sum of average scores from all rounds.',
+        round: 'Average of all jury evaluation totals inside a round.',
+        evaluation: 'Average value across the six scoring categories.',
+      },
       summary: {
         tournament: 'Tournament',
         winner: 'Winner',
@@ -2397,6 +2420,7 @@ export const messages: TranslationMap = {
       createRoundSuccess: 'Round created successfully.',
       createRoundFailed: 'Could not create round',
       schedule: {
+        title: 'Tournament schedule',
         lead: 'Add key tournament stages, consultations, deadlines, and service events.',
         created: 'Schedule event created successfully.',
         updated: 'Schedule event updated successfully.',
