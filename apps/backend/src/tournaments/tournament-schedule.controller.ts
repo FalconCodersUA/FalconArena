@@ -6,11 +6,13 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { AuthUser } from '../common/types/auth-user.type';
 import {
   CreateTournamentScheduleEventDto,
   UpdateTournamentScheduleEventDto,
@@ -34,8 +36,9 @@ export class TournamentScheduleController {
   create(
     @Param('tournamentId') tournamentId: string,
     @Body() dto: CreateTournamentScheduleEventDto,
+    @Req() request: { user: AuthUser },
   ) {
-    return this.tournamentScheduleService.create(tournamentId, dto);
+    return this.tournamentScheduleService.create(tournamentId, dto, request.user);
   }
 
   @Patch(':eventId')
@@ -45,8 +48,14 @@ export class TournamentScheduleController {
     @Param('tournamentId') tournamentId: string,
     @Param('eventId') eventId: string,
     @Body() dto: UpdateTournamentScheduleEventDto,
+    @Req() request: { user: AuthUser },
   ) {
-    return this.tournamentScheduleService.update(tournamentId, eventId, dto);
+    return this.tournamentScheduleService.update(
+      tournamentId,
+      eventId,
+      dto,
+      request.user,
+    );
   }
 
   @Delete(':eventId')
@@ -55,7 +64,12 @@ export class TournamentScheduleController {
   remove(
     @Param('tournamentId') tournamentId: string,
     @Param('eventId') eventId: string,
+    @Req() request: { user: AuthUser },
   ) {
-    return this.tournamentScheduleService.remove(tournamentId, eventId);
+    return this.tournamentScheduleService.remove(
+      tournamentId,
+      eventId,
+      request.user,
+    );
   }
 }

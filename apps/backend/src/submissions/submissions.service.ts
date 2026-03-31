@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { NotificationType, RoundStatus, SubmissionStatus } from '@prisma/client';
+import { AuditLogsService } from '../audit-logs.service';
+import { AuthUser } from '../common/types/auth-user.type';
 import { NotificationsService } from '../notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { RoundsService } from '../rounds/rounds.service';
@@ -11,11 +13,12 @@ export class SubmissionsService {
     private readonly prisma: PrismaService,
     private readonly roundsService: RoundsService,
     @Optional() private readonly notificationsService?: NotificationsService,
+    @Optional() private readonly auditLogsService?: AuditLogsService,
   ) {}
 
   async upsertMySubmission(
     roundId: string,
-    captainUserId: string,
+    actor: AuthUser,
     dto: UpsertSubmissionDto,
   ) {
     const round = await this.roundsService.ensureSubmissionsOpen(roundId);
@@ -24,7 +27,7 @@ export class SubmissionsService {
       where: {
         tournamentId_captainId: {
           tournamentId: round.tournamentId,
-          captainId: captainUserId,
+          captainId: actor.userId,
         },
       },
       select: {
@@ -70,10 +73,27 @@ export class SubmissionsService {
 
       await this.notificationsService?.create({
         type: NotificationType.SUBMISSION_RECEIVED,
-        userId: captainUserId,
+        userId: actor.userId,
         title: `Сабміт збережено: ${created.round.title}`,
         body: `Ваш сабміт для команди ${created.team.name} успішно збережено.`,
         linkUrl: '/app/team',
+      });
+
+      await this.auditLogsService?.record({
+        actorId: actor.userId,
+        actorRole: actor.role,
+        action: 'submission.saved',
+        entityType: 'submission',
+        entityId: created.id,
+        entityLabel: created.round.title,
+        tournamentId: round.tournamentId,
+        title: 'Saved submission',
+        description: `${created.team.name} submitted work for ${created.round.title}.`,
+        metadata: {
+          roundId: created.round.id,
+          teamId: created.team.id,
+          teamName: created.team.name,
+        },
       });
 
       return {
@@ -103,12 +123,29 @@ export class SubmissionsService {
       },
     });
 
-    await this.notificationsService?.create({
-      type: NotificationType.SUBMISSION_RECEIVED,
-      userId: captainUserId,
-      title: `Сабміт збережено: ${updated.round.title}`,
-      body: `Ваш сабміт для команди ${updated.team.name} успішно збережено.`,
-      linkUrl: '/app/team',
+      await this.notificationsService?.create({
+        type: NotificationType.SUBMISSION_RECEIVED,
+        userId: actor.userId,
+        title: `Сабміт збережено: ${updated.round.title}`,
+        body: `Ваш сабміт для команди ${updated.team.name} успішно збережено.`,
+        linkUrl: '/app/team',
+      });
+
+    await this.auditLogsService?.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'submission.saved',
+      entityType: 'submission',
+      entityId: updated.id,
+      entityLabel: updated.round.title,
+      tournamentId: round.tournamentId,
+      title: 'Updated submission',
+      description: `${updated.team.name} updated the submission for ${updated.round.title}.`,
+      metadata: {
+        roundId: updated.round.id,
+        teamId: updated.team.id,
+        teamName: updated.team.name,
+      },
     });
 
     return {

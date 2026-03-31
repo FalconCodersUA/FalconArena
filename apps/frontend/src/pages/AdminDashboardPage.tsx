@@ -104,6 +104,16 @@ type AdminActivityFeedItem = {
   accent: 'purple' | 'teal' | 'orange' | 'cobalt';
 };
 
+type AuditActivityEntry = {
+  id: string;
+  actorName: string | null;
+  action: string;
+  entityLabel: string | null;
+  title: string;
+  description: string;
+  createdAt: string;
+};
+
 type PlatformDefaults = {
   minTeamMembers: number;
   maxTeamMembers: number;
@@ -232,6 +242,22 @@ function toBarHeights(values: number[]) {
     return values.map(() => 0);
   }
   return values.map((value) => Math.round((value / max) * 100));
+}
+
+function getActivityAccent(action: string): AdminActivityFeedItem['accent'] {
+  if (action.startsWith('evaluation.') || action.startsWith('integration.')) {
+    return 'cobalt';
+  }
+
+  if (action.startsWith('submission.') || action.startsWith('round.status_')) {
+    return 'teal';
+  }
+
+  if (action.startsWith('schedule.') || action.startsWith('certificate.')) {
+    return 'orange';
+  }
+
+  return 'purple';
 }
 
 function isAdminDashboardMetrics(value: unknown): value is AdminDashboardMetrics {
@@ -380,7 +406,7 @@ export default function AdminDashboardPage() {
   const [userPassword, setUserPassword] = useState('');
   const [userRole, setUserRole] = useState<ManagedUserRole>('JURY');
   const [quickModal, setQuickModal] = useState<AdminQuickModal>('none');
-  const [recentCreatedUsers, setRecentCreatedUsers] = useState<CreatedUser[]>([]);
+  const [activityFeedEntries, setActivityFeedEntries] = useState<AuditActivityEntry[]>([]);
 
   const selectedTournament =
     tournaments.find((entry) => entry.id === selectedTournamentId) ?? null;
@@ -462,75 +488,19 @@ export default function AdminDashboardPage() {
         : t('adminDashboard.workspaceChecklist.items.evaluation.pending'),
     },
   ];
-  const adminActivityFeed = useMemo<AdminActivityFeedItem[]>(() => {
-    const items: AdminActivityFeedItem[] = [];
-
-    recentCreatedUsers.forEach((user) => {
-      items.push({
-        id: `user-${user.id}`,
-        title: user.fullName,
-        meta: t('adminDashboard.activityFeed.userCreated')
-          .replace('{role}', t(`profile.role.${user.role}`))
-          .replace('{date}', formatDateTime(user.createdAt, language)),
-        timestamp: new Date(user.createdAt).getTime(),
-        accent: 'cobalt',
-      });
-    });
-
-    if (selectedTournament) {
-      items.push({
-        id: `tournament-registration-${selectedTournament.id}`,
-        title: selectedTournament.title,
-        meta: t('adminDashboard.activityFeed.registrationCloses').replace(
-          '{date}',
-          formatDateTime(selectedTournament.registrationCloseAt, language),
-        ),
-        timestamp: new Date(selectedTournament.registrationCloseAt).getTime(),
-        accent: 'orange',
-      });
-
-      if (selectedTournament.startsAt) {
-        items.push({
-          id: `tournament-start-${selectedTournament.id}`,
-          title: selectedTournament.title,
-          meta: t('adminDashboard.activityFeed.tournamentStarts').replace(
-            '{date}',
-            formatDateTime(selectedTournament.startsAt, language),
-          ),
-          timestamp: new Date(selectedTournament.startsAt).getTime(),
-          accent: 'purple',
-        });
-      }
-    }
-
-    rounds.forEach((round) => {
-      items.push({
-        id: `round-deadline-${round.id}`,
-        title: round.title,
-        meta: t('adminDashboard.activityFeed.roundDeadline')
-          .replace('{status}', t(`adminDashboard.roundStatus.${round.status}`))
-          .replace('{date}', formatDateTime(round.deadlineAt, language)),
-        timestamp: new Date(round.deadlineAt).getTime(),
-        accent: round.status === 'ACTIVE' ? 'teal' : round.status === 'EVALUATED' ? 'cobalt' : 'purple',
-      });
-    });
-
-    scheduleEvents.forEach((event) => {
-      items.push({
-        id: `schedule-${event.id}`,
-        title: event.title,
-        meta: t('adminDashboard.activityFeed.scheduleEvent')
-          .replace('{type}', t(`schedule.types.${event.type}`))
-          .replace('{date}', formatDateTime(event.startsAt, language)),
-        timestamp: new Date(event.startsAt).getTime(),
-        accent: event.type === 'DEADLINE' ? 'orange' : event.type === 'ROUND' ? 'purple' : 'teal',
-      });
-    });
-
-    return items
-      .sort((left, right) => right.timestamp - left.timestamp)
-      .slice(0, 6);
-  }, [language, recentCreatedUsers, rounds, scheduleEvents, selectedTournament, t]);
+  const adminActivityFeed = useMemo<AdminActivityFeedItem[]>(
+    () =>
+      activityFeedEntries.map((entry) => ({
+        id: entry.id,
+        title: entry.entityLabel || entry.title,
+        meta: `${entry.description} · ${formatDateTime(entry.createdAt, language)}${
+          entry.actorName ? ` · ${entry.actorName}` : ''
+        }`,
+        timestamp: new Date(entry.createdAt).getTime(),
+        accent: getActivityAccent(entry.action),
+      })),
+    [activityFeedEntries, language],
+  );
 
   function openQuickModal(modal: Exclude<AdminQuickModal, 'none'>) {
     setCreateTournamentError('');
@@ -684,6 +654,16 @@ export default function AdminDashboardPage() {
     }
   }
 
+  async function loadActivityFeed(tournamentId?: string) {
+    try {
+      const query = tournamentId ? `?tournamentId=${encodeURIComponent(tournamentId)}` : '';
+      const data = await apiRequest<AuditActivityEntry[]>(`/activity/admin${query}`);
+      setActivityFeedEntries(Array.isArray(data) ? data : []);
+    } catch {
+      setActivityFeedEntries([]);
+    }
+  }
+
   async function loadInitial() {
     setLoading(true);
     setError('');
@@ -718,6 +698,7 @@ export default function AdminDashboardPage() {
     if (!selectedTournamentId || !roleAllowed) {
       setRounds([]);
       setScheduleEvents([]);
+      setActivityFeedEntries([]);
       setScheduleError('');
       setScheduleOp(EMPTY_SCHEDULE_OP_STATE);
       resetScheduleForm();
@@ -728,6 +709,7 @@ export default function AdminDashboardPage() {
     resetScheduleForm();
     void loadRounds(selectedTournamentId);
     void loadScheduleEvents(selectedTournamentId);
+    void loadActivityFeed(selectedTournamentId);
   }, [selectedTournamentId, roleAllowed]);
 
   useEffect(() => {
@@ -791,6 +773,7 @@ export default function AdminDashboardPage() {
       setCreateTournamentNotice(t('adminDashboard.createTournamentSuccess'));
       notifySuccess(t('adminDashboard.createTournamentSuccess'));
       await loadTournaments();
+      await loadActivityFeed(selectedTournamentId || undefined);
       closeQuickModal();
     } catch (requestError) {
       const message =
@@ -821,8 +804,11 @@ export default function AdminDashboardPage() {
 
       setStatusNotice(t('adminDashboard.tournamentStatusUpdated'));
       notifySuccess(t('adminDashboard.tournamentStatusUpdated'));
-      await loadTournaments();
-      await loadDashboardMetrics(selectedTournamentId);
+      await Promise.all([
+        loadTournaments(),
+        loadDashboardMetrics(selectedTournamentId),
+        loadActivityFeed(selectedTournamentId),
+      ]);
     } catch (requestError) {
       const message =
         requestError instanceof Error
@@ -965,10 +951,10 @@ export default function AdminDashboardPage() {
       setCreateUserNotice(
         t('adminDashboard.createUserSuccess').replace('{role}', t(`profile.role.${created.role}`)),
       );
-      setRecentCreatedUsers((current) => [created, ...current].slice(0, 6));
       notifySuccess(
         t('adminDashboard.createUserSuccess').replace('{role}', t(`profile.role.${created.role}`)),
       );
+      await loadActivityFeed(selectedTournamentId || undefined);
       closeQuickModal();
     } catch (requestError) {
       const message =
@@ -996,8 +982,12 @@ export default function AdminDashboardPage() {
         notice: t('adminDashboard.roundStatusUpdated'),
       });
       notifySuccess(t('adminDashboard.roundStatusUpdated'));
-      await Promise.all([loadRounds(selectedTournamentId), loadTournaments()]);
-      await loadDashboardMetrics(selectedTournamentId);
+      await Promise.all([
+        loadRounds(selectedTournamentId),
+        loadTournaments(),
+        loadDashboardMetrics(selectedTournamentId),
+        loadActivityFeed(selectedTournamentId),
+      ]);
     } catch (requestError) {
       const message =
         requestError instanceof Error
@@ -1079,7 +1069,10 @@ export default function AdminDashboardPage() {
         },
       });
 
-      await loadScheduleEvents(selectedTournamentId);
+      await Promise.all([
+        loadScheduleEvents(selectedTournamentId),
+        loadActivityFeed(selectedTournamentId),
+      ]);
       resetScheduleForm();
       const notice = scheduleEditingId
         ? t('adminDashboard.schedule.updated')
@@ -1107,7 +1100,10 @@ export default function AdminDashboardPage() {
       await apiRequest(`/tournaments/${selectedTournamentId}/schedule/${eventId}`, {
         method: 'DELETE',
       });
-      await loadScheduleEvents(selectedTournamentId);
+      await Promise.all([
+        loadScheduleEvents(selectedTournamentId),
+        loadActivityFeed(selectedTournamentId),
+      ]);
       if (scheduleEditingId === eventId) {
         resetScheduleForm();
       }
@@ -1154,7 +1150,10 @@ export default function AdminDashboardPage() {
         notice: t('adminDashboard.distributeSuccess'),
       });
       notifySuccess(t('adminDashboard.distributeSuccess'));
-      await loadDashboardMetrics(selectedTournamentId || undefined);
+      await Promise.all([
+        loadDashboardMetrics(selectedTournamentId || undefined),
+        loadActivityFeed(selectedTournamentId || undefined),
+      ]);
     } catch (requestError) {
       const message =
         requestError instanceof Error
@@ -1183,7 +1182,11 @@ export default function AdminDashboardPage() {
       });
       notifySuccess(t('adminDashboard.finishEvaluationSuccess'));
       if (selectedTournamentId) {
-        await Promise.all([loadRounds(selectedTournamentId), loadTournaments()]);
+        await Promise.all([
+          loadRounds(selectedTournamentId),
+          loadTournaments(),
+          loadActivityFeed(selectedTournamentId),
+        ]);
       }
       await loadDashboardMetrics(selectedTournamentId || undefined);
     } catch (requestError) {

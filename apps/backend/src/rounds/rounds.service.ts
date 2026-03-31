@@ -12,6 +12,8 @@ import {
   SubmissionStatus,
   TournamentStatus,
 } from '@prisma/client';
+import { AuditLogsService } from '../audit-logs.service';
+import { AuthUser } from '../common/types/auth-user.type';
 import { NotificationsService } from '../notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRoundDto } from './dto/create-round.dto';
@@ -21,9 +23,10 @@ export class RoundsService {
   constructor(
     private readonly prisma: PrismaService,
     @Optional() private readonly notificationsService?: NotificationsService,
+    @Optional() private readonly auditLogsService?: AuditLogsService,
   ) {}
 
-  async create(tournamentId: string, dto: CreateRoundDto) {
+  async create(tournamentId: string, dto: CreateRoundDto, actor: AuthUser) {
     this.validateRoundWindow(dto.startsAt, dto.deadlineAt);
 
     const tournament = await this.prisma.tournament.findUnique({
@@ -53,6 +56,23 @@ export class RoundsService {
         additionalMaterials: dto.additionalMaterials ?? [],
         startsAt: dto.startsAt,
         deadlineAt: dto.deadlineAt,
+      },
+    });
+
+    await this.auditLogsService?.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'round.created',
+      entityType: 'round',
+      entityId: round.id,
+      entityLabel: round.title,
+      tournamentId,
+      title: 'Created round',
+      description: `${round.title} was added as round #${round.sequence}.`,
+      metadata: {
+        sequence: round.sequence,
+        startsAt: round.startsAt.toISOString(),
+        deadlineAt: round.deadlineAt.toISOString(),
       },
     });
 
@@ -92,6 +112,7 @@ export class RoundsService {
     tournamentId: string,
     roundId: string,
     status: RoundStatus,
+    actor: AuthUser,
   ) {
     const round = await this.prisma.round.findUnique({
       where: { id: roundId },
@@ -160,6 +181,22 @@ export class RoundsService {
         linkUrl: `/app/tournaments/${tournamentId}`,
       });
 
+      await this.auditLogsService?.record({
+        actorId: actor.userId,
+        actorRole: actor.role,
+        action: 'round.status_updated',
+        entityType: 'round',
+        entityId: updatedRound.id,
+        entityLabel: updatedRound.title,
+        tournamentId,
+        title: 'Activated round',
+        description: `${updatedRound.title} status changed from ${round.status} to ${status}.`,
+        metadata: {
+          previousStatus: round.status,
+          nextStatus: status,
+        },
+      });
+
       return this.mapRoundView(updatedRound);
     }
 
@@ -171,6 +208,21 @@ export class RoundsService {
 
     if (status === RoundStatus.SUBMISSION_CLOSED) {
       const updatedRound = await this.closeSubmissionsAndRound(roundId);
+      await this.auditLogsService?.record({
+        actorId: actor.userId,
+        actorRole: actor.role,
+        action: 'round.status_updated',
+        entityType: 'round',
+        entityId: updatedRound.id,
+        entityLabel: updatedRound.title,
+        tournamentId,
+        title: 'Closed submissions',
+        description: `${updatedRound.title} status changed from ${round.status} to ${status}.`,
+        metadata: {
+          previousStatus: round.status,
+          nextStatus: status,
+        },
+      });
       return this.mapRoundView(updatedRound);
     }
 

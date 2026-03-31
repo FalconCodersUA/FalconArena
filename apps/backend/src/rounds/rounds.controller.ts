@@ -5,11 +5,13 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { AuthUser } from '../common/types/auth-user.type';
 import { CreateRoundDto } from './dto/create-round.dto';
 import { UpdateRoundStatusDto } from './dto/update-round-status.dto';
 import { RoundsService } from './rounds.service';
@@ -24,8 +26,9 @@ export class RoundsController {
   create(
     @Param('tournamentId') tournamentId: string,
     @Body() dto: CreateRoundDto,
+    @Req() request: { user: AuthUser },
   ) {
-    return this.roundsService.create(tournamentId, dto);
+    return this.roundsService.create(tournamentId, dto, request.user);
   }
 
   @Get()
@@ -45,7 +48,13 @@ export class RoundsController {
     @Param('tournamentId') tournamentId: string,
     @Param('roundId') roundId: string,
     @Body() dto: UpdateRoundStatusDto,
+    @Req() request: { user: AuthUser },
   ) {
-    return this.roundsService.updateStatus(tournamentId, roundId, dto.status);
+    return this.roundsService.updateStatus(
+      tournamentId,
+      roundId,
+      dto.status,
+      request.user,
+    );
   }
 }

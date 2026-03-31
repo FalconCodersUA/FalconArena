@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { NotificationType } from '@prisma/client';
+import { AuditLogsService } from '../audit-logs.service';
+import { AuthUser } from '../common/types/auth-user.type';
 import { PrismaService } from '../prisma/prisma.service';
 import { TestGoogleSheetsConnectionDto } from './dto/test-google-sheets-connection.dto';
 import { UpdateEmailSettingsDto } from './dto/update-email-settings.dto';
@@ -61,7 +63,10 @@ const TOURNAMENT_DEFAULTS_FALLBACK = {
 
 @Injectable()
 export class SystemIntegrationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditLogsService: AuditLogsService,
+  ) {}
 
   async getGoogleSheetsSettings() {
     const settings = await this.getSettingsRow();
@@ -84,13 +89,29 @@ export class SystemIntegrationsService {
 
   async updateGoogleSheetsSettings(
     dto: UpdateGoogleSheetsSettingsDto,
-    userId: string,
+    actor: AuthUser,
   ) {
     await this.upsertSettings({
       googleSheetsWebhookUrl: this.normalizeOptionalString(dto.webhookUrl),
       googleSheetsWebhookSecret: this.normalizeOptionalString(dto.secret),
       googleSheetsDefaultSheetName: this.normalizeOptionalString(dto.defaultSheetName),
-      updatedByUserId: userId,
+      updatedByUserId: actor.userId,
+    });
+
+    await this.auditLogsService.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'integration.google_sheets_updated',
+      entityType: 'system_integration',
+      entityId: 'google-sheets',
+      entityLabel: 'Google Sheets',
+      title: 'Updated Google Sheets settings',
+      description: 'Google Sheets webhook settings were changed.',
+      metadata: {
+        hasWebhookUrl: !!dto.webhookUrl,
+        hasSecret: !!dto.secret,
+        defaultSheetName: dto.defaultSheetName ?? null,
+      },
     });
 
     return this.getGoogleSheetsSettings();
@@ -183,14 +204,30 @@ export class SystemIntegrationsService {
     };
   }
 
-  async updateEmailSettings(dto: UpdateEmailSettingsDto, userId: string) {
+  async updateEmailSettings(dto: UpdateEmailSettingsDto, actor: AuthUser) {
     await this.upsertSettings({
       emailNotificationsEnabled: dto.enabled ?? null,
       emailProvider: this.normalizeOptionalString(dto.provider),
       emailFrom: this.normalizeOptionalString(dto.from),
       emailReplyTo: this.normalizeOptionalString(dto.replyTo),
       resendApiKey: this.normalizeOptionalString(dto.resendApiKey),
-      updatedByUserId: userId,
+      updatedByUserId: actor.userId,
+    });
+
+    await this.auditLogsService.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'integration.email_updated',
+      entityType: 'system_integration',
+      entityId: 'email',
+      entityLabel: 'Email delivery',
+      title: 'Updated email delivery settings',
+      description: 'Email provider settings were changed.',
+      metadata: {
+        enabled: dto.enabled ?? null,
+        provider: dto.provider ?? null,
+        from: dto.from ?? null,
+      },
     });
 
     return this.getEmailSettings();
@@ -213,7 +250,7 @@ export class SystemIntegrationsService {
 
   async updateNotificationRules(
     dto: UpdateNotificationRulesDto,
-    userId: string,
+    actor: AuthUser,
   ) {
     await this.upsertSettings({
       notifyRegistrationStarted: dto.registrationStarted ?? null,
@@ -221,7 +258,19 @@ export class SystemIntegrationsService {
       notifySubmissionReceived: dto.submissionReceived ?? null,
       notifyDeadlineReminder: dto.deadlineReminder ?? null,
       notifySubmissionClosed: dto.submissionClosed ?? null,
-      updatedByUserId: userId,
+      updatedByUserId: actor.userId,
+    });
+
+    await this.auditLogsService.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'integration.notification_rules_updated',
+      entityType: 'system_integration',
+      entityId: 'notification-rules',
+      entityLabel: 'Notification rules',
+      title: 'Updated notification rules',
+      description: 'Global notification rules were changed.',
+      metadata: dto as Record<string, boolean | undefined>,
     });
 
     return this.getNotificationRules();
@@ -258,7 +307,7 @@ export class SystemIntegrationsService {
 
   async updateTournamentDefaults(
     dto: UpdateTournamentDefaultsDto,
-    userId: string,
+    actor: AuthUser,
   ) {
     const nextMin = dto.minTeamMembers ?? null;
     const nextMax = dto.maxTeamMembers ?? null;
@@ -285,7 +334,27 @@ export class SystemIntegrationsService {
       defaultRoundDescription: this.normalizeOptionalString(
         dto.defaultRoundDescription,
       ),
-      updatedByUserId: userId,
+      updatedByUserId: actor.userId,
+    });
+
+    await this.auditLogsService.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'integration.tournament_defaults_updated',
+      entityType: 'system_integration',
+      entityId: 'tournament-defaults',
+      entityLabel: 'Tournament defaults',
+      title: 'Updated tournament defaults',
+      description: 'Project-wide tournament defaults were changed.',
+      metadata: {
+        minTeamMembers: dto.minTeamMembers ?? null,
+        maxTeamMembers: dto.maxTeamMembers ?? null,
+        defaultMinReviewersPerSubmission:
+          dto.defaultMinReviewersPerSubmission ?? null,
+        defaultProjectTimeZone: dto.defaultProjectTimeZone ?? null,
+        hideTeamsUntilRegistrationClose:
+          dto.hideTeamsUntilRegistrationClose ?? null,
+      },
     });
 
     return this.getTournamentDefaults();

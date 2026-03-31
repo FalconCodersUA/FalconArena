@@ -5,11 +5,13 @@ import {
   Param,
   Patch,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { AuthUser } from '../common/types/auth-user.type';
 import { CertificateQueryDto } from './dto/certificate-query.dto';
 import { UpsertCertificateTemplateDto } from './dto/upsert-certificate-template.dto';
 import { TournamentCertificatesService } from './tournament-certificates.service';
@@ -33,8 +35,13 @@ export class TournamentCertificatesController {
   upsertTemplate(
     @Param('tournamentId') tournamentId: string,
     @Body() dto: UpsertCertificateTemplateDto,
+    @Req() request: { user: AuthUser },
   ) {
-    return this.tournamentCertificatesService.upsertTemplate(tournamentId, dto);
+    return this.tournamentCertificatesService.upsertTemplate(
+      tournamentId,
+      dto,
+      request.user,
+    );
   }
 
   @Get('certificates/teams/:teamId')

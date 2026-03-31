@@ -5,6 +5,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { NotificationType, Tournament, TournamentStatus } from '@prisma/client';
+import { AuditLogsService } from '../audit-logs.service';
+import { AuthUser } from '../common/types/auth-user.type';
 import { LeaderboardService } from '../leaderboard/leaderboard.service';
 import { NotificationsService } from '../notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -41,9 +43,10 @@ export class TournamentsService {
     @Optional() private readonly notificationsService?: NotificationsService,
     @Optional()
     private readonly systemIntegrationsService?: SystemIntegrationsService,
+    @Optional() private readonly auditLogsService?: AuditLogsService,
   ) {}
 
-  async create(dto: CreateTournamentDto, createdById: string): Promise<TournamentView> {
+  async create(dto: CreateTournamentDto, actor: AuthUser): Promise<TournamentView> {
     this.validateRegistrationWindow(dto.registrationOpenAt, dto.registrationCloseAt);
     const defaults = await this.getTournamentDefaults();
 
@@ -55,7 +58,24 @@ export class TournamentsService {
         registrationOpenAt: dto.registrationOpenAt,
         registrationCloseAt: dto.registrationCloseAt,
         maxTeams: dto.maxTeams,
-        createdById,
+        createdById: actor.userId,
+      },
+    });
+
+    await this.auditLogsService?.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'tournament.created',
+      entityType: 'tournament',
+      entityId: tournament.id,
+      entityLabel: tournament.title,
+      tournamentId: tournament.id,
+      title: 'Created tournament',
+      description: `${tournament.title} was created in ${tournament.status} status.`,
+      metadata: {
+        status: tournament.status,
+        registrationOpenAt: tournament.registrationOpenAt.toISOString(),
+        registrationCloseAt: tournament.registrationCloseAt.toISOString(),
       },
     });
 
@@ -244,6 +264,7 @@ export class TournamentsService {
   async updateStatus(
     id: string,
     status: TournamentStatus,
+    actor: AuthUser,
   ): Promise<TournamentView> {
     const existing = await this.prisma.tournament.findUnique({ where: { id } });
     if (!existing) {
@@ -267,6 +288,22 @@ export class TournamentsService {
     const tournament = await this.prisma.tournament.update({
       where: { id },
       data: { status },
+    });
+
+    await this.auditLogsService?.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'tournament.status_updated',
+      entityType: 'tournament',
+      entityId: tournament.id,
+      entityLabel: tournament.title,
+      tournamentId: tournament.id,
+      title: 'Updated tournament status',
+      description: `${tournament.title} status changed from ${existing.status} to ${status}.`,
+      metadata: {
+        previousStatus: existing.status,
+        nextStatus: status,
+      },
     });
 
     if (status === TournamentStatus.REGISTRATION) {

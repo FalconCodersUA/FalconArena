@@ -25,7 +25,11 @@ describe('TournamentCertificatesService', () => {
     });
     prisma.certificateTemplate.findUnique.mockResolvedValue(null);
 
-    const service = new TournamentCertificatesService(prisma as never, undefined);
+    const service = new TournamentCertificatesService(
+      prisma as never,
+      undefined,
+      { record: vi.fn().mockResolvedValue(undefined) } as never,
+    );
 
     const result = await service.getTemplate('t-1');
 
@@ -64,18 +68,22 @@ describe('TournamentCertificatesService', () => {
       ],
     });
 
-    const service = new TournamentCertificatesService(prisma as never, {
-      getTournamentLeaderboard: vi.fn().mockResolvedValue({
-        rows: [
-          {
-            teamId: 'team-1',
-            rank: 1,
-            totalScore: 287.4,
-            averageScore: 95.8,
-          },
-        ],
-      }),
-    } as never);
+    const service = new TournamentCertificatesService(
+      prisma as never,
+      {
+        getTournamentLeaderboard: vi.fn().mockResolvedValue({
+          rows: [
+            {
+              teamId: 'team-1',
+              rank: 1,
+              totalScore: 287.4,
+              averageScore: 95.8,
+            },
+          ],
+        }),
+      } as never,
+      { record: vi.fn().mockResolvedValue(undefined) } as never,
+    );
 
     vi.spyOn(service, 'getTemplate').mockResolvedValue({
       id: 'tpl-1',

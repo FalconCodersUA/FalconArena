@@ -74,14 +74,27 @@ describe('SubmissionsService', () => {
       },
     });
 
-    const service = new SubmissionsService(prisma as never, roundsService as never);
+    const service = new SubmissionsService(
+      prisma as never,
+      roundsService as never,
+      undefined,
+      { record: vi.fn().mockResolvedValue(undefined) } as never,
+    );
 
-    const result = await service.upsertMySubmission('round-1', 'captain-1', {
-      repoUrl: 'https://github.com/example/repo',
-      demoUrl: 'https://youtu.be/demo',
-      liveDemoUrl: undefined,
-      shortSummary: undefined,
-    });
+    const result = await service.upsertMySubmission(
+      'round-1',
+      {
+        userId: 'captain-1',
+        role: 'TEAM',
+        email: 'captain@example.com',
+      },
+      {
+        repoUrl: 'https://github.com/example/repo',
+        demoUrl: 'https://youtu.be/demo',
+        liveDemoUrl: undefined,
+        shortSummary: undefined,
+      },
+    );
 
     expect(prisma.submission.update).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -107,13 +120,26 @@ describe('SubmissionsService', () => {
 
     prisma.team.findUnique.mockResolvedValue(null);
 
-    const service = new SubmissionsService(prisma as never, roundsService as never);
+    const service = new SubmissionsService(
+      prisma as never,
+      roundsService as never,
+      undefined,
+      { record: vi.fn().mockResolvedValue(undefined) } as never,
+    );
 
     await expect(
-      service.upsertMySubmission('round-1', 'captain-1', {
-        repoUrl: 'https://github.com/example/repo',
-        demoUrl: 'https://youtu.be/demo',
-      }),
+      service.upsertMySubmission(
+        'round-1',
+        {
+          userId: 'captain-1',
+          role: 'TEAM',
+          email: 'captain@example.com',
+        },
+        {
+          repoUrl: 'https://github.com/example/repo',
+          demoUrl: 'https://youtu.be/demo',
+        },
+      ),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
 });

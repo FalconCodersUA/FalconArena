@@ -23,7 +23,10 @@ describe('TournamentScheduleService', () => {
     const prisma = createPrismaMock();
     prisma.tournament.findUnique.mockResolvedValue({ id: 'tour-1' });
     prisma.tournamentScheduleEvent.findMany.mockResolvedValue([]);
-    const service = new TournamentScheduleService(prisma as never);
+    const service = new TournamentScheduleService(
+      prisma as never,
+      { record: vi.fn().mockResolvedValue(undefined) } as never,
+    );
 
     await service.list('tour-1');
 
@@ -48,16 +51,23 @@ describe('TournamentScheduleService', () => {
       createdAt: new Date('2026-04-01T09:00:00.000Z'),
       updatedAt: new Date('2026-04-01T09:00:00.000Z'),
     });
-    const service = new TournamentScheduleService(prisma as never);
+    const service = new TournamentScheduleService(
+      prisma as never,
+      { record: vi.fn().mockResolvedValue(undefined) } as never,
+    );
 
-    await service.create('tour-1', {
-      title: '  Consultation  ',
-      description: '  Zoom session  ',
-      type: 'CONSULTATION',
-      startsAt: new Date('2026-04-10T09:00:00.000Z'),
-      endsAt: new Date('2026-04-10T10:00:00.000Z'),
-      location: '  Discord  ',
-    });
+    await service.create(
+      'tour-1',
+      {
+        title: '  Consultation  ',
+        description: '  Zoom session  ',
+        type: 'CONSULTATION',
+        startsAt: new Date('2026-04-10T09:00:00.000Z'),
+        endsAt: new Date('2026-04-10T10:00:00.000Z'),
+        location: '  Discord  ',
+      },
+      { userId: 'admin-1', role: 'ADMIN', email: 'admin@example.com' },
+    );
 
     expect(prisma.tournamentScheduleEvent.create).toHaveBeenCalledWith({
       data: {
@@ -75,24 +85,39 @@ describe('TournamentScheduleService', () => {
   it('throws when end time is earlier than start time', async () => {
     const prisma = createPrismaMock();
     prisma.tournament.findUnique.mockResolvedValue({ id: 'tour-1' });
-    const service = new TournamentScheduleService(prisma as never);
+    const service = new TournamentScheduleService(
+      prisma as never,
+      { record: vi.fn().mockResolvedValue(undefined) } as never,
+    );
 
     await expect(
-      service.create('tour-1', {
-        title: 'Deadline',
-        startsAt: new Date('2026-04-10T11:00:00.000Z'),
-        endsAt: new Date('2026-04-10T10:00:00.000Z'),
-      }),
+      service.create(
+        'tour-1',
+        {
+          title: 'Deadline',
+          startsAt: new Date('2026-04-10T11:00:00.000Z'),
+          endsAt: new Date('2026-04-10T10:00:00.000Z'),
+        },
+        { userId: 'admin-1', role: 'ADMIN', email: 'admin@example.com' },
+      ),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
   it('throws when updating a missing event', async () => {
     const prisma = createPrismaMock();
     prisma.tournamentScheduleEvent.findFirst.mockResolvedValue(null);
-    const service = new TournamentScheduleService(prisma as never);
+    const service = new TournamentScheduleService(
+      prisma as never,
+      { record: vi.fn().mockResolvedValue(undefined) } as never,
+    );
 
     await expect(
-      service.update('tour-1', 'missing-event', { title: 'Updated' }),
+      service.update(
+        'tour-1',
+        'missing-event',
+        { title: 'Updated' },
+        { userId: 'admin-1', role: 'ADMIN', email: 'admin@example.com' },
+      ),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
 });
