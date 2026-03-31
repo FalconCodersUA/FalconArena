@@ -112,3 +112,4 @@
 - Backend uploads/storage винесено в persistent Docker volume, додано helper-скрипти і drill-doc для backup / restore БД та storage.
 - Додано окремий `e2e` сценарій `ADMIN -> TEAM -> JURY -> LEADERBOARD` з перевіркою leaderboard row та CSV export.
 - Додано окремий `e2e` сценарій `ARCHIVE -> CERTIFICATE -> EXPORT` з перевіркою archive, certificate flow, CSV і conditional Google Sheets export.
+- Додано backend error reporting: global exception filter, persisted `ErrorReport` і admin-only endpoint для перегляду останніх 5xx інцидентів.

@@ -31,7 +31,7 @@ describe('http observability helpers', () => {
           originalUrl: '/auth/login',
           ip: '127.0.0.1',
           user: {
-            id: 'user-1',
+            userId: 'user-1',
             role: 'ADMIN',
             email: 'admin@falconarena.live',
           },

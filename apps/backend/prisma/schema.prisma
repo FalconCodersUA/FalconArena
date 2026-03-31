@@ -427,3 +427,21 @@ model BackgroundJob {
 
   @@index([status, runAt])
 }
+
+model ErrorReport {
+  id         String   @id @default(cuid())
+  requestId  String
+  method     String
+  path       String
+  statusCode Int
+  message    String
+  stack      String?
+  userId     String?
+  userRole   Role?
+  userEmail  String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([statusCode, createdAt])
+  @@index([requestId])
+}

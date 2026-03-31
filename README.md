@@ -300,6 +300,10 @@ SEED_ADMIN_EMAIL=admin@falconarena.live SEED_ADMIN_PASSWORD=change_me npm run pr
 - `GET /admin/system-integrations/notification-rules`
 - `PATCH /admin/system-integrations/notification-rules`
 
+### Observability
+
+- `GET /admin/error-reports`
+
 ### Tournament extras
 
 - `GET /tournaments/:tournamentId/archive`

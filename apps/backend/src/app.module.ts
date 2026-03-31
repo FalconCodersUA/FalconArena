@@ -1,5 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { AnnouncementsController } from './announcements.controller';
 import { AnnouncementsService } from './announcements.service';
 import { AppController } from './app.controller';
@@ -10,8 +10,10 @@ import { DashboardMetricsController } from './dashboard-metrics.controller';
 import { DashboardMetricsService } from './dashboard-metrics.service';
 import { DirectMessagesController } from './direct-messages.controller';
 import { DirectMessagesService } from './direct-messages.service';
+import { ErrorReportsModule } from './error-reports.module';
 import { EvaluationModule } from './evaluation/evaluation.module';
 import { CommonSecurityModule } from './common/common-security.module';
+import { HttpErrorReportingFilter } from './http-error-reporting.filter';
 import { HttpLoggingInterceptor } from './http-logging.interceptor';
 import { HttpRequestIdMiddleware } from './http-request-id.middleware';
 import { JobsModule } from './jobs/jobs.module';
@@ -31,6 +33,7 @@ import { TournamentsModule } from './tournaments/tournaments.module';
     CommonSecurityModule,
     PrismaModule,
     AuditLogsModule,
+    ErrorReportsModule,
     JobsModule,
     AuthModule,
     NotificationsModule,
@@ -58,6 +61,10 @@ import { TournamentsModule } from './tournaments/tournaments.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: HttpLoggingInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: HttpErrorReportingFilter,
     },
   ],
 })
