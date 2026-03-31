@@ -9,6 +9,7 @@ import JuryDashboardPage from '../pages/JuryDashboardPage';
 import LeaderboardPage from '../pages/LeaderboardPage';
 import LoginPage from '../pages/LoginPage';
 import MessagesPage from '../pages/MessagesPage';
+import MonitoringPage from '../pages/MonitoringPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import ProfilePage from '../pages/ProfilePage';
 import RegisterPage from '../pages/RegisterPage';
@@ -157,6 +158,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute roles={['ADMIN']}>
             <SystemIntegrationsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'monitoring',
+        element: (
+          <ProtectedRoute roles={['ADMIN']}>
+            <MonitoringPage />
           </ProtectedRoute>
         ),
       },
