@@ -61,6 +61,7 @@ export const messages: TranslationMap = {
       send: 'Надіслати',
       open: 'Відкрити',
       openInMessages: 'Відкрити в повідомленнях',
+      scrollTop: 'Повернутися вгору',
     },
     language: {
       uk: 'Українська',
@@ -1419,6 +1420,7 @@ export const messages: TranslationMap = {
       send: 'Send',
       open: 'Open',
       openInMessages: 'Open in messages',
+      scrollTop: 'Back to top',
     },
     language: {
       uk: 'Українська',

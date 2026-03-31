@@ -582,6 +582,44 @@ a {
   height: 16px;
 }
 
+.app-scroll-top {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 48;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border: 1px solid rgba(94, 23, 235, 0.18);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(242, 235, 255, 0.95));
+  color: #5e17eb;
+  box-shadow: 0 18px 40px rgba(15, 23, 43, 0.16);
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+
+.app-scroll-top:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 44px rgba(15, 23, 43, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 1), rgba(236, 225, 255, 0.98));
+}
+
+.app-scroll-top:focus-visible {
+  outline: 3px solid rgba(94, 23, 235, 0.26);
+  outline-offset: 3px;
+}
+
+.app-scroll-top svg {
+  width: 20px;
+  height: 20px;
+}
+
 .app-topbar-alerts-wrap {
   position: relative;
 }
@@ -4715,5 +4753,12 @@ a {
   .profile-settings-tab {
     width: 100%;
     justify-content: center;
+  }
+
+  .app-scroll-top {
+    right: 18px;
+    bottom: 18px;
+    width: 46px;
+    height: 46px;
   }
 }

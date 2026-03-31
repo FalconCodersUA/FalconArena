@@ -134,6 +134,7 @@ export default function AppShell() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchCatalogItems, setSearchCatalogItems] = useState<SearchItem[]>([]);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [alertsLoading, setAlertsLoading] = useState(false);
   const [alertsError, setAlertsError] = useState('');
@@ -386,6 +387,19 @@ export default function AppShell() {
   }, []);
 
   useEffect(() => {
+    function handleWindowScroll() {
+      setShowScrollTop(window.scrollY > 320);
+    }
+
+    handleWindowScroll();
+    window.addEventListener('scroll', handleWindowScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleWindowScroll);
+    };
+  }, []);
+
+  useEffect(() => {
     function handleProfileUpdated(event: Event) {
       if (!currentUserId) {
         return;
@@ -603,6 +617,10 @@ export default function AppShell() {
     setSearchOpen(false);
     setSearchQuery('');
     navigate(path);
+  }
+
+  function handleScrollTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   if (isAuthRoute) {
@@ -1019,6 +1037,24 @@ export default function AppShell() {
           <section className="page-section app-content">
             <Outlet />
           </section>
+          {showScrollTop ? (
+            <button
+              type="button"
+              className="app-scroll-top"
+              aria-label={t('shell.scrollTop')}
+              onClick={handleScrollTop}
+            >
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M12 19V5M12 5L6.75 10.25M12 5L17.25 10.25"
+                  stroke="currentColor"
+                  strokeWidth="1.9"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          ) : null}
         </main>
       </div>
     </div>
