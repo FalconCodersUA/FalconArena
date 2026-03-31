@@ -11,6 +11,7 @@
 - перевірка логів і health
 
 Документ не замінює [deploy-quickstart.uk.md](/D:/MixProjects/FalconArena/docs/deploy-quickstart.uk.md), а продовжує його для щоденної експлуатації.
+Окремий rehearsal-сценарій описаний у [backup-restore-drill.uk.md](/D:/MixProjects/FalconArena/docs/backup-restore-drill.uk.md).
 
 ## 1. Базовий deploy після merge у `main`
 
@@ -81,8 +82,7 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 
 ```bash
 cd /opt/falconarena-deploy
-mkdir -p backups
-docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docker-compose/.env exec -T postgres pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" > backups/falconarena-$(date +%F-%H%M%S).sql
+sh infra/scripts/backup-db.sh
 ```
 
 Рекомендується робити backup:
@@ -91,16 +91,32 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 - перед ручними змінами даних
 - перед демонстрацією, якщо дані критичні
 
-## 6. Restore PostgreSQL
+## 6. Backup uploads/storage
 
 ```bash
 cd /opt/falconarena-deploy
-cat backups/<backup-file>.sql | docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docker-compose/.env exec -T postgres psql -U "$POSTGRES_USER" "$POSTGRES_DB"
+sh infra/scripts/backup-storage.sh
+```
+
+`storage` тепер живе в окремому Docker volume для backend uploads, тому його backup варто робити разом із БД.
+
+## 7. Restore PostgreSQL
+
+```bash
+cd /opt/falconarena-deploy
+sh infra/scripts/restore-db.sh backups/<backup-file>.sql
 ```
 
 Restore варто робити тільки після підтвердження, що поточні дані можна замінити.
 
-## 7. Incident checklist
+## 8. Restore uploads/storage
+
+```bash
+cd /opt/falconarena-deploy
+sh infra/scripts/restore-storage.sh backups/<storage-archive>.tar.gz
+```
+
+## 9. Incident checklist
 
 Якщо production поводиться нестабільно:
 
@@ -111,7 +127,7 @@ Restore варто робити тільки після підтвердженн
 5. перевірити останній merge/commit
 6. за потреби переключитися на попередній стабільний commit і перебудувати сервіси
 
-## 8. Рекомендований release checklist
+## 10. Рекомендований release checklist
 
 Перед релізом:
 
