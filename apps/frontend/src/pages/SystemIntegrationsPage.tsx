@@ -466,6 +466,26 @@ export default function SystemIntegrationsPage() {
       status: t(`systemIntegrations.notificationRules.sources.${notificationRules.source}`),
     },
   ];
+  const onboardingSteps = [
+    {
+      id: 'google',
+      title: t('systemIntegrations.onboarding.steps.google.title'),
+      lead: t('systemIntegrations.onboarding.steps.google.lead'),
+      target: '#integrations-google-sheets',
+    },
+    {
+      id: 'email',
+      title: t('systemIntegrations.onboarding.steps.email.title'),
+      lead: t('systemIntegrations.onboarding.steps.email.lead'),
+      target: '#integrations-email',
+    },
+    {
+      id: 'defaults',
+      title: t('systemIntegrations.onboarding.steps.defaults.title'),
+      lead: t('systemIntegrations.onboarding.steps.defaults.lead'),
+      target: '#integrations-defaults',
+    },
+  ];
 
   return (
     <section className="team-dashboard">
@@ -499,6 +519,32 @@ export default function SystemIntegrationsPage() {
               <p>{card.lead}</p>
               <em>{card.status}</em>
             </a>
+          ))}
+        </div>
+      </article>
+
+      <article className="card panel-card dashboard-onboarding-card">
+        <div className="dashboard-workspace-panel-head">
+          <h2>{t('systemIntegrations.onboarding.title')}</h2>
+          <p>{t('systemIntegrations.onboarding.lead')}</p>
+        </div>
+        <div className="onboarding-grid">
+          {onboardingSteps.map((step, index) => (
+            <article key={step.id} className="onboarding-card">
+              <span className="onboarding-step">{index + 1}</span>
+              <strong>{step.title}</strong>
+              <p>{step.lead}</p>
+              <div className="onboarding-card-actions">
+                <a href={step.target} className="button button-soft">
+                  {t('shell.open')}
+                </a>
+                {step.id === 'defaults' ? (
+                  <a href="#integrations-rules" className="button button-ghost">
+                    {t('systemIntegrations.notificationRules.title')}
+                  </a>
+                ) : null}
+              </div>
+            </article>
           ))}
         </div>
       </article>

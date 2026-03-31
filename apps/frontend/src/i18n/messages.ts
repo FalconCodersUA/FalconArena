@@ -854,6 +854,28 @@ export const messages: TranslationMap = {
       },
       workspaceToolsTitle: 'Admin toolset',
       workspaceToolsLead: 'Ключові operational screens для інтеграцій, комунікації та фінального контролю.',
+      onboarding: {
+        title: 'Швидкий старт для адміністратора',
+        lead: 'Рухайтесь у цьому порядку: спочатку турнір, потім раунд, а далі оцінювання і фінальний контроль.',
+        steps: {
+          tournament: {
+            title: 'Створіть або виберіть турнір',
+            lead: 'Почніть із базових даних, статусу та вікна реєстрації. Після цього решта операцій буде привʼязана до вибраного турніру.',
+          },
+          round: {
+            title: 'Додайте розклад і раунд',
+            lead: 'Заплануйте ключові події, створіть раунд і перевірте must-have, вимоги до технологій та дедлайн.',
+          },
+          evaluation: {
+            title: 'Запустіть оцінювання і перевірте результати',
+            lead: 'Коли раунд активний, розподіліть роботи для журі, завершіть evaluation і звірте leaderboard та archive.',
+          },
+        },
+      },
+      evaluationGuide: {
+        title: 'Короткий flow для оцінювання',
+        lead: 'Типовий порядок такий: активуйте раунд, дочекайтесь або закрийте сабміти, розподіліть призначення журі, а потім завершіть evaluation після перевірки збережених балів.',
+      },
       workspaceTools: {
         integrationsTitle: 'Системні інтеграції',
         integrationsLead: 'Google Sheets, email delivery, правила сповіщень і дефолтні налаштування турнірів.',
@@ -2224,6 +2246,28 @@ export const messages: TranslationMap = {
       },
       workspaceToolsTitle: 'Admin toolset',
       workspaceToolsLead: 'Key operational screens for integrations, communication, and final control.',
+      onboarding: {
+        title: 'Quick start for the administrator',
+        lead: 'Follow this order: first the tournament, then the round, and only after that evaluation and final control.',
+        steps: {
+          tournament: {
+            title: 'Create or select a tournament',
+            lead: 'Start with the base setup, status, and registration window. The rest of the operations are tied to the selected tournament.',
+          },
+          round: {
+            title: 'Add schedule and round details',
+            lead: 'Plan the key events, create the round, and verify must-have items, technology requirements, and the deadline.',
+          },
+          evaluation: {
+            title: 'Run evaluation and verify results',
+            lead: 'Once the round is active, distribute jury work, finish evaluation, and review the leaderboard and archive.',
+          },
+        },
+      },
+      evaluationGuide: {
+        title: 'Short evaluation flow',
+        lead: 'The usual order is: activate the round, wait for or close submissions, distribute assignments to the jury, then finish evaluation after reviewing the saved scores.',
+      },
       workspaceTools: {
         integrationsTitle: 'System integrations',
         integrationsLead: 'Google Sheets, email delivery, notification rules, and project defaults.',
@@ -2606,6 +2650,24 @@ export const messages: TranslationMap = {
         defaultsLead: 'Default rules for new tournaments, teams, and rounds are managed here.',
         rulesTitle: 'Notification policy',
         rulesLead: 'active notification rules',
+      },
+      onboarding: {
+        title: 'Recommended setup order',
+        lead: 'To make this screen genuinely useful, verify export first, then email delivery, and only after that finalize defaults and rules.',
+        steps: {
+          google: {
+            title: 'Configure Google Sheets',
+            lead: 'Add the webhook, run the connection test, and confirm that export shows the latest successful result.',
+          },
+          email: {
+            title: 'Enable email delivery',
+            lead: 'Choose the provider, fill sender settings, and send a test email so you immediately see the real delivery status.',
+          },
+          defaults: {
+            title: 'Finish defaults and notification rules',
+            lead: 'After integrations, lock in team limits, project time zone, and decide which platform events should create notifications at all.',
+          },
+        },
       },
       loading: 'Loading integration settings...',
       loadFailed: 'Could not load integration settings',
