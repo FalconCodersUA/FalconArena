@@ -14,6 +14,7 @@ import { EvaluationModule } from './evaluation/evaluation.module';
 import { CommonSecurityModule } from './common/common-security.module';
 import { HttpLoggingInterceptor } from './http-logging.interceptor';
 import { HttpRequestIdMiddleware } from './http-request-id.middleware';
+import { JobsModule } from './jobs/jobs.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { NotificationsModule } from './notifications.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -30,6 +31,7 @@ import { TournamentsModule } from './tournaments/tournaments.module';
     CommonSecurityModule,
     PrismaModule,
     AuditLogsModule,
+    JobsModule,
     AuthModule,
     NotificationsModule,
     TournamentsModule,

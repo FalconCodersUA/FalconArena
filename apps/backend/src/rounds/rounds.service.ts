@@ -14,6 +14,7 @@ import {
 } from '@prisma/client';
 import { AuditLogsService } from '../audit-logs.service';
 import { AuthUser } from '../common/types/auth-user.type';
+import { JobsService } from '../jobs/jobs.service';
 import { NotificationsService } from '../notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRoundDto } from './dto/create-round.dto';
@@ -23,6 +24,7 @@ export class RoundsService {
   constructor(
     private readonly prisma: PrismaService,
     @Optional() private readonly notificationsService?: NotificationsService,
+    @Optional() private readonly jobsService?: JobsService,
     @Optional() private readonly auditLogsService?: AuditLogsService,
   ) {}
 
@@ -82,7 +84,7 @@ export class RoundsService {
   async listByTournament(tournamentId: string) {
     await this.ensureTournamentExists(tournamentId);
     await this.closeExpiredRounds(tournamentId);
-    await this.sendUpcomingDeadlineReminders(tournamentId);
+    await this.ensureDeadlineReminderJobs(tournamentId);
 
     const rounds = await this.prisma.round.findMany({
       where: { tournamentId },
@@ -95,7 +97,7 @@ export class RoundsService {
   async getActiveRound(tournamentId: string) {
     await this.ensureTournamentExists(tournamentId);
     await this.closeExpiredRounds(tournamentId);
-    await this.sendUpcomingDeadlineReminders(tournamentId);
+    await this.ensureDeadlineReminderJobs(tournamentId);
 
     const round = await this.prisma.round.findFirst({
       where: {
@@ -173,6 +175,13 @@ export class RoundsService {
         }),
       ]);
 
+      await this.jobsService?.scheduleDeadlineReminderForRound({
+        id: updatedRound.id,
+        title: updatedRound.title,
+        tournamentId: updatedRound.tournamentId,
+        deadlineAt: updatedRound.deadlineAt,
+      });
+
       await this.notificationsService?.create({
         type: NotificationType.ROUND_STARTED,
         audience: 'ALL',
@@ -244,7 +253,7 @@ export class RoundsService {
       return this.closeSubmissionsAndRound(round.id);
     }
 
-    await this.sendUpcomingDeadlineReminders(undefined, round.id);
+    await this.ensureDeadlineReminderJobs(undefined, round.id);
 
     return round;
   }
@@ -261,7 +270,7 @@ export class RoundsService {
       throw new BadRequestException('Submission deadline has passed');
     }
 
-    await this.sendUpcomingDeadlineReminders(undefined, round.id);
+    await this.ensureDeadlineReminderJobs(undefined, round.id);
 
     return round;
   }
@@ -334,9 +343,8 @@ export class RoundsService {
     );
   }
 
-  private async sendUpcomingDeadlineReminders(tournamentId?: string, roundId?: string) {
+  private async ensureDeadlineReminderJobs(tournamentId?: string, roundId?: string) {
     const now = new Date();
-    const nextDay = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
     const rounds = await this.prisma.round.findMany({
       where: {
@@ -346,13 +354,14 @@ export class RoundsService {
         deadlineReminderSentAt: null,
         deadlineAt: {
           gt: now,
-          lte: nextDay,
         },
       },
       select: {
         id: true,
         title: true,
         tournamentId: true,
+        deadlineAt: true,
+        deadlineReminderSentAt: true,
       },
     });
 
@@ -360,27 +369,9 @@ export class RoundsService {
       return;
     }
 
-    const sentAt = new Date();
-
-    await this.prisma.round.updateMany({
-      where: {
-        id: { in: rounds.map((round) => round.id) },
-        deadlineReminderSentAt: null,
-      },
-      data: {
-        deadlineReminderSentAt: sentAt,
-      },
-    });
-
     await Promise.all(
       rounds.map((round) =>
-        this.notificationsService?.create({
-          type: NotificationType.DEADLINE_REMINDER,
-          audience: 'ALL',
-          title: `Нагадування про дедлайн: ${round.title}`,
-          body: 'До завершення прийому робіт залишилося менше 24 годин.',
-          linkUrl: `/app/tournaments/${round.tournamentId}`,
-        }),
+        this.jobsService?.scheduleDeadlineReminderForRound(round),
       ) ?? [],
     );
   }
