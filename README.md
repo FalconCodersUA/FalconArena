@@ -353,6 +353,7 @@ Backend:
 - `docs/implementation-plan.uk.md` - план реалізації
 - `docs/deploy-quickstart.uk.md` - деплой
 - `docs/ops-runbook.uk.md` - deploy / rollback / backup / logs
+- `docs/release-checklist.uk.md` - короткий checklist перед merge / deploy
 - `docs/admin-runbook.uk.md` - щоденний workflow для ADMIN
 - `docs/support-troubleshooting.uk.md` - типові проблеми і їх розбір
 - `docs/mvp-smoke-api.uk.md` - API smoke
