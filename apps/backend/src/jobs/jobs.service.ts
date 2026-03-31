@@ -5,6 +5,9 @@ import { PrismaService } from '../prisma/prisma.service';
 
 const JOB_TYPE = {
   DEADLINE_REMINDER: 'DEADLINE_REMINDER',
+  REGISTRATION_STARTED_NOTIFICATION: 'REGISTRATION_STARTED_NOTIFICATION',
+  ROUND_STARTED_NOTIFICATION: 'ROUND_STARTED_NOTIFICATION',
+  SUBMISSION_CLOSED_NOTIFICATION: 'SUBMISSION_CLOSED_NOTIFICATION',
 } as const;
 
 const JOB_STATUS = {
@@ -30,6 +33,23 @@ type BackgroundJobRecord = {
 };
 
 type DeadlineReminderPayload = {
+  roundId: string;
+  roundTitle: string;
+  tournamentId: string;
+};
+
+type RegistrationStartedPayload = {
+  tournamentId: string;
+  tournamentTitle: string;
+};
+
+type RoundStartedPayload = {
+  roundId: string;
+  roundTitle: string;
+  tournamentId: string;
+};
+
+type SubmissionClosedPayload = {
   roundId: string;
   roundTitle: string;
   tournamentId: string;
@@ -131,6 +151,61 @@ export class JobsService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
+  async scheduleRegistrationStartedNotification(input: {
+    tournamentId: string;
+    tournamentTitle: string;
+  }) {
+    const dedupeKey = `registration-started:${input.tournamentId}`;
+    const payload: RegistrationStartedPayload = {
+      tournamentId: input.tournamentId,
+      tournamentTitle: input.tournamentTitle,
+    };
+
+    return this.createOrRefreshImmediateJob(
+      JOB_TYPE.REGISTRATION_STARTED_NOTIFICATION,
+      dedupeKey,
+      payload,
+    );
+  }
+
+  async scheduleRoundStartedNotification(input: {
+    roundId: string;
+    roundTitle: string;
+    tournamentId: string;
+  }) {
+    const dedupeKey = `round-started:${input.roundId}`;
+    const payload: RoundStartedPayload = {
+      roundId: input.roundId,
+      roundTitle: input.roundTitle,
+      tournamentId: input.tournamentId,
+    };
+
+    return this.createOrRefreshImmediateJob(
+      JOB_TYPE.ROUND_STARTED_NOTIFICATION,
+      dedupeKey,
+      payload,
+    );
+  }
+
+  async scheduleSubmissionClosedNotification(input: {
+    roundId: string;
+    roundTitle: string;
+    tournamentId: string;
+  }) {
+    const dedupeKey = `submission-closed:${input.roundId}`;
+    const payload: SubmissionClosedPayload = {
+      roundId: input.roundId,
+      roundTitle: input.roundTitle,
+      tournamentId: input.tournamentId,
+    };
+
+    return this.createOrRefreshImmediateJob(
+      JOB_TYPE.SUBMISSION_CLOSED_NOTIFICATION,
+      dedupeKey,
+      payload,
+    );
+  }
+
   async processDueJobsOnce() {
     if (this.processing) {
       return;
@@ -180,6 +255,12 @@ export class JobsService implements OnModuleInit, OnModuleDestroy {
     try {
       if (job.type === JOB_TYPE.DEADLINE_REMINDER) {
         await this.handleDeadlineReminder(job);
+      } else if (job.type === JOB_TYPE.REGISTRATION_STARTED_NOTIFICATION) {
+        await this.handleRegistrationStartedNotification(job);
+      } else if (job.type === JOB_TYPE.ROUND_STARTED_NOTIFICATION) {
+        await this.handleRoundStartedNotification(job);
+      } else if (job.type === JOB_TYPE.SUBMISSION_CLOSED_NOTIFICATION) {
+        await this.handleSubmissionClosedNotification(job);
       }
 
       await this.backgroundJobs.update({
@@ -276,6 +357,42 @@ export class JobsService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
+  private async handleRegistrationStartedNotification(job: BackgroundJobRecord) {
+    const payload = job.payload as RegistrationStartedPayload;
+
+    await this.notificationsService.create({
+      type: 'REGISTRATION_STARTED',
+      audience: 'ALL',
+      title: `Відкрита реєстрація: ${payload.tournamentTitle}`,
+      body: 'Реєстрація команди вже доступна в цьому турнірі.',
+      linkUrl: `/app/tournaments/${payload.tournamentId}`,
+    });
+  }
+
+  private async handleRoundStartedNotification(job: BackgroundJobRecord) {
+    const payload = job.payload as RoundStartedPayload;
+
+    await this.notificationsService.create({
+      type: 'ROUND_STARTED',
+      audience: 'ALL',
+      title: `Стартував раунд: ${payload.roundTitle}`,
+      body: 'Активний раунд відкрито. Перевірте вимоги, дедлайн і подайте роботу вчасно.',
+      linkUrl: `/app/tournaments/${payload.tournamentId}`,
+    });
+  }
+
+  private async handleSubmissionClosedNotification(job: BackgroundJobRecord) {
+    const payload = job.payload as SubmissionClosedPayload;
+
+    await this.notificationsService.create({
+      type: 'SUBMISSION_CLOSED',
+      audience: 'ALL',
+      title: `Сабміти закрито: ${payload.roundTitle}`,
+      body: 'Прийом робіт для цього раунду завершено.',
+      linkUrl: `/app/tournaments/${payload.tournamentId}`,
+    });
+  }
+
   private calculateDeadlineReminderRunAt(deadlineAt: Date) {
     const scheduledAt = new Date(deadlineAt.getTime() - DAY_IN_MS);
     return scheduledAt.getTime() > Date.now() ? scheduledAt : new Date();
@@ -283,5 +400,49 @@ export class JobsService implements OnModuleInit, OnModuleDestroy {
 
   private buildDeadlineReminderKey(roundId: string) {
     return `deadline-reminder:${roundId}`;
+  }
+
+  private async createOrRefreshImmediateJob(
+    type: BackgroundJobTypeValue,
+    dedupeKey: string,
+    payload: unknown,
+  ) {
+    const existing = await this.backgroundJobs.findUnique({
+      where: { dedupeKey },
+    });
+
+    if (
+      existing &&
+      [JOB_STATUS.PENDING, JOB_STATUS.PROCESSING, JOB_STATUS.COMPLETED].includes(
+        existing.status,
+      )
+    ) {
+      return existing;
+    }
+
+    if (existing) {
+      return this.backgroundJobs.update({
+        where: { dedupeKey },
+        data: {
+          type,
+          status: JOB_STATUS.PENDING,
+          runAt: new Date(),
+          lastError: null,
+          failedAt: null,
+          processingStartedAt: null,
+          payload,
+        },
+      });
+    }
+
+    return this.backgroundJobs.create({
+      data: {
+        type,
+        status: JOB_STATUS.PENDING,
+        runAt: new Date(),
+        dedupeKey,
+        payload,
+      },
+    });
   }
 }

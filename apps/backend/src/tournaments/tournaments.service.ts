@@ -7,6 +7,7 @@ import {
 import { NotificationType, Tournament, TournamentStatus } from '@prisma/client';
 import { AuditLogsService } from '../audit-logs.service';
 import { AuthUser } from '../common/types/auth-user.type';
+import { JobsService } from '../jobs/jobs.service';
 import { LeaderboardService } from '../leaderboard/leaderboard.service';
 import { NotificationsService } from '../notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -41,6 +42,7 @@ export class TournamentsService {
     private readonly prisma: PrismaService,
     @Optional() private readonly leaderboardService?: LeaderboardService,
     @Optional() private readonly notificationsService?: NotificationsService,
+    @Optional() private readonly jobsService?: JobsService,
     @Optional()
     private readonly systemIntegrationsService?: SystemIntegrationsService,
     @Optional() private readonly auditLogsService?: AuditLogsService,
@@ -307,12 +309,9 @@ export class TournamentsService {
     });
 
     if (status === TournamentStatus.REGISTRATION) {
-      await this.notificationsService?.create({
-        type: NotificationType.REGISTRATION_STARTED,
-        audience: 'ALL',
-        title: `Відкрита реєстрація: ${tournament.title}`,
-        body: 'Реєстрація команди вже доступна в цьому турнірі.',
-        linkUrl: `/app/tournaments/${tournament.id}`,
+      await this.jobsService?.scheduleRegistrationStartedNotification({
+        tournamentId: tournament.id,
+        tournamentTitle: tournament.title,
       });
     }
 

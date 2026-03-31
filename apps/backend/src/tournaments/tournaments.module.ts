@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuditLogsModule } from '../audit-logs.module';
+import { JobsModule } from '../jobs/jobs.module';
 import { LeaderboardModule } from '../leaderboard/leaderboard.module';
 import { NotificationsModule } from '../notifications.module';
 import { SystemIntegrationsModule } from '../system-integrations/system-integrations.module';
@@ -13,6 +14,7 @@ import { TournamentsService } from './tournaments.service';
 @Module({
   imports: [
     AuditLogsModule,
+    JobsModule,
     LeaderboardModule,
     NotificationsModule,
     SystemIntegrationsModule,
