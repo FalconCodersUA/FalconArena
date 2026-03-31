@@ -106,3 +106,4 @@
 - Додано `X-Request-Id` на кожен HTTP request/response.
 - Додано structured HTTP logging для backend.
 - Додано окремий `ops runbook` для deploy / rollback / backup / logs.
+- Додано окремий `release checklist` для merge / deploy / post-deploy verification.
