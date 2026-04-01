@@ -113,3 +113,7 @@
 - Додано окремий `e2e` сценарій `ADMIN -> TEAM -> JURY -> LEADERBOARD` з перевіркою leaderboard row та CSV export.
 - Додано окремий `e2e` сценарій `ARCHIVE -> CERTIFICATE -> EXPORT` з перевіркою archive, certificate flow, CSV і conditional Google Sheets export.
 - Додано backend error reporting: global exception filter, persisted `ErrorReport` і admin-only endpoint для перегляду останніх 5xx інцидентів.
+- Додано відтворюваний local bootstrap:
+  - root `postinstall` автоматично генерує Prisma Client
+  - root `bootstrap:local` створює `infra/docker-compose/.env` з шаблона і виконує `prisma generate`
+  - README синхронізовано під новий локальний setup flow

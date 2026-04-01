@@ -172,11 +172,17 @@ infra/
 npm install
 ```
 
-2. Скопіюйте env-шаблон:
+2. Запустіть локальний bootstrap:
 
 ```bash
-cp infra/docker-compose/.env.example infra/docker-compose/.env
+npm run bootstrap:local
 ```
+
+Що робить bootstrap:
+
+- перевіряє `Node.js >= 20`
+- створює `infra/docker-compose/.env` з `.env.example`, якщо файл ще не існує
+- автоматично генерує Prisma Client для backend
 
 3. Запустіть локальне оточення:
 
@@ -231,6 +237,8 @@ SEED_ADMIN_EMAIL=admin@falconarena.live SEED_ADMIN_PASSWORD=change_me npm run pr
 - `npm run prisma:migrate:deploy -w @falconarena/backend`
 - `npm run prisma:migrate:dev -w @falconarena/backend`
 - `npm run prisma:migrate:resolve:init -w @falconarena/backend`
+
+Примітка: після `npm install` Prisma Client також генерується автоматично через root `postinstall`.
 
 ## Backend API
 
