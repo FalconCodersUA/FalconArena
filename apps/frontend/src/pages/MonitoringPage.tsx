@@ -49,6 +49,8 @@ function statusAccent(statusCode: number) {
   return 'success';
 }
 
+type MonitoringScope = 'all' | 'critical' | 'surface';
+
 export default function MonitoringPage() {
   const { language, t } = useI18n();
   const [reports, setReports] = useState<ErrorReport[]>([]);
@@ -57,6 +59,7 @@ export default function MonitoringPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [scope, setScope] = useState<MonitoringScope>('all');
 
   async function loadMonitoring(options?: { keepContent?: boolean }) {
     const keepContent = options?.keepContent ?? false;
@@ -98,12 +101,62 @@ export default function MonitoringPage() {
 
   const recentFailures = reports.length;
   const latestIncident = reports[0] ?? null;
+  const criticalIncidents = reports.filter((item) => item.statusCode >= 500);
   const userVisibleIncidents = reports.filter((item) =>
     item.path.startsWith('/auth') ||
     item.path.startsWith('/tournaments') ||
     item.path.startsWith('/rounds') ||
-    item.path.startsWith('/messages'),
-  ).length;
+    item.path.startsWith('/messages') ||
+    item.path.startsWith('/profile'),
+  );
+  const topRoute = reports.reduce<{ path: string; count: number } | null>((current, report) => {
+    const samePathCount = reports.filter((item) => item.path === report.path).length;
+    if (!current || samePathCount > current.count) {
+      return { path: report.path, count: samePathCount };
+    }
+
+    return current;
+  }, null);
+  const filteredReports = reports.filter((report) => {
+    if (scope === 'critical') {
+      return report.statusCode >= 500;
+    }
+
+    if (scope === 'surface') {
+      return userVisibleIncidents.some((item) => item.id === report.id);
+    }
+
+    return true;
+  });
+  const healthSignals = [
+    {
+      id: 'errors',
+      label: t('monitoring.signals.errors'),
+      value: String(recentFailures),
+      note:
+        latestIncident
+          ? formatDateTime(latestIncident.createdAt, language, t('monitoring.none'))
+          : t('monitoring.none'),
+    },
+    {
+      id: 'critical',
+      label: t('monitoring.signals.critical'),
+      value: String(criticalIncidents.length),
+      note: t('monitoring.signals.criticalLead'),
+    },
+    {
+      id: 'route',
+      label: t('monitoring.signals.route'),
+      value: topRoute?.path ?? t('monitoring.none'),
+      note: topRoute ? `${topRoute.count} ${t('monitoring.errorCountSuffix')}` : t('monitoring.none'),
+    },
+    {
+      id: 'surface',
+      label: t('monitoring.signals.surface'),
+      value: String(userVisibleIncidents.length),
+      note: t('monitoring.workspaceCards.surfaceStatus'),
+    },
+  ];
 
   const workspaceCards = useMemo(
     () => [
@@ -139,7 +192,7 @@ export default function MonitoringPage() {
       {
         id: 'surface',
         eyebrow: t('monitoring.workspaceCards.surfaceLabel'),
-        title: String(userVisibleIncidents),
+        title: String(userVisibleIncidents.length),
         lead: t('monitoring.workspaceCards.surfaceLead'),
         status: t('monitoring.workspaceCards.surfaceStatus'),
       },
@@ -154,7 +207,7 @@ export default function MonitoringPage() {
       latestIncident,
       recentFailures,
       t,
-      userVisibleIncidents,
+      userVisibleIncidents.length,
     ],
   );
   const errorCountLabel = `${recentFailures} ${t('monitoring.errorCountSuffix')}`;
@@ -265,6 +318,24 @@ export default function MonitoringPage() {
         {error ? <p className="form-error">{error}</p> : null}
       </article>
 
+      <article className="card panel-card monitoring-signal-card">
+        <div className="tournament-head">
+          <h2>{t('monitoring.signalBoardTitle')}</h2>
+          <span className="status-pill active">{t('monitoring.signalBoardStatus')}</span>
+        </div>
+        <p className="inline-hint">{t('monitoring.signalBoardLead')}</p>
+
+        <div className="monitoring-signal-grid">
+          {healthSignals.map((signal) => (
+            <article key={signal.id} className="monitoring-signal-tile">
+              <span>{signal.label}</span>
+              <strong>{signal.value}</strong>
+              <p>{signal.note}</p>
+            </article>
+          ))}
+        </div>
+      </article>
+
       <article className="card panel-card">
         <div className="tournament-head">
           <h2>{t('monitoring.errorReportsTitle')}</h2>
@@ -273,15 +344,33 @@ export default function MonitoringPage() {
           </span>
         </div>
         <p className="inline-hint">{t('monitoring.errorReportsLead')}</p>
+        <div className="monitoring-filter-row" role="tablist" aria-label={t('monitoring.filters.aria')}>
+          {([
+            ['all', t('monitoring.filters.all')],
+            ['critical', t('monitoring.filters.critical')],
+            ['surface', t('monitoring.filters.surface')],
+          ] as const).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              aria-selected={scope === value}
+              className={`messages-section-tab${scope === value ? ' is-active' : ''}`}
+              onClick={() => setScope(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
-        {reports.length === 0 ? (
+        {filteredReports.length === 0 ? (
           <div className="state-callout subtle">
             <strong>{t('monitoring.noErrors')}</strong>
             <p>{t('monitoring.noErrorsLead')}</p>
           </div>
         ) : (
           <div className="monitoring-report-list">
-            {reports.map((report) => (
+            {filteredReports.map((report) => (
               <article key={report.id} className="monitoring-report-card">
                 <div className="monitoring-report-head">
                   <div>

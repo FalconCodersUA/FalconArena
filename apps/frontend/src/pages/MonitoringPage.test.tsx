@@ -75,9 +75,13 @@ describe('MonitoringPage', () => {
 
     expect(await screen.findByText('Monitoring')).toBeInTheDocument();
     expect(screen.getByText('Round activation failed')).toBeInTheDocument();
-    expect(screen.getByText('1 incidents')).toBeInTheDocument();
+    expect(screen.getAllByText('1 incidents').length).toBeGreaterThan(0);
+    expect(screen.getByText('Operational signal board')).toBeInTheDocument();
     expect(screen.getByText('req-123')).toBeInTheDocument();
     expect(screen.getByText('admin@falconarena.live')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Critical' }));
+    expect(screen.getByText('Round activation failed')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
 
