@@ -25,7 +25,7 @@ jobs:
           port: ${{ secrets.SSH_PORT || '22' }}
           script_stop: true
           script: |
-            set -e
+            set -ex
             mkdir -p "${{ secrets.DEPLOY_PATH }}"
             cd "${{ secrets.DEPLOY_PATH }}"
 
@@ -48,37 +48,66 @@ jobs:
 
             git remote set-url origin "https://github.com/${{ github.repository }}.git"
 
-            cat > infra/docker-compose/.env <<'EOF'
-            NODE_ENV=production
-            POSTGRES_DB=${{ secrets.POSTGRES_DB }}
-            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-            JWT_SECRET=${{ secrets.JWT_SECRET }}
-            BACKEND_PORT=4000
-            PRISMA_SYNC_MODE=${{ secrets.PRISMA_SYNC_MODE || 'dbpush' }}
-            APP_DOMAIN=${{ secrets.APP_DOMAIN || 'falconarena.live' }}
-            VITE_API_URL=${{ secrets.VITE_API_URL || 'https://falconarena.live' }}
-            JOBS_WORKER_ENABLED=${{ secrets.JOBS_WORKER_ENABLED || 'true' }}
-            STORAGE_PROVIDER=${{ secrets.STORAGE_PROVIDER || 'local' }}
-            STORAGE_LOCAL_DIR=/app/storage
-            STORAGE_LOCAL_PUBLIC_PREFIX=/uploads
-            STORAGE_S3_ENDPOINT=${{ secrets.STORAGE_S3_ENDPOINT || '' }}
-            STORAGE_S3_REGION=${{ secrets.STORAGE_S3_REGION || 'auto' }}
-            STORAGE_S3_BUCKET=${{ secrets.STORAGE_S3_BUCKET || '' }}
-            STORAGE_S3_ACCESS_KEY_ID=${{ secrets.STORAGE_S3_ACCESS_KEY_ID || '' }}
-            STORAGE_S3_SECRET_ACCESS_KEY=${{ secrets.STORAGE_S3_SECRET_ACCESS_KEY || '' }}
-            STORAGE_S3_PUBLIC_BASE_URL=${{ secrets.STORAGE_S3_PUBLIC_BASE_URL || '' }}
-            STORAGE_S3_KEY_PREFIX=${{ secrets.STORAGE_S3_KEY_PREFIX || 'falconarena' }}
-            STORAGE_S3_FORCE_PATH_STYLE=${{ secrets.STORAGE_S3_FORCE_PATH_STYLE || 'true' }}
-            EMAIL_NOTIFICATIONS_ENABLED=${{ secrets.EMAIL_NOTIFICATIONS_ENABLED || 'false' }}
-            EMAIL_PROVIDER=${{ secrets.EMAIL_PROVIDER || 'console' }}
-            EMAIL_FROM=${{ secrets.EMAIL_FROM || 'no-reply@falconarena.live' }}
-            EMAIL_REPLY_TO=${{ secrets.EMAIL_REPLY_TO || 'team@falconarena.live' }}
-            RESEND_API_KEY=${{ secrets.RESEND_API_KEY || '' }}
-            GOOGLE_SHEETS_WEBHOOK_URL=${{ secrets.GOOGLE_SHEETS_WEBHOOK_URL || '' }}
-            GOOGLE_SHEETS_WEBHOOK_SECRET=${{ secrets.GOOGLE_SHEETS_WEBHOOK_SECRET || '' }}
-            GOOGLE_SHEETS_DEFAULT_SHEET_NAME=${{ secrets.GOOGLE_SHEETS_DEFAULT_SHEET_NAME || '' }}
-            EOF
+            cp infra/docker-compose/.env.example infra/docker-compose/.env
+
+            python3 - <<'PY'
+            from pathlib import Path
+
+            env_path = Path("infra/docker-compose/.env")
+            original_lines = env_path.read_text().splitlines()
+            values = {
+                "NODE_ENV": """production""",
+                "POSTGRES_DB": """${{ secrets.POSTGRES_DB }}""",
+                "POSTGRES_USER": """${{ secrets.POSTGRES_USER }}""",
+                "POSTGRES_PASSWORD": """${{ secrets.POSTGRES_PASSWORD }}""",
+                "JWT_SECRET": """${{ secrets.JWT_SECRET }}""",
+                "BACKEND_PORT": """4000""",
+                "PRISMA_SYNC_MODE": """${{ secrets.PRISMA_SYNC_MODE || 'dbpush' }}""",
+                "APP_DOMAIN": """${{ secrets.APP_DOMAIN || 'falconarena.live' }}""",
+                "VITE_API_URL": """${{ secrets.VITE_API_URL || 'https://falconarena.live' }}""",
+                "JOBS_WORKER_ENABLED": """${{ secrets.JOBS_WORKER_ENABLED || 'true' }}""",
+                "STORAGE_PROVIDER": """${{ secrets.STORAGE_PROVIDER || 'local' }}""",
+                "STORAGE_LOCAL_DIR": """/app/storage""",
+                "STORAGE_LOCAL_PUBLIC_PREFIX": """/uploads""",
+                "STORAGE_S3_ENDPOINT": """${{ secrets.STORAGE_S3_ENDPOINT || '' }}""",
+                "STORAGE_S3_REGION": """${{ secrets.STORAGE_S3_REGION || 'auto' }}""",
+                "STORAGE_S3_BUCKET": """${{ secrets.STORAGE_S3_BUCKET || '' }}""",
+                "STORAGE_S3_ACCESS_KEY_ID": """${{ secrets.STORAGE_S3_ACCESS_KEY_ID || '' }}""",
+                "STORAGE_S3_SECRET_ACCESS_KEY": """${{ secrets.STORAGE_S3_SECRET_ACCESS_KEY || '' }}""",
+                "STORAGE_S3_PUBLIC_BASE_URL": """${{ secrets.STORAGE_S3_PUBLIC_BASE_URL || '' }}""",
+                "STORAGE_S3_KEY_PREFIX": """${{ secrets.STORAGE_S3_KEY_PREFIX || 'falconarena' }}""",
+                "STORAGE_S3_FORCE_PATH_STYLE": """${{ secrets.STORAGE_S3_FORCE_PATH_STYLE || 'true' }}""",
+                "EMAIL_NOTIFICATIONS_ENABLED": """${{ secrets.EMAIL_NOTIFICATIONS_ENABLED || 'false' }}""",
+                "EMAIL_PROVIDER": """${{ secrets.EMAIL_PROVIDER || 'console' }}""",
+                "EMAIL_FROM": """${{ secrets.EMAIL_FROM || 'no-reply@falconarena.live' }}""",
+                "EMAIL_REPLY_TO": """${{ secrets.EMAIL_REPLY_TO || 'team@falconarena.live' }}""",
+                "RESEND_API_KEY": """${{ secrets.RESEND_API_KEY || '' }}""",
+                "GOOGLE_SHEETS_WEBHOOK_URL": """${{ secrets.GOOGLE_SHEETS_WEBHOOK_URL || '' }}""",
+                "GOOGLE_SHEETS_WEBHOOK_SECRET": """${{ secrets.GOOGLE_SHEETS_WEBHOOK_SECRET || '' }}""",
+                "GOOGLE_SHEETS_DEFAULT_SHEET_NAME": """${{ secrets.GOOGLE_SHEETS_DEFAULT_SHEET_NAME || '' }}""",
+            }
+
+            updated_lines = []
+            seen_keys = set()
+
+            for line in original_lines:
+                if not line or line.lstrip().startswith("#") or "=" not in line:
+                    updated_lines.append(line)
+                    continue
+
+                key, _ = line.split("=", 1)
+                if key in values:
+                    updated_lines.append(f"{key}={values[key]}")
+                    seen_keys.add(key)
+                else:
+                    updated_lines.append(line)
+
+            for key, value in values.items():
+                if key not in seen_keys:
+                    updated_lines.append(f"{key}={value}")
+
+            env_path.write_text("\n".join(updated_lines) + "\n")
+            PY
 
             docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docker-compose/.env up -d --build --remove-orphans
             docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docker-compose/.env restart caddy
