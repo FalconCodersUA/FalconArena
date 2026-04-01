@@ -23,6 +23,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Validate bootstrap scripts
+        run: |
+          node --check scripts/bootstrap-local.mjs
+          node --check scripts/postinstall.mjs
+
       - name: Generate Prisma client
         run: npm run prisma:generate
 

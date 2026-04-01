@@ -3291,6 +3291,55 @@ a {
   gap: 1rem;
 }
 
+.monitoring-signal-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.monitoring-signal-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.monitoring-signal-tile {
+  border: 1px solid #e6e1f3;
+  border-radius: 1.1rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(247, 245, 255, 0.92) 100%);
+  padding: 1rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.monitoring-signal-tile span {
+  color: #6a7389;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.monitoring-signal-tile strong {
+  color: #151b2d;
+  font-size: 1.1rem;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.monitoring-signal-tile p {
+  margin: 0;
+  color: #5d6472;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.monitoring-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.9rem;
+}
+
 .monitoring-report-card {
   border: 1px solid #e7dff8;
   border-radius: 1.25rem;
@@ -5084,6 +5133,10 @@ a {
 
   .monitoring-report-head {
     flex-direction: column;
+  }
+
+  .monitoring-signal-grid {
+    grid-template-columns: 1fr;
   }
 
   .app-scroll-top {
