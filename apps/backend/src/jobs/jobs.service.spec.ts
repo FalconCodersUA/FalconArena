@@ -15,6 +15,9 @@ function createPrismaMock() {
       findUnique: vi.fn(),
       updateMany: vi.fn(),
     },
+    notification: {
+      findUnique: vi.fn(),
+    },
   };
 }
 
@@ -35,6 +38,7 @@ describe('JobsService', () => {
     const service = new JobsService(
       prisma as never,
       { create: vi.fn() } as never,
+      { deliver: vi.fn() } as never,
     );
 
     await service.scheduleDeadlineReminderForRound({
@@ -94,7 +98,11 @@ describe('JobsService', () => {
       status: 'COMPLETED',
     });
 
-    const service = new JobsService(prisma as never, notificationsService as never);
+    const service = new JobsService(
+      prisma as never,
+      notificationsService as never,
+      { deliver: vi.fn() } as never,
+    );
     await service.processDueJobsOnce();
 
     expect(notificationsService.create).toHaveBeenCalledWith({
@@ -133,6 +141,7 @@ describe('JobsService', () => {
     const service = new JobsService(
       prisma as never,
       { create: vi.fn() } as never,
+      { deliver: vi.fn() } as never,
     );
 
     await service.scheduleRegistrationStartedNotification({
@@ -177,7 +186,11 @@ describe('JobsService', () => {
       status: 'COMPLETED',
     });
 
-    const service = new JobsService(prisma as never, notificationsService as never);
+    const service = new JobsService(
+      prisma as never,
+      notificationsService as never,
+      { deliver: vi.fn() } as never,
+    );
     await service.processDueJobsOnce();
 
     expect(notificationsService.create).toHaveBeenCalledWith({
@@ -185,6 +198,59 @@ describe('JobsService', () => {
       audience: 'ALL',
       title: 'Стартував раунд: Round 1',
       body: 'Активний раунд відкрито. Перевірте вимоги, дедлайн і подайте роботу вчасно.',
+      linkUrl: '/app/tournaments/t-1',
+    });
+  });
+
+  it('processes a due notification email delivery job', async () => {
+    const prisma = createPrismaMock();
+    const notificationEmailService = {
+      deliver: vi.fn().mockResolvedValue({ status: 'sent', sent: 1 }),
+    };
+
+    prisma.backgroundJob.findMany.mockResolvedValue([
+      {
+        id: 'job-email-1',
+        type: 'NOTIFICATION_EMAIL_DELIVERY',
+        status: 'PENDING',
+        runAt: new Date('2026-03-30T10:00:00.000Z'),
+        attempts: 0,
+        maxAttempts: 3,
+        lastError: null,
+        dedupeKey: 'notification-email:notification-1',
+        payload: {
+          notificationId: 'notification-1',
+        },
+      },
+    ]);
+    prisma.backgroundJob.updateMany.mockResolvedValue({ count: 1 });
+    prisma.notification.findUnique.mockResolvedValue({
+      id: 'notification-1',
+      type: 'GENERAL',
+      audience: 'ALL',
+      userId: null,
+      title: 'Tournament update',
+      body: 'Registration is open.',
+      linkUrl: '/app/tournaments/t-1',
+    });
+    prisma.backgroundJob.update.mockResolvedValue({
+      id: 'job-email-1',
+      status: 'COMPLETED',
+    });
+
+    const service = new JobsService(
+      prisma as never,
+      { create: vi.fn() } as never,
+      notificationEmailService as never,
+    );
+    await service.processDueJobsOnce();
+
+    expect(notificationEmailService.deliver).toHaveBeenCalledWith({
+      type: 'GENERAL',
+      audience: 'ALL',
+      userId: undefined,
+      title: 'Tournament update',
+      body: 'Registration is open.',
       linkUrl: '/app/tournaments/t-1',
     });
   });

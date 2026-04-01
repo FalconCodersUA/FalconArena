@@ -2,6 +2,7 @@ FROM node:20-alpine AS deps
 WORKDIR /app
 
 COPY package.json ./
+COPY scripts ./scripts
 COPY apps/backend/package.json apps/backend/package.json
 COPY apps/frontend/package.json apps/frontend/package.json
 RUN npm install

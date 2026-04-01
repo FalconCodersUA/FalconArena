@@ -5,6 +5,7 @@ ARG VITE_API_URL=http://localhost:4000
 ENV VITE_API_URL=${VITE_API_URL}
 
 COPY package.json ./
+COPY scripts ./scripts
 COPY apps/frontend/package.json apps/frontend/package.json
 COPY apps/backend/package.json apps/backend/package.json
 RUN npm install

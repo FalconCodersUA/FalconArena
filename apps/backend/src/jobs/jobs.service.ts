@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { RoundStatus } from '@prisma/client';
+import { NotificationEmailService } from '../notification-email.service';
 import { NotificationsService } from '../notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -8,6 +9,7 @@ const JOB_TYPE = {
   REGISTRATION_STARTED_NOTIFICATION: 'REGISTRATION_STARTED_NOTIFICATION',
   ROUND_STARTED_NOTIFICATION: 'ROUND_STARTED_NOTIFICATION',
   SUBMISSION_CLOSED_NOTIFICATION: 'SUBMISSION_CLOSED_NOTIFICATION',
+  NOTIFICATION_EMAIL_DELIVERY: 'NOTIFICATION_EMAIL_DELIVERY',
 } as const;
 
 const JOB_STATUS = {
@@ -55,6 +57,10 @@ type SubmissionClosedPayload = {
   tournamentId: string;
 };
 
+type NotificationEmailDeliveryPayload = {
+  notificationId: string;
+};
+
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const RETRY_DELAY_MS = 60 * 1000;
 
@@ -67,6 +73,7 @@ export class JobsService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
+    private readonly notificationEmailService: NotificationEmailService,
   ) {}
 
   private get backgroundJobs() {
@@ -261,6 +268,8 @@ export class JobsService implements OnModuleInit, OnModuleDestroy {
         await this.handleRoundStartedNotification(job);
       } else if (job.type === JOB_TYPE.SUBMISSION_CLOSED_NOTIFICATION) {
         await this.handleSubmissionClosedNotification(job);
+      } else if (job.type === JOB_TYPE.NOTIFICATION_EMAIL_DELIVERY) {
+        await this.handleNotificationEmailDelivery(job);
       }
 
       await this.backgroundJobs.update({
@@ -390,6 +399,35 @@ export class JobsService implements OnModuleInit, OnModuleDestroy {
       title: `Сабміти закрито: ${payload.roundTitle}`,
       body: 'Прийом робіт для цього раунду завершено.',
       linkUrl: `/app/tournaments/${payload.tournamentId}`,
+    });
+  }
+
+  private async handleNotificationEmailDelivery(job: BackgroundJobRecord) {
+    const payload = job.payload as NotificationEmailDeliveryPayload;
+    const notification = await this.prisma.notification.findUnique({
+      where: { id: payload.notificationId },
+      select: {
+        id: true,
+        type: true,
+        audience: true,
+        userId: true,
+        title: true,
+        body: true,
+        linkUrl: true,
+      },
+    });
+
+    if (!notification) {
+      return;
+    }
+
+    await this.notificationEmailService.deliver({
+      type: notification.type,
+      audience: notification.audience,
+      userId: notification.userId ?? undefined,
+      title: notification.title,
+      body: notification.body,
+      linkUrl: notification.linkUrl ?? undefined,
     });
   }
 
