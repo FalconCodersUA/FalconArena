@@ -78,7 +78,7 @@ jobs:
             GOOGLE_SHEETS_WEBHOOK_URL_VALUE="${{ secrets.GOOGLE_SHEETS_WEBHOOK_URL || '' }}" \
             GOOGLE_SHEETS_WEBHOOK_SECRET_VALUE="${{ secrets.GOOGLE_SHEETS_WEBHOOK_SECRET || '' }}" \
             GOOGLE_SHEETS_DEFAULT_SHEET_NAME_VALUE="${{ secrets.GOOGLE_SHEETS_DEFAULT_SHEET_NAME || '' }}" \
-            node scripts/update-compose-env.mjs infra/docker-compose/.env
+            python3 scripts/update-compose-env.py infra/docker-compose/.env
 
             docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docker-compose/.env up -d --build --remove-orphans
             docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docker-compose/.env restart caddy
