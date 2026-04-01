@@ -82,6 +82,13 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 
 ```bash
 cd /opt/falconarena-deploy
+sh infra/scripts/backup-all.sh
+```
+
+Або окремо тільки БД:
+
+```bash
+cd /opt/falconarena-deploy
 sh infra/scripts/backup-db.sh
 ```
 
@@ -99,6 +106,13 @@ sh infra/scripts/backup-storage.sh
 ```
 
 `storage` тепер живе в окремому Docker volume для backend uploads, тому його backup варто робити разом із БД.
+
+Після повного backup set рекомендується:
+
+```bash
+cd /opt/falconarena-deploy
+sh infra/scripts/verify-backup.sh <timestamp>
+```
 
 ## 7. Restore PostgreSQL
 

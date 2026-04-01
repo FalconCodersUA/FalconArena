@@ -109,6 +109,10 @@
 - Додано окремий `release checklist` для merge / deploy / post-deploy verification.
 - Додано DB-backed `background jobs` для `deadline reminder`, `registration started`, `round started` і `submission closed` з retry/idempotency і backend worker.
 - Email delivery для системних сповіщень винесено з request flow у DB-backed `background jobs` через окремий job type з dedupe по `notificationId`.
+- Backup / restore layer посилено:
+  - `backup-all.sh` створює DB + storage backup set одним запуском
+  - `verify-backup.sh` перевіряє manifest, checksums і читабельність storage archive
+  - docs синхронізовано під rehearsal з верифікацією backup set
 - Збереження нових аватарів переведено з `base64` у БД на локальні upload-файли з URL `/uploads/avatars/...`.
 - Backend uploads/storage винесено в persistent Docker volume, додано helper-скрипти і drill-doc для backup / restore БД та storage.
 - Додано окремий `e2e` сценарій `ADMIN -> TEAM -> JURY -> LEADERBOARD` з перевіркою leaderboard row та CSV export.
