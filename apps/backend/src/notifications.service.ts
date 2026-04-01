@@ -4,7 +4,6 @@ import {
   NotificationType,
   Role,
 } from '@prisma/client';
-import { NotificationEmailService } from './notification-email.service';
 import { PrismaService } from './prisma/prisma.service';
 import { SystemIntegrationsService } from './system-integrations/system-integrations.service';
 
@@ -21,9 +20,12 @@ type CreateNotificationInput = {
 export class NotificationsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly notificationEmailService: NotificationEmailService,
     private readonly systemIntegrationsService: SystemIntegrationsService,
   ) {}
+
+  private get backgroundJobs() {
+    return (this.prisma as PrismaService & { backgroundJob: any }).backgroundJob;
+  }
 
   async create(input: CreateNotificationInput) {
     const shouldCreate = await this.systemIntegrationsService.shouldCreateNotification(
@@ -47,13 +49,16 @@ export class NotificationsService {
       },
     });
 
-    await this.notificationEmailService.deliver({
-      type: notification.type,
-      audience: notification.audience,
-      userId: notification.userId ?? undefined,
-      title: notification.title,
-      body: notification.body,
-      linkUrl: notification.linkUrl ?? undefined,
+    await this.backgroundJobs.create({
+      data: {
+        type: 'NOTIFICATION_EMAIL_DELIVERY',
+        status: 'PENDING',
+        runAt: new Date(),
+        dedupeKey: `notification-email:${notification.id}`,
+        payload: {
+          notificationId: notification.id,
+        },
+      },
     });
 
     return notification;

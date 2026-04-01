@@ -7,6 +7,9 @@ function createPrismaMock() {
       create: vi.fn(),
       findMany: vi.fn(),
     },
+    backgroundJob: {
+      create: vi.fn(),
+    },
     notificationReadState: {
       createMany: vi.fn(),
     },
@@ -14,7 +17,7 @@ function createPrismaMock() {
 }
 
 describe('NotificationsService', () => {
-  it('creates in-app notification and forwards it to email delivery', async () => {
+  it('creates in-app notification and schedules background email delivery', async () => {
     const prisma = createPrismaMock();
     prisma.notification.create.mockResolvedValue({
       id: 'notification-1',
@@ -26,16 +29,17 @@ describe('NotificationsService', () => {
       linkUrl: '/app/tournaments/t-1',
       createdAt: new Date('2026-03-28T12:00:00.000Z'),
     });
-    const emailService = {
-      deliver: vi.fn().mockResolvedValue({ status: 'sent', sent: 3 }),
-    };
+    prisma.backgroundJob.create.mockResolvedValue({
+      id: 'job-1',
+      type: 'NOTIFICATION_EMAIL_DELIVERY',
+      dedupeKey: 'notification-email:notification-1',
+    });
     const systemIntegrationsService = {
       shouldCreateNotification: vi.fn().mockResolvedValue(true),
     };
 
     const service = new NotificationsService(
       prisma as never,
-      emailService as never,
       systemIntegrationsService as never,
     );
     const result = await service.create({
@@ -56,13 +60,16 @@ describe('NotificationsService', () => {
         linkUrl: '/app/tournaments/t-1',
       },
     });
-    expect(emailService.deliver).toHaveBeenCalledWith({
-      type: 'GENERAL',
-      audience: 'ALL',
-      userId: undefined,
-      title: 'Tournament update',
-      body: 'Registration is open.',
-      linkUrl: '/app/tournaments/t-1',
+    expect(prisma.backgroundJob.create).toHaveBeenCalledWith({
+      data: {
+        type: 'NOTIFICATION_EMAIL_DELIVERY',
+        status: 'PENDING',
+        runAt: expect.any(Date),
+        dedupeKey: 'notification-email:notification-1',
+        payload: {
+          notificationId: 'notification-1',
+        },
+      },
     });
     expect(result.id).toBe('notification-1');
   });
@@ -89,15 +96,11 @@ describe('NotificationsService', () => {
         readStates: [{ readAt: new Date('2026-03-28T09:30:00.000Z') }],
       },
     ]);
-    const emailService = {
-      deliver: vi.fn(),
-    };
     const systemIntegrationsService = {
       shouldCreateNotification: vi.fn().mockResolvedValue(true),
     };
     const service = new NotificationsService(
       prisma as never,
-      emailService as never,
       systemIntegrationsService as never,
     );
 
@@ -133,15 +136,11 @@ describe('NotificationsService', () => {
   it('marks provided notification ids as read', async () => {
     const prisma = createPrismaMock();
     prisma.notificationReadState.createMany.mockResolvedValue({ count: 2 });
-    const emailService = {
-      deliver: vi.fn(),
-    };
     const systemIntegrationsService = {
       shouldCreateNotification: vi.fn().mockResolvedValue(true),
     };
     const service = new NotificationsService(
       prisma as never,
-      emailService as never,
       systemIntegrationsService as never,
     );
 
@@ -159,15 +158,11 @@ describe('NotificationsService', () => {
 
   it('skips notification creation when global rule disables the event type', async () => {
     const prisma = createPrismaMock();
-    const emailService = {
-      deliver: vi.fn(),
-    };
     const systemIntegrationsService = {
       shouldCreateNotification: vi.fn().mockResolvedValue(false),
     };
     const service = new NotificationsService(
       prisma as never,
-      emailService as never,
       systemIntegrationsService as never,
     );
 
@@ -180,6 +175,6 @@ describe('NotificationsService', () => {
 
     expect(result).toBeNull();
     expect(prisma.notification.create).not.toHaveBeenCalled();
-    expect(emailService.deliver).not.toHaveBeenCalled();
+    expect(prisma.backgroundJob.create).not.toHaveBeenCalled();
   });
 });
