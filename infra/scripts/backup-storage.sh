@@ -5,7 +5,7 @@ ROOT_DIR="${1:-/opt/falconarena-deploy}"
 COMPOSE_FILE="$ROOT_DIR/infra/docker-compose/docker-compose.yml"
 ENV_FILE="$ROOT_DIR/infra/docker-compose/.env"
 BACKUP_DIR="$ROOT_DIR/backups"
-TIMESTAMP="$(date +%F-%H%M%S)"
+TIMESTAMP="${2:-$(date +%F-%H%M%S)}"
 ARCHIVE_FILE="$BACKUP_DIR/falconarena-storage-$TIMESTAMP.tar.gz"
 
 mkdir -p "$BACKUP_DIR"

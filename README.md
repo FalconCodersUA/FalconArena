@@ -396,3 +396,20 @@ Backend надсилає:
 - rowObjects
 - generatedAt
 - exportedBy
+
+## Backup / Restore
+
+Базові server-side команди:
+
+```bash
+cd /opt/falconarena-deploy
+sh infra/scripts/backup-all.sh
+sh infra/scripts/verify-backup.sh <timestamp>
+```
+
+Окремо також доступні:
+
+- `sh infra/scripts/backup-db.sh`
+- `sh infra/scripts/backup-storage.sh`
+- `sh infra/scripts/restore-db.sh backups/<backup-file>.sql`
+- `sh infra/scripts/restore-storage.sh backups/<storage-archive>.tar.gz`

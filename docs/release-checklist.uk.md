@@ -37,6 +37,13 @@
    - перевірити `Google Sheets`;
    - перевірити `Email delivery`;
    - перевірити `System settings`.
+5. Якщо реліз містить ризикову Prisma-міграцію або зміну storage:
+
+```bash
+cd /opt/falconarena-deploy
+sh infra/scripts/backup-all.sh
+sh infra/scripts/verify-backup.sh <timestamp>
+```
 
 ## 3. Після merge / deploy
 
