@@ -1,21 +1,18 @@
-import { mkdir, rm, writeFile } from 'node:fs/promises';
-import { randomUUID } from 'node:crypto';
-import { join } from 'node:path';
 import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { UpdateProfileSettingsDto } from './auth/dto/update-profile-settings.dto';
 import { PrismaService } from './prisma/prisma.service';
+import { StorageService } from './storage/storage.service';
 
 @Injectable()
 export class ProfileSettingsService {
-  private static readonly avatarStorageDir = join(process.cwd(), 'storage', 'avatars');
-  private static readonly avatarPublicPrefix = '/uploads/avatars/';
   private static readonly maxAvatarBytes = 1024 * 1024;
   private static readonly avatarMimeExtensions: Record<string, string> = {
     'image/jpeg': 'jpg',
@@ -24,7 +21,10 @@ export class ProfileSettingsService {
     'image/gif': 'gif',
   };
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storageService: StorageService,
+  ) {}
 
   async getSettings(userId: string) {
     const user = await this.prisma.user.findUnique({
@@ -67,8 +67,8 @@ export class ProfileSettingsService {
         const value = avatarUpdate.avatarUrl;
         settingsUpdate.avatarUrl = value;
         settingsCreate.avatarUrl = value;
-        avatarCleanupUrl = avatarUpdate.previousLocalAvatarUrl;
-        createdAvatarFilePath = avatarUpdate.createdFilePath;
+        avatarCleanupUrl = avatarUpdate.previousManagedAvatarUrl;
+        createdAvatarFilePath = avatarUpdate.createdObjectHandle;
       }
 
       if (dto.edit.fullName !== undefined) {
@@ -206,13 +206,13 @@ export class ProfileSettingsService {
         });
       } catch (error) {
         if (createdAvatarFilePath) {
-          await rm(createdAvatarFilePath, { force: true }).catch(() => undefined);
+          await this.storageService.removeManagedObject(createdAvatarFilePath);
         }
         throw error;
       }
 
       if (avatarCleanupUrl) {
-        await this.removeLocalAvatarFile(avatarCleanupUrl);
+        await this.storageService.removeManagedObject(avatarCleanupUrl);
       }
     }
 
@@ -234,26 +234,25 @@ export class ProfileSettingsService {
     currentAvatarUrl: string | null,
   ) {
     const normalized = value.trim();
-    const currentLocalAvatarUrl = this.isLocalAvatarUrl(currentAvatarUrl)
+    const currentManagedAvatarUrl = this.storageService.isManagedUrl(currentAvatarUrl)
       ? currentAvatarUrl
       : null;
     if (normalized.length === 0) {
       return {
         avatarUrl: null,
-        previousLocalAvatarUrl: currentLocalAvatarUrl,
-        createdFilePath: null,
+        previousManagedAvatarUrl: currentManagedAvatarUrl,
+        createdObjectHandle: null,
       };
     }
 
-    const isHttpUrl = /^https?:\/\/\S+$/i.test(normalized);
-    if (isHttpUrl || this.isLocalAvatarUrl(normalized)) {
+    if (this.storageService.isManagedUrl(normalized) || /^https?:\/\/\S+$/i.test(normalized)) {
       return {
         avatarUrl: normalized,
-        previousLocalAvatarUrl:
-          currentLocalAvatarUrl && currentLocalAvatarUrl !== normalized
-            ? currentLocalAvatarUrl
+        previousManagedAvatarUrl:
+          currentManagedAvatarUrl && currentManagedAvatarUrl !== normalized
+            ? currentManagedAvatarUrl
             : null,
-        createdFilePath: null,
+        createdObjectHandle: null,
       };
     }
 
@@ -281,38 +280,24 @@ export class ProfileSettingsService {
       throw new BadRequestException('avatarUrl image is too large');
     }
 
-    await mkdir(ProfileSettingsService.avatarStorageDir, { recursive: true });
-    const fileName = `${userId}-${Date.now()}-${randomUUID()}.${extension}`;
-    const filePath = join(ProfileSettingsService.avatarStorageDir, fileName);
-    await writeFile(filePath, imageBuffer);
+    let storedAvatar: { publicUrl: string; cleanupHandle: string };
+    try {
+      storedAvatar = await this.storageService.storeAvatar({
+        userId,
+        extension,
+        mimeType,
+        body: imageBuffer,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown avatar storage error';
+      throw new InternalServerErrorException(message);
+    }
 
     return {
-      avatarUrl: `${ProfileSettingsService.avatarPublicPrefix}${fileName}`,
-      previousLocalAvatarUrl: currentLocalAvatarUrl,
-      createdFilePath: filePath,
+      avatarUrl: storedAvatar.publicUrl,
+      previousManagedAvatarUrl: currentManagedAvatarUrl,
+      createdObjectHandle: storedAvatar.cleanupHandle,
     };
-  }
-
-  private isLocalAvatarUrl(value: string | null | undefined) {
-    return (
-      typeof value === 'string' &&
-      value.startsWith(ProfileSettingsService.avatarPublicPrefix) &&
-      value.length > ProfileSettingsService.avatarPublicPrefix.length
-    );
-  }
-
-  private async removeLocalAvatarFile(url: string) {
-    if (!this.isLocalAvatarUrl(url)) {
-      return;
-    }
-
-    const fileName = url.slice(ProfileSettingsService.avatarPublicPrefix.length);
-    if (fileName.includes('/') || fileName.includes('\\')) {
-      return;
-    }
-
-    const filePath = join(ProfileSettingsService.avatarStorageDir, fileName);
-    await rm(filePath, { force: true }).catch(() => undefined);
   }
 
   private normalizeDate(value: string) {

@@ -6,6 +6,7 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { REQUEST_ID_HEADER } from './http-observability';
+import { getStorageConfig, isLocalStorageProvider } from './storage/storage-config';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -18,11 +19,14 @@ async function bootstrap() {
     }),
   );
 
-  const storageDir = join(process.cwd(), 'storage');
-  if (!existsSync(storageDir)) {
-    mkdirSync(storageDir, { recursive: true });
+  if (isLocalStorageProvider()) {
+    const storageConfig = getStorageConfig();
+    const storageDir = storageConfig.local.rootDir;
+    if (!existsSync(storageDir)) {
+      mkdirSync(storageDir, { recursive: true });
+    }
+    app.useStaticAssets(storageDir, { prefix: storageConfig.local.publicPrefix });
   }
-  app.useStaticAssets(storageDir, { prefix: '/uploads' });
 
   const port = Number(process.env.PORT ?? 4000);
 

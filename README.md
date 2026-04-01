@@ -221,6 +221,20 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 - `GOOGLE_SHEETS_WEBHOOK_SECRET`
 - `GOOGLE_SHEETS_DEFAULT_SHEET_NAME`
 
+Для storage strategy:
+
+- `STORAGE_PROVIDER` - `local` або `s3`
+- `STORAGE_LOCAL_DIR`
+- `STORAGE_LOCAL_PUBLIC_PREFIX`
+- `STORAGE_S3_ENDPOINT`
+- `STORAGE_S3_REGION`
+- `STORAGE_S3_BUCKET`
+- `STORAGE_S3_ACCESS_KEY_ID`
+- `STORAGE_S3_SECRET_ACCESS_KEY`
+- `STORAGE_S3_PUBLIC_BASE_URL`
+- `STORAGE_S3_KEY_PREFIX`
+- `STORAGE_S3_FORCE_PATH_STYLE`
+
 Примітка: ці env-параметри працюють як fallback. Основні налаштування Google Sheets, email delivery і глобальних правил сповіщень тепер можна зберігати через `/app/integrations` у базі даних.
 
 ## Seed і міграції
@@ -346,7 +360,9 @@ Backend:
 - Merge у `main`: GitHub Actions запускає deploy
 - Продакшн працює через Docker Compose і Caddy
 - PostgreSQL і Redis доступні тільки у внутрішній Docker мережі
-- Backend uploads/storage живе в окремому persistent Docker volume
+- Backend uploads/storage підтримує:
+  - `local` provider через окремий persistent Docker volume
+  - `s3` provider для S3-compatible storage (`R2 / MinIO / S3`)
 
 Основні GitHub secrets для deploy:
 

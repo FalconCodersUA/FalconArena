@@ -17,7 +17,7 @@ describe('ProfileSettingsService', () => {
     await removeTestAvatarFiles();
   });
 
-  it('stores uploaded avatar as local file URL and removes previous local avatar', async () => {
+  it('stores uploaded avatar via storage service and removes previous managed avatar', async () => {
     const previousFileName = 'user-test-old.png';
     const previousFilePath = join(avatarStorageDir, previousFileName);
     await mkdir(avatarStorageDir, { recursive: true });
@@ -68,7 +68,28 @@ describe('ProfileSettingsService', () => {
       ),
     } as unknown as PrismaService;
 
-    const service = new ProfileSettingsService(prisma);
+    const storageService = {
+      isManagedUrl: vi.fn((value: string | null | undefined) =>
+        typeof value === 'string' && value.startsWith('/uploads/avatars/'),
+      ),
+      storeAvatar: vi.fn(async () => {
+        const fileName = 'user-test-new.png';
+        const filePath = join(avatarStorageDir, fileName);
+        await mkdir(avatarStorageDir, { recursive: true });
+        await writeFile(filePath, Buffer.from('new-avatar'));
+        return {
+          publicUrl: `/uploads/avatars/${fileName}`,
+          cleanupHandle: `/uploads/avatars/${fileName}`,
+        };
+      }),
+      removeManagedObject: vi.fn(async (value: string) => {
+        if (value === `/uploads/avatars/${previousFileName}`) {
+          await rm(previousFilePath, { force: true }).catch(() => undefined);
+        }
+      }),
+    };
+
+    const service = new ProfileSettingsService(prisma, storageService as never);
 
     const result = await service.patchSettings('user-test', {
       edit: {
@@ -77,12 +98,16 @@ describe('ProfileSettingsService', () => {
       },
     });
 
-    expect(result.edit.avatarUrl).toMatch(/^\/uploads\/avatars\/user-test-/);
+    expect(result.edit.avatarUrl).toBe('/uploads/avatars/user-test-new.png');
     expect(userSettingsUpsert).toHaveBeenCalledTimes(1);
+    expect(storageService.storeAvatar).toHaveBeenCalledTimes(1);
+    expect(storageService.removeManagedObject).toHaveBeenCalledWith(
+      `/uploads/avatars/${previousFileName}`,
+    );
     expect(existsSync(previousFilePath)).toBe(false);
 
     const storedFiles = await readdir(avatarStorageDir);
     expect(storedFiles).toHaveLength(1);
-    expect(storedFiles[0]).toMatch(/^user-test-/);
+    expect(storedFiles[0]).toBe('user-test-new.png');
   });
 });

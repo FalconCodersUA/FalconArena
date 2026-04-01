@@ -114,6 +114,10 @@
   - `verify-backup.sh` перевіряє manifest, checksums і читабельність storage archive
   - docs синхронізовано під rehearsal з верифікацією backup set
 - Збереження нових аватарів переведено з `base64` у БД на локальні upload-файли з URL `/uploads/avatars/...`.
+- Додано `storage provider abstraction`:
+  - `local` provider залишається default
+  - `s3` provider підтримує S3-compatible object storage (`R2 / MinIO / S3`) через env-конфіг
+  - API профілю не змінюється, а avatar upload/delete проходить через `StorageService`
 - Backend uploads/storage винесено в persistent Docker volume, додано helper-скрипти і drill-doc для backup / restore БД та storage.
 - Додано окремий `e2e` сценарій `ADMIN -> TEAM -> JURY -> LEADERBOARD` з перевіркою leaderboard row та CSV export.
 - Додано окремий `e2e` сценарій `ARCHIVE -> CERTIFICATE -> EXPORT` з перевіркою archive, certificate flow, CSV і conditional Google Sheets export.

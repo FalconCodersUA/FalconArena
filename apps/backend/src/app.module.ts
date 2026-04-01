@@ -27,6 +27,7 @@ import { SubmissionsModule } from './submissions/submissions.module';
 import { SystemIntegrationsModule } from './system-integrations/system-integrations.module';
 import { TeamsModule } from './teams/teams.module';
 import { TournamentsModule } from './tournaments/tournaments.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { TournamentsModule } from './tournaments/tournaments.module';
     JobsModule,
     AuthModule,
     NotificationsModule,
+    StorageModule,
     TournamentsModule,
     TeamsModule,
     RoundsModule,
