@@ -2,6 +2,7 @@ import { ReactElement } from 'react';
 import { Navigate, createBrowserRouter } from 'react-router-dom';
 import { AuthRole, getAuthRole, isAuthenticated } from '../lib/auth';
 import AdminDashboardPage from '../pages/AdminDashboardPage';
+import AppErrorPage from '../pages/AppErrorPage';
 import ArchivePage from '../pages/ArchivePage';
 import AppShell from './layout/AppShell';
 import CertificatePreviewPage from '../pages/CertificatePreviewPage';
@@ -63,6 +64,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/app/certificates',
+    errorElement: <AppErrorPage />,
     element: (
       <ProtectedRoute roles={['ADMIN', 'ORGANIZER']}>
         <CertificatePreviewPage />
@@ -71,6 +73,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/app',
+    errorElement: <AppErrorPage />,
     element: <AppShell />,
     children: [
       {

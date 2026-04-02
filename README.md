@@ -389,6 +389,8 @@ Backend:
 - `docs/ui-smoke-runbook.uk.md` - UI smoke
 - `docs/project-decisions.uk.md` - архітектурні рішення
 - `docs/acceptance-checklist.uk.md` - acceptance checklist
+- `docs/product-overview.uk.md` - короткий продуктовий огляд платформи
+- `docs/defense-demo-script.uk.md` - рекомендований сценарій демонстрації для захисту
 
 ## Google Sheets export
 
