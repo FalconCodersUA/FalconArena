@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { useI18n } from '../../i18n/I18nProvider';
 import { SUPPORTED_LANGUAGES } from '../../i18n/messages';
 import { ApiError, apiRequest, resolveApiAssetUrl } from '../../lib/api';
+import BrandMark from './BrandMark';
 import {
   AuthRole,
   clearToken,
@@ -678,16 +679,7 @@ export default function AppShell() {
         <aside className="app-sidebar">
           <Link to="/app" className="app-brand">
             <span className="app-brand-mark" aria-hidden>
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
-                <path
-                  d="M7.5 13.2L10.2 15.8L16.5 9.4"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <BrandMark />
             </span>
             <span>FalconArena</span>
           </Link>

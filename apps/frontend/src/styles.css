@@ -289,18 +289,22 @@ a {
   text-decoration: none;
   font-family: 'Chakra Petch', sans-serif;
   font-weight: 700;
-  font-size: 1.12rem;
-  color: #171724;
-  padding: 6px 10px;
+  font-size: 1.08rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: #f8f5ff;
+  padding: 8px 10px;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.16);
+  text-shadow: 0 1px 0 rgba(24, 15, 49, 0.16);
+  white-space: nowrap;
 }
 
 .app-brand-mark {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   display: inline-flex;
-  color: #171724;
+  flex: 0 0 auto;
 }
 
 .app-brand-mark svg {
@@ -1276,11 +1280,13 @@ a {
 
 .auth-split-register .auth-brand-logo {
   transform: translateX(-4px);
+  color: #231833;
+  filter: drop-shadow(0 16px 32px rgba(49, 17, 96, 0.16));
 }
 
 .auth-split-login .auth-brand-logo {
-  width: 75px;
-  height: 75px;
+  width: 146px;
+  height: 146px;
   color: #0f172b;
   filter: none;
 }
@@ -1325,7 +1331,7 @@ a {
 }
 
 .auth-split-login .auth-mark-ring {
-  width: 75px;
+  width: 146px;
   box-shadow: none;
   background: transparent;
 }
