@@ -42,6 +42,21 @@ describe('RegisterPage', () => {
     localStorage.setItem('falconarena_language', 'en');
   });
 
+  it('shows validation error when email is invalid', async () => {
+    renderRegisterPage();
+
+    fireEvent.change(screen.getByLabelText('First Name'), { target: { value: 'New' } });
+    fireEvent.change(screen.getByLabelText('Last Name'), { target: { value: 'User' } });
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'invalid-email' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'strongpass123' } });
+    fireEvent.change(screen.getByLabelText('Confirm password'), { target: { value: 'strongpass123' } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+    expect(screen.getByText('Enter a valid email address.')).toBeInTheDocument();
+    expect(mockedApiRequest).not.toHaveBeenCalled();
+  });
+
   it('shows validation error when passwords do not match', async () => {
     renderRegisterPage();
 

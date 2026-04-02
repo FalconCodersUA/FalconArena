@@ -124,8 +124,8 @@ export const messages: TranslationMap = {
         profile: 'Налаштуйте ваш профіль',
       },
       placeholders: {
-        firstName: 'напр. John',
-        lastName: 'напр. Francisco',
+        firstName: 'напр. Іван',
+        lastName: 'напр. Франко',
         email: 'напр. johnfrans@gmail.com',
         password: 'Введіть свій пароль',
         confirmPassword: 'Підтвердіть свій пароль',
