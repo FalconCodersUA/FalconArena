@@ -129,6 +129,7 @@ export default function TournamentDetailsPage() {
     () => rounds.find((round) => round.status === 'ACTIVE') ?? null,
     [rounds],
   );
+  const scheduleHighlights = useMemo(() => scheduleEvents.slice(0, 3), [scheduleEvents]);
 
   const authRole = (isAuthenticated() ? getAuthRole() : null) as UserRole | null;
   const registrationAction = useMemo(() => {
@@ -173,19 +174,94 @@ export default function TournamentDetailsPage() {
   }
 
   const showTeams = canShowTeamsList(tournament);
+  const tournamentCards = [
+    {
+      label: t('tournamentDetails.spotlight.registration'),
+      value: formatDateTime(tournament.registrationOpenAt, language),
+      hint: formatDateTime(tournament.registrationCloseAt, language),
+    },
+    {
+      label: t('tournamentDetails.spotlight.rounds'),
+      value: `${rounds.length}`,
+      hint: t('tournamentDetails.roundsHint'),
+    },
+    {
+      label: t('tournamentDetails.spotlight.teams'),
+      value: showTeams ? `${teams.length}` : t('tournamentDetails.hiddenUntilClose'),
+      hint: tournament.maxTeams
+        ? `${t('tournamentDetails.teamLimit')}: ${tournament.maxTeams}`
+        : t('tournamentDetails.teamLimitOpen'),
+    },
+    {
+      label: t('tournamentDetails.spotlight.activeRound'),
+      value: activeRound ? `#${activeRound.sequence}` : t('tournamentDetails.notScheduled'),
+      hint: activeRound ? activeRound.title : t('tournamentDetails.activeRoundHint'),
+    },
+  ];
 
   return (
-    <section className="tournaments-section">
-      <header className="section-header">
-        <p className="eyebrow">{t('tournamentDetails.eyebrow')}</p>
-        <h1>{tournament.title}</h1>
-        <p className="lead">{tournament.description || t('tournamentDetails.noDescription')}</p>
-      </header>
+    <section className="tournaments-section tournament-public-page">
+      <article className="card panel-card tournament-showcase">
+        <div className="tournament-showcase-copy">
+          <p className="eyebrow">{t('tournamentDetails.eyebrow')}</p>
+          <div className="tournament-showcase-head">
+            <h1>{tournament.title}</h1>
+            <span className="status-pill">{t(`tournaments.status.${tournament.status}`)}</span>
+          </div>
+          <p className="lead">{tournament.description || t('tournamentDetails.noDescription')}</p>
+          <p className="tournament-showcase-support">{t('tournamentDetails.showcaseLead')}</p>
+
+          <div className="status-actions">
+            {registrationAction ? (
+              <Link to={registrationAction.to} className="button button-primary">
+                {registrationAction.label}
+              </Link>
+            ) : null}
+            <Link to={`/app/leaderboard?tournamentId=${tournament.id}`} className="button button-soft">
+              {t('tournaments.leaderboard')}
+            </Link>
+            <Link to="/app/tournaments" className="button button-ghost">
+              {t('tournamentDetails.backToTournaments')}
+            </Link>
+          </div>
+        </div>
+
+        <div className="tournament-showcase-side">
+          <div className="tournament-showcase-grid">
+            {tournamentCards.map((card) => (
+              <article key={card.label} className="tournament-showcase-card">
+                <span>{card.label}</span>
+                <strong>{card.value}</strong>
+                <p>{card.hint}</p>
+              </article>
+            ))}
+          </div>
+
+          <article className="tournament-showcase-timeline">
+            <div className="tournament-head">
+              <h2>{t('tournamentDetails.timelineTitle')}</h2>
+              <span className="status-pill">{scheduleEvents.length}</span>
+            </div>
+            {scheduleHighlights.length > 0 ? (
+              <div className="tournament-showcase-events">
+                {scheduleHighlights.map((event) => (
+                  <article key={event.id} className="tournament-showcase-event">
+                    <strong>{event.title}</strong>
+                    <span>{formatDateTime(event.startsAt, language)}</span>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="inline-hint">{t('schedule.empty')}</p>
+            )}
+          </article>
+        </div>
+      </article>
 
       <article className="card panel-card">
         <div className="tournament-head">
           <h2>{t('tournamentDetails.overviewTitle')}</h2>
-          <span className="status-pill">{t(`tournaments.status.${tournament.status}`)}</span>
+          <span className="status-pill">{t('tournamentDetails.overviewLabel')}</span>
         </div>
 
         <div className="summary-grid">
@@ -207,25 +283,11 @@ export default function TournamentDetailsPage() {
             <span>{t('tournamentDetails.teamsTitle')}</span>
             <strong>{showTeams ? teams.length : t('tournamentDetails.hiddenUntilClose')}</strong>
             <p>
-              {tournament.maxTeams
-                ? `${t('tournamentDetails.teamLimit')}: ${tournament.maxTeams}`
-                : t('tournamentDetails.teamLimitOpen')}
+              {showTeams
+                ? t('tournamentDetails.teamVisibilityOpen')
+                : t('tournamentDetails.teamVisibilityClosed')}
             </p>
           </div>
-        </div>
-
-        <div className="status-actions">
-          {registrationAction ? (
-            <Link to={registrationAction.to} className="button button-primary">
-              {registrationAction.label}
-            </Link>
-          ) : null}
-          <Link to={`/app/leaderboard?tournamentId=${tournament.id}`} className="button button-soft">
-            {t('tournaments.leaderboard')}
-          </Link>
-          <Link to="/app/tournaments" className="button button-ghost">
-            {t('tournamentDetails.backToTournaments')}
-          </Link>
         </div>
       </article>
 
