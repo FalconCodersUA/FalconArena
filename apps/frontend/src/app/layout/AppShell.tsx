@@ -116,6 +116,10 @@ function initialsFromName(fullName: string | undefined, fallback = 'FA') {
   return value || fallback;
 }
 
+function languageToggleLabel(language: (typeof SUPPORTED_LANGUAGES)[number]) {
+  return language === 'uk' ? 'UA' : 'EN';
+}
+
 export default function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -655,7 +659,7 @@ export default function AppShell() {
                 className={`lang-button${language === item ? ' active' : ''}`}
                 onClick={() => setLanguage(item)}
               >
-                {item.toUpperCase()}
+                {languageToggleLabel(item)}
               </button>
             ))}
           </div>
@@ -912,7 +916,7 @@ export default function AppShell() {
                     className={`lang-button${language === item ? ' active' : ''}`}
                     onClick={() => setLanguage(item)}
                   >
-                    {item.toUpperCase()}
+                    {languageToggleLabel(item)}
                   </button>
                 ))}
               </div>

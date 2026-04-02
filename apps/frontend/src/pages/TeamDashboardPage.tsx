@@ -144,6 +144,44 @@ function emptyMember(): MemberDraft {
   return { fullName: '', email: '' };
 }
 
+function toPositiveInteger(value: unknown, fallback: number) {
+  const normalized =
+    typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
+
+  if (!Number.isFinite(normalized)) {
+    return fallback;
+  }
+
+  return Math.max(1, Math.floor(normalized));
+}
+
+function sanitizePlatformDefaults(value: unknown): PlatformDefaults {
+  if (!value || typeof value !== 'object') {
+    return DEFAULT_PLATFORM_DEFAULTS;
+  }
+
+  const payload = value as Partial<PlatformDefaults>;
+  const minTeamMembers = toPositiveInteger(
+    payload.minTeamMembers,
+    DEFAULT_PLATFORM_DEFAULTS.minTeamMembers,
+  );
+  const requestedMaxTeamMembers = toPositiveInteger(
+    payload.maxTeamMembers,
+    DEFAULT_PLATFORM_DEFAULTS.maxTeamMembers,
+  );
+  const maxTeamMembers = Math.max(minTeamMembers, requestedMaxTeamMembers);
+  const defaultProjectTimeZone =
+    typeof payload.defaultProjectTimeZone === 'string' && payload.defaultProjectTimeZone.trim()
+      ? payload.defaultProjectTimeZone.trim()
+      : DEFAULT_PLATFORM_DEFAULTS.defaultProjectTimeZone;
+
+  return {
+    minTeamMembers,
+    maxTeamMembers,
+    defaultProjectTimeZone,
+  };
+}
+
 function isValidEmail(value: string) {
   return /^\S+@\S+\.\S+$/.test(value);
 }
@@ -413,9 +451,9 @@ export default function TeamDashboardPage() {
       const [meData, tournamentData, defaultsData] = await Promise.all([
         apiRequest<AuthMe>('/auth/me'),
         apiRequest<Tournament[]>('/tournaments'),
-        apiRequest<PlatformDefaults>('/platform/defaults').catch(
-          () => DEFAULT_PLATFORM_DEFAULTS,
-        ),
+        apiRequest<PlatformDefaults>('/platform/defaults')
+          .then((value) => sanitizePlatformDefaults(value))
+          .catch(() => DEFAULT_PLATFORM_DEFAULTS),
       ]);
 
       setMe(meData);
