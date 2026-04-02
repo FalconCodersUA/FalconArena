@@ -1,6 +1,6 @@
 # FalconArena
 
-FalconArena is a tournament platform where organizers run coding rounds with deadlines, teams submit results, and jury members evaluate work to build a leaderboard.
+FalconArena is a complete tournament platform for team-based programming competitions. Organizers create tournaments and rounds, teams register and submit work, jury members evaluate submissions, and the system provides leaderboard results, archive views, communication flows, certificates, integrations, and operational tooling around the full tournament lifecycle.
 
 Live site: `https://falconarena.live/`
 
@@ -54,11 +54,17 @@ Recommended settings for a 1-2 developer team:
 npm install
 ```
 
-2. Copy Docker env template:
+2. Run local bootstrap:
 
 ```bash
-cp infra/docker-compose/.env.example infra/docker-compose/.env
+npm run bootstrap:local
 ```
+
+What bootstrap does:
+
+- verifies `Node.js >= 20`
+- creates `infra/docker-compose/.env` from `.env.example` if needed
+- generates Prisma Client for backend automatically
 
 3. Start local infrastructure and apps:
 
@@ -75,7 +81,7 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 
 - PR to `main`: lint + test + build
 - Push/merge to `main`: deploy workflow connects to Ubuntu over SSH and runs Docker Compose update
-- Manual trigger: `Smoke Check (Manual)` runs backend MVP smoke script on demand
+- Manual trigger: `Smoke Check (Manual)` runs backend smoke automation on demand
 
 Required repository secrets for deploy:
 
@@ -110,7 +116,7 @@ Optional repository variable for manual smoke check:
 Production routing is handled by Caddy (`80/443`). Database and Redis are internal-only in Docker network.
 
 Quick setup for GitHub + Ubuntu + `falconarena.live` is in `docs/deploy-quickstart.md`.
-MVP API smoke script is in `docs/mvp-smoke-api.md`.
+API smoke script is in `docs/mvp-smoke-api.md`.
 UI smoke runbook is in `docs/ui-smoke-runbook.md`.
 Acceptance checklist is in `docs/acceptance-checklist.md`.
 
@@ -136,15 +142,10 @@ Ukrainian docs:
 4. `ADMIN`: distribute assignments, close submissions or finish evaluation, then review the `Leaderboard`.
 5. Any role: open `Messages` (`/app/messages`) for announcements; `ADMIN/ORGANIZER` can publish announcements, all roles can use personal dialogs.
 
-## Notes
+## Backend API and Platform Capabilities
 
-- The repository includes only the base scaffold so team members can start parallel feature work.
-- Product domain entities are pre-seeded in Prisma schema for tournaments, teams, rounds, submissions, and jury evaluation.
-
-## Backend Foundation Status
-
-- Auth + RBAC base is wired in NestJS (`JWT`, `register`, `login`, `me`, role guard).
-- Current auth endpoints:
+- Auth + RBAC are implemented in NestJS (`JWT`, `register`, `login`, `me`, role guard).
+- Auth endpoints:
   - `POST /auth/register` (public, always creates `TEAM` user)
   - `POST /auth/admin/users` (roles: `ADMIN`, `ORGANIZER`)
   - `POST /auth/login`
@@ -195,7 +196,7 @@ Ukrainian docs:
   - system notifications can also be delivered by email
   - supported providers: `console`, `resend`
 
-Optional env setting:
+Additional env setting:
 
 - `MAX_TEAM_MEMBERS` (default: `8`)
 

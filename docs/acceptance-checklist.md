@@ -28,7 +28,7 @@ Status: implemented.
 - Email and duplicate validation: backend-enforced, with additional client-side validation
 - Team editing after registration deadline: not supported in UI
 
-Status: implemented in MVP scope.
+Status: implemented.
 
 ## 4. Rounds / Tasks
 
@@ -91,19 +91,21 @@ Status: implemented.
 
 Status: implemented.
 
-## 11. Optional Features From Specification
+## 11. Additional Product Capabilities
 
-Not included in the current MVP:
+Implemented as full strengths on top of the base specification:
 
-- advanced notifications (email/realtime). Basic in-app toast notifications are implemented.
-- realtime updates
-- CSV / Google Sheet export
-- certificates
+- announcements, system notifications, and direct dialogs
+- email delivery for system events
+- auto-refresh for leaderboard, messages, and notifications
+- CSV export
+- Google Sheets export
+- certificates through printable preview / browser print flow
 - tournament schedule
 - archive of previous tournaments
-- announcements
+- monitoring, activity feed, integration settings, audit trail, and background jobs
 
-Status: not implemented yet, suitable for follow-up PRs.
+Status: implemented.
 
 ## Recommended Demo Scenario
 
@@ -114,4 +116,4 @@ Status: not implemented yet, suitable for follow-up PRs.
 5. `ADMIN`: distribute assignments.
 6. `JURY`: submit an evaluation.
 7. `ADMIN`: finish evaluation.
-8. Review `Leaderboard` and `Profile`.
+8. Review `Leaderboard`, `Archive`, `Messages`, `Integrations`, `Monitoring`, and `Profile`.
