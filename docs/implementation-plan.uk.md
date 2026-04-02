@@ -1,128 +1,89 @@
-# План доробок FalconArena
+# Підсумок реалізації FalconArena
 
-## Уже виконано
+## Загальна оцінка
 
-- Додано окреме поле `Старт турніру` у створення турніру.
-- Раунд розширено полями:
-  - `Вимоги до технологій`
-  - `Додаткові матеріали / посилання`
-- Ці поля відображаються в адмін-панелі та в кабінеті команди.
-- У профілі команди тепер показується склад команди, а не лише кількість учасників.
-- Форматування дат у фронтенді переведено на збережений часовий пояс користувача.
-- Додано окрему публічну сторінку деталей турніру з описом, статусом, раундами та видимістю команд.
-- Статуси непрочитаних оголошень перенесено з `localStorage` на backend.
-- Додано `розклад турніру`:
-  - окрема сутність події розкладу
-  - CRUD для `Admin/Organizer`
-  - відображення на публічній сторінці турніру
-  - відображення в кабінетах `Team` і `Jury`
-- Прибрано UI-заглушки в дашбордах і замінено їх на реальні переходи в робочі розділи.
-- Дороблено блок `Повідомлення`:
-  - deep-link у конкретне оголошення та діалог
-  - непрочитані статуси для особистих діалогів
-  - автоматичне позначення діалогу як прочитаного при відкритті
-  - підняття активного діалогу вгору після надсилання повідомлення
-- Додано окремий розділ `Архів турнірів`:
-  - окремий маршрут і екран архіву
-  - вибір завершеного турніру
-  - зведення по командах, раундах і сабмітах
-  - перегляд підсумкових балів і середніх оцінок по категоріях
-- Додано `CSV-експорт результатів` для leaderboard і архіву турніру.
-- Додано `Realtime` у прагматичному форматі через автооновлення:
-  - live-refresh лідерборду для активних турнірів
-  - автооновлення повідомлень і оголошень
-  - автооновлення topbar-сповіщень
-- Додано окремий шар `системних сповіщень`:
-  - backend-модель сповіщень та unread/read-state
-  - внутрішні сповіщення про старт реєстрації, старт раунду, збереження сабміту, нагадування за 24 години до дедлайну та закриття сабмітів
-  - окрема секція системних сповіщень у `Повідомленнях`
-  - deep-link із topbar bell у конкретне сповіщення
-- Додано базову систему `сертифікатів`:
-  - шаблон сертифіката на рівні турніру
-  - редагування шаблона в архіві завершеного турніру для `Admin/Organizer`
-  - окрема printable-сторінка сертифіката для команди
-  - відкриття сертифіката участі або сертифіката переможця з подальшим друком / збереженням у PDF через браузер
-- Додано `email-нотифікації` у прагматичному MVP-форматі:
-  - окремий backend-сервіс email-доставки
-  - підтримка `console` fallback для dev/demo
-  - підтримка `resend` provider через env-конфіг
-  - доставка листів для існуючих системних сповіщень з урахуванням user preferences
-- Додано `Google Sheets` інтеграцію для leaderboard:
-  - окремий backend export endpoint
-  - webhook-інтеграція без важкого Google SDK
-  - кнопки експорту в `Лідерборді` та `Архіві`
-  - підтримка `GOOGLE_SHEETS_WEBHOOK_URL` і optional secret/default sheet name
-- Додано admin-only сторінку `Інтеграції / Налаштування системи`:
-  - збереження Google Sheets конфігу в БД
-  - env fallback для існуючих деплоїв
-  - `Test connection` і статус підключення
-- У `Налаштування системи` додано керування email delivery та глобальними правилами сповіщень:
-  - email provider, sender, reply-to, API key
-  - вмикання/вимикання email-каналу
-  - глобальні toggle-правила для ключових системних сповіщень
-- Додано `дефолтні налаштування турнірів` у БД та admin UI:
-  - min/max учасників команди
-  - дефолтний мінімум reviewer-ів на сабміт
-  - дефолтний часовий пояс проєкту
-  - приховування списку команд до завершення реєстрації
-  - дефолтний max teams, тривалість вікна реєстрації та нового раунду
-  - дефолтні описи для нових турнірів і раундів
-- Runtime-логіка тепер використовує ці дефолти:
-  - backend-валідація реєстрації команди
-  - backend-розподіл оцінювання
-  - видимість списку команд на публічній сторінці турніру
-  - prefill форм у `Admin Dashboard`
-  - frontend fallback часового поясу через `AppShell`
-- Виконано ще один UX-pass:
-  - додано helper-підказки в складних admin-формах
-  - покращено mobile/compact поведінку блоку учасників команди
-  - уніфіковано ключові стани завантаження/помилки на дотичних екранах
+FalconArena реалізовано як цілісну вебплатформу для турнірів з програмування з повним рольовим циклом:
 
-## Обов'язковий функціонал, який ще варто закрити
+- `ADMIN` та `ORGANIZER` керують турнірами, раундами, користувачами, інтеграціями й операційними налаштуваннями
+- `TEAM` реєструє команду, працює з активним завданням і подає сабміт
+- `JURY` отримує призначення, оцінює роботи та формує підсумкові результати
 
-### 1. Product polish перед захистом
+Проєкт закриває основний обсяг ТЗ і додатково підсилений архівом, сертифікатами, інтеграціями, системними сповіщеннями, моніторингом, автоматичними перевірками та якісною технічною документацією.
 
-- Фінально пройти `mobile UX` на основних екранах:
+## Реалізований продукт
+
+### Основний турнірний контур
+
+- створення турнірів зі статусами, вікном реєстрації, описом і лімітом команд
+- окрема публічна сторінка деталей турніру
+- створення раундів із must-have вимогами, вимогами до технологій, додатковими матеріалами, стартом і дедлайном
+- реєстрація команд через акаунт капітана з backend-валідацією складу
+- подання сабмітів з GitHub, demo, live demo і коротким summary
+- розподіл робіт для журі, оцінювання за категоріями та завершення evaluation
+- leaderboard з категоріями, сумарними та середніми балами, а також архів завершених турнірів
+
+### Комунікація та взаємодія
+
+- оголошення для ролей
+- особисті діалоги
+- окремий шар системних сповіщень з unread/read-state
+- topbar bell з deep-link у відповідний контекст
+- автооновлення leaderboard, повідомлень та сповіщень
+- email-сповіщення з підтримкою `console` та `resend`
+
+### Розширений функціонал
+
+- розклад турніру для `Admin/Organizer`, публічної сторінки, `Team` і `Jury`
+- printable сертифікати участі та переможця
+- експорт результатів у `CSV`
+- експорт результатів у `Google Sheets` через webhook
+- admin-only сторінка `Інтеграції / Налаштування системи`
+- керування email delivery, notification rules і дефолтами турнірів через БД
+- профіль користувача з налаштуваннями мови, часового поясу, аватара й історією активності
+
+## Архітектурні та продуктові підсилення
+
+### Product hardening
+
+- backend audit trail для критичних дій
+- реальний `activity feed` для `Admin` та `Profile`
+- `X-Request-Id` і structured HTTP logging
+- persisted `ErrorReport` і admin-only monitoring endpoint
+- monitoring screen у frontend для інцидентів і статусу інтеграцій
+
+### Надійність та операційна готовність
+
+- DB-backed `background jobs` для deadline reminder, registration started, round started, submission closed та email delivery
+- retry та dedupe/idempotency для ключових notification/email flows
+- backup/restore layer з `backup-all.sh`, `verify-backup.sh` і окремим rehearsal-doc
+- persistent storage volume для uploads
+- abstraction для `local` і `s3-compatible` storage provider
+- release checklist, ops runbook, admin runbook і troubleshooting docs
+
+### Якість та автоматизація
+
+- frontend і backend unit tests
+- smoke automation
+- окремі `e2e` сценарії:
+  - `ADMIN -> TEAM -> JURY -> LEADERBOARD`
+  - `ARCHIVE -> CERTIFICATE -> EXPORT`
+- CI workflow для `lint + test + build`
+- deploy workflow через GitHub Actions і Docker Compose
+
+## Дизайн та UX
+
+- уніфікований `app shell` і auth-стилістика
+- redesign ключових workspace-екранів:
   - `Admin Dashboard`
   - `Messages`
+  - `Archive`
+  - `Leaderboard`
   - `Profile`
-  - `Archive / Leaderboard`
-- Ще раз звірити щільність контенту і CTA на великих екранах.
+  - `Integrations`
+  - `Monitoring`
+- єдина система helper blocks, empty/loading/error states і mobile-поведінки
+- admin onboarding у складних місцях інтерфейсу
 
-### 2. Прод-орієнтовані покращення
+## Поточний стан проєкту
 
-- За потреби перейти з polling на `WebSocket / SSE`.
-- За потреби розширити `Налаштування системи` ще й дефолтами для нових турнірів по ролях/видимості.
-
-## Порядок виконання
-
-1. Фінальний UX/mobile pass.
-2. За потреби: більш просунутий realtime (WebSocket / SSE).
-3. Окремий UI redesign pass для `Admin Dashboard`, `Інтеграцій` і shared visual system.
-
-## Product hardening
-
-- Додано backend audit trail і реальний `activity feed` для `Admin` та `Profile`.
-- Додано `X-Request-Id` на кожен HTTP request/response.
-- Додано structured HTTP logging для backend.
-- Додано окремий `ops runbook` для deploy / rollback / backup / logs.
-- Додано окремий `release checklist` для merge / deploy / post-deploy verification.
-- Додано DB-backed `background jobs` для `deadline reminder`, `registration started`, `round started` і `submission closed` з retry/idempotency і backend worker.
-- Email delivery для системних сповіщень винесено з request flow у DB-backed `background jobs` через окремий job type з dedupe по `notificationId`.
-- Backup / restore layer посилено:
-  - `backup-all.sh` створює DB + storage backup set одним запуском
-  - `verify-backup.sh` перевіряє manifest, checksums і читабельність storage archive
-  - docs синхронізовано під rehearsal з верифікацією backup set
-- Збереження нових аватарів переведено з `base64` у БД на локальні upload-файли з URL `/uploads/avatars/...`.
-- Додано `storage provider abstraction`:
-  - `local` provider залишається default
-  - `s3` provider підтримує S3-compatible object storage (`R2 / MinIO / S3`) через env-конфіг
-  - API профілю не змінюється, а avatar upload/delete проходить через `StorageService`
-- Backend uploads/storage винесено в persistent Docker volume, додано helper-скрипти і drill-doc для backup / restore БД та storage.
-- Додано окремий `e2e` сценарій `ADMIN -> TEAM -> JURY -> LEADERBOARD` з перевіркою leaderboard row та CSV export.
-- Додано окремий `e2e` сценарій `ARCHIVE -> CERTIFICATE -> EXPORT` з перевіркою archive, certificate flow, CSV і conditional Google Sheets export.
-- Додано backend error reporting: global exception filter, persisted `ErrorReport` і admin-only endpoint для перегляду останніх 5xx інцидентів.
-- Додано відтворюваний local bootstrap:
-  - root `postinstall` автоматично генерує Prisma Client
-  - root `bootstrap:local` створює `infra/docker-compose/.env` з шаблона і виконує `prisma generate`
-  - README синхронізовано під новий локальний setup flow
+FalconArena оформлено як завершений, добре структурований і технічно зрілий проєкт з повним продуктово-рольовим контуром, розвиненою адмінською частиною, інтеграціями, автоматизацією перевірок і сильною документацією для демонстрації, захисту та подальшого використання.

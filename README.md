@@ -47,7 +47,7 @@ FalconArena - це вебплатформа для командного турн
   - особистих діалогів
   - системних сповіщень
 - Topbar bell з переходом у потрібний контекст
-- Realtime у прагматичному форматі через автооновлення:
+- Realtime-оновлення через автооновлення:
   - leaderboard
   - повідомлення
   - topbar сповіщення
@@ -89,11 +89,6 @@ FalconArena - це вебплатформа для командного турн
 - розклад турніру
 - сертифікати
 - CSV-експорт
-
-Ще можна посилювати як optional / next step:
-
-- більш production-grade realtime через WebSocket або SSE
-- production-grade PDF generation для сертифікатів
 
 ## Технологічний стек
 
@@ -235,7 +230,7 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 - `STORAGE_S3_KEY_PREFIX`
 - `STORAGE_S3_FORCE_PATH_STYLE`
 
-Примітка: ці env-параметри працюють як fallback. Основні налаштування Google Sheets, email delivery і глобальних правил сповіщень тепер можна зберігати через `/app/integrations` у базі даних.
+Примітка: ці env-параметри працюють як fallback. Основні налаштування Google Sheets, email delivery, notification rules і tournament defaults також можна зберігати через `/app/integrations` у базі даних.
 
 ## Seed і міграції
 
