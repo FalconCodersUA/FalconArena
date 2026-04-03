@@ -342,7 +342,7 @@ Backend:
 - `BASE_URL=http://localhost:4000 ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run test:e2e:finish-evaluation -w @falconarena/backend`
 - `BASE_URL=http://localhost:4000 ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run test:e2e:profile-avatar -w @falconarena/backend`
 
-Типовые проверки:
+Типові перевірки:
 
 - `npm run lint -w @falconarena/frontend`
 - `npm run lint -w @falconarena/backend`
