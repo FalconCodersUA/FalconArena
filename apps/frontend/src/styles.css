@@ -1170,6 +1170,21 @@ a {
   box-shadow: 0 0 0 3px rgba(122, 67, 243, 0.12);
 }
 
+.app-page .admin-tournament-picker > span {
+  color: #343c6a;
+}
+
+.app-page .admin-tournament-picker-select {
+  border-color: rgba(94, 23, 235, 0.14);
+  background: rgba(94, 23, 235, 0.06);
+  color: #5e17eb;
+}
+
+.app-page .admin-tournament-picker-select:focus {
+  border-color: #5e17eb;
+  box-shadow: 0 0 0 3px rgba(94, 23, 235, 0.12);
+}
+
 .app-page table {
   border-collapse: separate;
   border-spacing: 0;
@@ -2740,29 +2755,79 @@ a {
   text-align: center;
 }
 
-.app-page .onboarding-action-primary,
-.app-page .onboarding-action-primary:visited {
+.app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-primary,
+.app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-primary:visited {
   background: #5e17eb;
   border-color: #5e17eb;
   color: #ffffff;
   box-shadow: 0 14px 28px rgba(94, 23, 235, 0.14);
 }
 
-.app-page .onboarding-action-primary:hover:not(:disabled),
-.app-page .onboarding-action-primary:focus-visible {
+.app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-primary:hover:not(:disabled),
+.app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-primary:focus-visible {
   background: #5214cf;
   border-color: #5214cf;
   color: #ffffff;
 }
 
-.onboarding-action-secondary {
+.app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-secondary,
+.app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-secondary:visited {
   background: rgba(94, 23, 235, 0.06);
   border-color: rgba(94, 23, 235, 0.14);
   color: #5e17eb;
+  box-shadow: none;
 }
 
-.onboarding-action-secondary:hover:not(:disabled) {
+.app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-secondary:hover:not(:disabled),
+.app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-secondary:focus-visible {
   background: rgba(94, 23, 235, 0.1);
+  border-color: rgba(94, 23, 235, 0.18);
+  color: #5e17eb;
+}
+
+.app-page .tournament-status-action,
+.app-page .tournament-status-action:visited {
+  background: #5e17eb;
+  border-color: #5e17eb;
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(94, 23, 235, 0.14);
+}
+
+.app-page .tournament-status-action:hover:not(:disabled),
+.app-page .tournament-status-action:focus-visible {
+  background: #5214cf;
+  border-color: #5214cf;
+  color: #ffffff;
+}
+
+.app-page .admin-primary-action,
+.app-page .admin-primary-action:visited {
+  background: #5e17eb;
+  border-color: #5e17eb;
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(94, 23, 235, 0.14);
+}
+
+.app-page .admin-primary-action:hover:not(:disabled),
+.app-page .admin-primary-action:focus-visible {
+  background: #5214cf;
+  border-color: #5214cf;
+  color: #ffffff;
+}
+
+.app-page .admin-distribute-action,
+.app-page .admin-distribute-action:visited {
+  background: #b51d0a;
+  border-color: #b51d0a;
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(181, 29, 10, 0.18);
+}
+
+.app-page .admin-distribute-action:hover:not(:disabled),
+.app-page .admin-distribute-action:focus-visible {
+  background: #981608;
+  border-color: #981608;
+  color: #ffffff;
 }
 
 .onboarding-inline-callout {
@@ -2793,6 +2858,37 @@ a {
   transform: translateY(-2px);
 }
 
+.dashboard-tool-card--teal,
+.dashboard-tool-card--purple,
+.dashboard-tool-card--orange,
+.dashboard-tool-card--berry {
+  border-color: transparent;
+  box-shadow: 0 18px 36px rgba(33, 24, 58, 0.08);
+}
+
+.dashboard-tool-card--teal {
+  background: linear-gradient(180deg, #16dbcc 0%, #13cabd 100%);
+}
+
+.dashboard-tool-card--purple {
+  background: linear-gradient(180deg, #6d2dff 0%, #5420cf 100%);
+}
+
+.dashboard-tool-card--orange {
+  background: linear-gradient(180deg, #ff7a00 0%, #eb7000 100%);
+}
+
+.dashboard-tool-card--berry {
+  background: linear-gradient(180deg, #b51d0a 0%, #951404 100%);
+}
+
+.dashboard-tool-card--teal:hover,
+.dashboard-tool-card--purple:hover,
+.dashboard-tool-card--orange:hover,
+.dashboard-tool-card--berry:hover {
+  border-color: transparent;
+}
+
 .dashboard-tool-card span {
   color: #6a6383;
   text-transform: uppercase;
@@ -2815,6 +2911,43 @@ a {
   line-height: 1.45;
 }
 
+.dashboard-tool-card--teal span,
+.dashboard-tool-card--teal strong,
+.dashboard-tool-card--teal p,
+.dashboard-tool-card--teal em,
+.dashboard-tool-card--purple span,
+.dashboard-tool-card--purple strong,
+.dashboard-tool-card--purple p,
+.dashboard-tool-card--purple em,
+.dashboard-tool-card--orange span,
+.dashboard-tool-card--orange strong,
+.dashboard-tool-card--orange p,
+.dashboard-tool-card--orange em,
+.dashboard-tool-card--berry span,
+.dashboard-tool-card--berry strong,
+.dashboard-tool-card--berry p,
+.dashboard-tool-card--berry em {
+  color: #ffffff;
+}
+
+.dashboard-tool-card--teal span,
+.dashboard-tool-card--purple span,
+.dashboard-tool-card--orange span,
+.dashboard-tool-card--berry span {
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.dashboard-tool-card--teal p,
+.dashboard-tool-card--teal em,
+.dashboard-tool-card--purple p,
+.dashboard-tool-card--purple em,
+.dashboard-tool-card--orange p,
+.dashboard-tool-card--orange em,
+.dashboard-tool-card--berry p,
+.dashboard-tool-card--berry em {
+  color: rgba(255, 255, 255, 0.88);
+}
+
 .dashboard-tool-button {
   width: 100%;
   text-align: left;
@@ -2823,12 +2956,12 @@ a {
 }
 
 .dashboard-insight-card {
-  border: 1px solid rgba(217, 220, 232, 0.92);
+  border: 1px solid rgba(94, 23, 235, 0.18);
   border-radius: 22px;
   background:
-    radial-gradient(circle at 100% 0%, rgba(90, 87, 215, 0.08) 0%, transparent 28%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(249, 247, 242, 0.98) 100%);
-  box-shadow: 0 18px 36px rgba(18, 25, 42, 0.05);
+    radial-gradient(circle at 100% 0%, rgba(165, 128, 255, 0.32) 0%, transparent 32%),
+    linear-gradient(180deg, #6d2dff 0%, #5420cf 100%);
+  box-shadow: 0 22px 40px rgba(37, 26, 72, 0.07);
   padding: 18px;
   display: grid;
   gap: 10px;
@@ -2843,7 +2976,7 @@ a {
 }
 
 .dashboard-insight-head span {
-  color: #80789a;
+  color: rgba(245, 240, 255, 0.82);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 0.68rem;
@@ -2851,7 +2984,7 @@ a {
 }
 
 .dashboard-insight-head a {
-  color: #5e17eb;
+  color: #ffffff;
   font-size: 0.74rem;
   font-weight: 700;
   text-decoration: none;
@@ -2862,7 +2995,7 @@ a {
 }
 
 .dashboard-insight-card strong {
-  color: #343c6a;
+  color: #ffffff;
   font-family: 'Chakra Petch', sans-serif;
   font-size: 1.34rem;
   line-height: 1.05;
@@ -2870,7 +3003,7 @@ a {
 
 .dashboard-insight-card p {
   margin: 0;
-  color: #5d6777;
+  color: rgba(245, 240, 255, 0.86);
   font-size: 0.82rem;
   line-height: 1.5;
 }
@@ -2884,8 +3017,8 @@ a {
 
 .dashboard-insight-metrics span {
   border-radius: 999px;
-  background: rgba(236, 236, 255, 0.94);
-  color: #4044a6;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
   padding: 6px 10px;
   font-size: 0.72rem;
   font-weight: 700;
@@ -3076,10 +3209,10 @@ a {
 
 .dashboard-action.is-purple {
   min-height: 48px;
-  background: #d946ef;
-  border-color: #d946ef;
+  background: #b51d0a;
+  border-color: #b51d0a;
   color: #ffffff;
-  box-shadow: 0 16px 30px rgba(217, 70, 239, 0.22);
+  box-shadow: 0 16px 30px rgba(181, 29, 10, 0.22);
 }
 
 .dashboard-action.is-orange {
@@ -3320,6 +3453,33 @@ a {
 
 .dashboard-mini-card.is-teams {
   align-content: start;
+  border-color: #16dbcc;
+  background: linear-gradient(180deg, #16dbcc 0%, #13cabd 100%);
+  box-shadow: 0 20px 40px rgba(22, 219, 204, 0.18);
+}
+
+.dashboard-mini-card.is-teams .dashboard-empty-note {
+  border-color: rgba(22, 219, 204, 0.34);
+  background: rgba(22, 219, 204, 0.1);
+  color: #0f7f76;
+}
+
+.dashboard-mini-card.is-teams h3,
+.dashboard-mini-card.is-teams .dashboard-mini-caption strong,
+.dashboard-mini-card.is-teams .dashboard-mini-item strong {
+  color: #ffffff;
+}
+
+.dashboard-mini-card.is-teams .dashboard-mini-caption p,
+.dashboard-mini-card.is-teams .dashboard-mini-item p,
+.dashboard-mini-card.is-teams .dashboard-mini-lead {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.dashboard-mini-card.is-teams .inline-hint {
+  display: inline-block;
+  color: #ffffff;
+  font-weight: 700;
 }
 
 .dashboard-mini-avatars {
