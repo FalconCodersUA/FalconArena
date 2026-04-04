@@ -902,7 +902,7 @@ export const messages: TranslationMap = {
           },
         },
       },
-      workspaceToolsTitle: 'Admin toolset',
+      workspaceToolsTitle: 'Інструменти адміністратора',
       workspaceToolsLead: 'Ключові operational screens для інтеграцій, комунікації та фінального контролю.',
       onboarding: {
         title: 'Швидкий старт для адміністратора',
@@ -996,7 +996,7 @@ export const messages: TranslationMap = {
       activateRound: 'Активувати',
       closeSubmissions: 'Закрити сабміти',
       finishEvaluation: 'Завершити оцінювання',
-      finishEvaluationForce: 'Force завершення',
+      finishEvaluationForce: 'Примусово завершити',
       finishEvaluationSuccess: 'Оцінювання раунду завершено.',
       finishEvaluationFailed: 'Не вдалося завершити оцінювання',
       distributeAssignments: 'Розподілити призначення',
@@ -1365,7 +1365,7 @@ export const messages: TranslationMap = {
       workspaceEyebrow: 'Operational setup',
       workspaceTitle: 'Єдиний простір системних налаштувань',
       workspaceLead: 'Звідси зручно керувати інтеграціями, правилами сповіщень і дефолтами проєкту без правок у коді чи .env.',
-      workspaceStatusLabel: 'Стан toolset',
+      workspaceStatusLabel: 'Стан інструментів',
       workspaceStatusLead: 'Ключові системні блоки готові до роботи або чекають на базове налаштування.',
         workspaceCards: {
           googleSheetsTitle: 'Експорт у таблиці',

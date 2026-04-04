@@ -1548,22 +1548,22 @@ export default function AdminDashboardPage() {
               <p>{t('adminDashboard.workspaceToolsLead')}</p>
             </div>
             <div className="dashboard-toolset-grid">
-              <Link to="/app/integrations" className="dashboard-tool-card">
+              <Link to="/app/integrations" className="dashboard-tool-card dashboard-tool-card--teal">
                 <span>{t('shell.integrations')}</span>
                 <strong>{t('adminDashboard.workspaceTools.integrationsTitle')}</strong>
                 <p>{t('adminDashboard.workspaceTools.integrationsLead')}</p>
               </Link>
-              <Link to="/app/leaderboard" className="dashboard-tool-card">
+              <Link to="/app/leaderboard" className="dashboard-tool-card dashboard-tool-card--purple">
                 <span>{t('shell.leaderboard')}</span>
                 <strong>{t('adminDashboard.workspaceTools.leaderboardTitle')}</strong>
                 <p>{t('adminDashboard.workspaceTools.leaderboardLead')}</p>
               </Link>
-              <Link to="/app/archive" className="dashboard-tool-card">
+              <Link to="/app/archive" className="dashboard-tool-card dashboard-tool-card--orange">
                 <span>{t('shell.archive')}</span>
                 <strong>{t('adminDashboard.workspaceTools.archiveTitle')}</strong>
                 <p>{t('adminDashboard.workspaceTools.archiveLead')}</p>
               </Link>
-              <Link to="/app/messages" className="dashboard-tool-card">
+              <Link to="/app/messages" className="dashboard-tool-card dashboard-tool-card--berry">
                 <span>{t('shell.messages')}</span>
                 <strong>{t('adminDashboard.workspaceTools.messagesTitle')}</strong>
                 <p>{t('adminDashboard.workspaceTools.messagesLead')}</p>
@@ -1645,11 +1645,11 @@ export default function AdminDashboardPage() {
       <article id="admin-manage-tournament" className="card panel-card">
         <h2>{t('adminDashboard.manageTournamentTitle')}</h2>
 
-          <label className="field" htmlFor="admin-tournament-select">
+          <label className="field admin-tournament-picker" htmlFor="admin-tournament-select">
             <span>{t('adminDashboard.tournamentLabel')}</span>
             <select
               id="admin-tournament-select"
-              className="select-input"
+              className="select-input admin-tournament-picker-select"
               value={selectedTournamentId}
               onChange={(event) => setSelectedTournamentId(event.target.value)}
             >
@@ -1693,7 +1693,7 @@ export default function AdminDashboardPage() {
                     <button
                       key={status}
                       type="button"
-                      className="button button-soft"
+                      className="button button-soft tournament-status-action"
                       disabled={statusLoading}
                       onClick={() => updateTournamentStatus(status)}
                     >
@@ -1768,7 +1768,7 @@ export default function AdminDashboardPage() {
               <span>{t('schedule.form.type')}</span>
               <select
                 id="admin-schedule-type"
-                className="select-input"
+                className="select-input admin-tournament-picker-select"
                 value={scheduleType}
                 onChange={(event) =>
                   setScheduleType(event.target.value as TournamentScheduleEventType)
@@ -1822,7 +1822,7 @@ export default function AdminDashboardPage() {
           <div className="schedule-form-actions">
             <button
               type="submit"
-              className="button button-primary"
+              className="button button-primary admin-primary-action"
               disabled={scheduleOp.loading || !selectedTournamentId}
             >
               {scheduleOp.loading
@@ -2009,7 +2009,7 @@ export default function AdminDashboardPage() {
                   <div className="round-actions">
                     <button
                       type="button"
-                      className="button button-soft"
+                      className="button button-soft admin-primary-action"
                       disabled={op.loading}
                       onClick={() => changeRoundStatus(round.id, 'ACTIVE')}
                     >
@@ -2017,7 +2017,7 @@ export default function AdminDashboardPage() {
                     </button>
                     <button
                       type="button"
-                      className="button button-soft"
+                      className="button button-soft admin-primary-action"
                       disabled={op.loading}
                       onClick={() => changeRoundStatus(round.id, 'SUBMISSION_CLOSED')}
                     >
@@ -2028,7 +2028,7 @@ export default function AdminDashboardPage() {
                   <div className="round-actions">
                     <button
                       type="button"
-                      className="button button-soft"
+                      className="button button-soft admin-primary-action"
                       disabled={op.loading}
                       onClick={() => finishEvaluation(round.id, false)}
                     >
@@ -2036,7 +2036,7 @@ export default function AdminDashboardPage() {
                     </button>
                     <button
                       type="button"
-                      className="button button-soft"
+                      className="button button-soft admin-primary-action"
                       disabled={op.loading}
                       onClick={() => finishEvaluation(round.id, true)}
                     >
@@ -2081,7 +2081,7 @@ export default function AdminDashboardPage() {
 
                     <button
                       type="button"
-                      className="button button-primary"
+                      className="button button-primary admin-distribute-action"
                       disabled={op.loading}
                       onClick={() => distributeAssignments(round.id)}
                     >
