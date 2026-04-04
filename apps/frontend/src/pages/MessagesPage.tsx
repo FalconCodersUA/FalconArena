@@ -856,7 +856,7 @@ export default function MessagesPage() {
         </div>
       </article>
 
-      <article className="card panel-card">
+      <article className="card panel-card messages-summary-panel">
         <div className="summary-grid compact-summary-grid">
           <div className="summary-card">
             <span>{t('messagesPage.summary.notificationsUnread')}</span>
@@ -886,7 +886,7 @@ export default function MessagesPage() {
         </div>
       </article>
 
-      <article className="card panel-card">
+      <article className="card panel-card messages-tabs-panel">
         <div className="filters-row messages-section-tabs">
           {(['all', 'notifications', 'announcements', 'dialogs'] as MessagesSection[]).map((section) => (
             <button

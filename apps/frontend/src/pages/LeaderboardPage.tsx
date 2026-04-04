@@ -389,7 +389,7 @@ export default function LeaderboardPage() {
       </article>
 
       {leaderboard ? (
-        <article id="leaderboard-summary" className="card panel-card">
+        <article id="leaderboard-summary" className="card panel-card leaderboard-summary-panel">
           <h2>{t('leaderboard.summaryTitle')}</h2>
           <div className="summary-grid">
             <div className="summary-card">
@@ -425,7 +425,7 @@ export default function LeaderboardPage() {
         </article>
       ) : null}
 
-      <article className="card panel-card">
+      <article className="card panel-card leaderboard-selector-panel">
         <label className="field" htmlFor="leaderboard-tournament-select">
           <span>{t('leaderboard.tournamentLabel')}</span>
           <select
@@ -450,7 +450,7 @@ export default function LeaderboardPage() {
         </div>
       </article>
 
-      <article id="leaderboard-results" className="card panel-card">
+      <article id="leaderboard-results" className="card panel-card leaderboard-results-panel">
         <div className="messages-controls">
           <div className="messages-controls-text">
             <h2>{t('leaderboard.resultsTitle')}</h2>

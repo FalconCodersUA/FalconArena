@@ -1257,31 +1257,57 @@ export default function AdminDashboardPage() {
         <p className="lead">{t('adminDashboard.lead')}</p>
       </header>
 
-      <article className="card panel-card dashboard-workspace-card">
-        <div className="dashboard-workspace-head">
-          <div className="dashboard-workspace-copy">
-            <p className="eyebrow dashboard-workspace-eyebrow">
-              {t('adminDashboard.workspaceEyebrow')}
-            </p>
-            <h2>{t('adminDashboard.workspaceTitle')}</h2>
-            <p>{t('adminDashboard.workspaceLead')}</p>
+      <article className="card panel-card dashboard-overview-card">
+        <div className="dashboard-overview-meta">
+          <div>
+            <p className="eyebrow">{t('adminDashboard.summaryTitle')}</p>
+            <h2>{t('shell.overview')}</h2>
+            <p>{t('adminDashboard.lead')}</p>
           </div>
-
-          <div className="dashboard-workspace-status">
+          <div className="dashboard-overview-status">
             <span>{t('adminDashboard.workspaceCurrentTournament')}</span>
             <strong>
               {selectedTournament?.title ?? t('adminDashboard.workspaceNoTournament')}
             </strong>
             <p>
               {selectedTournament
-                ? t(`tournaments.status.${selectedTournament.status}`)
+                ? `${t(`tournaments.status.${selectedTournament.status}`)} · ${rounds.length} ${t('adminDashboard.summary.rounds').toLowerCase()}`
                 : t('adminDashboard.workspaceStatusEmpty')}
             </p>
           </div>
         </div>
 
-        <div className="dashboard-workspace-grid">
-          <div className="dashboard-quick-actions dashboard-quick-actions--workspace">
+        <div className="dashboard-overview-top">
+          <div className="dashboard-summary-tiles">
+            <article className="dashboard-highlight-tile">
+              <div className="dashboard-tile-head">
+                <span>{t('adminDashboard.summary.running')}</span>
+                <span className="dashboard-tile-chip" aria-hidden />
+              </div>
+              <strong>{runningTournaments}</strong>
+              <div className="dashboard-tile-foot">
+                <a href="#admin-manage-tournament">{t('shell.viewAll')}</a>
+                <span>
+                  +{runningDelta} {t('shell.thisMonth')}
+                </span>
+              </div>
+            </article>
+            <article className="dashboard-muted-tile">
+              <div className="dashboard-tile-head">
+                <span>{t('adminDashboard.summary.tournaments')}</span>
+                <span className="dashboard-tile-chip muted" aria-hidden />
+              </div>
+              <strong>{metrics.summary.tournamentsTotal}</strong>
+              <div className="dashboard-tile-foot">
+                <a href="#admin-rounds">{t('shell.viewAll')}</a>
+                <span>
+                  +{totalDelta} {t('shell.thisMonth')}
+                </span>
+              </div>
+            </article>
+          </div>
+
+          <div className="dashboard-quick-actions">
             <div className="dashboard-quick-head">
               <div>
                 <strong>{t('shell.quickActions')}</strong>
@@ -1314,170 +1340,6 @@ export default function AdminDashboardPage() {
               {t('adminDashboard.userForm.createUser')}
             </button>
           </div>
-
-          <article className="dashboard-workspace-panel">
-            <div className="dashboard-workspace-panel-head">
-              <h3>{t('adminDashboard.workspaceChecklistTitle')}</h3>
-              <p>{t('adminDashboard.workspaceChecklistLead')}</p>
-            </div>
-            <div className="dashboard-checklist">
-              {checklistItems.map((item) => (
-                <div
-                  key={item.id}
-                  className={`dashboard-checklist-item${item.done ? ' is-done' : ''}`}
-                >
-                  <span className="dashboard-checklist-bullet" aria-hidden />
-                  <div>
-                    <strong>{item.title}</strong>
-                    <p>{item.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </article>
-
-          <article className="dashboard-workspace-panel">
-            <div className="dashboard-workspace-panel-head">
-              <h3>{t('adminDashboard.workspaceToolsTitle')}</h3>
-              <p>{t('adminDashboard.workspaceToolsLead')}</p>
-            </div>
-            <div className="dashboard-toolset-grid">
-              <Link to="/app/integrations" className="dashboard-tool-card">
-                <span>{t('shell.integrations')}</span>
-                <strong>{t('adminDashboard.workspaceTools.integrationsTitle')}</strong>
-                <p>{t('adminDashboard.workspaceTools.integrationsLead')}</p>
-              </Link>
-              <Link to="/app/leaderboard" className="dashboard-tool-card">
-                <span>{t('shell.leaderboard')}</span>
-                <strong>{t('adminDashboard.workspaceTools.leaderboardTitle')}</strong>
-                <p>{t('adminDashboard.workspaceTools.leaderboardLead')}</p>
-              </Link>
-              <Link to="/app/archive" className="dashboard-tool-card">
-                <span>{t('shell.archive')}</span>
-                <strong>{t('adminDashboard.workspaceTools.archiveTitle')}</strong>
-                <p>{t('adminDashboard.workspaceTools.archiveLead')}</p>
-              </Link>
-              <Link to="/app/messages" className="dashboard-tool-card">
-                <span>{t('shell.messages')}</span>
-                <strong>{t('adminDashboard.workspaceTools.messagesTitle')}</strong>
-                <p>{t('adminDashboard.workspaceTools.messagesLead')}</p>
-              </Link>
-            </div>
-          </article>
-        </div>
-
-        <article className="dashboard-onboarding-card">
-          <div className="dashboard-workspace-panel-head">
-            <h3>{t('adminDashboard.onboarding.title')}</h3>
-            <p>{t('adminDashboard.onboarding.lead')}</p>
-          </div>
-          <div className="onboarding-grid">
-            {onboardingSteps.map((step, index) => (
-              <article key={step.id} className="onboarding-card">
-                <span className="onboarding-step">{index + 1}</span>
-                <strong>{step.title}</strong>
-                <p>{step.lead}</p>
-                <div className="onboarding-card-actions">
-                  {step.id === 'tournament' ? (
-                    <>
-                      <button
-                        type="button"
-                        className="button button-soft"
-                        onClick={() => openQuickModal('createTournament')}
-                      >
-                        {t('adminDashboard.form.createTournament')}
-                      </button>
-                      <a href="#admin-manage-tournament" className="button button-ghost">
-                        {t('adminDashboard.manageTournamentTitle')}
-                      </a>
-                    </>
-                  ) : null}
-                  {step.id === 'round' ? (
-                    <>
-                      <button
-                        type="button"
-                        className="button button-soft"
-                        onClick={() => openQuickModal('createRound')}
-                        disabled={!selectedTournament}
-                      >
-                        {t('adminDashboard.form.createRound')}
-                      </button>
-                      <a href="#admin-schedule" className="button button-ghost">
-                        {t('schedule.title')}
-                      </a>
-                    </>
-                  ) : null}
-                  {step.id === 'evaluation' ? (
-                    <>
-                      <a href="#admin-rounds" className="button button-soft">
-                        {t('adminDashboard.roundsTitle')}
-                      </a>
-                      <Link to="/app/leaderboard" className="button button-ghost">
-                        {t('shell.leaderboard')}
-                      </Link>
-                    </>
-                  ) : null}
-                </div>
-              </article>
-            ))}
-          </div>
-        </article>
-      </article>
-
-      <article className="card panel-card dashboard-overview-card">
-        <div className="dashboard-overview-top">
-          <div className="dashboard-summary-tiles">
-            <article className="dashboard-highlight-tile">
-              <div className="dashboard-tile-head">
-                <span>{t('adminDashboard.summary.running')}</span>
-                <span className="dashboard-tile-chip" aria-hidden />
-              </div>
-              <strong>{runningTournaments}</strong>
-              <div className="dashboard-tile-foot">
-                <a href="#admin-manage-tournament">{t('shell.viewAll')}</a>
-                <span>
-                  +{runningDelta} {t('shell.thisMonth')}
-                </span>
-              </div>
-            </article>
-            <article className="dashboard-muted-tile">
-              <div className="dashboard-tile-head">
-                <span>{t('adminDashboard.summary.tournaments')}</span>
-                <span className="dashboard-tile-chip muted" aria-hidden />
-              </div>
-              <strong>{metrics.summary.tournamentsTotal}</strong>
-              <div className="dashboard-tile-foot">
-                <a href="#admin-rounds">{t('shell.viewAll')}</a>
-                <span>
-                  +{totalDelta} {t('shell.thisMonth')}
-                </span>
-              </div>
-            </article>
-          </div>
-
-          <article className="dashboard-insight-card">
-            <div className="dashboard-insight-head">
-              <span>{t('adminDashboard.focusTitle')}</span>
-              <a href="#admin-manage-tournament">{t('shell.open')}</a>
-            </div>
-            <strong>
-              {selectedTournament?.title ?? t('adminDashboard.workspaceNoTournament')}
-            </strong>
-            <p>
-              {selectedTournament
-                ? `${t(`tournaments.status.${selectedTournament.status}`)} · ${rounds.length} ${t('adminDashboard.summary.rounds').toLowerCase()}`
-                : t('adminDashboard.focusEmpty')}
-            </p>
-            <div className="dashboard-insight-metrics">
-              <span>
-                {metrics.summary.registrationTournaments}{' '}
-                {t('adminDashboard.focusMetrics.registrationShort')}
-              </span>
-              <span>
-                {activeRounds} {t('adminDashboard.focusMetrics.activeRoundsShort')}
-              </span>
-            </div>
-          </article>
         </div>
 
         <div className="dashboard-overview-bottom">
@@ -1586,7 +1448,7 @@ export default function AdminDashboardPage() {
             )}
           </article>
 
-          <article className="dashboard-mini-card">
+          <article className="dashboard-mini-card is-history-highlight">
             <h3>{t('shell.activityHistory')}</h3>
             <p className="dashboard-mini-lead">{t('adminDashboard.activityFeed.lead')}</p>
             {hasActivityMetrics ? (
@@ -1597,8 +1459,8 @@ export default function AdminDashboardPage() {
               </div>
             ) : null}
             {adminActivityFeed.length > 0 ? (
-              <div className="activity-feed-list">
-                {adminActivityFeed.map((item) => (
+              <div className="activity-feed-list is-compact">
+                {adminActivityFeed.slice(0, 3).map((item) => (
                   <article key={item.id} className={`activity-feed-item is-${item.accent}`}>
                     <span className="activity-feed-dot" aria-hidden />
                     <div>
@@ -1614,6 +1476,170 @@ export default function AdminDashboardPage() {
           </article>
         </div>
 
+      </article>
+
+      <article className="card panel-card dashboard-workspace-card">
+        <div className="dashboard-workspace-head">
+          <div className="dashboard-workspace-copy">
+            <p className="eyebrow dashboard-workspace-eyebrow">
+              {t('adminDashboard.workspaceEyebrow')}
+            </p>
+            <h2>{t('adminDashboard.workspaceTitle')}</h2>
+            <p>{t('adminDashboard.workspaceLead')}</p>
+          </div>
+
+          <div className="dashboard-workspace-status">
+            <span>{t('adminDashboard.focusTitle')}</span>
+            <strong>
+              {selectedTournament?.title ?? t('adminDashboard.workspaceNoTournament')}
+            </strong>
+            <p>{selectedTournament ? t(`tournaments.status.${selectedTournament.status}`) : t('adminDashboard.focusEmpty')}</p>
+          </div>
+        </div>
+
+        <div className="dashboard-workspace-grid">
+          <article className="dashboard-insight-card">
+            <div className="dashboard-insight-head">
+              <span>{t('shell.overview')}</span>
+              <a href="#admin-manage-tournament">{t('shell.open')}</a>
+            </div>
+            <strong>
+              {selectedTournament?.title ?? t('adminDashboard.workspaceNoTournament')}
+            </strong>
+            <p>
+              {selectedTournament
+                ? `${metrics.summary.registrationTournaments} ${t('adminDashboard.focusMetrics.registrationShort').toLowerCase()} · ${activeRounds} ${t('adminDashboard.focusMetrics.activeRoundsShort').toLowerCase()}`
+                : t('adminDashboard.focusEmpty')}
+            </p>
+            <div className="dashboard-insight-metrics">
+              <span>
+                {metrics.summary.roundsTotal} {t('adminDashboard.summary.rounds').toLowerCase()}
+              </span>
+              <span>
+                {evaluatedRounds} {t('adminDashboard.summary.evaluatedRounds').toLowerCase()}
+              </span>
+            </div>
+          </article>
+
+          <article className="dashboard-workspace-panel">
+            <div className="dashboard-workspace-panel-head">
+              <h3>{t('adminDashboard.workspaceChecklistTitle')}</h3>
+              <p>{t('adminDashboard.workspaceChecklistLead')}</p>
+            </div>
+            <div className="dashboard-checklist">
+              {checklistItems.map((item) => (
+                <div
+                  key={item.id}
+                  className={`dashboard-checklist-item${item.done ? ' is-done' : ''}`}
+                >
+                  <span className="dashboard-checklist-bullet" aria-hidden />
+                  <div>
+                    <strong>{item.title}</strong>
+                    <p>{item.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="dashboard-workspace-panel">
+            <div className="dashboard-workspace-panel-head">
+              <h3>{t('adminDashboard.workspaceToolsTitle')}</h3>
+              <p>{t('adminDashboard.workspaceToolsLead')}</p>
+            </div>
+            <div className="dashboard-toolset-grid">
+              <Link to="/app/integrations" className="dashboard-tool-card">
+                <span>{t('shell.integrations')}</span>
+                <strong>{t('adminDashboard.workspaceTools.integrationsTitle')}</strong>
+                <p>{t('adminDashboard.workspaceTools.integrationsLead')}</p>
+              </Link>
+              <Link to="/app/leaderboard" className="dashboard-tool-card">
+                <span>{t('shell.leaderboard')}</span>
+                <strong>{t('adminDashboard.workspaceTools.leaderboardTitle')}</strong>
+                <p>{t('adminDashboard.workspaceTools.leaderboardLead')}</p>
+              </Link>
+              <Link to="/app/archive" className="dashboard-tool-card">
+                <span>{t('shell.archive')}</span>
+                <strong>{t('adminDashboard.workspaceTools.archiveTitle')}</strong>
+                <p>{t('adminDashboard.workspaceTools.archiveLead')}</p>
+              </Link>
+              <Link to="/app/messages" className="dashboard-tool-card">
+                <span>{t('shell.messages')}</span>
+                <strong>{t('adminDashboard.workspaceTools.messagesTitle')}</strong>
+                <p>{t('adminDashboard.workspaceTools.messagesLead')}</p>
+              </Link>
+            </div>
+          </article>
+        </div>
+
+        <article className="dashboard-onboarding-card">
+          <div className="dashboard-workspace-panel-head">
+            <h3>{t('adminDashboard.onboarding.title')}</h3>
+            <p>{t('adminDashboard.onboarding.lead')}</p>
+          </div>
+          <div className="onboarding-grid">
+            {onboardingSteps.map((step, index) => (
+              <article key={step.id} className="onboarding-card">
+                <span className="onboarding-step">{index + 1}</span>
+                <strong>{step.title}</strong>
+                <p>{step.lead}</p>
+                <div className="onboarding-card-actions">
+                  {step.id === 'tournament' ? (
+                    <>
+                      <button
+                        type="button"
+                        className="button button-soft onboarding-action-primary"
+                        onClick={() => openQuickModal('createTournament')}
+                      >
+                        {t('adminDashboard.form.createTournament')}
+                      </button>
+                      <a
+                        href="#admin-manage-tournament"
+                        className="button button-ghost onboarding-action-secondary"
+                      >
+                        {t('adminDashboard.manageTournamentTitle')}
+                      </a>
+                    </>
+                  ) : null}
+                  {step.id === 'round' ? (
+                    <>
+                      <button
+                        type="button"
+                        className="button button-soft onboarding-action-primary"
+                        onClick={() => openQuickModal('createRound')}
+                        disabled={!selectedTournament}
+                      >
+                        {t('adminDashboard.form.createRound')}
+                      </button>
+                      <a
+                        href="#admin-schedule"
+                        className="button button-ghost onboarding-action-secondary"
+                      >
+                        {t('schedule.title')}
+                      </a>
+                    </>
+                  ) : null}
+                  {step.id === 'evaluation' ? (
+                    <>
+                      <a
+                        href="#admin-rounds"
+                        className="button button-soft onboarding-action-primary"
+                      >
+                        {t('adminDashboard.roundsTitle')}
+                      </a>
+                      <Link
+                        to="/app/leaderboard"
+                        className="button button-ghost onboarding-action-secondary"
+                      >
+                        {t('shell.leaderboard')}
+                      </Link>
+                    </>
+                  ) : null}
+                </div>
+              </article>
+            ))}
+          </div>
+        </article>
       </article>
 
       <article id="admin-manage-tournament" className="card panel-card">

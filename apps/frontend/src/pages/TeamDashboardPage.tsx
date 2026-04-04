@@ -843,7 +843,24 @@ export default function TeamDashboardPage() {
         <p className="lead">{t('teamDashboard.lead')}</p>
       </header>
 
-      <article className="card panel-card dashboard-overview-card">
+      <article className="card panel-card dashboard-overview-card dashboard-overview-card--role">
+        <div className="dashboard-overview-meta">
+          <div>
+            <p className="eyebrow">{t('teamDashboard.eyebrow')}</p>
+            <h2>{t('shell.overview')}</h2>
+            <p>{t('teamDashboard.lead')}</p>
+          </div>
+          <div className="dashboard-overview-status">
+            <span>{t('teamDashboard.tournamentLabel')}</span>
+            <strong>{selectedTournament?.title ?? '-'}</strong>
+            <p>
+              {selectedTournament
+                ? t(`tournaments.status.${selectedTournament.status}`)
+                : t('teamDashboard.noTournaments')}
+            </p>
+          </div>
+        </div>
+
         <div className="dashboard-overview-top">
           <div className="dashboard-summary-tiles">
             <article className="dashboard-highlight-tile">
