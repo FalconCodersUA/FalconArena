@@ -9,6 +9,7 @@ import { useI18n } from '../i18n/I18nProvider';
 
 type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
 type RoundStatus = 'DRAFT' | 'ACTIVE' | 'SUBMISSION_CLOSED' | 'EVALUATED';
+type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
 
 type AuthMe = {
   id: string;
@@ -20,6 +21,7 @@ type AuthMe = {
 type Tournament = {
   id: string;
   title: string;
+  status: TournamentStatus;
 };
 
 type Round = {
@@ -258,6 +260,10 @@ export default function JuryDashboardPage() {
   const selectedAssignment = useMemo(
     () => assignments.find((entry) => entry.id === selectedAssignmentId) ?? null,
     [assignments, selectedAssignmentId],
+  );
+  const selectedTournament = useMemo(
+    () => tournaments.find((entry) => entry.id === selectedTournamentId) ?? null,
+    [tournaments, selectedTournamentId],
   );
   const selectedRound = useMemo(
     () => rounds.find((entry) => entry.id === selectedRoundId) ?? null,
@@ -579,7 +585,24 @@ export default function JuryDashboardPage() {
         <p className="lead">{t('juryDashboard.lead')}</p>
       </header>
 
-      <article className="card panel-card dashboard-overview-card">
+      <article className="card panel-card dashboard-overview-card dashboard-overview-card--role">
+        <div className="dashboard-overview-meta">
+          <div>
+            <p className="eyebrow">{t('juryDashboard.eyebrow')}</p>
+            <h2>{t('shell.overview')}</h2>
+            <p>{t('juryDashboard.lead')}</p>
+          </div>
+          <div className="dashboard-overview-status">
+            <span>{t('juryDashboard.tournamentLabel')}</span>
+            <strong>{selectedTournament?.title ?? '-'}</strong>
+            <p>
+              {selectedTournament
+                ? `${t(`tournaments.status.${selectedTournament.status}`)} · ${rounds.length} ${t('adminDashboard.summary.rounds').toLowerCase()}`
+                : t('juryDashboard.noTournaments')}
+            </p>
+          </div>
+        </div>
+
         <div className="dashboard-overview-top">
           <div className="dashboard-summary-tiles">
             <article className="dashboard-highlight-tile">
