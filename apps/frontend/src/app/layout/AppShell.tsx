@@ -146,6 +146,7 @@ export default function AppShell() {
   const [alerts, setAlerts] = useState<TopbarNotification[]>([]);
   const [unreadAlertsCount, setUnreadAlertsCount] = useState(0);
   const [unreadAlertIds, setUnreadAlertIds] = useState<string[]>([]);
+  const [unreadDialogsCount, setUnreadDialogsCount] = useState(0);
   const [showOnlyUnreadAlerts, setShowOnlyUnreadAlerts] = useState(false);
   const searchRef = useRef<HTMLDivElement | null>(null);
   const alertsRef = useRef<HTMLDivElement | null>(null);
@@ -171,6 +172,7 @@ export default function AppShell() {
       setProfileAvatarUrl('');
       setUnreadAlertsCount(0);
       setUnreadAlertIds([]);
+      setUnreadDialogsCount(0);
       setShowOnlyUnreadAlerts(false);
       return;
     }
@@ -205,6 +207,7 @@ export default function AppShell() {
           setProfileAvatarUrl('');
           setUnreadAlertsCount(0);
           setUnreadAlertIds([]);
+          setUnreadDialogsCount(0);
           setShowOnlyUnreadAlerts(false);
           navigate('/app/login', { replace: true });
         }
@@ -221,6 +224,7 @@ export default function AppShell() {
     setProfileAvatarUrl('');
     setUnreadAlertsCount(0);
     setUnreadAlertIds([]);
+    setUnreadDialogsCount(0);
     setShowOnlyUnreadAlerts(false);
     navigate('/app/login', { replace: true });
   }
@@ -440,6 +444,7 @@ export default function AppShell() {
     }
 
     void loadTopbarAlerts({ showLoading: false, markAsSeen: false });
+    void loadTopbarDialogsUnreadCount();
   }, [authed, currentUserId, isAuthRoute]);
 
   useEffect(() => {
@@ -538,6 +543,7 @@ export default function AppShell() {
       }
 
       void loadTopbarAlerts({ showLoading: false, markAsSeen: false });
+      void loadTopbarDialogsUnreadCount();
     }, 45000);
 
     return () => {
@@ -596,6 +602,15 @@ export default function AppShell() {
     }
   }
 
+  async function loadTopbarDialogsUnreadCount() {
+    try {
+      const dialogs = await apiRequest<SearchCatalogDialog[]>('/messages/dialogs');
+      setUnreadDialogsCount(dialogs.filter((item) => item.isUnread).length);
+    } catch {
+      setUnreadDialogsCount(0);
+    }
+  }
+
   async function toggleAlerts() {
     if (!authed) {
       navigate('/app/login');
@@ -616,6 +631,12 @@ export default function AppShell() {
     setAlertsOpen(false);
     setSearchOpen(false);
     navigate(`/app/messages?section=notifications&notification=${notificationId}`);
+  }
+
+  function openDialogsInbox() {
+    setAlertsOpen(false);
+    setSearchOpen(false);
+    navigate('/app/messages?section=dialogs');
   }
 
   function onSearchSubmit(event: FormEvent) {
@@ -933,6 +954,33 @@ export default function AppShell() {
               ) : null}
 
               <div className="app-topbar-alerts-wrap" ref={alertsRef}>
+                <button
+                  type="button"
+                  className={`app-topbar-icon app-topbar-mail${unreadDialogsCount > 0 ? ' has-unread' : ''}`}
+                  aria-label={t('shell.messagesInboxAria')}
+                  onClick={openDialogsInbox}
+                >
+                  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M4.2 5.4H15.8C16.35 5.4 16.8 5.85 16.8 6.4V13.6C16.8 14.15 16.35 14.6 15.8 14.6H4.2C3.65 14.6 3.2 14.15 3.2 13.6V6.4C3.2 5.85 3.65 5.4 4.2 5.4Z"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M4 6L10 10.4L16 6"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  {unreadDialogsCount > 0 ? (
+                    <span className="app-topbar-mail-badge" aria-hidden>
+                      {unreadDialogsCount > 99 ? '99+' : unreadDialogsCount}
+                    </span>
+                  ) : null}
+                </button>
+
                 <button
                   type="button"
                   className={`app-topbar-icon${alertsOpen ? ' active' : ''}`}
