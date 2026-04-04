@@ -122,6 +122,31 @@ describe('AppShell', () => {
         };
       }
 
+      if (path === '/messages/dialogs') {
+        return [
+          {
+            id: 'dialog-1',
+            createdAt: '2026-03-21T09:00:00.000Z',
+            updatedAt: '2026-03-21T10:00:00.000Z',
+            otherUser: {
+              id: 'user-2',
+              email: 'jury@example.com',
+              fullName: 'Jury User',
+              role: 'JURY',
+            },
+            lastMessage: {
+              id: 'message-1',
+              conversationId: 'dialog-1',
+              senderId: 'user-2',
+              body: 'Please review this update',
+              createdAt: '2026-03-21T09:55:00.000Z',
+              updatedAt: '2026-03-21T09:55:00.000Z',
+            },
+            isUnread: true,
+          },
+        ];
+      }
+
       throw new Error(`Unexpected request: ${path}`);
     });
 
@@ -187,6 +212,10 @@ describe('AppShell', () => {
         };
       }
 
+      if (path === '/messages/dialogs') {
+        return [];
+      }
+
       throw new Error(`Unexpected request: ${path}`);
     });
 
@@ -240,6 +269,10 @@ describe('AppShell', () => {
         };
       }
 
+      if (path === '/messages/dialogs') {
+        return [];
+      }
+
       throw new Error(`Unexpected request: ${path}`);
     });
 
@@ -254,5 +287,90 @@ describe('AppShell', () => {
     expect(
       mockedApiRequest.mock.calls.filter((call) => call[0] === '/auth/me').length,
     ).toBeGreaterThanOrEqual(2);
+  });
+
+  it('shows unread direct messages badge and opens dialogs section', async () => {
+    seedAuthedUser();
+
+    mockedApiRequest.mockImplementation(async (path: string) => {
+      if (path === '/platform/defaults') {
+        return {
+          defaultProjectTimeZone: 'Europe/Kyiv',
+        };
+      }
+
+      if (path === '/auth/me') {
+        return {
+          id: 'user-1',
+          email: 'user1@example.com',
+          fullName: 'User One',
+          role: 'TEAM',
+        };
+      }
+
+      if (path === '/profile/settings') {
+        return { edit: { avatarUrl: '' } };
+      }
+
+      if (path === '/notifications') {
+        return [];
+      }
+
+      if (path === '/messages/dialogs') {
+        return [
+          {
+            id: 'dialog-1',
+            createdAt: '2026-03-21T09:00:00.000Z',
+            updatedAt: '2026-03-21T10:00:00.000Z',
+            otherUser: {
+              id: 'user-2',
+              email: 'admin@example.com',
+              fullName: 'Admin User',
+              role: 'ADMIN',
+            },
+            lastMessage: {
+              id: 'message-1',
+              conversationId: 'dialog-1',
+              senderId: 'user-2',
+              body: 'New private message',
+              createdAt: '2026-03-21T09:55:00.000Z',
+              updatedAt: '2026-03-21T09:55:00.000Z',
+            },
+            isUnread: true,
+          },
+          {
+            id: 'dialog-2',
+            createdAt: '2026-03-20T09:00:00.000Z',
+            updatedAt: '2026-03-20T10:00:00.000Z',
+            otherUser: {
+              id: 'user-3',
+              email: 'team@example.com',
+              fullName: 'Team User',
+              role: 'TEAM',
+            },
+            lastMessage: null,
+            isUnread: false,
+          },
+        ];
+      }
+
+      throw new Error(`Unexpected request: ${path}`);
+    });
+
+    const view = renderShell();
+
+    await waitFor(() => {
+      const badge = view.container.querySelector('.app-topbar-mail-badge');
+      expect(badge).toBeInTheDocument();
+      expect(badge?.textContent).toBe('1');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Direct messages' }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location-probe')).toHaveTextContent(
+        '/app/messages?section=dialogs',
+      );
+    });
   });
 });
