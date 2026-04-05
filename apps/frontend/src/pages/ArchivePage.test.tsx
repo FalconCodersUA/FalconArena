@@ -160,7 +160,7 @@ describe('ArchivePage', () => {
 
     expect(screen.getAllByText('Falcon Final 2026').length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Falcons/).length).toBeGreaterThan(0);
-    expect(screen.getByText('Round 1. Round 1')).toBeInTheDocument();
+    expect(screen.getByText('Round 1')).toBeInTheDocument();
     expect(screen.getByText('Submitted final version.')).toBeInTheDocument();
   });
 });

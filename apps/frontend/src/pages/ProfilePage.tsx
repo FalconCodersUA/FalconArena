@@ -1270,8 +1270,11 @@ export default function ProfilePage() {
                     <>
                       <h3>{t('profile.team.historyTitle')}</h3>
                       <div className="profile-history-list">
-                        {item.submissionHistory.map((entry) => (
-                          <article key={`${item.tournamentId}-${entry.roundId}`} className="profile-history-card">
+                          {item.submissionHistory.map((entry, index) => (
+                            <article
+                              key={`${item.tournamentId}-${entry.roundId || entry.roundTitle || index}`}
+                              className="profile-history-card"
+                            >
                             <p>
                               <strong>
                                 {t('profile.team.round')}: {entry.roundTitle}
