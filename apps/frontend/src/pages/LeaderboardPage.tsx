@@ -325,7 +325,7 @@ export default function LeaderboardPage() {
         <div className="dashboard-toolset-grid leaderboard-toolset-grid">
           <button
             type="button"
-            className="dashboard-tool-card dashboard-tool-button"
+            className="dashboard-tool-card dashboard-tool-card--teal dashboard-tool-button"
             onClick={() =>
               document
                 .getElementById('leaderboard-summary')
@@ -339,7 +339,7 @@ export default function LeaderboardPage() {
           </button>
           <button
             type="button"
-            className="dashboard-tool-card dashboard-tool-button"
+            className="dashboard-tool-card dashboard-tool-card--purple dashboard-tool-button"
             onClick={() =>
               document
                 .getElementById('leaderboard-results')
@@ -353,7 +353,7 @@ export default function LeaderboardPage() {
           </button>
           <button
             type="button"
-            className="dashboard-tool-card dashboard-tool-button"
+            className="dashboard-tool-card dashboard-tool-card--orange dashboard-tool-button"
             onClick={() => void loadLeaderboard(selectedTournamentId)}
             disabled={!selectedTournamentId}
           >
@@ -377,7 +377,7 @@ export default function LeaderboardPage() {
               href={buildApiUrl(
                 `/tournaments/${selectedTournamentId}/leaderboard/export.csv`,
               )}
-              className="dashboard-tool-card"
+              className="dashboard-tool-card dashboard-tool-card--berry"
             >
               <span>{t('leaderboard.exportCsv')}</span>
               <strong>{t('leaderboard.workspaceCards.exportTitle')}</strong>

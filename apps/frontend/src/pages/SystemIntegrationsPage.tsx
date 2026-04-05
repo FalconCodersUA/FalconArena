@@ -486,6 +486,20 @@ export default function SystemIntegrationsPage() {
       target: '#integrations-defaults',
     },
   ];
+  const workspaceCardClassName = (cardId: string) => {
+    switch (cardId) {
+      case 'integrations-google':
+        return 'dashboard-tool-card dashboard-tool-card--teal';
+      case 'integrations-email':
+        return 'dashboard-tool-card dashboard-tool-card--purple';
+      case 'integrations-defaults':
+        return 'dashboard-tool-card dashboard-tool-card--orange';
+      case 'integrations-rules':
+        return 'dashboard-tool-card dashboard-tool-card--berry';
+      default:
+        return 'dashboard-tool-card';
+    }
+  };
 
   return (
     <section className="team-dashboard">
@@ -513,7 +527,7 @@ export default function SystemIntegrationsPage() {
 
         <div className="dashboard-toolset-grid integrations-toolset-grid">
           {operationalCards.map((card) => (
-            <a key={card.id} href={`#${card.id}`} className="dashboard-tool-card">
+            <a key={card.id} href={`#${card.id}`} className={workspaceCardClassName(card.id)}>
               <span>{card.eyebrow}</span>
               <strong>{card.title}</strong>
               <p>{card.lead}</p>

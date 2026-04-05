@@ -267,7 +267,7 @@ export default function TournamentsPage() {
         <div className="dashboard-toolset-grid tournaments-toolset-grid">
           <button
             type="button"
-            className="dashboard-tool-card dashboard-tool-button"
+            className="dashboard-tool-card dashboard-tool-card--teal dashboard-tool-button"
             onClick={() => setFilter('registrationOpen')}
           >
             <span>{t('tournaments.filters.registrationOpen')}</span>
@@ -277,7 +277,7 @@ export default function TournamentsPage() {
           </button>
           <button
             type="button"
-            className="dashboard-tool-card dashboard-tool-button"
+            className="dashboard-tool-card dashboard-tool-card--purple dashboard-tool-button"
             onClick={() => setFilter('running')}
           >
             <span>{t('tournaments.filters.running')}</span>
@@ -287,7 +287,7 @@ export default function TournamentsPage() {
           </button>
           <button
             type="button"
-            className="dashboard-tool-card dashboard-tool-button"
+            className="dashboard-tool-card dashboard-tool-card--orange dashboard-tool-button"
             onClick={() => setFilter('finished')}
           >
             <span>{t('tournaments.filters.finished')}</span>
@@ -295,7 +295,7 @@ export default function TournamentsPage() {
             <p>{t('tournaments.workspaceCards.archiveLead')}</p>
             <em>{finishedItems.length} {t('tournaments.workspaceCards.archiveSuffix')}</em>
           </button>
-          <Link to="/app/teams" className="dashboard-tool-card">
+          <Link to="/app/teams" className="dashboard-tool-card dashboard-tool-card--berry">
             <span>{t('shell.teams')}</span>
             <strong>{t('tournaments.workspaceCards.directoryTitle')}</strong>
             <p>{t('tournaments.workspaceCards.directoryLead')}</p>

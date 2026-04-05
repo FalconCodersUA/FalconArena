@@ -795,7 +795,7 @@ export default function MessagesPage() {
         <div className="dashboard-toolset-grid messages-toolset-grid">
           <button
             type="button"
-            className="dashboard-tool-card dashboard-tool-button"
+            className="dashboard-tool-card dashboard-tool-card--teal dashboard-tool-button"
             onClick={() => setActiveSection('notifications')}
           >
             <span>{t('messagesPage.sections.notifications')}</span>
@@ -807,7 +807,7 @@ export default function MessagesPage() {
           </button>
           <button
             type="button"
-            className="dashboard-tool-card dashboard-tool-button"
+            className="dashboard-tool-card dashboard-tool-card--purple dashboard-tool-button"
             onClick={() => setActiveSection('announcements')}
           >
             <span>{t('messagesPage.sections.announcements')}</span>
@@ -819,7 +819,7 @@ export default function MessagesPage() {
           </button>
           <button
             type="button"
-            className="dashboard-tool-card dashboard-tool-button"
+            className="dashboard-tool-card dashboard-tool-card--orange dashboard-tool-button"
             onClick={() => setActiveSection('dialogs')}
           >
             <span>{t('messagesPage.sections.dialogs')}</span>
@@ -831,7 +831,7 @@ export default function MessagesPage() {
           </button>
           <button
             type="button"
-            className="dashboard-tool-card dashboard-tool-button"
+            className="dashboard-tool-card dashboard-tool-card--berry dashboard-tool-button"
             onClick={() => {
               refreshNotifications();
               refreshFeed();
