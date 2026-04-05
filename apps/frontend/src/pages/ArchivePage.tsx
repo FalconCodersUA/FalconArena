@@ -165,6 +165,39 @@ function formatScoringFormula(
   }
 }
 
+function formatArchiveRoundTitle(
+  title: string,
+  sequence: number,
+  t: (key: string) => string,
+) {
+  const trimmedTitle = title.trim();
+  const legacyRoundMatch = trimmedTitle.match(/^Round\s+(.+)$/i);
+  const prefix = `${t('archivePage.roundPrefix')} ${sequence}`;
+
+  if (!legacyRoundMatch) {
+    return `${prefix}. ${trimmedTitle}`;
+  }
+
+  const suffix = legacyRoundMatch[1]?.trim();
+  if (!suffix || suffix === String(sequence)) {
+    return prefix;
+  }
+
+  return `${prefix}. ${suffix}`;
+}
+
+function formatArchiveRoundDescription(
+  description: string,
+  t: (key: string) => string,
+) {
+  const trimmedDescription = description.trim();
+  if (/^Description for\s+.+$/i.test(trimmedDescription)) {
+    return t('archivePage.roundDescriptionFallback');
+  }
+
+  return trimmedDescription;
+}
+
 export default function ArchivePage() {
   const { language, t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -573,14 +606,14 @@ export default function ArchivePage() {
                     ? t('archivePage.exportGoogleSheetsSubmitting')
                     : t('archivePage.exportGoogleSheets')}
                 </button>
-              ) : null}
-              <Link
-                to={`/app/leaderboard?tournamentId=${archive.tournament.id}`}
-                className="button button-primary"
-              >
-                {t('archivePage.openLeaderboard')}
-              </Link>
-            </div>
+                ) : null}
+                <Link
+                  to={`/app/leaderboard?tournamentId=${archive.tournament.id}`}
+                  className="button tournaments-card-action tournaments-card-action--purple"
+                >
+                  {t('archivePage.openLeaderboard')}
+                </Link>
+              </div>
 
             {googleSheetsNotice ? <p className="form-success">{googleSheetsNotice}</p> : null}
             {googleSheetsError ? <p className="form-error">{googleSheetsError}</p> : null}
@@ -709,13 +742,13 @@ export default function ArchivePage() {
                     </p>
                   </div>
 
-                  <div className="status-actions">
-                    <button
-                      type="button"
-                      className="button button-primary"
-                      disabled={savingTemplate}
-                      onClick={() => void saveCertificateTemplate()}
-                    >
+                    <div className="status-actions">
+                      <button
+                        type="button"
+                        className="button tournaments-card-action tournaments-card-action--purple"
+                        disabled={savingTemplate}
+                        onClick={() => void saveCertificateTemplate()}
+                      >
                       {savingTemplate
                         ? t('archivePage.certificates.saving')
                         : t('archivePage.certificates.save')}
@@ -806,22 +839,22 @@ export default function ArchivePage() {
                   </div>
 
                   {isManager ? (
-                    <div className="status-actions">
-                      <Link
-                        to={`/app/certificates?tournamentId=${archive.tournament.id}&teamId=${team.id}&kind=participation`}
-                        className="button button-soft"
-                      >
-                        {t('archivePage.certificates.participation')}
-                      </Link>
-                      {team.rank === 1 ? (
+                      <div className="status-actions">
                         <Link
-                          to={`/app/certificates?tournamentId=${archive.tournament.id}&teamId=${team.id}&kind=winner`}
-                          className="button button-primary"
+                          to={`/app/certificates?tournamentId=${archive.tournament.id}&teamId=${team.id}&kind=participation`}
+                          className="button tournaments-card-action tournaments-card-action--secondary"
                         >
-                          {t('archivePage.certificates.winner')}
+                          {t('archivePage.certificates.participation')}
                         </Link>
-                      ) : null}
-                    </div>
+                        {team.rank === 1 ? (
+                          <Link
+                            to={`/app/certificates?tournamentId=${archive.tournament.id}&teamId=${team.id}&kind=winner`}
+                            className="button tournaments-card-action tournaments-card-action--purple"
+                          >
+                            {t('archivePage.certificates.winner')}
+                          </Link>
+                        ) : null}
+                      </div>
                   ) : null}
                 </article>
               ))}
@@ -831,14 +864,14 @@ export default function ArchivePage() {
           <article className="card panel-card">
             <h2>{t('archivePage.roundsTitle')}</h2>
             <div className="archive-section-stack">
-              {archive.rounds.map((round) => (
-                <article key={round.id} className="archive-round-card">
-                  <div className="leaderboard-row-head">
-                    <strong>
-                      {t('archivePage.roundPrefix')} {round.sequence}. {round.title}
-                    </strong>
-                    <span>{t(`profile.status.${round.status}`)}</span>
-                  </div>
+                {archive.rounds.map((round) => (
+                  <article key={round.id} className="archive-round-card">
+                    <div className="leaderboard-row-head">
+                      <strong>
+                        {formatArchiveRoundTitle(round.title, round.sequence, t)}
+                      </strong>
+                      <span>{t(`profile.status.${round.status}`)}</span>
+                    </div>
 
                   <div className="meta-grid">
                     <div>
@@ -859,7 +892,7 @@ export default function ArchivePage() {
                     </div>
                   </div>
 
-                  <p className="inline-hint">{round.description}</p>
+                    <p className="inline-hint">{formatArchiveRoundDescription(round.description, t)}</p>
 
                   {round.submissions.length === 0 ? (
                     <p className="archive-empty-note state-callout subtle">{t('archivePage.noSubmissions')}</p>

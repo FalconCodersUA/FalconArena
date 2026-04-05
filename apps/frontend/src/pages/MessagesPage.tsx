@@ -110,6 +110,18 @@ function ensureListResponse<T>(value: unknown, errorMessage: string): T[] {
   return value as T[];
 }
 
+function normalizeRequestError(requestError: unknown, fallbackMessage: string) {
+  if (!(requestError instanceof Error)) {
+    return fallbackMessage;
+  }
+
+  if (/failed to fetch/i.test(requestError.message.trim())) {
+    return fallbackMessage;
+  }
+
+  return requestError.message;
+}
+
 export default function MessagesPage() {
   const { language, t } = useI18n();
   const location = useLocation();
@@ -241,7 +253,7 @@ export default function MessagesPage() {
       setNotifications(data);
     } catch (requestError) {
       setNotificationsError(
-        requestError instanceof Error ? requestError.message : t('messagesPage.notifications.loadFailed'),
+        normalizeRequestError(requestError, t('messagesPage.notifications.loadFailed')),
       );
     }
   }
@@ -926,13 +938,18 @@ export default function MessagesPage() {
             </button>
           </div>
 
-          {notificationsError ? <p className="form-error">{notificationsError}</p> : null}
-          {!notificationsError && notifications.length === 0 ? (
-            <div className="state-callout featured">
-              <strong>{t('messagesPage.notifications.title')}</strong>
-              <p>{t('messagesPage.notifications.empty')}</p>
-            </div>
-          ) : null}
+          <div className="messages-status-slot">
+            {notificationsError ? (
+              <div className="messages-status-note is-error">
+                <p>{notificationsError}</p>
+              </div>
+            ) : null}
+            {!notificationsError && notifications.length === 0 ? (
+              <div className="messages-status-note is-empty">
+                <p>{t('messagesPage.notifications.empty')}</p>
+              </div>
+            ) : null}
+          </div>
 
           {notifications.length > 0 ? (
             <div className="announcements-feed">
