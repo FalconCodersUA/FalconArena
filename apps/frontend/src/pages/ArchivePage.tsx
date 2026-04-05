@@ -416,7 +416,7 @@ export default function ArchivePage() {
         <div className="dashboard-toolset-grid archive-toolset-grid">
           <button
             type="button"
-            className="dashboard-tool-card dashboard-tool-button"
+            className="dashboard-tool-card dashboard-tool-card--teal dashboard-tool-button"
             onClick={() => document.getElementById('archive-summary')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
           >
             <span>{t('archivePage.summaryTitle')}</span>
@@ -426,7 +426,7 @@ export default function ArchivePage() {
           </button>
           <button
             type="button"
-            className="dashboard-tool-card dashboard-tool-button"
+            className="dashboard-tool-card dashboard-tool-card--purple dashboard-tool-button"
             onClick={() => document.getElementById('archive-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
           >
             <span>{t('archivePage.resultsTitle')}</span>
@@ -436,7 +436,7 @@ export default function ArchivePage() {
           </button>
           <button
             type="button"
-            className="dashboard-tool-card dashboard-tool-button"
+            className="dashboard-tool-card dashboard-tool-card--orange dashboard-tool-button"
             onClick={() => document.getElementById('archive-rounds')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
           >
             <span>{t('archivePage.roundsTitle')}</span>
@@ -447,7 +447,7 @@ export default function ArchivePage() {
           {isManager ? (
             <button
               type="button"
-              className="dashboard-tool-card dashboard-tool-button"
+              className="dashboard-tool-card dashboard-tool-card--berry dashboard-tool-button"
               onClick={() => document.getElementById('archive-certificates')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
             >
               <span>{t('archivePage.certificates.title')}</span>

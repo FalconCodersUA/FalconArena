@@ -210,6 +210,20 @@ export default function MonitoringPage() {
       userVisibleIncidents.length,
     ],
   );
+  const workspaceCardClassName = (cardId: string) => {
+    switch (cardId) {
+      case 'google':
+        return 'dashboard-tool-card dashboard-tool-card--teal';
+      case 'surface':
+        return 'dashboard-tool-card dashboard-tool-card--purple';
+      case 'email':
+        return 'dashboard-tool-card dashboard-tool-card--orange';
+      case 'failures':
+        return 'dashboard-tool-card dashboard-tool-card--berry';
+      default:
+        return 'dashboard-tool-card';
+    }
+  };
   const errorCountLabel = `${recentFailures} ${t('monitoring.errorCountSuffix')}`;
 
   if (loading) {
@@ -253,7 +267,7 @@ export default function MonitoringPage() {
 
         <div className="dashboard-toolset-grid monitoring-toolset-grid">
           {workspaceCards.map((card) => (
-            <article key={card.id} className="dashboard-tool-card">
+            <article key={card.id} className={workspaceCardClassName(card.id)}>
               <span>{card.eyebrow}</span>
               <strong>{card.title}</strong>
               <p>{card.lead}</p>

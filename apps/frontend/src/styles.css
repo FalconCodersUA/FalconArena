@@ -673,19 +673,19 @@ a {
 }
 
 .app-topbar-mail.has-unread {
-  color: #b51d0a;
-  border-color: rgba(181, 29, 10, 0.22);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 244, 240, 0.98) 100%);
+  color: #ff7a00;
+  border-color: rgba(255, 122, 0, 0.22);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 246, 238, 0.98) 100%);
   box-shadow:
-    0 10px 24px rgba(181, 29, 10, 0.12),
-    0 0 0 4px rgba(181, 29, 10, 0.08);
+    0 10px 24px rgba(255, 122, 0, 0.12),
+    0 0 0 4px rgba(255, 122, 0, 0.08);
 }
 
 .app-topbar-mail:hover,
 .app-topbar-mail.has-unread:hover {
-  color: #b51d0a;
-  border-color: rgba(181, 29, 10, 0.24);
-  background: linear-gradient(180deg, #fff5f2 0%, #ffece6 100%);
+  color: #ff7a00;
+  border-color: rgba(255, 122, 0, 0.26);
+  background: linear-gradient(180deg, #fff8f2 0%, #ffefe0 100%);
 }
 
 .app-topbar-mail-badge {
@@ -695,14 +695,14 @@ a {
   min-width: 16px;
   height: 16px;
   border-radius: 999px;
-  background: #b51d0a;
+  background: #ff7a00;
   color: #fff;
   font-size: 0.62rem;
   font-weight: 800;
   line-height: 16px;
   padding: 0 4px;
   text-align: center;
-  box-shadow: 0 6px 14px rgba(181, 29, 10, 0.24);
+  box-shadow: 0 6px 14px rgba(255, 122, 0, 0.24);
 }
 
 .app-topbar-icon svg {
@@ -1868,12 +1868,68 @@ a {
   border: 1px solid #e9e1f4;
   border-radius: 18px;
   background:
-    radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.06) 0%, transparent 34%),
-    linear-gradient(180deg, #ffffff 0%, #faf7ff 100%);
-  box-shadow: 0 12px 28px rgba(33, 24, 58, 0.05);
+    radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.08) 0%, transparent 34%),
+    linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
+  box-shadow: 0 18px 36px rgba(37, 26, 72, 0.05);
   padding: 16px;
   display: grid;
   gap: 10px;
+}
+
+.app-page .summary-card,
+.profile-item,
+.profile-role-card,
+.profile-history-card,
+.archive-round-card {
+  border-color: #ebe4fb;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(94, 23, 235, 0.05) 0%, transparent 30%),
+    linear-gradient(180deg, #ffffff 0%, #fcf9ff 100%);
+  box-shadow: 0 18px 36px rgba(37, 26, 72, 0.05);
+}
+
+.app-page .summary-card {
+  min-height: 124px;
+  padding: 18px;
+  align-content: start;
+}
+
+.app-page .summary-card strong {
+  font-family: 'Chakra Petch', sans-serif;
+}
+
+.app-page .admin-registration-summary {
+  border-color: #1dacd6;
+  background: linear-gradient(180deg, #1dacd6 0%, #1999bd 100%);
+  box-shadow: 0 18px 36px rgba(29, 172, 214, 0.2);
+}
+
+.app-page .admin-registration-summary span,
+.app-page .admin-registration-summary strong,
+.app-page .admin-registration-summary p {
+  color: #ffffff;
+}
+
+.app-page .admin-registration-summary span,
+.app-page .admin-registration-summary p {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.app-page .admin-rounds-summary {
+  border-color: #1dacd6;
+  background: linear-gradient(180deg, #1dacd6 0%, #1999bd 100%);
+  box-shadow: 0 18px 36px rgba(29, 172, 214, 0.2);
+}
+
+.app-page .admin-rounds-summary span,
+.app-page .admin-rounds-summary strong,
+.app-page .admin-rounds-summary p {
+  color: #ffffff;
+}
+
+.app-page .admin-rounds-summary span,
+.app-page .admin-rounds-summary p {
+  color: rgba(255, 255, 255, 0.88);
 }
 
 .panel-card h2,
@@ -2286,7 +2342,7 @@ a {
 
 .profile-settings-shell h2 {
   margin: 0;
-  color: #171724;
+  color: #343c6a;
   font-family: 'Chakra Petch', sans-serif;
 }
 
@@ -2294,16 +2350,18 @@ a {
   display: flex;
   align-items: center;
   gap: 10px;
-  border-bottom: 1px solid #ece7f5;
-  padding-bottom: 14px;
+  border: 1px solid #ece4fb;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+  padding: 8px;
   flex-wrap: wrap;
 }
 
 .profile-settings-tab {
   min-height: 38px;
   border: 1px solid #e7dff8;
-  background: rgba(255, 255, 255, 0.9);
-  color: #5d6472;
+  background: transparent;
+  color: #718ebf;
   font-size: 0.8rem;
   font-weight: 800;
   padding: 0 14px;
@@ -2322,9 +2380,10 @@ a {
 }
 
 .profile-settings-tab.active {
-  color: #5e17eb;
-  border-color: #d6c3ff;
-  background: #f3ecff;
+  color: #ffffff;
+  border-color: #5e17eb;
+  background: #5e17eb;
+  box-shadow: 0 14px 28px rgba(94, 23, 235, 0.16);
 }
 
 .profile-settings-form {
@@ -2850,16 +2909,16 @@ a {
 
 .app-page .admin-distribute-action,
 .app-page .admin-distribute-action:visited {
-  background: #b51d0a;
-  border-color: #b51d0a;
+  background: #ff7a00;
+  border-color: #ff7a00;
   color: #ffffff;
-  box-shadow: 0 14px 28px rgba(181, 29, 10, 0.18);
+  box-shadow: 0 14px 28px rgba(255, 122, 0, 0.18);
 }
 
 .app-page .admin-distribute-action:hover:not(:disabled),
 .app-page .admin-distribute-action:focus-visible {
-  background: #981608;
-  border-color: #981608;
+  background: #eb7000;
+  border-color: #eb7000;
   color: #ffffff;
 }
 
@@ -2876,6 +2935,8 @@ a {
   box-shadow: 0 12px 24px rgba(33, 24, 58, 0.05);
   padding: 15px;
   display: grid;
+  align-content: start;
+  min-height: 140px;
   gap: 7px;
   text-decoration: none;
   transition:
@@ -2912,7 +2973,7 @@ a {
 }
 
 .dashboard-tool-card--berry {
-  background: linear-gradient(180deg, #b51d0a 0%, #951404 100%);
+  background: linear-gradient(180deg, #1dacd6 0%, #1999bd 100%);
 }
 
 .dashboard-tool-card--teal:hover,
@@ -2932,7 +2993,8 @@ a {
 
 .dashboard-tool-card strong {
   color: #343c6a;
-  font-size: 0.92rem;
+  font-size: 0.98rem;
+  line-height: 1.32;
 }
 
 .dashboard-tool-card p,
@@ -3242,10 +3304,10 @@ a {
 
 .dashboard-action.is-purple {
   min-height: 48px;
-  background: #b51d0a;
-  border-color: #b51d0a;
+  background: #1dacd6;
+  border-color: #1dacd6;
   color: #ffffff;
-  box-shadow: 0 16px 30px rgba(181, 29, 10, 0.22);
+  box-shadow: 0 16px 30px rgba(29, 172, 214, 0.22);
 }
 
 .dashboard-action.is-orange {
@@ -3264,6 +3326,14 @@ a {
   box-shadow: 0 16px 30px rgba(255, 122, 0, 0.2);
 }
 
+.dashboard-action.is-sand {
+  min-height: 48px;
+  background: #1dacd6;
+  border-color: #1dacd6;
+  color: #ffffff;
+  box-shadow: 0 16px 30px rgba(29, 172, 214, 0.24);
+}
+
 .dashboard-action.is-teal::before {
   background: rgba(255, 255, 255, 0.92);
 }
@@ -3277,6 +3347,10 @@ a {
 }
 
 .dashboard-action.is-cobalt::before {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.dashboard-action.is-sand::before {
   background: rgba(255, 255, 255, 0.92);
 }
 
@@ -3859,14 +3933,17 @@ a {
 .monitoring-signal-tile {
   border: 1px solid #e6e1f3;
   border-radius: 1.1rem;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(247, 245, 255, 0.92) 100%);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(94, 23, 235, 0.06) 0%, transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 249, 255, 0.98) 100%);
+  box-shadow: 0 16px 34px rgba(37, 26, 72, 0.06);
   padding: 1rem;
   display: grid;
   gap: 0.35rem;
 }
 
 .monitoring-signal-tile span {
-  color: #6a7389;
+  color: #718ebf;
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -3874,7 +3951,7 @@ a {
 }
 
 .monitoring-signal-tile strong {
-  color: #151b2d;
+  color: #343c6a;
   font-size: 1.1rem;
   line-height: 1.2;
   word-break: break-word;
@@ -3882,7 +3959,7 @@ a {
 
 .monitoring-signal-tile p {
   margin: 0;
-  color: #5d6472;
+  color: #718ebf;
   font-size: 0.82rem;
   line-height: 1.5;
 }
@@ -4049,6 +4126,13 @@ a {
 .leaderboard-toolset-grid .dashboard-tool-card em {
   color: #46596c;
   font-weight: 700;
+}
+
+.teams-toolset-grid .dashboard-tool-card--teal em,
+.teams-toolset-grid .dashboard-tool-card--purple em,
+.teams-toolset-grid .dashboard-tool-card--orange em,
+.teams-toolset-grid .dashboard-tool-card--berry em {
+  color: #ffffff;
 }
 
 .team-list-metrics {
@@ -4672,9 +4756,12 @@ a {
   align-items: end;
   gap: 12px;
   padding: 16px;
-  border: 1px solid rgba(217, 220, 232, 0.84);
+  border: 1px solid #e7dff8;
   border-radius: 20px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(249, 247, 242, 0.98) 100%);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.08) 0%, transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 249, 255, 0.98) 100%);
+  box-shadow: 0 18px 36px rgba(37, 26, 72, 0.05);
 }
 
 .messages-dialogs-layout {

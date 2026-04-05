@@ -1075,7 +1075,13 @@ export default function ProfilePage() {
             <button
               key={tab}
               type="button"
-              className="dashboard-tool-card dashboard-tool-button"
+              className={`dashboard-tool-card dashboard-tool-button ${
+                tab === 'edit'
+                  ? 'dashboard-tool-card--teal'
+                  : tab === 'preferences'
+                    ? 'dashboard-tool-card--purple'
+                    : 'dashboard-tool-card--orange'
+              }`}
               onClick={() => {
                 setActiveSettingsTab(tab);
                 setSettingsNotice('');
@@ -1087,7 +1093,7 @@ export default function ProfilePage() {
               <em>{activeSettingsTab === tab ? t('profile.workspaceCards.active') : t('profile.workspaceCards.open')}</em>
             </button>
           ))}
-          <article className="dashboard-tool-card">
+          <article className="dashboard-tool-card dashboard-tool-card--berry">
             <span>{t('profile.workspaceCards.activityLabel')}</span>
             <strong>{t('profile.overviewTitle')}</strong>
             <p>{t('profile.workspaceCards.activityLead')}</p>

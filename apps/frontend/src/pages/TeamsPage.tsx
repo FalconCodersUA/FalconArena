@@ -153,25 +153,31 @@ export default function TeamsPage() {
         </div>
 
         <div className="dashboard-toolset-grid teams-toolset-grid">
-          <article className="dashboard-tool-card">
+          <article className="dashboard-tool-card dashboard-tool-card--teal">
             <span>{t('teamsPage.summary.teams')}</span>
             <strong>{t('teamsPage.workspaceCards.directoryTitle')}</strong>
             <p>{t('teamsPage.workspaceCards.directoryLead')}</p>
             <em>{teams.length} {t('teamsPage.workspaceCards.directorySuffix')}</em>
           </article>
-          <article className="dashboard-tool-card">
+          <article className="dashboard-tool-card dashboard-tool-card--purple">
             <span>{t('teamsPage.summary.averageMembers')}</span>
             <strong>{t('teamsPage.workspaceCards.densityTitle')}</strong>
             <p>{t('teamsPage.workspaceCards.densityLead')}</p>
             <em>{averageMembers} {t('teamsPage.workspaceCards.densitySuffix')}</em>
           </article>
-          <Link to={`/app/tournaments/${selectedTournamentId}`} className="dashboard-tool-card">
+          <Link
+            to={`/app/tournaments/${selectedTournamentId}`}
+            className="dashboard-tool-card dashboard-tool-card--orange"
+          >
             <span>{t('shell.tournamentsNav')}</span>
             <strong>{t('teamsPage.workspaceCards.tournamentTitle')}</strong>
             <p>{t('teamsPage.workspaceCards.tournamentLead')}</p>
             <em>{selectedTournament?.title ?? '-'}</em>
           </Link>
-          <Link to={`/app/leaderboard?tournamentId=${selectedTournamentId}`} className="dashboard-tool-card">
+          <Link
+            to={`/app/leaderboard?tournamentId=${selectedTournamentId}`}
+            className="dashboard-tool-card dashboard-tool-card--berry"
+          >
             <span>{t('shell.leaderboard')}</span>
             <strong>{t('teamsPage.workspaceCards.resultsTitle')}</strong>
             <p>{t('teamsPage.workspaceCards.resultsLead')}</p>

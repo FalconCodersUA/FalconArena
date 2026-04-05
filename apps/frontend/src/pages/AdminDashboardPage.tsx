@@ -1334,7 +1334,7 @@ export default function AdminDashboardPage() {
             </button>
             <button
               type="button"
-              className="button dashboard-action is-purple"
+              className="button dashboard-action is-sand"
               onClick={() => openQuickModal('createUser')}
             >
               {t('adminDashboard.userForm.createUser')}
@@ -1669,7 +1669,7 @@ export default function AdminDashboardPage() {
               </div>
 
               <div className="summary-grid compact-summary-grid">
-                <div className="summary-card">
+                <div className="summary-card admin-registration-summary">
                   <span>{t('adminDashboard.summary.registration')}</span>
                   <strong>
                     {formatDateTime(selectedTournament.registrationOpenAt, language)}
@@ -1927,7 +1927,7 @@ export default function AdminDashboardPage() {
 
         {rounds.length > 0 ? (
             <div className="summary-grid compact-summary-grid">
-              <div className="summary-card">
+              <div className="summary-card admin-rounds-summary">
                 <span>{t('adminDashboard.summary.rounds')}</span>
                 <strong>{rounds.length}</strong>
                 <p>{t('adminDashboard.summary.activeRounds')}: {activeRounds}</p>
