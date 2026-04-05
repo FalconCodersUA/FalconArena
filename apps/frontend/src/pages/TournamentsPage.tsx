@@ -66,6 +66,7 @@ export default function TournamentsPage() {
   const [quickLoading, setQuickLoading] = useState(false);
   const [quickError, setQuickError] = useState('');
   const [quickData, setQuickData] = useState<QuickTeamBlock | null>(null);
+  const [showFinished, setShowFinished] = useState(false);
 
   async function loadQuickTeamBlock(tournaments: Tournament[]) {
     if (!isAuthenticated()) {
@@ -173,6 +174,12 @@ export default function TournamentsPage() {
   useEffect(() => {
     void loadTournaments();
   }, []);
+
+  useEffect(() => {
+    if (filter === 'finished') {
+      setShowFinished(true);
+    }
+  }, [filter]);
 
   const filteredItems = useMemo(() => {
     if (filter === 'registrationOpen') {
@@ -451,10 +458,46 @@ export default function TournamentsPage() {
         </article>
       ) : (
         <div className="sections-stack">
-          {sections.map((section) =>
-            section.items.length > 0 ? (
-              <section key={section.key} className="section-card">
-                <h2>{section.label}</h2>
+          {sections.map((section) => {
+            if (section.items.length === 0) {
+              return null;
+            }
+
+            if (section.key === 'finished' && !showFinished) {
+              return (
+                <section key={section.key} className="section-card tournaments-collapsed-section">
+                  <div className="tournaments-collapse-row">
+                    <button
+                      type="button"
+                      className="button tournaments-card-action tournaments-card-action--secondary tournaments-collapse-toggle"
+                      onClick={() => setShowFinished(true)}
+                      aria-expanded="false"
+                    >
+                      {t('tournaments.showFinished')}
+                    </button>
+                  </div>
+                </section>
+              );
+            }
+
+            return (
+              <section
+                key={section.key}
+                className={`section-card${section.key === 'finished' ? ' tournaments-finished-section' : ''}`}
+              >
+                {section.key !== 'finished' ? <h2>{section.label}</h2> : null}
+                {section.key === 'finished' ? (
+                  <div className="tournaments-collapse-row tournaments-collapse-row--after">
+                    <button
+                      type="button"
+                      className="button tournaments-card-action tournaments-card-action--secondary tournaments-collapse-toggle"
+                      onClick={() => setShowFinished(false)}
+                      aria-expanded="true"
+                    >
+                      {t('tournaments.hideFinished')}
+                    </button>
+                  </div>
+                ) : null}
                 <div className="tournaments-grid">
                   {section.items.map((tournament) => (
                     <article key={tournament.id} className="card tournament-card">
@@ -492,7 +535,7 @@ export default function TournamentsPage() {
                       <div className="status-actions">
                         <Link
                           to={`/app/tournaments/${tournament.id}`}
-                          className="button button-primary"
+                          className="button tournaments-card-action tournaments-card-action--purple"
                         >
                           {t('tournaments.details')}
                         </Link>
@@ -506,7 +549,7 @@ export default function TournamentsPage() {
                         ) : null}
                         <Link
                           to={`/app/leaderboard?tournamentId=${tournament.id}`}
-                          className="button button-soft"
+                          className="button tournaments-card-action tournaments-card-action--secondary"
                         >
                           {t('tournaments.leaderboard')}
                         </Link>
@@ -515,8 +558,8 @@ export default function TournamentsPage() {
                   ))}
                 </div>
               </section>
-            ) : null,
-          )}
+            );
+          })}
         </div>
       )}
     </section>

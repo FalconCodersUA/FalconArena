@@ -164,7 +164,7 @@ async function createRound(adminToken, tournamentId, title) {
     expectedStatus: [200, 201],
     body: {
       title,
-      description: `Description for ${title}`,
+      description: `Опис для ${title}`,
       mustHave: ['Auth', 'Submission'],
       startsAt: '2025-01-01T00:00:00.000Z',
       deadlineAt: '2030-01-01T00:00:00.000Z',
@@ -242,7 +242,7 @@ async function run() {
   assert(adminToken && teamToken && juryToken && juryUserId, 'Missing one of auth values');
 
   const tournamentA = await createTournamentAndTeam(adminToken, teamToken, `A_${timestamp}`);
-  const roundA = await createRound(adminToken, tournamentA, 'Round A');
+  const roundA = await createRound(adminToken, tournamentA, 'Раунд A');
 
   await activateRound(adminToken, tournamentA, roundA);
   await submitProject(teamToken, roundA, `A_${timestamp}`);
@@ -269,8 +269,8 @@ async function run() {
   assert(submissionsA.payload.submissions?.[0]?.status === 'LOCKED', 'Round A submission should be LOCKED after force finish');
 
   const tournamentB = await createTournamentAndTeam(adminToken, teamToken, `B_${timestamp}`);
-  const roundB1 = await createRound(adminToken, tournamentB, 'Round B1');
-  const roundB2 = await createRound(adminToken, tournamentB, 'Round B2');
+  const roundB1 = await createRound(adminToken, tournamentB, 'Раунд B1');
+  const roundB2 = await createRound(adminToken, tournamentB, 'Раунд B2');
 
   await activateRound(adminToken, tournamentB, roundB1);
   await submitProject(teamToken, roundB1, `B1_${timestamp}`);

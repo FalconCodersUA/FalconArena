@@ -275,8 +275,8 @@ async function run() {
     token: adminToken,
     expectedStatus: [200, 201],
     body: {
-      title: 'Round 1',
-      description: 'Build and submit the FalconArena MVP.',
+      title: 'Раунд 1',
+      description: 'Зберіть і подайте MVP FalconArena.',
       mustHave: ['Auth', 'Team registration', 'Submission form'],
       technologyRequirements: ['React or compatible frontend', 'Backend API', 'Database storage'],
       additionalMaterials: ['https://falconarena.live/app/register'],
