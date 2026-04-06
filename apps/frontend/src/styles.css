@@ -50,15 +50,19 @@ a {
 }
 
 .auth-page {
-  width: min(1380px, 96vw);
-  min-height: 100vh;
+  width: min(1320px, 96vw);
+  max-width: 1320px;
+  min-height: 100svh;
   padding: 10px 0 16px;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  align-content: center;
 }
 
 .auth-page-section {
-  margin-top: 4px;
+  min-height: 0;
+  display: grid;
+  gap: 8px;
+  align-content: center;
 }
 
 .auth-shell-header {
@@ -67,6 +71,8 @@ a {
   align-items: center;
   min-height: 28px;
   gap: 10px;
+  width: min(1180px, 100%);
+  margin: 0 auto;
 }
 
 .auth-shell-spacer {
@@ -227,8 +233,11 @@ a {
 }
 
 .app-page {
-  width: min(1450px, 99vw);
+  width: 100%;
+  max-width: 1450px;
   padding: 10px;
+  margin: 0 auto;
+  min-width: 0;
 }
 
 .app-shell-surface {
@@ -1286,9 +1295,11 @@ a {
 }
 
 .auth-split {
-  min-height: min(820px, calc(100vh - 44px));
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  min-height: min(820px, calc(100svh - 58px));
   display: grid;
-  grid-template-columns: minmax(320px, 788px) minmax(320px, 1fr);
+  grid-template-columns: minmax(520px, 1.08fr) minmax(360px, 0.92fr);
   align-items: stretch;
   gap: 20px;
 }
@@ -1352,11 +1363,11 @@ a {
   align-items: center;
   justify-content: center;
   flex: 1;
-  min-height: 260px;
+  min-height: clamp(240px, 36vh, 420px);
 }
 
 .auth-mark-ring {
-  width: min(430px, 100%);
+  width: min(430px, 80%);
   aspect-ratio: 1;
   border-radius: 50%;
   display: grid;
@@ -1378,8 +1389,8 @@ a {
 }
 
 .auth-split-login .auth-brand-logo {
-  width: 146px;
-  height: 146px;
+  width: 156px;
+  height: 156px;
   color: #0f172b;
   filter: none;
 }
@@ -1412,7 +1423,7 @@ a {
 
 .auth-split-login .auth-promo-bottom {
   max-width: 480px;
-  margin: 18px auto 48px;
+  margin: 18px auto 44px;
   justify-items: center;
   text-align: center;
 }
@@ -1420,11 +1431,11 @@ a {
 .auth-split-login .auth-promo-art {
   flex: 0 0 auto;
   min-height: auto;
-  padding-top: clamp(48px, 10vh, 96px);
+  padding-top: clamp(44px, 8vh, 88px);
 }
 
 .auth-split-login .auth-mark-ring {
-  width: 146px;
+  width: 156px;
   box-shadow: none;
   background: transparent;
 }
@@ -1525,6 +1536,9 @@ a {
   align-content: center;
   gap: 20px;
   background: #ffffff;
+  border-radius: 32px;
+  box-shadow: 0 18px 40px rgba(36, 26, 66, 0.06);
+  min-width: 0;
 }
 
 .auth-surface > * {
@@ -5322,6 +5336,30 @@ a {
   color: #ffffff;
 }
 
+.app-page .dashboard-tool-card--teal {
+  border-color: transparent;
+  background: linear-gradient(180deg, #16dbcc 0%, #13cabd 100%);
+  box-shadow: 0 18px 36px rgba(22, 219, 204, 0.18);
+}
+
+.app-page .dashboard-tool-card--purple {
+  border-color: transparent;
+  background: linear-gradient(180deg, #6d2dff 0%, #5420cf 100%);
+  box-shadow: 0 18px 36px rgba(94, 23, 235, 0.18);
+}
+
+.app-page .dashboard-tool-card--orange {
+  border-color: transparent;
+  background: linear-gradient(180deg, #ff7a00 0%, #eb7000 100%);
+  box-shadow: 0 18px 36px rgba(255, 122, 0, 0.18);
+}
+
+.app-page .dashboard-tool-card--berry {
+  border-color: transparent;
+  background: linear-gradient(180deg, #1dacd6 0%, #1999bd 100%);
+  box-shadow: 0 18px 36px rgba(29, 172, 214, 0.18);
+}
+
 .app-page .dashboard-tool-card--teal strong,
 .app-page .dashboard-tool-card--purple strong,
 .app-page .dashboard-tool-card--orange strong,
@@ -5546,12 +5584,14 @@ a {
 .admin-users-page {
   display: grid;
   gap: 18px;
+  min-width: 0;
 }
 
 .admin-users-workspace-card,
 .admin-users-controls,
 .admin-users-list-panel {
   border-color: #e7dff8;
+  min-width: 0;
 }
 
 .admin-users-workspace-head {
@@ -5569,24 +5609,49 @@ a {
 
 .admin-users-filters {
   display: grid;
-  grid-template-columns: minmax(220px, 1.3fr) repeat(2, minmax(180px, 0.75fr)) auto;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
   align-items: end;
 }
 
+.admin-users-filters .field,
+.admin-user-card-actions .field {
+  min-width: 0;
+}
+
+.admin-users-filters .select-input,
+.admin-user-card-actions .select-input {
+  width: 100%;
+  min-width: 0;
+}
+
 .admin-users-refresh {
   white-space: nowrap;
+  justify-self: start;
 }
 
 .admin-users-list-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.admin-users-list-copy {
   display: grid;
   gap: 6px;
-  margin-bottom: 14px;
 }
 
 .admin-users-list-head p {
   margin: 0;
   color: #718ebf;
+}
+
+.admin-users-export {
+  white-space: nowrap;
+  justify-self: start;
 }
 
 .admin-users-list {
@@ -5602,6 +5667,8 @@ a {
   padding: 18px;
   display: grid;
   gap: 14px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .admin-user-card.is-blocked {
@@ -5614,6 +5681,7 @@ a {
   align-items: start;
   justify-content: space-between;
   gap: 14px;
+  flex-wrap: wrap;
 }
 
 .admin-user-card-head strong {
@@ -5641,7 +5709,7 @@ a {
 
 .admin-user-card-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
 }
 
@@ -5665,18 +5733,27 @@ a {
 .admin-user-card-stat strong {
   color: #5e17eb;
   font-size: 0.92rem;
+  overflow-wrap: anywhere;
 }
 
 .admin-user-card-actions {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) repeat(2, minmax(0, 156px));
   gap: 12px;
   align-items: end;
+  min-width: 0;
 }
 
 .admin-user-action {
-  min-width: 156px;
+  min-width: 0;
+  width: 100%;
   white-space: nowrap;
+}
+
+@media (max-width: 1240px) {
+  .admin-user-card-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .admin-user-action--save,
@@ -5997,7 +6074,8 @@ a {
   }
 
   .app-page {
-    width: min(100vw, 98vw);
+    width: 100%;
+    max-width: none;
     padding: 6px;
   }
 

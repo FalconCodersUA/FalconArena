@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { apiRequest } from '../lib/api';
+import { apiRequest, buildApiUrl } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
-import { getAuthUser, type AuthRole } from '../lib/auth';
+import { getAuthUser, getToken, type AuthRole } from '../lib/auth';
 import { useI18n } from '../i18n/I18nProvider';
 
 type ManagedUser = {
@@ -18,6 +18,11 @@ type UserStatusFilter = 'ALL' | 'ACTIVE' | 'BLOCKED';
 
 const MANAGEABLE_ROLES: AuthRole[] = ['ADMIN', 'TEAM', 'JURY', 'ORGANIZER'];
 
+function resolveExportFilename(contentDisposition: string | null) {
+  const match = contentDisposition?.match(/filename="?([^"]+)"?/i);
+  return match?.[1] ?? 'users-export.csv';
+}
+
 export default function AdminUsersPage() {
   const { language, t } = useI18n();
   const [users, setUsers] = useState<ManagedUser[]>([]);
@@ -30,6 +35,7 @@ export default function AdminUsersPage() {
   const [draftRoles, setDraftRoles] = useState<Record<string, AuthRole>>({});
   const [savingRoleUserId, setSavingRoleUserId] = useState('');
   const [togglingBlockUserId, setTogglingBlockUserId] = useState('');
+  const [exportingCsv, setExportingCsv] = useState(false);
 
   const currentUserId = getAuthUser()?.id ?? '';
 
@@ -94,6 +100,60 @@ export default function AdminUsersPage() {
     () => users.filter((item) => item.role === 'ADMIN').length,
     [users],
   );
+
+  async function exportUsersCsv() {
+    setExportingCsv(true);
+    setError('');
+    setNotice('');
+
+    try {
+      const params = new URLSearchParams();
+      const normalizedQuery = searchQuery.trim();
+      const token = getToken();
+
+      if (normalizedQuery) {
+        params.set('search', normalizedQuery);
+      }
+      if (roleFilter !== 'ALL') {
+        params.set('role', roleFilter);
+      }
+      if (statusFilter !== 'ALL') {
+        params.set('status', statusFilter);
+      }
+
+      const query = params.toString();
+      const response = await fetch(
+        buildApiUrl(`/admin/users/export.csv${query ? `?${query}` : ''}`),
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(t('adminDashboard.adminUsers.exportFailed'));
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = downloadUrl;
+      anchor.download = resolveExportFilename(
+        response.headers.get('Content-Disposition'),
+      );
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(downloadUrl);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : t('adminDashboard.adminUsers.exportFailed'),
+      );
+    } finally {
+      setExportingCsv(false);
+    }
+  }
 
   async function saveRole(user: ManagedUser) {
     const nextRole = draftRoles[user.id] ?? user.role;
@@ -184,22 +244,22 @@ export default function AdminUsersPage() {
         </div>
 
         <div className="summary-grid compact-summary-grid admin-users-summary-grid">
-          <div className="summary-card">
+          <div className="summary-card dashboard-tool-card dashboard-tool-card--teal">
             <span>{t('adminDashboard.adminUsers.summary.total')}</span>
             <strong>{users.length}</strong>
             <p>{t('adminDashboard.adminUsers.summary.totalLead')}</p>
           </div>
-          <div className="summary-card">
+          <div className="summary-card dashboard-tool-card dashboard-tool-card--purple">
             <span>{t('adminDashboard.adminUsers.summary.active')}</span>
             <strong>{activeUsersCount}</strong>
             <p>{t('adminDashboard.adminUsers.summary.activeLead')}</p>
           </div>
-          <div className="summary-card">
+          <div className="summary-card dashboard-tool-card dashboard-tool-card--orange">
             <span>{t('adminDashboard.adminUsers.summary.blocked')}</span>
             <strong>{blockedUsersCount}</strong>
             <p>{t('adminDashboard.adminUsers.summary.blockedLead')}</p>
           </div>
-          <div className="summary-card">
+          <div className="summary-card dashboard-tool-card dashboard-tool-card--berry">
             <span>{t('adminDashboard.adminUsers.summary.admins')}</span>
             <strong>{adminUsersCount}</strong>
             <p>{t('adminDashboard.adminUsers.summary.adminsLead')}</p>
@@ -263,8 +323,20 @@ export default function AdminUsersPage() {
 
       <article className="card panel-card admin-users-list-panel">
         <div className="admin-users-list-head">
-          <h2>{t('adminDashboard.adminUsers.listTitle')}</h2>
-          <p>{t('adminDashboard.adminUsers.listLead')}</p>
+          <div className="admin-users-list-copy">
+            <h2>{t('adminDashboard.adminUsers.listTitle')}</h2>
+            <p>{t('adminDashboard.adminUsers.listLead')}</p>
+          </div>
+          <button
+            type="button"
+            className="button button-soft admin-users-export"
+            disabled={exportingCsv}
+            onClick={() => void exportUsersCsv()}
+          >
+            {exportingCsv
+              ? t('adminDashboard.adminUsers.exportingCsv')
+              : t('adminDashboard.adminUsers.exportCsv')}
+          </button>
         </div>
 
         {filteredUsers.length === 0 ? (

@@ -76,7 +76,7 @@ describe('MonitoringPage', () => {
     expect(await screen.findByText('Monitoring')).toBeInTheDocument();
     expect(screen.getByText('Round activation failed')).toBeInTheDocument();
     expect(screen.getAllByText('1 incidents').length).toBeGreaterThan(0);
-    expect(screen.getByText('Operational signal board')).toBeInTheDocument();
+    expect(screen.getByText('System signal board')).toBeInTheDocument();
     expect(screen.getByText('req-123')).toBeInTheDocument();
     expect(screen.getByText('admin@falconarena.live')).toBeInTheDocument();
 

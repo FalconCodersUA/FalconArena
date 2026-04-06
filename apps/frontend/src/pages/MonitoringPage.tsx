@@ -369,7 +369,7 @@ export default function MonitoringPage() {
               type="button"
               role="tab"
               aria-selected={scope === value}
-              className={`messages-section-tab${scope === value ? ' is-active' : ''}`}
+              className={`filter-button${scope === value ? ' active' : ''}`}
               onClick={() => setScope(value)}
             >
               {label}

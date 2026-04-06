@@ -22,7 +22,7 @@ function createAuditLogsMock() {
 }
 
 describe('UsersService', () => {
-  it('lists managed users with ISO timestamps', async () => {
+  it('lists managed users with ISO timestamps and filter-aware where clause', async () => {
     const prisma = createPrismaMock();
     const auditLogs = createAuditLogsMock();
     const createdAt = new Date('2026-04-07T08:00:00.000Z');
@@ -41,7 +41,13 @@ describe('UsersService', () => {
 
     const service = new UsersService(prisma as never, auditLogs as never);
 
-    await expect(service.listManagedUsers()).resolves.toEqual([
+    await expect(
+      service.listManagedUsers({
+        search: 'captain',
+        role: 'TEAM',
+        status: 'ACTIVE',
+      }),
+    ).resolves.toEqual([
       {
         id: 'user-1',
         email: 'team@example.com',
@@ -52,6 +58,41 @@ describe('UsersService', () => {
         updatedAt: updatedAt.toISOString(),
       },
     ]);
+
+    expect(prisma.user.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          OR: [
+            { fullName: { contains: 'captain', mode: 'insensitive' } },
+            { email: { contains: 'captain', mode: 'insensitive' } },
+          ],
+          role: 'TEAM',
+          isBlocked: false,
+        },
+      }),
+    );
+  });
+
+  it('exports managed users as CSV with headers and localized values', async () => {
+    const prisma = createPrismaMock();
+    const auditLogs = createAuditLogsMock();
+    prisma.user.findMany.mockResolvedValue([
+      {
+        id: 'user-3',
+        email: 'organizer@example.com',
+        fullName: 'Організатор Demo',
+        role: 'ORGANIZER',
+        isBlocked: true,
+        createdAt: new Date('2026-04-07T08:00:00.000Z'),
+        updatedAt: new Date('2026-04-07T09:00:00.000Z'),
+      },
+    ]);
+
+    const service = new UsersService(prisma as never, auditLogs as never);
+
+    await expect(service.exportManagedUsersCsv({ status: 'BLOCKED' })).resolves.toBe(
+      '\uFEFFПІБ,Email,Роль,Статус\nОрганізатор Demo,organizer@example.com,Організатор,Заблокований',
+    );
   });
 
   it('prevents changing your own role or block state', async () => {
