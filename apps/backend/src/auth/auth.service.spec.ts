@@ -1,10 +1,11 @@
-import { ConflictException, ForbiddenException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthService } from './auth.service';
 
 function createUsersServiceMock() {
   return {
     findByEmail: vi.fn(),
+    findById: vi.fn(),
     create: vi.fn(),
   };
 }
@@ -78,5 +79,28 @@ describe('AuthService', () => {
         },
       ),
     ).rejects.toBeInstanceOf(ConflictException);
+  });
+
+  it('blocks login for a blocked user account', async () => {
+    const usersService = createUsersServiceMock();
+    usersService.findByEmail.mockResolvedValue({
+      id: 'blocked-user',
+      email: 'blocked@example.com',
+      passwordHash: 'hash',
+      isBlocked: true,
+    });
+
+    const service = new AuthService(
+      usersService as never,
+      createJwtServiceMock() as never,
+      createAuditLogsServiceMock() as never,
+    );
+
+    await expect(
+      service.login({
+        email: 'blocked@example.com',
+        password: 'StrongPass123!',
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 });

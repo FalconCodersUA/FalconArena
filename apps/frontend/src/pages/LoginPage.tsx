@@ -60,6 +60,10 @@ export default function LoginPage() {
       navigate('/app/dashboard', { replace: true });
     } catch (requestError) {
       if (requestError instanceof ApiError && requestError.status === 401) {
+        if (requestError.message === 'Account is blocked') {
+          setError(t('login.validation.accountBlocked'));
+          return;
+        }
         setError(t('login.validation.invalidCredentials'));
         return;
       }

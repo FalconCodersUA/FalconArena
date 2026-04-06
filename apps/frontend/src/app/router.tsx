@@ -2,6 +2,7 @@ import { ReactElement } from 'react';
 import { Navigate, createBrowserRouter } from 'react-router-dom';
 import { AuthRole, getAuthRole, isAuthenticated } from '../lib/auth';
 import AdminDashboardPage from '../pages/AdminDashboardPage';
+import AdminUsersPage from '../pages/AdminUsersPage';
 import AppErrorPage from '../pages/AppErrorPage';
 import ArchivePage from '../pages/ArchivePage';
 import AppShell from './layout/AppShell';
@@ -153,6 +154,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute roles={['ADMIN', 'ORGANIZER']}>
             <AdminDashboardPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'users',
+        element: (
+          <ProtectedRoute roles={['ADMIN']}>
+            <AdminUsersPage />
           </ProtectedRoute>
         ),
       },
