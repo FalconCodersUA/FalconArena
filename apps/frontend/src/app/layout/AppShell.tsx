@@ -243,6 +243,7 @@ export default function AppShell() {
   const isDashboardView =
     location.pathname.startsWith('/app/dashboard') || isRoleWorkspacePath;
   const authRole = getAuthUser()?.role ?? null;
+  const canManageUsers = authRole === 'ADMIN';
   const canManageIntegrations = authRole === 'ADMIN';
   const canViewMonitoring = authRole === 'ADMIN';
 
@@ -279,6 +280,13 @@ export default function AppShell() {
           label: t('shell.messages'),
           category: t('shell.searchCategories.sections'),
         },
+        canManageUsers
+          ? {
+              path: '/app/users',
+              label: t('shell.users'),
+              category: t('shell.searchCategories.sections'),
+            }
+          : null,
         {
           path: '/app/profile',
           label: t('shell.settings'),
@@ -299,7 +307,7 @@ export default function AppShell() {
             }
           : null,
       ].filter((item): item is SearchItem => !!item),
-    [canManageIntegrations, canViewMonitoring, dashboardPath, t],
+    [canManageIntegrations, canManageUsers, canViewMonitoring, dashboardPath, t],
   );
   const searchPool = useMemo(() => {
     const deduplicated = new Map<string, SearchItem>();
@@ -354,6 +362,10 @@ export default function AppShell() {
 
     if (location.pathname.startsWith('/app/messages')) {
       return t('shell.messages');
+    }
+
+    if (location.pathname.startsWith('/app/users')) {
+      return t('shell.users');
     }
 
     if (location.pathname.startsWith('/app/archive')) {
@@ -793,6 +805,27 @@ export default function AppShell() {
               </span>
               <span>{t('shell.messages')}</span>
             </NavLink>
+
+            {canManageUsers ? (
+              <NavLink to="/app/users" className="app-sidebar-link">
+                <span className="app-sidebar-icon" aria-hidden>
+                  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="7" cy="7.2" r="2.1" fill="currentColor" />
+                    <circle cx="13.2" cy="8.4" r="1.8" fill="currentColor" opacity="0.72" />
+                    <path
+                      d="M3.7 15.6C3.7 13.6 5.4 12.2 7.8 12.2C10.2 12.2 11.9 13.6 11.9 15.6"
+                      fill="currentColor"
+                    />
+                    <path
+                      d="M11.4 15.6C11.4 14.1 12.7 13 14.3 13C15.9 13 17.2 14.1 17.2 15.6"
+                      fill="currentColor"
+                      opacity="0.72"
+                    />
+                  </svg>
+                </span>
+                <span>{t('shell.users')}</span>
+              </NavLink>
+            ) : null}
 
             <NavLink to="/app/profile" className="app-sidebar-link">
               <span className="app-sidebar-icon" aria-hidden>

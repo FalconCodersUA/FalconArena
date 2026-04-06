@@ -56,6 +56,9 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
     }
+    if (user.isBlocked) {
+      throw new UnauthorizedException('Account is blocked');
+    }
 
     const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!isPasswordValid) {
@@ -70,6 +73,9 @@ export class AuthService {
 
     if (!user) {
       throw new UnauthorizedException('User not found');
+    }
+    if (user.isBlocked) {
+      throw new UnauthorizedException('Account is blocked');
     }
 
     return {

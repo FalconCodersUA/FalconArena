@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { I18nProvider } from '../i18n/I18nProvider';
-import { apiRequest } from '../lib/api';
+import { ApiError, apiRequest } from '../lib/api';
 import LoginPage from './LoginPage';
 
 const navigateMock = vi.fn();
@@ -83,5 +83,19 @@ describe('LoginPage', () => {
     expect(localStorage.getItem('falconarena_access_token')).toBe('login-token');
     expect(localStorage.getItem('falconarena_auth_user')).toContain('new@example.com');
     expect(navigateMock).toHaveBeenCalledWith('/app/dashboard', { replace: true });
+  });
+
+  it('shows blocked account message for blocked user login', async () => {
+    mockedApiRequest.mockRejectedValue(new ApiError('Account is blocked', 401));
+
+    renderLoginPage();
+
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'blocked@example.com' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret123' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+
+    expect(
+      await screen.findByText('Your account is blocked. Contact the platform administrator.'),
+    ).toBeInTheDocument();
   });
 });

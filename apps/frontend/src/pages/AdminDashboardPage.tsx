@@ -1548,6 +1548,13 @@ export default function AdminDashboardPage() {
               <p>{t('adminDashboard.workspaceToolsLead')}</p>
             </div>
             <div className="dashboard-toolset-grid">
+              {me?.role === 'ADMIN' ? (
+                <Link to="/app/users" className="dashboard-tool-card dashboard-tool-card--teal">
+                  <span>{t('shell.users')}</span>
+                  <strong>{t('adminDashboard.workspaceTools.usersTitle')}</strong>
+                  <p>{t('adminDashboard.workspaceTools.usersLead')}</p>
+                </Link>
+              ) : null}
               <Link to="/app/integrations" className="dashboard-tool-card dashboard-tool-card--teal">
                 <span>{t('shell.integrations')}</span>
                 <strong>{t('adminDashboard.workspaceTools.integrationsTitle')}</strong>

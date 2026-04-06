@@ -89,6 +89,7 @@ model User {
   fullName        String
   passwordHash    String
   role            Role                   @default(TEAM)
+  isBlocked       Boolean                @default(false)
   settings        UserSettings?
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
@@ -102,6 +103,8 @@ model User {
   directConversationParticipants DirectConversationParticipant[] @relation("ConversationParticipantUser")
   sentDirectMessages DirectMessage[] @relation("DirectMessageSender")
   auditLogs       AuditLog[]             @relation("AuditLogActor")
+
+  @@index([role, isBlocked, createdAt])
 }
 
 model UserSettings {
