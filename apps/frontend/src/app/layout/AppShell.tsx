@@ -676,30 +676,30 @@ export default function AppShell() {
   if (isAuthRoute) {
     return (
       <div className="page auth-page">
-        <header className="auth-shell-header">
-          <div className="auth-nav-actions">
-            <button type="button" className="auth-nav-link" onClick={goBack}>
-              {t('shell.back')}
-            </button>
-            <Link to="/app" className="auth-nav-link">
-              {t('shell.home')}
-            </Link>
-          </div>
-          <div className="language-switch auth-language-switch" role="group" aria-label={t('shell.languageAria')}>
-            {SUPPORTED_LANGUAGES.map((item) => (
-              <button
-                key={item}
-                type="button"
-                className={`lang-button${language === item ? ' active' : ''}`}
-                onClick={() => setLanguage(item)}
-              >
-                {languageToggleLabel(item)}
-              </button>
-            ))}
-          </div>
-        </header>
-
         <section className="page-section auth-page-section">
+          <header className="auth-shell-header">
+            <div className="auth-nav-actions">
+              <button type="button" className="auth-nav-link" onClick={goBack}>
+                {t('shell.back')}
+              </button>
+              <Link to="/app" className="auth-nav-link">
+                {t('shell.home')}
+              </Link>
+            </div>
+            <div className="language-switch auth-language-switch" role="group" aria-label={t('shell.languageAria')}>
+              {SUPPORTED_LANGUAGES.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  className={`lang-button${language === item ? ' active' : ''}`}
+                  onClick={() => setLanguage(item)}
+                >
+                  {languageToggleLabel(item)}
+                </button>
+              ))}
+            </div>
+          </header>
+
           <Outlet />
         </section>
       </div>

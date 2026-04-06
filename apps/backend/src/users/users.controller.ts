@@ -1,8 +1,19 @@
-import { Body, Controller, Get, Param, Patch, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { AuthUser } from '../common/types/auth-user.type';
+import { ListManagedUsersDto } from './dto/list-managed-users.dto';
 import { UpdateManagedUserDto } from './dto/update-managed-user.dto';
 import { UsersService } from './users.service';
 
@@ -12,9 +23,28 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get('export.csv')
+  async exportManagedUsersCsv(
+    @Query() query: ListManagedUsersDto,
+    @Res({ passthrough: true })
+    response: {
+      setHeader(name: string, value: string): void;
+    },
+  ) {
+    const csv = await this.usersService.exportManagedUsersCsv(query);
+
+    response.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="users-export.csv"',
+    );
+
+    return csv;
+  }
+
   @Get()
-  listManagedUsers() {
-    return this.usersService.listManagedUsers();
+  listManagedUsers(@Query() query: ListManagedUsersDto) {
+    return this.usersService.listManagedUsers(query);
   }
 
   @Patch(':userId')

@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { apiRequest } from '../lib/api';
@@ -14,6 +14,11 @@ vi.mock('../lib/api', async () => {
 });
 
 const mockedApiRequest = vi.mocked(apiRequest);
+const originalCreateObjectUrl = URL.createObjectURL;
+const originalRevokeObjectUrl = URL.revokeObjectURL;
+const originalFetch = global.fetch;
+const originalAnchorClick = HTMLAnchorElement.prototype.click;
+const anchorClick = vi.fn();
 
 const MANAGED_USERS = [
   {
@@ -51,6 +56,7 @@ describe('AdminUsersPage', () => {
     vi.clearAllMocks();
     localStorage.clear();
     localStorage.setItem('falconarena_language', 'en');
+    localStorage.setItem('falconarena_access_token', 'token-123');
     localStorage.setItem(
       'falconarena_auth_user',
       JSON.stringify({
@@ -60,6 +66,16 @@ describe('AdminUsersPage', () => {
         role: 'ADMIN',
       }),
     );
+    URL.createObjectURL = vi.fn(() => 'blob:users-export');
+    URL.revokeObjectURL = vi.fn();
+    HTMLAnchorElement.prototype.click = anchorClick;
+  });
+
+  afterEach(() => {
+    URL.createObjectURL = originalCreateObjectUrl;
+    URL.revokeObjectURL = originalRevokeObjectUrl;
+    global.fetch = originalFetch;
+    HTMLAnchorElement.prototype.click = originalAnchorClick;
   });
 
   it('loads users, updates role, and blocks a user', async () => {
@@ -110,5 +126,48 @@ describe('AdminUsersPage', () => {
     });
 
     await screen.findByText('Blocked Jury User.');
+  });
+
+  it('exports the current filtered users as CSV', async () => {
+    mockedApiRequest.mockResolvedValue(MANAGED_USERS);
+    global.fetch = vi.fn().mockResolvedValue(
+      new Response('csv-body', {
+        status: 200,
+        headers: {
+          'Content-Disposition': 'attachment; filename="users-export.csv"',
+        },
+      }),
+    ) as typeof fetch;
+
+    renderPage();
+
+    await screen.findByText('Platform users');
+
+    fireEvent.change(screen.getByLabelText('Search'), {
+      target: { value: 'jury' },
+    });
+    fireEvent.change(screen.getByLabelText('Role'), {
+      target: { value: 'JURY' },
+    });
+    fireEvent.change(screen.getByLabelText('Status'), {
+      target: { value: 'ACTIVE' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Export CSV' }));
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://falconarena.live/admin/users/export.csv?search=jury&role=JURY&status=ACTIVE',
+        {
+          headers: {
+            Authorization: 'Bearer token-123',
+          },
+        },
+      );
+    });
+
+    expect(URL.createObjectURL).toHaveBeenCalled();
+    expect(anchorClick).toHaveBeenCalled();
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:users-export');
   });
 });
