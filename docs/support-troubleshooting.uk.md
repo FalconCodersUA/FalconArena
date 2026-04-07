@@ -1,4 +1,4 @@
-# Support / Troubleshooting (UA)
+# Підтримка та діагностика
 
 ## Призначення
 

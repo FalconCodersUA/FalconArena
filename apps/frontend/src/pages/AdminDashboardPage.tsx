@@ -139,6 +139,39 @@ const EMPTY_SCHEDULE_OP_STATE: ScheduleOperationState = {
   error: '',
 };
 
+function formatDashboardRoundTitle(
+  title: string,
+  sequence: number,
+  t: (key: string) => string,
+) {
+  const trimmedTitle = title.trim();
+  const legacyRoundMatch = trimmedTitle.match(/^Round\s+(.+)$/i);
+  const prefix = `${t('adminDashboard.roundPrefix')} ${sequence}`;
+
+  if (!legacyRoundMatch) {
+    return trimmedTitle;
+  }
+
+  const suffix = legacyRoundMatch[1]?.trim();
+  if (!suffix || suffix === String(sequence)) {
+    return prefix;
+  }
+
+  return `${prefix}. ${suffix}`;
+}
+
+function formatDashboardRoundDescription(
+  description: string,
+  t: (key: string) => string,
+) {
+  const trimmedDescription = description.trim();
+  if (/^Description for\s+.+$/i.test(trimmedDescription)) {
+    return t('adminDashboard.roundDescriptionFallback');
+  }
+
+  return trimmedDescription;
+}
+
 const DEFAULT_PLATFORM_DEFAULTS: PlatformDefaults = {
   minTeamMembers: 2,
   maxTeamMembers: 8,
@@ -1250,7 +1283,7 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <section className="team-dashboard">
+    <section className="team-dashboard admin-dashboard-page">
       <header className="section-header">
         <p className="eyebrow">{t('adminDashboard.eyebrow')}</p>
         <h1>{t('adminDashboard.title')}</h1>
@@ -1954,7 +1987,7 @@ export default function AdminDashboardPage() {
                 <article key={round.id} className="round-card">
                   <div className="round-card-head">
                     <strong>
-                      #{round.sequence} {round.title}
+                      #{round.sequence} {formatDashboardRoundTitle(round.title, round.sequence, t)}
                     </strong>
                     <span>{t(`adminDashboard.roundStatus.${round.status}`)}</span>
                   </div>
@@ -1965,7 +1998,7 @@ export default function AdminDashboardPage() {
                   <p>
                     {t('adminDashboard.roundDeadlineAt')}: {formatDateTime(round.deadlineAt, language)}
                   </p>
-                  <p>{round.description}</p>
+                  <p>{formatDashboardRoundDescription(round.description, t)}</p>
 
                   <div className="must-have-block">
                     <p>

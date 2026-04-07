@@ -27,7 +27,7 @@ FalconArena реалізовано як цілісну вебплатформу 
 - оголошення для ролей
 - особисті діалоги
 - окремий шар системних сповіщень з unread/read-state
-- topbar bell з deep-link у відповідний контекст
+- topbar-індикатор з переходом у відповідний контекст
 - автооновлення leaderboard, повідомлень та сповіщень
 - email-сповіщення з підтримкою `console` та `resend`
 
@@ -43,10 +43,10 @@ FalconArena реалізовано як цілісну вебплатформу 
 
 ## Архітектурні та продуктові підсилення
 
-### Product hardening
+### Продуктове посилення
 
 - backend audit trail для критичних дій
-- реальний `activity feed` для `Admin` та `Profile`
+- реальна стрічка активності для `Admin` та `Profile`
 - `X-Request-Id` і structured HTTP logging
 - persisted `ErrorReport` і admin-only monitoring endpoint
 - monitoring screen у frontend для інцидентів і статусу інтеграцій
@@ -63,12 +63,12 @@ FalconArena реалізовано як цілісну вебплатформу 
 ### Якість та автоматизація
 
 - frontend і backend unit tests
-- smoke automation
+- smoke-автоматизація
 - окремі `e2e` сценарії:
   - `ADMIN -> TEAM -> JURY -> LEADERBOARD`
   - `ARCHIVE -> CERTIFICATE -> EXPORT`
-- CI workflow для `lint + test + build`
-- deploy workflow через GitHub Actions і Docker Compose
+- CI-пайплайн для `lint + test + build`
+- deploy-пайплайн через GitHub Actions і Docker Compose
 
 ## Дизайн та UX
 

@@ -1,4 +1,4 @@
-# Backup / Restore Drill
+# Репетиція backup / restore
 
 Цей документ потрібен для ручного rehearsal перед реальним пілотом.
 

@@ -1,4 +1,4 @@
-# Defense Demo Script: FalconArena
+# Сценарій демонстрації FalconArena
 
 ## Ціль демонстрації
 

@@ -1,4 +1,4 @@
-# Ops Runbook (UA)
+# Операційний runbook
 
 ## Призначення
 
