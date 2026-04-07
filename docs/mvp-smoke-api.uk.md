@@ -1,4 +1,4 @@
-# MVP API Smoke Test (UA)
+# API smoke-чекліст
 
 Використовуйте цей чеклист після deploy, щоб перевірити основний backend flow:
 

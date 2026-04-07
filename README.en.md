@@ -9,6 +9,29 @@ Language versions:
 - English: `README.en.md`
 - Ukrainian: `README.md`
 
+## What makes FalconArena strong
+
+### Full tournament lifecycle
+
+- role-based flow for `ADMIN`, `ORGANIZER`, `TEAM`, and `JURY`
+- tournament creation, registration windows, public tournament pages, and round management
+- submission flow with GitHub, demo, live demo, and structured round requirements
+- jury assignment distribution, category-based evaluation, leaderboard, archive, and certificates
+
+### Communication and platform control
+
+- role-based announcements
+- personal dialogs
+- system notifications with unread states
+- topbar indicators and automatic refresh for key communication surfaces
+- email delivery and background jobs for tournament events and reminders
+
+### Production-ready operating layer
+
+- profile settings, avatars, schedule, exports, and integrations
+- monitoring, archive flows, activity feed, and admin control surfaces
+- CI/CD, smoke automation, runbooks, and deployment documentation
+
 ## Tech Stack
 
 - Frontend: React + TypeScript + Vite
