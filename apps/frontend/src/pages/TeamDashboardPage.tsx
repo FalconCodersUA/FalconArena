@@ -1,6 +1,8 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useNotifications } from '../app/notifications/NotificationsProvider';
+import QuietLoadingCard from '../components/QuietLoadingCard';
+import QuietLoadingInline from '../components/QuietLoadingInline';
 import TournamentSchedulePanel from '../components/TournamentSchedulePanel';
 import { ApiError, apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
@@ -803,7 +805,7 @@ export default function TeamDashboardPage() {
   }
 
   if (loading) {
-    return <article className="card state-card">{t('teamDashboard.loading')}</article>;
+    return <QuietLoadingCard label={t('teamDashboard.loading')} />;
   }
 
   if (error) {
@@ -1062,7 +1064,7 @@ export default function TeamDashboardPage() {
       <div className="team-grid">
         <article id="team-card" className="card panel-card">
           <h2>{t('teamDashboard.teamCardTitle')}</h2>
-          {teamLoading ? <p>{t('teamDashboard.teamLoading')}</p> : null}
+          {teamLoading ? <QuietLoadingInline label={t('teamDashboard.teamLoading')} compact /> : null}
           {teamError ? (
             <>
               <p className="form-error">{teamError}</p>
@@ -1213,7 +1215,7 @@ export default function TeamDashboardPage() {
           <h2>{t('teamDashboard.submissionCardTitle')}</h2>
 
           {!team ? <p>{t('teamDashboard.needTeamFirst')}</p> : null}
-          {team && submissionLoading ? <p>{t('teamDashboard.submissionLoading')}</p> : null}
+          {team && submissionLoading ? <QuietLoadingInline label={t('teamDashboard.submissionLoading')} compact /> : null}
           {team && submissionError ? (
             <>
               <p className="form-error">{submissionError}</p>

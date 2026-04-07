@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import QuietLoadingCard from '../components/QuietLoadingCard';
+import QuietLoadingInline from '../components/QuietLoadingInline';
 import { useI18n } from '../i18n/I18nProvider';
 import { apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
@@ -112,7 +114,7 @@ export default function TeamsPage() {
   );
 
   if (loadingTournaments) {
-    return <article className="card state-card">{t('teamsPage.loading')}</article>;
+    return <QuietLoadingCard label={t('teamsPage.loading')} />;
   }
 
   if (error && tournaments.length === 0) {
@@ -225,12 +227,7 @@ export default function TeamsPage() {
       <article className="card panel-card">
         <h2>{t('teamsPage.resultsTitle')}</h2>
 
-        {loadingTeams ? (
-          <div className="state-callout featured">
-            <strong>{t('teamsPage.resultsTitle')}</strong>
-            <p>{t('teamsPage.loadingTeams')}</p>
-          </div>
-        ) : null}
+        {loadingTeams ? <QuietLoadingInline label={t('teamsPage.loadingTeams')} /> : null}
         {error ? <p className="form-error">{error}</p> : null}
         {!loadingTeams && teams.length === 0 ? (
           <div className="state-callout subtle">

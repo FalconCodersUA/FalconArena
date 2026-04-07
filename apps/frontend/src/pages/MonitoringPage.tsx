@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import QuietLoadingCard from '../components/QuietLoadingCard';
 import { useI18n } from '../i18n/I18nProvider';
 import { apiRequest } from '../lib/api';
 
@@ -227,7 +228,7 @@ export default function MonitoringPage() {
   const errorCountLabel = `${recentFailures} ${t('monitoring.errorCountSuffix')}`;
 
   if (loading) {
-    return <article className="card state-card">{t('monitoring.loading')}</article>;
+    return <QuietLoadingCard label={t('monitoring.loading')} />;
   }
 
   if (!googleSheets || !emailSettings) {

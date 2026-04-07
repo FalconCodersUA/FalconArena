@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { useI18n } from '../../i18n/I18nProvider';
 import { SUPPORTED_LANGUAGES } from '../../i18n/messages';
 import { ApiError, apiRequest, resolveApiAssetUrl } from '../../lib/api';
+import QuietLoadingInline from '../../components/QuietLoadingInline';
 import BrandMark from './BrandMark';
 import {
   AuthRole,
@@ -150,7 +151,15 @@ export default function AppShell() {
   const [showOnlyUnreadAlerts, setShowOnlyUnreadAlerts] = useState(false);
   const searchRef = useRef<HTMLDivElement | null>(null);
   const alertsRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLElement | null>(null);
   const isAuthRoute = location.pathname === '/app/login' || location.pathname === '/app/register';
+  const routeLocationKey = `${location.pathname}${location.search}${location.hash}`;
+
+  useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.scrollTop = 0;
+    }
+  }, [routeLocationKey]);
 
   useEffect(() => {
     async function syncPlatformDefaults() {
@@ -700,7 +709,9 @@ export default function AppShell() {
             </div>
           </header>
 
-          <Outlet />
+          <div className="app-route-stage">
+            <Outlet />
+          </div>
         </section>
       </div>
     );
@@ -1055,7 +1066,7 @@ export default function AppShell() {
                       />
                       {t('shell.notificationsOnlyUnread')}
                     </label>
-                    {alertsLoading ? <p className="app-alerts-state">{t('messagesPage.loading')}</p> : null}
+                    {alertsLoading ? <QuietLoadingInline label={t('messagesPage.loading')} compact /> : null}
                     {!alertsLoading && alertsError ? (
                       <div className="app-alerts-state-wrap">
                         <p className="app-alerts-state">{alertsError}</p>
@@ -1145,8 +1156,10 @@ export default function AppShell() {
             </div>
           </header>
 
-          <section className="page-section app-content">
-            <Outlet />
+          <section ref={contentRef} className="page-section app-content">
+            <div className="app-route-stage">
+              <Outlet />
+            </div>
           </section>
           {showScrollTop ? (
             <button

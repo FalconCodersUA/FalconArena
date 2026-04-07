@@ -1,6 +1,8 @@
 import { FormEvent, ReactNode, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useNotifications } from '../app/notifications/NotificationsProvider';
+import QuietLoadingCard from '../components/QuietLoadingCard';
+import QuietLoadingInline from '../components/QuietLoadingInline';
 import { apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
 import {
@@ -1254,7 +1256,7 @@ export default function AdminDashboardPage() {
   }
 
   if (loading) {
-    return <article className="card state-card">{t('adminDashboard.loading')}</article>;
+    return <QuietLoadingCard label={t('adminDashboard.loading')} />;
   }
 
   if (error) {
@@ -1883,7 +1885,7 @@ export default function AdminDashboardPage() {
           </div>
         </form>
 
-        {scheduleLoading ? <p>{t('schedule.loading')}</p> : null}
+        {scheduleLoading ? <QuietLoadingInline label={t('schedule.loading')} compact /> : null}
         {!scheduleLoading && scheduleEvents.length === 0 ? (
           <p>{t('schedule.empty')}</p>
         ) : null}
@@ -1946,7 +1948,7 @@ export default function AdminDashboardPage() {
           <p>{t('adminDashboard.evaluationGuide.lead')}</p>
         </div>
 
-        {roundsLoading ? <p>{t('adminDashboard.roundsLoading')}</p> : null}
+        {roundsLoading ? <QuietLoadingInline label={t('adminDashboard.roundsLoading')} compact /> : null}
         {roundsError ? (
           <>
             <p className="form-error">{roundsError}</p>

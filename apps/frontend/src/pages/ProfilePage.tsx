@@ -1,5 +1,6 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useNotifications } from '../app/notifications/NotificationsProvider';
+import QuietLoadingCard from '../components/QuietLoadingCard';
 import { ApiError, apiRequest, resolveApiAssetUrl } from '../lib/api';
 import { formatDateTime, setPreferredTimeZone } from '../lib/dateTime';
 import { useI18n } from '../i18n/I18nProvider';
@@ -754,7 +755,7 @@ export default function ProfilePage() {
   );
 
   if (loading) {
-    return <article className="card state-card">{t('profile.loading')}</article>;
+    return <QuietLoadingCard label={t('profile.loading')} />;
   }
 
   if (error) {

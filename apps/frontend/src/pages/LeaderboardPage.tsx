@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import QuietLoadingCard from '../components/QuietLoadingCard';
+import QuietLoadingInline from '../components/QuietLoadingInline';
 import { useI18n } from '../i18n/I18nProvider';
 import { getAuthRole, isAuthenticated } from '../lib/auth';
 import { apiRequest, buildApiUrl } from '../lib/api';
@@ -280,7 +282,7 @@ export default function LeaderboardPage() {
   }, [isRealtimeEnabled, selectedTournamentId]);
 
   if (loadingTournaments) {
-    return <article className="card state-card">{t('leaderboard.loadingTournaments')}</article>;
+    return <QuietLoadingCard label={t('leaderboard.loadingTournaments')} />;
   }
 
   if (tournamentsError) {
@@ -495,12 +497,7 @@ export default function LeaderboardPage() {
         {googleSheetsNotice ? <p className="form-success">{googleSheetsNotice}</p> : null}
         {googleSheetsError ? <p className="form-error">{googleSheetsError}</p> : null}
 
-        {loadingLeaderboard ? (
-          <div className="state-callout featured">
-            <strong>{t('leaderboard.resultsTitle')}</strong>
-            <p>{t('leaderboard.loadingLeaderboard')}</p>
-          </div>
-        ) : null}
+        {loadingLeaderboard ? <QuietLoadingInline label={t('leaderboard.loadingLeaderboard')} /> : null}
 
         {leaderboardError ? (
           <>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import QuietLoadingCard from '../components/QuietLoadingCard';
 import TournamentSchedulePanel from '../components/TournamentSchedulePanel';
 import { apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
@@ -159,7 +160,7 @@ export default function TournamentDetailsPage() {
   }, [authRole, t, tournament]);
 
   if (loading) {
-    return <article className="card state-card">{t('tournamentDetails.loading')}</article>;
+    return <QuietLoadingCard label={t('tournamentDetails.loading')} />;
   }
 
   if (error || !tournament) {

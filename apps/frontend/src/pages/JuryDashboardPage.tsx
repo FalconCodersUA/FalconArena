@@ -1,6 +1,8 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useNotifications } from '../app/notifications/NotificationsProvider';
+import QuietLoadingCard from '../components/QuietLoadingCard';
+import QuietLoadingInline from '../components/QuietLoadingInline';
 import TournamentSchedulePanel from '../components/TournamentSchedulePanel';
 import { ApiError, apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
@@ -545,7 +547,7 @@ export default function JuryDashboardPage() {
   }
 
   if (loading) {
-    return <article className="card state-card">{t('juryDashboard.loading')}</article>;
+    return <QuietLoadingCard label={t('juryDashboard.loading')} />;
   }
 
   if (error) {
@@ -806,7 +808,7 @@ export default function JuryDashboardPage() {
           </select>
         </label>
 
-        {roundsLoading ? <p>{t('juryDashboard.roundsLoading')}</p> : null}
+        {roundsLoading ? <QuietLoadingInline label={t('juryDashboard.roundsLoading')} compact /> : null}
         {roundsError ? (
           <>
             <p className="form-error">{roundsError}</p>
@@ -833,7 +835,7 @@ export default function JuryDashboardPage() {
       <div className="team-grid">
         <article id="jury-assignment-list" className="card panel-card">
           <h2>{t('juryDashboard.assignmentsTitle')}</h2>
-          {assignmentsLoading ? <p>{t('juryDashboard.assignmentsLoading')}</p> : null}
+          {assignmentsLoading ? <QuietLoadingInline label={t('juryDashboard.assignmentsLoading')} compact /> : null}
           {assignmentsError ? (
             <>
               <p className="form-error">{assignmentsError}</p>
