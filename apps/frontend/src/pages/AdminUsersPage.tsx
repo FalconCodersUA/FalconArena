@@ -10,6 +10,10 @@ type ManagedUser = {
   fullName: string;
   role: AuthRole;
   isBlocked: boolean;
+  blockedReason: string | null;
+  blockedAt: string | null;
+  blockedByUserId: string | null;
+  blockedByUserName: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -55,6 +59,9 @@ export default function AdminUsersPage() {
   const [userEmail, setUserEmail] = useState('');
   const [userPassword, setUserPassword] = useState('');
   const [userRole, setUserRole] = useState<AuthRole>('JURY');
+  const [blockUserTarget, setBlockUserTarget] = useState<ManagedUser | null>(null);
+  const [blockReason, setBlockReason] = useState('');
+  const [blockReasonError, setBlockReasonError] = useState('');
 
   const currentUser = getAuthUser();
   const currentUserId = currentUser?.id ?? '';
@@ -71,6 +78,12 @@ export default function AdminUsersPage() {
     setUserEmail('');
     setUserPassword('');
     setUserRole(creatableRoles[0] ?? 'JURY');
+  }
+
+  function closeBlockUserModal() {
+    setBlockUserTarget(null);
+    setBlockReason('');
+    setBlockReasonError('');
   }
 
   const loadUsers = useCallback(async (showLoading = true) => {
@@ -235,6 +248,10 @@ export default function AdminUsersPage() {
       const nextUser: ManagedUser = {
         ...created,
         isBlocked: false,
+        blockedReason: null,
+        blockedAt: null,
+        blockedByUserId: null,
+        blockedByUserName: null,
         updatedAt: created.createdAt,
       };
 
@@ -291,7 +308,58 @@ export default function AdminUsersPage() {
     }
   }
 
+  async function blockUser() {
+    if (!blockUserTarget) {
+      return;
+    }
+
+    const trimmedReason = blockReason.trim();
+    if (!trimmedReason) {
+      setBlockReasonError(t('adminDashboard.validation.blockReasonRequired'));
+      return;
+    }
+
+    if (trimmedReason.length > 300) {
+      setBlockReasonError(t('adminDashboard.validation.blockReasonLength'));
+      return;
+    }
+
+    setBlockReasonError('');
+    setTogglingBlockUserId(blockUserTarget.id);
+    setError('');
+    setNotice('');
+
+    try {
+      const updated = await apiRequest<ManagedUser>(`/admin/users/${blockUserTarget.id}`, {
+        method: 'PATCH',
+        body: { isBlocked: true, blockedReason: trimmedReason },
+      });
+
+      setUsers((current) =>
+        current.map((entry) => (entry.id === blockUserTarget.id ? updated : entry)),
+      );
+      setDraftRoles((current) => ({ ...current, [blockUserTarget.id]: updated.role }));
+      setNotice(
+        t('adminDashboard.adminUsers.blocked').replace('{name}', updated.fullName),
+      );
+      closeBlockUserModal();
+    } catch (requestError) {
+      setBlockReasonError(
+        requestError instanceof Error ? requestError.message : t('adminDashboard.adminUsers.updateFailed'),
+      );
+    } finally {
+      setTogglingBlockUserId('');
+    }
+  }
+
   async function toggleBlocked(user: ManagedUser) {
+    if (!user.isBlocked) {
+      setBlockReasonError('');
+      setBlockReason('');
+      setBlockUserTarget(user);
+      return;
+    }
+
     setTogglingBlockUserId(user.id);
     setError('');
     setNotice('');
@@ -492,6 +560,18 @@ export default function AdminUsersPage() {
                     </div>
                   </div>
 
+                  {user.blockedReason ? (
+                    <div className="admin-user-block-history">
+                      <span>{t('adminDashboard.adminUsers.blockHistory.title')}</span>
+                      <strong>{user.blockedReason}</strong>
+                      <p>
+                        {user.blockedAt ? formatDateTime(user.blockedAt, language) : t('adminDashboard.adminUsers.blockHistory.dateUnknown')}
+                        {' · '}
+                        {user.blockedByUserName ?? t('adminDashboard.adminUsers.blockHistory.actorUnknown')}
+                      </p>
+                    </div>
+                  ) : null}
+
                   <div className="admin-user-card-actions">
                     <label className="field">
                       <span>{t('adminDashboard.adminUsers.fields.newRole')}</span>
@@ -636,6 +716,70 @@ export default function AdminUsersPage() {
                     : t('adminDashboard.userForm.createUser')}
                 </button>
               </form>
+            </div>
+          </article>
+        </div>
+      ) : null}
+
+      {blockUserTarget ? (
+        <div
+          className="app-modal-overlay"
+          role="presentation"
+          onClick={closeBlockUserModal}
+        >
+          <article
+            className="app-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('adminDashboard.adminUsers.blockModal.title')}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="app-modal-head">
+              <h2>{t('adminDashboard.adminUsers.blockModal.title')}</h2>
+              <button
+                type="button"
+                className="app-modal-close"
+                onClick={closeBlockUserModal}
+              >
+                {t('adminDashboard.modal.close')}
+              </button>
+            </header>
+            <div className="app-modal-body">
+              <p className="inline-hint">
+                {t('adminDashboard.adminUsers.blockModal.lead').replace('{name}', blockUserTarget.fullName)}
+              </p>
+              {blockReasonError ? <p className="form-error">{blockReasonError}</p> : null}
+
+              <label className="field" htmlFor="admin-users-block-reason">
+                <span>{t('adminDashboard.adminUsers.blockModal.reason')}</span>
+                <textarea
+                  id="admin-users-block-reason"
+                  rows={4}
+                  value={blockReason}
+                  onChange={(event) => setBlockReason(event.target.value)}
+                  maxLength={300}
+                />
+              </label>
+
+              <div className="admin-users-block-actions">
+                <button
+                  type="button"
+                  className="button button-soft"
+                  onClick={closeBlockUserModal}
+                >
+                  {t('adminDashboard.adminUsers.blockModal.cancel')}
+                </button>
+                <button
+                  type="button"
+                  className="button admin-user-action admin-user-action--block"
+                  disabled={togglingBlockUserId === blockUserTarget.id}
+                  onClick={() => void blockUser()}
+                >
+                  {togglingBlockUserId === blockUserTarget.id
+                    ? t('adminDashboard.adminUsers.updating')
+                    : t('adminDashboard.adminUsers.blockModal.confirm')}
+                </button>
+              </div>
             </div>
           </article>
         </div>

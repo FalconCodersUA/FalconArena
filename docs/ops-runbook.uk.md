@@ -1,11 +1,11 @@
-# Операційний runbook
+# Операційний регламент
 
 ## Призначення
 
-Цей runbook описує базові операційні дії для FalconArena у production/demo-середовищі:
+Цей документ описує базові операційні дії для FalconArena у production/demo-середовищі:
 
 - deploy
-- post-deploy verification
+- перевірка після розгортання
 - rollback
 - backup / restore
 - перевірка логів і health
@@ -23,7 +23,7 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docker-compose/.env up -d --build backend frontend
 ```
 
-## 2. Post-deploy verification
+## 2. Перевірка після розгортання
 
 Перевірити:
 
@@ -130,7 +130,7 @@ cd /opt/falconarena-deploy
 sh infra/scripts/restore-storage.sh backups/<storage-archive>.tar.gz
 ```
 
-## 9. Incident checklist
+## 9. Чекліст інциденту
 
 Якщо production поводиться нестабільно:
 
@@ -141,13 +141,13 @@ sh infra/scripts/restore-storage.sh backups/<storage-archive>.tar.gz
 5. перевірити останній merge/commit
 6. за потреби переключитися на попередній стабільний commit і перебудувати сервіси
 
-## 10. Рекомендований release checklist
+## 10. Рекомендований чекліст релізу
 
 Перед релізом:
 
 1. `lint`
 2. ключові тести зміненого блоку
-3. перевірка документації, якщо змінився workflow
+3. перевірка документації, якщо змінився сценарій роботи
 4. підтвердження Prisma-міграцій
 
 Після релізу:

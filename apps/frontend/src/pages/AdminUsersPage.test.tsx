@@ -27,6 +27,10 @@ const MANAGED_USERS = [
     fullName: 'Admin User',
     role: 'ADMIN',
     isBlocked: false,
+    blockedReason: null,
+    blockedAt: null,
+    blockedByUserId: null,
+    blockedByUserName: null,
     createdAt: '2026-04-07T08:00:00.000Z',
     updatedAt: '2026-04-07T08:00:00.000Z',
   },
@@ -36,6 +40,10 @@ const MANAGED_USERS = [
     fullName: 'Jury User',
     role: 'JURY',
     isBlocked: false,
+    blockedReason: null,
+    blockedAt: null,
+    blockedByUserId: null,
+    blockedByUserName: null,
     createdAt: '2026-04-07T09:00:00.000Z',
     updatedAt: '2026-04-07T09:00:00.000Z',
   },
@@ -85,11 +93,15 @@ describe('AdminUsersPage', () => {
       }
 
       if (path === '/admin/users/user-2' && options?.method === 'PATCH') {
-        const body = options.body as { role?: string; isBlocked?: boolean };
+        const body = options.body as { role?: string; isBlocked?: boolean; blockedReason?: string };
         return {
           ...MANAGED_USERS[1],
           role: body.role ?? MANAGED_USERS[1].role,
           isBlocked: body.isBlocked ?? MANAGED_USERS[1].isBlocked,
+          blockedReason: body.blockedReason ?? MANAGED_USERS[1].blockedReason,
+          blockedAt: body.isBlocked ? '2026-04-07T10:00:00.000Z' : MANAGED_USERS[1].blockedAt,
+          blockedByUserId: body.isBlocked ? 'user-1' : MANAGED_USERS[1].blockedByUserId,
+          blockedByUserName: body.isBlocked ? 'Admin User' : MANAGED_USERS[1].blockedByUserName,
           updatedAt: '2026-04-07T10:00:00.000Z',
         };
       }
@@ -117,15 +129,22 @@ describe('AdminUsersPage', () => {
     await screen.findByText('Updated the role for Jury User.');
 
     fireEvent.click(within(juryCard as HTMLElement).getByRole('button', { name: 'Block user' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Block user' });
+    fireEvent.change(within(dialog).getByLabelText('Blocking reason'), {
+      target: { value: 'Repeated policy violations' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Confirm block' }));
 
     await waitFor(() => {
       expect(mockedApiRequest).toHaveBeenCalledWith('/admin/users/user-2', {
         method: 'PATCH',
-        body: { isBlocked: true },
+        body: { isBlocked: true, blockedReason: 'Repeated policy violations' },
       });
     });
 
     await screen.findByText('Blocked Jury User.');
+    expect(screen.getByText('Latest block')).toBeInTheDocument();
+    expect(screen.getByText('Repeated policy violations')).toBeInTheDocument();
   });
 
   it('exports the current filtered users as CSV', async () => {

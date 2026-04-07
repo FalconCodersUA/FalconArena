@@ -5836,6 +5836,41 @@ a {
   min-width: 0;
 }
 
+.admin-user-block-history {
+  border: 1px solid rgba(94, 23, 235, 0.12);
+  border-radius: 16px;
+  background: rgba(94, 23, 235, 0.05);
+  padding: 12px 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.admin-user-block-history span {
+  color: #718ebf;
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.admin-user-block-history strong {
+  color: #5e17eb;
+  font-size: 0.94rem;
+}
+
+.admin-user-block-history p {
+  margin: 0;
+  color: #718ebf;
+}
+
+.admin-users-block-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
 .admin-user-action {
   min-width: 0;
   width: 100%;

@@ -1,4 +1,4 @@
-import { IsBoolean, IsIn, IsOptional } from 'class-validator';
+import { IsBoolean, IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
 import { ROLES } from '../../common/constants/roles';
 
 export class UpdateManagedUserDto {
@@ -9,4 +9,9 @@ export class UpdateManagedUserDto {
   @IsOptional()
   @IsBoolean()
   isBlocked?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  blockedReason?: string;
 }

@@ -90,6 +90,10 @@ model User {
   passwordHash    String
   role            Role                   @default(TEAM)
   isBlocked       Boolean                @default(false)
+  blockedReason   String?
+  blockedAt       DateTime?
+  blockedByUserId String?
+  blockedBy       User?                  @relation("UserBlockedBy", fields: [blockedByUserId], references: [id], onDelete: SetNull)
   settings        UserSettings?
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
@@ -103,8 +107,10 @@ model User {
   directConversationParticipants DirectConversationParticipant[] @relation("ConversationParticipantUser")
   sentDirectMessages DirectMessage[] @relation("DirectMessageSender")
   auditLogs       AuditLog[]             @relation("AuditLogActor")
+  blockedUsers    User[]                 @relation("UserBlockedBy")
 
   @@index([role, isBlocked, createdAt])
+  @@index([blockedByUserId])
 }
 
 model UserSettings {

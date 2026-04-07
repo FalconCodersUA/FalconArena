@@ -1,6 +1,6 @@
 # Acceptance Checklist
 
-This document helps reviewers quickly compare the original specification with the current FalconArena implementation before a demo or final review.
+This checklist helps reviewers verify the current FalconArena product flow before a demo or final review.
 
 ## 1. User Roles
 
@@ -83,7 +83,7 @@ Status: implemented.
 ## 10. Documentation, Tests, CI
 
 - Ukrainian main `README.md` and English `README.en.md`
-- Deployment, smoke, architectural decision docs, and this acceptance checklist
+- Deployment docs, smoke scenarios, architectural decision docs, and this review checklist
 - Frontend unit tests: available
 - Backend unit tests: available
 - CI: `lint + test + build`
@@ -100,10 +100,10 @@ Implemented as full strengths on top of the base specification:
 - auto-refresh for leaderboard, messages, and notifications
 - CSV export
 - Google Sheets export
-- certificates through printable preview / browser print flow
+- certificates through printable preview and browser print flow
 - tournament schedule
 - archive of previous tournaments
-- monitoring, activity feed, integration settings, audit trail, and background jobs
+- monitoring, activity history, integration settings, audit trail, and background jobs
 
 Status: implemented.
 

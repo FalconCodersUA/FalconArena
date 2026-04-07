@@ -11,7 +11,7 @@
 ## 1. Перед merge
 
 1. Перевірити `git status` і переконатися, що в commit не потрапляють випадкові файли.
-2. Запустити `lint` для змінених workspace.
+2. Запустити `lint` для змінених робочих екранів або модулів.
 3. Запустити ключові тести для зміненого блоку.
 4. Якщо змінювався backend:
    - перевірити permission logic;
@@ -20,9 +20,9 @@
 5. Якщо змінювався frontend:
    - пройти критичний UI flow локально;
    - перевірити mobile для зміненого екрана.
-6. Якщо змінювались docs або workflow:
+6. Якщо змінювались docs або сценарій роботи:
    - синхронізувати `README`;
-   - синхронізувати acceptance / runbook docs, якщо це потрібно.
+   - синхронізувати чекліст відповідності й операційні документи, якщо це потрібно.
 
 ## 2. Перед deploy
 
@@ -47,7 +47,7 @@ sh infra/scripts/verify-backup.sh <timestamp>
 
 ## 3. Після merge / deploy
 
-1. Перевірити, що GitHub Actions / deploy workflow завершився успішно.
+1. Перевірити, що GitHub Actions / сценарій розгортання завершився успішно.
 2. Якщо були Prisma-міграції, виконати:
 
 ```bash
@@ -71,11 +71,11 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
    - один критичний `JURY` flow
    - `/app/leaderboard` або `/app/archive`
 
-## 4. Post-deploy smoke
+## 4. Smoke після розгортання
 
 Мінімум:
 
-1. сторінка відкривається без runtime error;
+1. сторінка відкривається без помилки виконання;
 2. auth працює;
 3. новий функціонал реально доступний;
 4. backend logs не показують очевидний збій;
@@ -94,7 +94,7 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
    - перейти до [ops-runbook.uk.md](/D:/MixProjects/FalconArena/docs/ops-runbook.uk.md)
    - виконати rollback по зафіксованому стабільному commit.
 
-## 6. Мінімальний checklist для галочки
+## 6. Мінімальний чекліст для галочки
 
 - `lint` пройшов
 - ключові тести пройшли
