@@ -1,6 +1,6 @@
-# MVP API Smoke Test
+# API Smoke Scenario
 
-Use this checklist after deployment to verify the core backend flow:
+Use this scenario after deployment to verify the core backend flow:
 
 `auth -> tournaments -> team registration -> rounds -> submissions -> evaluation -> leaderboard`
 

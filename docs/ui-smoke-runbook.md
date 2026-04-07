@@ -1,4 +1,4 @@
-# UI Smoke Runbook (10-15 min)
+# UI Smoke Scenario (10-15 min)
 
 Short post-deploy manual scenario to quickly confirm core UI behavior.
 

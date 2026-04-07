@@ -17,7 +17,7 @@
 - `infra/docker-compose`
 - `.github/workflows`
 
-## Team Workflow
+## Team Delivery Flow
 
 - Main branch: `main`
 - Feature branches: `feature/*`

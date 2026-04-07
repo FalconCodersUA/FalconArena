@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
@@ -34,6 +35,9 @@ describe('UsersService', () => {
         fullName: 'Team Captain',
         role: 'TEAM',
         isBlocked: false,
+        blockedReason: null,
+        blockedAt: null,
+        blockedBy: null,
         createdAt,
         updatedAt,
       },
@@ -54,6 +58,10 @@ describe('UsersService', () => {
         fullName: 'Team Captain',
         role: 'TEAM',
         isBlocked: false,
+        blockedReason: null,
+        blockedAt: null,
+        blockedByUserId: null,
+        blockedByUserName: null,
         createdAt: createdAt.toISOString(),
         updatedAt: updatedAt.toISOString(),
       },
@@ -83,6 +91,9 @@ describe('UsersService', () => {
         fullName: 'Організатор Demo',
         role: 'ORGANIZER',
         isBlocked: true,
+        blockedReason: null,
+        blockedAt: null,
+        blockedBy: null,
         createdAt: new Date('2026-04-07T08:00:00.000Z'),
         updatedAt: new Date('2026-04-07T09:00:00.000Z'),
       },
@@ -104,6 +115,9 @@ describe('UsersService', () => {
       fullName: 'Admin',
       role: 'ADMIN',
       isBlocked: false,
+      blockedReason: null,
+      blockedAt: null,
+      blockedBy: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -119,6 +133,33 @@ describe('UsersService', () => {
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
+  it('requires a blocking reason when blocking a user', async () => {
+    const prisma = createPrismaMock();
+    const auditLogs = createAuditLogsMock();
+    prisma.user.findUnique.mockResolvedValue({
+      id: 'user-2',
+      email: 'jury@example.com',
+      fullName: 'Jury User',
+      role: 'JURY',
+      isBlocked: false,
+      blockedReason: null,
+      blockedAt: null,
+      blockedBy: null,
+      createdAt: new Date('2026-04-07T08:00:00.000Z'),
+      updatedAt: new Date('2026-04-07T08:00:00.000Z'),
+    });
+
+    const service = new UsersService(prisma as never, auditLogs as never);
+
+    await expect(
+      service.updateManagedUser(
+        'user-2',
+        { isBlocked: true },
+        { userId: 'admin-1', email: 'admin@example.com', role: 'ADMIN' },
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
   it('updates role and block state and records an audit log', async () => {
     const prisma = createPrismaMock();
     const auditLogs = createAuditLogsMock();
@@ -130,6 +171,9 @@ describe('UsersService', () => {
       fullName: 'Jury User',
       role: 'JURY',
       isBlocked: false,
+      blockedReason: null,
+      blockedAt: null,
+      blockedBy: null,
       createdAt,
       updatedAt: createdAt,
     });
@@ -139,6 +183,9 @@ describe('UsersService', () => {
       fullName: 'Jury User',
       role: 'ORGANIZER',
       isBlocked: true,
+      blockedReason: 'Duplicate submissions abuse',
+      blockedAt: updatedAt,
+      blockedBy: { id: 'admin-1', fullName: 'Admin User' },
       createdAt,
       updatedAt,
     });
@@ -148,7 +195,11 @@ describe('UsersService', () => {
     await expect(
       service.updateManagedUser(
         'user-2',
-        { role: 'ORGANIZER', isBlocked: true },
+        {
+          role: 'ORGANIZER',
+          isBlocked: true,
+          blockedReason: 'Duplicate submissions abuse',
+        },
         { userId: 'admin-1', email: 'admin@example.com', role: 'ADMIN' },
       ),
     ).resolves.toEqual({
@@ -157,10 +208,68 @@ describe('UsersService', () => {
       fullName: 'Jury User',
       role: 'ORGANIZER',
       isBlocked: true,
+      blockedReason: 'Duplicate submissions abuse',
+      blockedAt: updatedAt.toISOString(),
+      blockedByUserId: 'admin-1',
+      blockedByUserName: 'Admin User',
       createdAt: createdAt.toISOString(),
       updatedAt: updatedAt.toISOString(),
     });
 
     expect(auditLogs.record).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserves last blocking metadata after unblocking', async () => {
+    const prisma = createPrismaMock();
+    const auditLogs = createAuditLogsMock();
+    const createdAt = new Date('2026-04-07T08:00:00.000Z');
+    const blockedAt = new Date('2026-04-07T09:15:00.000Z');
+    const updatedAt = new Date('2026-04-07T10:00:00.000Z');
+    prisma.user.findUnique.mockResolvedValue({
+      id: 'user-2',
+      email: 'jury@example.com',
+      fullName: 'Jury User',
+      role: 'JURY',
+      isBlocked: true,
+      blockedReason: 'Duplicate submissions abuse',
+      blockedAt,
+      blockedBy: { id: 'admin-1', fullName: 'Admin User' },
+      createdAt,
+      updatedAt: blockedAt,
+    });
+    prisma.user.update.mockResolvedValue({
+      id: 'user-2',
+      email: 'jury@example.com',
+      fullName: 'Jury User',
+      role: 'JURY',
+      isBlocked: false,
+      blockedReason: 'Duplicate submissions abuse',
+      blockedAt,
+      blockedBy: { id: 'admin-1', fullName: 'Admin User' },
+      createdAt,
+      updatedAt,
+    });
+
+    const service = new UsersService(prisma as never, auditLogs as never);
+
+    await expect(
+      service.updateManagedUser(
+        'user-2',
+        { isBlocked: false },
+        { userId: 'admin-2', email: 'owner@example.com', role: 'ADMIN' },
+      ),
+    ).resolves.toEqual({
+      id: 'user-2',
+      email: 'jury@example.com',
+      fullName: 'Jury User',
+      role: 'JURY',
+      isBlocked: false,
+      blockedReason: 'Duplicate submissions abuse',
+      blockedAt: blockedAt.toISOString(),
+      blockedByUserId: 'admin-1',
+      blockedByUserName: 'Admin User',
+      createdAt: createdAt.toISOString(),
+      updatedAt: updatedAt.toISOString(),
+    });
   });
 });

@@ -1,6 +1,6 @@
 # FalconArena
 
-FalconArena is a complete tournament platform for team-based programming competitions. Organizers create tournaments and rounds, teams register and submit work, jury members evaluate submissions, and the system provides leaderboard results, archive views, communication flows, certificates, integrations, and operational tooling around the full tournament lifecycle.
+FalconArena is a standalone tournament platform for team-based programming competitions. Organizers create tournaments and rounds, teams register and submit work, jury members evaluate submissions, and the system provides leaderboard results, archive views, communication flows, certificates, integrations, and operational tooling around the full tournament lifecycle.
 
 Live site: `https://falconarena.live/`
 
@@ -9,28 +9,55 @@ Language versions:
 - English: `README.en.md`
 - Ukrainian: `README.md`
 
-## What makes FalconArena strong
+## Platform Overview
 
-### Full tournament lifecycle
+FalconArena is designed as a product platform for tournaments, where the core competition flows live in one system:
+
+- tournament setup and status management;
+- team registration and participant management;
+- rounds with tasks, deadlines, and supporting materials;
+- submissions through GitHub, demo, and live demo links;
+- jury evaluation and leaderboard generation;
+- archive views and certificates for completed tournaments;
+- announcements, direct dialogs, and system notifications.
+
+## Who FalconArena is for
+
+- `ADMIN` and `ORGANIZER` manage tournaments, rounds, users, integrations, and platform settings.
+- `TEAM` registers a team, follows the active round, and submits work.
+- `JURY` reviews assigned submissions, scores projects, and works with final results.
+
+## Product Capabilities
+
+### Tournament flow
 
 - role-based flow for `ADMIN`, `ORGANIZER`, `TEAM`, and `JURY`
-- tournament creation, registration windows, public tournament pages, and round management
-- submission flow with GitHub, demo, live demo, and structured round requirements
-- jury assignment distribution, category-based evaluation, leaderboard, archive, and certificates
+- public tournament pages
+- rounds with descriptions, requirements, deadlines, and materials
+- submissions with GitHub, demo, live demo, and structured summaries
+- automatic submission locking after the deadline
+- jury assignment distribution
+- category-based evaluation
+- leaderboard, archive, and export flows
 
-### Communication and platform control
+### Communication and delivery
 
 - role-based announcements
 - personal dialogs
-- system notifications with unread states
-- topbar indicators and automatic refresh for key communication surfaces
-- email delivery and background jobs for tournament events and reminders
+- system notifications
+- unread indicators in the UI
+- email delivery through `console` or `resend`
+- background processing for tournament events and reminders
 
-### Production-ready operating layer
+### Administrative and operating layer
 
-- profile settings, avatars, schedule, exports, and integrations
-- monitoring, archive flows, activity feed, and admin control surfaces
-- CI/CD, smoke automation, runbooks, and deployment documentation
+- user, role, and access-block management
+- tournament schedule
+- profile settings
+- participant and winner certificates
+- Google Sheets export via webhook
+- `Integrations / System settings` admin screen
+- monitoring, activity history, automated checks, and deployment documentation
 
 ## Tech Stack
 
@@ -139,9 +166,9 @@ Optional repository variable for manual smoke check:
 Production routing is handled by Caddy (`80/443`). Database and Redis are internal-only in Docker network.
 
 Quick setup for GitHub + Ubuntu + `falconarena.live` is in `docs/deploy-quickstart.md`.
-API smoke script is in `docs/mvp-smoke-api.md`.
-UI smoke runbook is in `docs/ui-smoke-runbook.md`.
-Acceptance checklist is in `docs/acceptance-checklist.md`.
+API smoke scenario is in `docs/mvp-smoke-api.md`.
+UI smoke scenario is in `docs/ui-smoke-runbook.md`.
+Acceptance review checklist is in `docs/acceptance-checklist.md`.
 
 Ukrainian docs:
 
