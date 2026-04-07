@@ -28,6 +28,14 @@ const managedUserSelect = {
   fullName: true,
   role: true,
   isBlocked: true,
+  blockedReason: true,
+  blockedAt: true,
+  blockedBy: {
+    select: {
+      id: true,
+      fullName: true,
+    },
+  },
   createdAt: true,
   updatedAt: true,
 } satisfies Prisma.UserSelect;
@@ -51,14 +59,25 @@ function toManagedUserDto(
     fullName: string;
     role: Role;
     isBlocked: boolean;
+    blockedReason: string | null;
+    blockedAt: Date | null;
+    blockedBy: {
+      id: string;
+      fullName: string;
+    } | null;
     createdAt: Date;
     updatedAt: Date;
   },
 ) {
+  const { blockedBy, ...rest } = item;
+
   return {
-    ...item,
-    createdAt: item.createdAt.toISOString(),
-    updatedAt: item.updatedAt.toISOString(),
+    ...rest,
+    blockedAt: rest.blockedAt?.toISOString() ?? null,
+    blockedByUserId: blockedBy?.id ?? null,
+    blockedByUserName: blockedBy?.fullName ?? null,
+    createdAt: rest.createdAt.toISOString(),
+    updatedAt: rest.updatedAt.toISOString(),
   };
 }
 
@@ -119,7 +138,11 @@ export class UsersService {
   }
 
   async updateManagedUser(userId: string, dto: UpdateManagedUserDto, actor: AuthUser) {
-    if (dto.role === undefined && dto.isBlocked === undefined) {
+    if (
+      dto.role === undefined &&
+      dto.isBlocked === undefined &&
+      dto.blockedReason === undefined
+    ) {
       throw new BadRequestException('No user management updates were provided');
     }
 
@@ -131,6 +154,14 @@ export class UsersService {
         fullName: true,
         role: true,
         isBlocked: true,
+        blockedReason: true,
+        blockedAt: true,
+        blockedBy: {
+          select: {
+            id: true,
+            fullName: true,
+          },
+        },
         createdAt: true,
         updatedAt: true,
       },
@@ -146,12 +177,20 @@ export class UsersService {
 
     const nextRole = dto.role ?? existing.role;
     const nextBlocked = dto.isBlocked ?? existing.isBlocked;
+    const trimmedBlockedReason = dto.blockedReason?.trim();
+    const isBecomingBlocked = !existing.isBlocked && nextBlocked;
 
-    if (nextRole === existing.role && nextBlocked === existing.isBlocked) {
+    if (isBecomingBlocked && !trimmedBlockedReason) {
+      throw new BadRequestException('Blocked reason is required when blocking a user');
+    }
+
+    if (
+      nextRole === existing.role &&
+      nextBlocked === existing.isBlocked &&
+      trimmedBlockedReason === undefined
+    ) {
       return {
-        ...existing,
-        createdAt: existing.createdAt.toISOString(),
-        updatedAt: existing.updatedAt.toISOString(),
+        ...toManagedUserDto(existing),
       };
     }
 
@@ -160,6 +199,13 @@ export class UsersService {
       data: {
         role: nextRole,
         isBlocked: nextBlocked,
+        ...(isBecomingBlocked
+          ? {
+              blockedReason: trimmedBlockedReason,
+              blockedAt: new Date(),
+              blockedByUserId: actor.userId,
+            }
+          : {}),
       },
       select: {
         id: true,
@@ -167,6 +213,14 @@ export class UsersService {
         fullName: true,
         role: true,
         isBlocked: true,
+        blockedReason: true,
+        blockedAt: true,
+        blockedBy: {
+          select: {
+            id: true,
+            fullName: true,
+          },
+        },
         createdAt: true,
         updatedAt: true,
       },
@@ -188,12 +242,22 @@ export class UsersService {
       entityId: updated.id,
       entityLabel: updated.fullName,
       title: 'Updated platform user',
-      description: `${updated.fullName} (${updated.email}) was updated: ${changeSummary.join(', ')}.`,
+      description: updated.isBlocked && existing.isBlocked !== updated.isBlocked
+        ? `${updated.fullName} (${updated.email}) was blocked. Reason: ${updated.blockedReason}.`
+        : !updated.isBlocked && existing.isBlocked !== updated.isBlocked
+          ? `${updated.fullName} (${updated.email}) was unblocked.`
+          : `${updated.fullName} (${updated.email}) was updated: ${changeSummary.join(', ')}.`,
       metadata: {
         previousRole: existing.role,
         nextRole: updated.role,
         previousIsBlocked: existing.isBlocked,
         nextIsBlocked: updated.isBlocked,
+        previousBlockedReason: existing.blockedReason,
+        nextBlockedReason: updated.blockedReason,
+        previousBlockedAt: existing.blockedAt?.toISOString() ?? null,
+        nextBlockedAt: updated.blockedAt?.toISOString() ?? null,
+        previousBlockedByUserId: existing.blockedBy?.id ?? null,
+        nextBlockedByUserId: updated.blockedBy?.id ?? null,
       },
     });
 
