@@ -29,6 +29,8 @@ body {
   min-height: 100vh;
   font-family: 'Manrope', sans-serif;
   color: var(--ink);
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
   background:
     radial-gradient(circle at 50% 100%, rgba(155, 118, 248, 0.18) 0%, transparent 34%),
     radial-gradient(circle at 8% -12%, rgba(90, 87, 215, 0.08) 0%, transparent 30%),
@@ -949,9 +951,270 @@ a {
   margin-top: 0;
   padding: 22px 24px 30px;
   overflow: auto;
+  overflow-x: hidden;
+  min-width: 0;
+  scrollbar-gutter: stable both-edges;
+  position: relative;
   background:
     radial-gradient(circle at 55% 115%, rgba(151, 71, 255, 0.1) 0%, transparent 34%),
     linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(244, 236, 255, 0.72) 100%);
+}
+
+.app-route-stage {
+  min-width: 0;
+}
+
+.page-skeleton {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.page-skeleton-hero,
+.page-skeleton-stack,
+.page-skeleton-columns,
+.page-skeleton-tiles,
+.page-skeleton-tabs,
+.page-skeleton-dialog-layout,
+.page-skeleton-form-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.page-skeleton-tiles {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.page-skeleton-columns,
+.page-skeleton-dialog-layout {
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+}
+
+.page-skeleton-columns--users-list-head {
+  grid-template-columns: minmax(0, 1fr) 200px;
+  align-items: center;
+}
+
+.page-skeleton-columns--messages-panels {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.page-skeleton-form-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.page-skeleton-form-grid--compact {
+  grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.6fr);
+}
+
+.page-skeleton-tabs {
+  grid-template-columns: repeat(4, minmax(88px, 132px));
+}
+
+.page-skeleton-chip,
+.page-skeleton-card,
+.page-skeleton-block {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(246, 239, 255, 0.95) 100%);
+  border: 1px solid rgba(231, 223, 248, 0.92);
+  box-shadow: 0 14px 30px rgba(52, 60, 106, 0.05);
+}
+
+.page-skeleton-chip::after,
+.page-skeleton-card::after,
+.page-skeleton-block::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.22) 40%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.22) 60%,
+    transparent 100%
+  );
+  animation: skeletonShimmer 1.25s ease-in-out infinite;
+}
+
+.page-skeleton-block {
+  border-radius: 999px;
+  box-shadow: none;
+}
+
+.page-skeleton-block--eyebrow {
+  width: 140px;
+  height: 14px;
+}
+
+.page-skeleton-block--title {
+  width: min(420px, 72%);
+  height: 40px;
+}
+
+.page-skeleton-block--lead {
+  width: min(560px, 88%);
+  height: 16px;
+}
+
+.page-skeleton-card--tile {
+  min-height: 116px;
+}
+
+.page-skeleton-card--feature {
+  min-height: 240px;
+}
+
+.page-skeleton-card--stack {
+  min-height: 112px;
+}
+
+.page-skeleton-card--thread {
+  min-height: 430px;
+}
+
+.page-skeleton-card--profile {
+  min-height: 330px;
+}
+
+.page-skeleton-card--row {
+  min-height: 144px;
+}
+
+.page-skeleton-card--field {
+  min-height: 58px;
+}
+
+.page-skeleton-card--status {
+  min-height: 156px;
+}
+
+.page-skeleton-card--toolbar {
+  min-height: 64px;
+}
+
+.page-skeleton-card--filter-panel {
+  min-height: 136px;
+}
+
+.page-skeleton-card--selector-panel {
+  min-height: 112px;
+}
+
+.page-skeleton-card--quick-block {
+  min-height: 268px;
+}
+
+.page-skeleton-card--label-line {
+  width: 160px;
+  min-height: 18px;
+  border-radius: 999px;
+  box-shadow: none;
+}
+
+.page-skeleton-card--list-copy {
+  min-height: 74px;
+}
+
+.page-skeleton-card--cta {
+  min-height: 48px;
+}
+
+.page-skeleton-card--tournament {
+  min-height: 228px;
+}
+
+.page-skeleton-card--tool-grid {
+  min-height: 168px;
+}
+
+.page-skeleton-card--user-card {
+  min-height: 304px;
+}
+
+.page-skeleton-card--message-panel {
+  min-height: 312px;
+}
+
+.page-skeleton-card--archive-panel {
+  min-height: 298px;
+}
+
+.page-skeleton-card--leaderboard-panel {
+  min-height: 520px;
+}
+
+.page-skeleton--admin-dashboard .page-skeleton-tiles,
+.page-skeleton--monitoring .page-skeleton-tiles,
+.page-skeleton--integrations .page-skeleton-tiles,
+.page-skeleton--users .page-skeleton-tiles {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.page-skeleton--admin-dashboard .page-skeleton-columns,
+.page-skeleton--monitoring .page-skeleton-columns,
+.page-skeleton--integrations .page-skeleton-columns {
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+}
+
+.page-skeleton--messages .page-skeleton-dialog-layout {
+  grid-template-columns: minmax(280px, 0.75fr) minmax(0, 1.25fr);
+}
+
+.page-skeleton--messages .page-skeleton-stack {
+  align-content: start;
+}
+
+.page-skeleton--profile .page-skeleton-columns {
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+}
+
+.page-skeleton--archive .page-skeleton-tiles,
+.page-skeleton--leaderboard .page-skeleton-tiles {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.page-skeleton--messages .page-skeleton-tiles {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.page-skeleton--teams .page-skeleton-tiles {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.page-skeleton--messages .page-skeleton-columns {
+  grid-template-columns: minmax(0, 1.2fr) 280px;
+}
+
+.page-skeleton--tournaments .page-skeleton-columns,
+.page-skeleton--users .page-skeleton-columns,
+.page-skeleton--archive .page-skeleton-columns,
+.page-skeleton--leaderboard .page-skeleton-columns {
+  grid-template-columns: minmax(0, 1.2fr) 280px;
+}
+
+@keyframes skeletonShimmer {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-skeleton-chip::after,
+  .page-skeleton-card::after,
+  .page-skeleton-block::after,
+  .state-card-quiet-line::after,
+  .quiet-inline-loading-line::after {
+    animation: none;
+  }
 }
 
 .app-page .button {
@@ -1875,6 +2138,76 @@ a {
   margin: 0;
   color: #51647b;
   line-height: 1.5;
+}
+
+.state-card--quiet-loading {
+  min-height: 122px;
+  align-content: center;
+}
+
+.state-card-quiet-line {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(236, 230, 251, 0.86) 0%, rgba(247, 243, 255, 0.98) 100%);
+}
+
+.state-card-quiet-line::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.78) 50%, transparent 100%);
+  animation: skeletonShimmer 1.2s ease-in-out infinite;
+}
+
+.state-card-quiet-line--title {
+  width: min(260px, 58%);
+  height: 16px;
+}
+
+.state-card-quiet-line--body {
+  width: min(420px, 82%);
+  height: 12px;
+}
+
+.quiet-inline-loading {
+  display: grid;
+  gap: 10px;
+  padding: 10px 0 4px;
+}
+
+.quiet-inline-loading.is-compact {
+  gap: 8px;
+  padding: 6px 0 2px;
+}
+
+.quiet-inline-loading-line {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(236, 230, 251, 0.82) 0%, rgba(247, 243, 255, 0.96) 100%);
+}
+
+.quiet-inline-loading-line::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.78) 50%, transparent 100%);
+  animation: skeletonShimmer 1.2s ease-in-out infinite;
+}
+
+.quiet-inline-loading-line--title {
+  width: min(200px, 46%);
+  height: 12px;
+}
+
+.quiet-inline-loading-line--body {
+  width: min(320px, 72%);
+  height: 10px;
 }
 
 .section-header {
@@ -6479,6 +6812,40 @@ a {
   .admin-user-card-grid,
   .admin-user-card-actions {
     grid-template-columns: 1fr;
+  }
+
+  .page-skeleton-tiles,
+  .page-skeleton-columns,
+  .page-skeleton-dialog-layout,
+  .page-skeleton-form-grid,
+  .page-skeleton-form-grid--compact,
+  .page-skeleton-columns--users-list-head,
+  .page-skeleton-columns--messages-panels,
+  .page-skeleton--admin-dashboard .page-skeleton-tiles,
+  .page-skeleton--admin-dashboard .page-skeleton-columns,
+  .page-skeleton--messages .page-skeleton-dialog-layout,
+  .page-skeleton--profile .page-skeleton-columns,
+  .page-skeleton--archive .page-skeleton-tiles,
+  .page-skeleton--leaderboard .page-skeleton-tiles,
+  .page-skeleton--users .page-skeleton-tiles,
+  .page-skeleton--monitoring .page-skeleton-tiles,
+  .page-skeleton--integrations .page-skeleton-tiles {
+    grid-template-columns: 1fr;
+  }
+
+  .page-skeleton-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .page-skeleton-card--thread,
+  .page-skeleton-card--feature,
+  .page-skeleton-card--profile,
+  .page-skeleton-card--quick-block,
+  .page-skeleton-card--user-card,
+  .page-skeleton-card--message-panel,
+  .page-skeleton-card--archive-panel,
+  .page-skeleton-card--leaderboard-panel {
+    min-height: 220px;
   }
 
   .admin-user-action {

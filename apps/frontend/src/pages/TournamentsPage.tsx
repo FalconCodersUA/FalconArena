@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import QuietLoadingInline from '../components/QuietLoadingInline';
+import QuietLoadingCard from '../components/QuietLoadingCard';
 import { isAuthenticated } from '../lib/auth';
 import { ApiError, apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
@@ -225,7 +227,7 @@ export default function TournamentsPage() {
   );
 
   if (loading) {
-    return <div className="card state-card">{t('tournaments.loading')}</div>;
+    return <QuietLoadingCard label={t('tournaments.loading')} />;
   }
 
   if (error) {
@@ -344,12 +346,7 @@ export default function TournamentsPage() {
           <h2>{t('tournaments.quickBlock.title')}</h2>
           <p className="inline-hint">{t('tournaments.quickBlock.lead')}</p>
 
-          {quickLoading ? (
-            <div className="state-callout featured">
-              <strong>{t('tournaments.quickBlock.title')}</strong>
-              <p>{t('tournaments.quickBlock.loading')}</p>
-            </div>
-          ) : null}
+          {quickLoading ? <QuietLoadingInline label={t('tournaments.quickBlock.loading')} /> : null}
 
           {quickError ? (
             <>

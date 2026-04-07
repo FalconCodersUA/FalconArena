@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import QuietLoadingCard from '../components/QuietLoadingCard';
+import QuietLoadingInline from '../components/QuietLoadingInline';
 import { useI18n } from '../i18n/I18nProvider';
 import { getAuthRole, isAuthenticated } from '../lib/auth';
 import { apiRequest, buildApiUrl } from '../lib/api';
@@ -404,7 +406,7 @@ export default function ArchivePage() {
   }
 
   if (loadingTournaments) {
-    return <article className="card state-card">{t('archivePage.loadingTournaments')}</article>;
+    return <QuietLoadingCard label={t('archivePage.loadingTournaments')} />;
   }
 
   if (tournamentsError) {
@@ -521,12 +523,9 @@ export default function ArchivePage() {
         </div>
       </article>
 
-      {loadingArchive ? (
+      {loadingArchive && !archive ? (
         <article className="card panel-card">
-          <div className="state-callout featured">
-            <strong>{t('archivePage.title')}</strong>
-            <p>{t('archivePage.loadingArchive')}</p>
-          </div>
+          <QuietLoadingInline label={t('archivePage.loadingArchive')} />
         </article>
       ) : null}
 
@@ -632,9 +631,7 @@ export default function ArchivePage() {
 
               <p className="inline-hint">{t('archivePage.certificates.lead')}</p>
 
-              {loadingTemplate ? (
-                <p>{t('archivePage.certificates.loadingTemplate')}</p>
-              ) : null}
+              {loadingTemplate ? <QuietLoadingInline label={t('archivePage.certificates.loadingTemplate')} compact /> : null}
               {templateError ? <p className="form-error">{templateError}</p> : null}
               {templateNotice ? <p className="form-success">{templateNotice}</p> : null}
 

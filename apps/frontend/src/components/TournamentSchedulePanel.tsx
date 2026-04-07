@@ -1,6 +1,7 @@
 import { formatDateTime } from '../lib/dateTime';
 import { TournamentScheduleEvent } from '../lib/tournamentSchedule';
 import { useI18n } from '../i18n/I18nProvider';
+import QuietLoadingInline from './QuietLoadingInline';
 
 type TournamentSchedulePanelProps = {
   events: TournamentScheduleEvent[];
@@ -30,7 +31,7 @@ export default function TournamentSchedulePanel({
         <span className="status-pill">{events.length}</span>
       </div>
       {lead ? <p className="inline-hint">{lead}</p> : null}
-      {loading ? <p>{t('schedule.loading')}</p> : null}
+      {loading ? <QuietLoadingInline label={t('schedule.loading')} compact /> : null}
       {error ? (
         <>
           <p className="form-error">{error}</p>

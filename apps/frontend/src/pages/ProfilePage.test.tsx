@@ -41,7 +41,7 @@ describe('ProfilePage', () => {
 
     renderProfilePage();
 
-    expect(screen.getByText('Loading profile...')).toBeInTheDocument();
+    expect(screen.getByLabelText('Loading profile...')).toBeInTheDocument();
   });
 
   it('renders TEAM summary with members and submissions counts', async () => {

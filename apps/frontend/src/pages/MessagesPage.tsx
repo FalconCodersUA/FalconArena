@@ -1,5 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import QuietLoadingCard from '../components/QuietLoadingCard';
+import QuietLoadingInline from '../components/QuietLoadingInline';
 import { apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
 import { useI18n } from '../i18n/I18nProvider';
@@ -766,7 +768,7 @@ export default function MessagesPage() {
   }
 
   if (loading) {
-    return <article className="card state-card">{t('messagesPage.loading')}</article>;
+    return <QuietLoadingCard label={t('messagesPage.loading')} />;
   }
 
   if (error && !me) {
@@ -1298,7 +1300,7 @@ export default function MessagesPage() {
                 </header>
 
                 {dialogMessagesLoading ? (
-                  <p>{t('messagesPage.dialogs.loadingMessages')}</p>
+                  <QuietLoadingInline label={t('messagesPage.dialogs.loadingMessages')} compact />
                 ) : (
                   <div className="messages-thread-feed">
                     {dialogMessages.length === 0 ? (

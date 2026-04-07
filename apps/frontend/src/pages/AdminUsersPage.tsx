@@ -1,4 +1,5 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import QuietLoadingCard from '../components/QuietLoadingCard';
 import { apiRequest, buildApiUrl } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
 import { getAuthUser, getToken, type AuthRole } from '../lib/auth';
@@ -389,7 +390,7 @@ export default function AdminUsersPage() {
   }
 
   if (loading) {
-    return <article className="card state-card">{t('adminDashboard.adminUsers.loading')}</article>;
+    return <QuietLoadingCard label={t('adminDashboard.adminUsers.loading')} />;
   }
 
   return (

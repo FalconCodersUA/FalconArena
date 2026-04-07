@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import QuietLoadingCard from '../components/QuietLoadingCard';
 import { useI18n } from '../i18n/I18nProvider';
 import { getAuthUser } from '../lib/auth';
 import { apiRequest } from '../lib/api';
@@ -390,7 +391,7 @@ export default function SystemIntegrationsPage() {
   }
 
   if (loading) {
-    return <article className="card state-card">{t('systemIntegrations.loading')}</article>;
+    return <QuietLoadingCard label={t('systemIntegrations.loading')} />;
   }
 
   if (!googleSheets && !emailSettings && !notificationRules && !tournamentDefaults) {
