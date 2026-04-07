@@ -170,4 +170,64 @@ describe('AdminUsersPage', () => {
     expect(anchorClick).toHaveBeenCalled();
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:users-export');
   });
+
+  it('creates a new user without leaving the users page', async () => {
+    mockedApiRequest.mockImplementation(
+      async (path: string, options?: { method?: string; body?: unknown }) => {
+        if (path === '/admin/users') {
+          return MANAGED_USERS;
+        }
+
+        if (path === '/auth/admin/users' && options?.method === 'POST') {
+          return {
+            id: 'user-3',
+            email: 'organizer@example.com',
+            fullName: 'Organizer User',
+            role: 'ORGANIZER',
+            createdAt: '2026-04-07T11:00:00.000Z',
+          };
+        }
+
+        throw new Error(`Unexpected request: ${path}`);
+      },
+    );
+
+    renderPage();
+
+    await screen.findByText('Platform users');
+
+    fireEvent.click(screen.getByRole('button', { name: /create user/i }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Create user' });
+
+    fireEvent.change(within(dialog).getByLabelText('Full name'), {
+      target: { value: 'Organizer User' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('Email'), {
+      target: { value: 'organizer@example.com' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('Password'), {
+      target: { value: 'secure-pass-123' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('Role'), {
+      target: { value: 'ORGANIZER' },
+    });
+
+    fireEvent.submit(within(dialog).getByRole('button', { name: 'Create user' }).closest('form')!);
+
+    await waitFor(() => {
+      expect(mockedApiRequest).toHaveBeenCalledWith('/auth/admin/users', {
+        method: 'POST',
+        body: {
+          fullName: 'Organizer User',
+          email: 'organizer@example.com',
+          password: 'secure-pass-123',
+          role: 'ORGANIZER',
+        },
+      });
+    });
+
+    await screen.findByText('User with the Organizer role was created successfully.');
+    expect(screen.getByText('Organizer User')).toBeInTheDocument();
+  });
 });

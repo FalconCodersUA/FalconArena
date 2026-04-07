@@ -55,6 +55,13 @@ const TOURNAMENT_PRIORITY: Record<TournamentStatus, number> = {
   FINISHED: 4,
 };
 
+const TOURNAMENT_STATUS_CARD_CLASS: Record<TournamentStatus, string> = {
+  DRAFT: 'is-draft',
+  REGISTRATION: 'is-registration',
+  RUNNING: 'is-running',
+  FINISHED: 'is-finished',
+};
+
 export default function TournamentsPage() {
   const { language, t } = useI18n();
   const [items, setItems] = useState<Tournament[]>([]);
@@ -500,7 +507,10 @@ export default function TournamentsPage() {
                 ) : null}
                 <div className="tournaments-grid">
                   {section.items.map((tournament) => (
-                    <article key={tournament.id} className="card tournament-card">
+                    <article
+                      key={tournament.id}
+                      className={`card tournament-card ${TOURNAMENT_STATUS_CARD_CLASS[tournament.status]}`}
+                    >
                       <div className="tournament-head">
                         <h3>{tournament.title}</h3>
                         <span className="status-pill">
