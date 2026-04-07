@@ -1493,7 +1493,11 @@ export default function AdminDashboardPage() {
             <strong>
               {selectedTournament?.title ?? t('adminDashboard.workspaceNoTournament')}
             </strong>
-            <p>{selectedTournament ? t(`tournaments.status.${selectedTournament.status}`) : t('adminDashboard.focusEmpty')}</p>
+            <p>
+              {selectedTournament
+                ? `${t(`tournaments.status.${selectedTournament.status}`)} · ${rounds.length} ${t('adminDashboard.summary.rounds').toLowerCase()}`
+                : t('adminDashboard.focusEmpty')}
+            </p>
           </div>
         </div>
 
@@ -1555,11 +1559,6 @@ export default function AdminDashboardPage() {
                   <p>{t('adminDashboard.workspaceTools.usersLead')}</p>
                 </Link>
               ) : null}
-              <Link to="/app/integrations" className="dashboard-tool-card dashboard-tool-card--teal">
-                <span>{t('shell.integrations')}</span>
-                <strong>{t('adminDashboard.workspaceTools.integrationsTitle')}</strong>
-                <p>{t('adminDashboard.workspaceTools.integrationsLead')}</p>
-              </Link>
               <Link to="/app/leaderboard" className="dashboard-tool-card dashboard-tool-card--purple">
                 <span>{t('shell.leaderboard')}</span>
                 <strong>{t('adminDashboard.workspaceTools.leaderboardTitle')}</strong>

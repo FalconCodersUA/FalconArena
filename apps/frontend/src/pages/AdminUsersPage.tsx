@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { apiRequest, buildApiUrl } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
 import { getAuthUser, getToken, type AuthRole } from '../lib/auth';
@@ -16,11 +16,23 @@ type ManagedUser = {
 
 type UserStatusFilter = 'ALL' | 'ACTIVE' | 'BLOCKED';
 
+type CreatedUser = {
+  id: string;
+  email: string;
+  fullName: string;
+  role: AuthRole;
+  createdAt: string;
+};
+
 const MANAGEABLE_ROLES: AuthRole[] = ['ADMIN', 'TEAM', 'JURY', 'ORGANIZER'];
 
 function resolveExportFilename(contentDisposition: string | null) {
   const match = contentDisposition?.match(/filename="?([^"]+)"?/i);
   return match?.[1] ?? 'users-export.csv';
+}
+
+function isValidEmail(value: string) {
+  return /^\S+@\S+\.\S+$/.test(value);
 }
 
 export default function AdminUsersPage() {
@@ -36,8 +48,30 @@ export default function AdminUsersPage() {
   const [savingRoleUserId, setSavingRoleUserId] = useState('');
   const [togglingBlockUserId, setTogglingBlockUserId] = useState('');
   const [exportingCsv, setExportingCsv] = useState(false);
+  const [createUserOpen, setCreateUserOpen] = useState(false);
+  const [createUserLoading, setCreateUserLoading] = useState(false);
+  const [createUserError, setCreateUserError] = useState('');
+  const [userFullName, setUserFullName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [userPassword, setUserPassword] = useState('');
+  const [userRole, setUserRole] = useState<AuthRole>('JURY');
 
-  const currentUserId = getAuthUser()?.id ?? '';
+  const currentUser = getAuthUser();
+  const currentUserId = currentUser?.id ?? '';
+  const currentUserEmail = currentUser?.email.trim().toLowerCase() ?? '';
+  const creatableRoles =
+    currentUser?.role === 'ADMIN'
+      ? MANAGEABLE_ROLES
+      : MANAGEABLE_ROLES.filter((role) => role !== 'ADMIN');
+
+  function closeCreateUserModal() {
+    setCreateUserOpen(false);
+    setCreateUserError('');
+    setUserFullName('');
+    setUserEmail('');
+    setUserPassword('');
+    setUserRole(creatableRoles[0] ?? 'JURY');
+  }
 
   const loadUsers = useCallback(async (showLoading = true) => {
     if (showLoading) {
@@ -96,10 +130,6 @@ export default function AdminUsersPage() {
     () => users.filter((item) => item.isBlocked).length,
     [users],
   );
-  const adminUsersCount = useMemo(
-    () => users.filter((item) => item.role === 'ADMIN').length,
-    [users],
-  );
 
   async function exportUsersCsv() {
     setExportingCsv(true);
@@ -152,6 +182,79 @@ export default function AdminUsersPage() {
       );
     } finally {
       setExportingCsv(false);
+    }
+  }
+
+  async function submitUser(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setCreateUserError('');
+    setError('');
+    setNotice('');
+
+    const trimmedFullName = userFullName.trim();
+    const trimmedEmail = userEmail.trim().toLowerCase();
+
+    if (trimmedFullName.length < 2 || trimmedFullName.length > 80) {
+      setCreateUserError(t('adminDashboard.validation.userFullName'));
+      return;
+    }
+
+    if (!trimmedEmail || !isValidEmail(trimmedEmail)) {
+      setCreateUserError(t('adminDashboard.validation.userEmail'));
+      return;
+    }
+
+    if (trimmedEmail === currentUserEmail) {
+      setCreateUserError(t('adminDashboard.validation.userEmailNotSelf'));
+      return;
+    }
+
+    if (userPassword.length < 8 || userPassword.length > 128) {
+      setCreateUserError(t('adminDashboard.validation.userPassword'));
+      return;
+    }
+
+    if (!creatableRoles.includes(userRole)) {
+      setCreateUserError(t('adminDashboard.validation.userRole'));
+      return;
+    }
+
+    setCreateUserLoading(true);
+
+    try {
+      const created = await apiRequest<CreatedUser>('/auth/admin/users', {
+        method: 'POST',
+        body: {
+          fullName: trimmedFullName,
+          email: trimmedEmail,
+          password: userPassword,
+          role: userRole,
+        },
+      });
+
+      const nextUser: ManagedUser = {
+        ...created,
+        isBlocked: false,
+        updatedAt: created.createdAt,
+      };
+
+      setUsers((current) => [nextUser, ...current]);
+      setDraftRoles((current) => ({ [nextUser.id]: nextUser.role, ...current }));
+      setNotice(
+        t('adminDashboard.createUserSuccess').replace(
+          '{role}',
+          t(`profile.role.${created.role}`),
+        ),
+      );
+      closeCreateUserModal();
+    } catch (requestError) {
+      setCreateUserError(
+        requestError instanceof Error
+          ? requestError.message
+          : t('adminDashboard.createUserFailed'),
+      );
+    } finally {
+      setCreateUserLoading(false);
     }
   }
 
@@ -259,11 +362,20 @@ export default function AdminUsersPage() {
             <strong>{blockedUsersCount}</strong>
             <p>{t('adminDashboard.adminUsers.summary.blockedLead')}</p>
           </div>
-          <div className="summary-card dashboard-tool-card dashboard-tool-card--berry">
-            <span>{t('adminDashboard.adminUsers.summary.admins')}</span>
-            <strong>{adminUsersCount}</strong>
-            <p>{t('adminDashboard.adminUsers.summary.adminsLead')}</p>
-          </div>
+          <button
+            type="button"
+            className="summary-card dashboard-tool-card dashboard-tool-card--berry admin-users-create-card dashboard-tool-button"
+            onClick={() => {
+              setCreateUserError('');
+              setUserRole(creatableRoles[0] ?? 'JURY');
+              setCreateUserOpen(true);
+            }}
+          >
+            <span>{t('adminDashboard.adminUsers.summary.createUser')}</span>
+            <strong>{t('adminDashboard.userForm.createUser')}</strong>
+            <p>{t('adminDashboard.adminUsers.summary.createUserLead')}</p>
+            <em>{t('adminDashboard.adminUsers.summary.createUserHint')}</em>
+          </button>
         </div>
       </article>
 
@@ -432,6 +544,102 @@ export default function AdminUsersPage() {
           </div>
         )}
       </article>
+
+      {createUserOpen ? (
+        <div
+          className="app-modal-overlay"
+          role="presentation"
+          onClick={closeCreateUserModal}
+        >
+          <article
+            className="app-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('adminDashboard.createUserTitle')}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="app-modal-head">
+              <h2>{t('adminDashboard.createUserTitle')}</h2>
+              <button
+                type="button"
+                className="app-modal-close"
+                onClick={closeCreateUserModal}
+              >
+                {t('adminDashboard.modal.close')}
+              </button>
+            </header>
+            <div className="app-modal-body">
+              <p className="inline-hint">{t('adminDashboard.createUserLead')}</p>
+              {createUserError ? <p className="form-error">{createUserError}</p> : null}
+
+              <form className="panel-form" onSubmit={submitUser} noValidate>
+                <label className="field" htmlFor="admin-users-full-name">
+                  <span>{t('adminDashboard.userForm.fullName')}</span>
+                  <input
+                    id="admin-users-full-name"
+                    type="text"
+                    value={userFullName}
+                    onChange={(event) => setUserFullName(event.target.value)}
+                    required
+                    minLength={2}
+                    maxLength={80}
+                  />
+                </label>
+
+                <label className="field" htmlFor="admin-users-email">
+                  <span>{t('adminDashboard.userForm.email')}</span>
+                  <input
+                    id="admin-users-email"
+                    type="email"
+                    value={userEmail}
+                    onChange={(event) => setUserEmail(event.target.value)}
+                    required
+                  />
+                </label>
+
+                <label className="field" htmlFor="admin-users-password">
+                  <span>{t('adminDashboard.userForm.password')}</span>
+                  <input
+                    id="admin-users-password"
+                    type="password"
+                    value={userPassword}
+                    onChange={(event) => setUserPassword(event.target.value)}
+                    required
+                    minLength={8}
+                    maxLength={128}
+                  />
+                </label>
+
+                <label className="field" htmlFor="admin-users-role">
+                  <span>{t('adminDashboard.userForm.role')}</span>
+                  <select
+                    id="admin-users-role"
+                    className="select-input"
+                    value={userRole}
+                    onChange={(event) => setUserRole(event.target.value as AuthRole)}
+                  >
+                    {creatableRoles.map((role) => (
+                      <option key={role} value={role}>
+                        {t(`profile.role.${role}`)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <button
+                  type="submit"
+                  className="button button-primary"
+                  disabled={createUserLoading}
+                >
+                  {createUserLoading
+                    ? t('adminDashboard.userForm.creatingUser')
+                    : t('adminDashboard.userForm.createUser')}
+                </button>
+              </form>
+            </div>
+          </article>
+        </div>
+      ) : null}
     </section>
   );
 }
