@@ -170,6 +170,13 @@ type AuditActivityEntry = {
   createdAt: string;
 };
 
+const TOURNAMENT_STATUS_CARD_CLASS: Record<TournamentStatus, string> = {
+  DRAFT: 'is-draft',
+  REGISTRATION: 'is-registration',
+  RUNNING: 'is-running',
+  FINISHED: 'is-finished',
+};
+
 type ProfileSettingsPayload = {
   edit: {
     avatarUrl?: string;
@@ -1237,7 +1244,10 @@ export default function ProfilePage() {
           {summary.items.length > 0 ? (
             <div className="profile-role-grid">
               {summary.items.map((item) => (
-                <article key={item.tournamentId} className="profile-role-card">
+                <article
+                  key={item.tournamentId}
+                  className={`profile-role-card profile-role-card--admin ${TOURNAMENT_STATUS_CARD_CLASS[item.tournamentStatus]}`}
+                >
                   <div className="tournament-head">
                     <strong>{item.tournamentTitle}</strong>
                     <span className="status-pill">{t(`profile.status.${item.tournamentStatus}`)}</span>
@@ -1419,7 +1429,10 @@ export default function ProfilePage() {
           {summary.items.length > 0 ? (
             <div className="profile-role-grid">
               {summary.items.map((item) => (
-                <article key={item.tournamentId} className="profile-role-card">
+                <article
+                  key={item.tournamentId}
+                  className={`profile-role-card profile-role-card--admin ${TOURNAMENT_STATUS_CARD_CLASS[item.tournamentStatus]}`}
+                >
                   <div className="tournament-head">
                     <strong>{item.tournamentTitle}</strong>
                     <span className="status-pill">{t(`profile.status.${item.tournamentStatus}`)}</span>

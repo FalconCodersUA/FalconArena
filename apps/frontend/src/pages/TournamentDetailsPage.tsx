@@ -218,10 +218,16 @@ export default function TournamentDetailsPage() {
                 {registrationAction.label}
               </Link>
             ) : null}
-            <Link to={`/app/leaderboard?tournamentId=${tournament.id}`} className="button button-soft">
+            <Link
+              to={`/app/leaderboard?tournamentId=${tournament.id}`}
+              className="button tournaments-card-action tournaments-card-action--purple tournament-showcase-action"
+            >
               {t('tournaments.leaderboard')}
             </Link>
-            <Link to="/app/tournaments" className="button button-ghost">
+            <Link
+              to="/app/tournaments"
+              className="button tournaments-card-action tournaments-card-action--secondary tournament-showcase-action"
+            >
               {t('tournamentDetails.backToTournaments')}
             </Link>
           </div>

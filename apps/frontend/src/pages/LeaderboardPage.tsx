@@ -481,7 +481,7 @@ export default function LeaderboardPage() {
               {isManager ? (
                 <button
                   type="button"
-                  className="button button-soft announcement-action-btn"
+                  className="button button-soft announcement-action-btn announcement-action-btn--wide"
                   onClick={() => void exportGoogleSheets()}
                   disabled={isExportingGoogleSheets}
                 >

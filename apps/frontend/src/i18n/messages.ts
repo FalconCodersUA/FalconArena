@@ -445,7 +445,7 @@ export const messages: TranslationMap = {
       loading: 'Завантаження турніру...',
       loadFailed: 'Не вдалося завантажити турнір',
       notFound: 'Турнір не знайдено.',
-      backToTournaments: 'До списку турнірів',
+      backToTournaments: 'До турнірів',
       overviewTitle: 'Огляд турніру',
       noDescription: 'Опис турніру ще не додано.',
       startsAt: 'Старт турніру',
@@ -942,7 +942,7 @@ export const messages: TranslationMap = {
         archiveTitle: 'Архів турнірів',
         archiveLead: 'Фінальні результати, шаблони сертифікатів і завершені турнірні раунди.',
         messagesTitle: 'Повідомлення та сповіщення',
-        messagesLead: 'Оголошення, системні сповіщення та особисті діалоги в одному місці.',
+        messagesLead: 'Оголошення, системні сповіщення та особисті діалоги.',
       },
       adminUsers: {
         eyebrow: 'Керування доступом',
@@ -1001,7 +1001,7 @@ export const messages: TranslationMap = {
           role: 'Поточна роль',
           createdAt: 'Створено',
           updatedAt: 'Оновлено',
-          newRole: 'Нова роль',
+          newRole: 'Нова роль (змінити роль)',
         },
         summary: {
           total: 'Усього акаунтів',
