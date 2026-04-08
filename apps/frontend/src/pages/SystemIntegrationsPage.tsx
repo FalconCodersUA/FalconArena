@@ -489,7 +489,7 @@ export default function SystemIntegrationsPage() {
   ];
   const workspaceCardClassName = (cardId: string) => {
     switch (cardId) {
-      case 'integrations-google':
+      case 'integrations-google-sheets':
         return 'dashboard-tool-card dashboard-tool-card--teal';
       case 'integrations-email':
         return 'dashboard-tool-card dashboard-tool-card--purple';
@@ -550,11 +550,14 @@ export default function SystemIntegrationsPage() {
               <strong>{step.title}</strong>
               <p>{step.lead}</p>
               <div className="onboarding-card-actions">
-                <a href={step.target} className="button button-soft">
+                <a href={step.target} className="button button-soft onboarding-action-primary">
                   {t('shell.open')}
                 </a>
                 {step.id === 'defaults' ? (
-                  <a href="#integrations-rules" className="button button-ghost">
+                  <a
+                    href="#integrations-rules"
+                    className="button button-ghost onboarding-action-secondary"
+                  >
                     {t('systemIntegrations.notificationRules.title')}
                   </a>
                 ) : null}
@@ -685,7 +688,7 @@ export default function SystemIntegrationsPage() {
         <div className="status-actions">
           <button
             type="button"
-            className="button button-soft"
+            className="button button-soft admin-primary-action"
             onClick={() => void testGoogleSheetsConnection()}
             disabled={googleTesting}
           >
@@ -695,7 +698,7 @@ export default function SystemIntegrationsPage() {
           </button>
           <button
             type="button"
-            className="button button-primary"
+            className="button button-primary admin-primary-action"
             onClick={() => void saveGoogleSheets()}
             disabled={googleSaving}
           >

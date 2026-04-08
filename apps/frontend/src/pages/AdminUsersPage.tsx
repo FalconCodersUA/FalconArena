@@ -491,7 +491,7 @@ export default function AdminUsersPage() {
 
           <button
             type="button"
-            className="button button-soft admin-users-refresh"
+            className="button button-soft admin-primary-action admin-users-toolbar-action"
             onClick={() => void loadUsers(false)}
           >
             {t('adminDashboard.adminUsers.refresh')}
@@ -510,9 +510,14 @@ export default function AdminUsersPage() {
           </div>
           <button
             type="button"
-            className="button button-soft admin-users-export"
-            disabled={exportingCsv}
-            onClick={() => void exportUsersCsv()}
+            className="button button-soft admin-primary-action admin-users-toolbar-action"
+            aria-disabled={exportingCsv}
+            onClick={() => {
+              if (exportingCsv) {
+                return;
+              }
+              void exportUsersCsv();
+            }}
           >
             {exportingCsv
               ? t('adminDashboard.adminUsers.exportingCsv')
@@ -643,7 +648,7 @@ export default function AdminUsersPage() {
               <h2>{t('adminDashboard.createUserTitle')}</h2>
               <button
                 type="button"
-                className="app-modal-close"
+                className="button button-soft app-modal-close app-modal-secondary-action"
                 onClick={closeCreateUserModal}
               >
                 {t('adminDashboard.modal.close')}
@@ -739,7 +744,7 @@ export default function AdminUsersPage() {
               <h2>{t('adminDashboard.adminUsers.blockModal.title')}</h2>
               <button
                 type="button"
-                className="app-modal-close"
+                className="button button-soft app-modal-close app-modal-secondary-action"
                 onClick={closeBlockUserModal}
               >
                 {t('adminDashboard.modal.close')}
@@ -755,6 +760,7 @@ export default function AdminUsersPage() {
                 <span>{t('adminDashboard.adminUsers.blockModal.reason')}</span>
                 <textarea
                   id="admin-users-block-reason"
+                  className="textarea-input admin-modal-textarea"
                   rows={4}
                   value={blockReason}
                   onChange={(event) => setBlockReason(event.target.value)}
@@ -765,7 +771,7 @@ export default function AdminUsersPage() {
               <div className="admin-users-block-actions">
                 <button
                   type="button"
-                  className="button button-soft"
+                  className="button button-soft app-modal-secondary-action"
                   onClick={closeBlockUserModal}
                 >
                   {t('adminDashboard.adminUsers.blockModal.cancel')}

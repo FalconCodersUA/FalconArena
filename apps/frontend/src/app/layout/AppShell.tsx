@@ -1170,13 +1170,14 @@ export default function AppShell() {
             >
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
-                  d="M12 19V5M12 5L6.75 10.25M12 5L17.25 10.25"
+                  d="M7.5 14.5L12 10L16.5 14.5"
                   stroke="currentColor"
-                  strokeWidth="1.9"
+                  strokeWidth="2.4"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
               </svg>
+              <span className="app-scroll-top-label">ARENA</span>
             </button>
           ) : null}
         </main>
