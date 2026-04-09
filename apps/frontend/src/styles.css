@@ -5511,21 +5511,22 @@ a {
 .messages-dialogs-layout {
   display: grid;
   grid-template-columns: minmax(272px, 340px) minmax(0, 1fr);
-  gap: 18px;
+  gap: 20px;
   align-items: stretch;
 }
 
 .messages-dialog-list {
-  border: 1px solid #e7dff8;
-  border-radius: 22px;
+  border: 1px solid #ece4fb;
+  border-radius: 26px;
   background:
+    radial-gradient(circle at 0% 100%, rgba(122, 67, 243, 0.12) 0%, transparent 36%),
     radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.08) 0%, transparent 28%),
     linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
-  box-shadow: 0 18px 36px rgba(37, 26, 72, 0.05);
-  padding: 14px;
+  box-shadow: 0 18px 36px rgba(37, 26, 72, 0.06);
+  padding: 16px;
   display: grid;
   gap: 12px;
-  max-height: 560px;
+  max-height: 640px;
   overflow: auto;
 }
 
@@ -5538,11 +5539,13 @@ a {
   text-align: left;
   width: 100%;
   border: 1px solid #ebe4f3;
-  border-radius: 20px;
+  border-radius: 22px;
   background: linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
-  padding: 16px;
+  padding: 14px 16px;
   display: grid;
-  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
   cursor: pointer;
   transition:
     border-color 0.18s ease,
@@ -5560,9 +5563,39 @@ a {
 .messages-dialog-item.active {
   border-color: #d6c3ff;
   background:
-    radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.12) 0%, transparent 26%),
-    linear-gradient(180deg, #f6f1ff 0%, #ffffff 100%);
-  box-shadow: 0 18px 34px rgba(122, 67, 243, 0.12);
+    radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.14) 0%, transparent 26%),
+    linear-gradient(180deg, #f7f2ff 0%, #ffffff 100%);
+  box-shadow: 0 18px 34px rgba(122, 67, 243, 0.1);
+}
+
+.messages-dialog-avatar,
+.messages-thread-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    linear-gradient(180deg, rgba(122, 67, 243, 0.14) 0%, rgba(94, 23, 235, 0.2) 100%);
+  color: #5e17eb;
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 0.94rem;
+  font-weight: 700;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.messages-dialog-body {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.messages-dialog-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .messages-dialog-item strong {
@@ -5589,16 +5622,19 @@ a {
 .messages-dialog-unread {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-width: 28px;
   border-radius: 999px;
-  background: #ece4ff;
-  color: #4f33a6;
+  background: linear-gradient(180deg, #6d2dff 0%, #5420cf 100%);
+  color: #ffffff;
   font-size: 0.7rem;
   font-weight: 800;
-  padding: 3px 8px;
+  padding: 4px 9px;
+  box-shadow: 0 10px 22px rgba(94, 23, 235, 0.18);
 }
 
 .messages-dialog-item p {
-  margin: 2px 0 0;
+  margin: 0;
   color: #718ebf;
   font-size: 0.84rem;
   overflow: hidden;
@@ -5607,46 +5643,61 @@ a {
 }
 
 .messages-dialog-time {
-  margin-top: 4px;
+  margin-top: 2px;
+  color: #8b8ab0;
 }
 
 .messages-dialog-thread {
-  border: 1px solid #e7dff8;
-  border-radius: 24px;
+  border: 1px solid rgba(94, 23, 235, 0.28);
+  border-radius: 28px;
   background:
-    radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.08) 0%, transparent 24%),
+    radial-gradient(circle at 0% 100%, rgba(122, 67, 243, 0.08) 0%, transparent 34%),
+    radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.12) 0%, transparent 24%),
     linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
-  box-shadow: 0 18px 36px rgba(37, 26, 72, 0.05);
-  padding: 20px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 18px 36px rgba(37, 26, 72, 0.06);
+  padding: 18px 18px 16px;
   display: grid;
   gap: 16px;
 }
 
 .messages-thread-head {
   display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding-bottom: 4px;
+}
+
+.messages-thread-head-copy {
+  display: grid;
   gap: 2px;
+  min-width: 0;
 }
 
 .messages-thread-head strong {
-  font-size: 0.94rem;
+  font-size: 1rem;
+  color: #343c6a;
 }
 
-.messages-thread-head span {
+.messages-thread-head-copy span {
   color: #718ebf;
   font-size: 0.82rem;
 }
 
 .messages-thread-feed {
   border: 1px solid #ebe4f3;
-  border-radius: 20px;
+  border-radius: 24px;
   background:
+    radial-gradient(circle at 0% 100%, rgba(122, 67, 243, 0.05) 0%, transparent 34%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 249, 255, 0.98) 100%);
-  min-height: 220px;
-  max-height: 380px;
+  min-height: 280px;
+  max-height: 460px;
   overflow: auto;
-  padding: 16px;
+  padding: 18px;
   display: grid;
-  gap: 14px;
+  gap: 16px;
 }
 
 .messages-thread-feed > p {
@@ -5656,12 +5707,11 @@ a {
 
 .messages-thread-item {
   max-width: min(76%, 540px);
-  border: 1px solid #ebe4f3;
-  border-radius: 20px;
-  padding: 14px 16px;
+  border: 1px solid rgba(94, 23, 235, 0.08);
+  border-radius: 22px;
+  padding: 14px 18px;
   background:
-    radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.08) 0%, transparent 26%),
-    linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
+    linear-gradient(180deg, #f6f3ff 0%, #f0edfb 100%);
   box-shadow: 0 10px 22px rgba(37, 26, 72, 0.05);
   display: grid;
   gap: 6px;
@@ -5670,9 +5720,9 @@ a {
 .messages-thread-item.mine {
   margin-left: auto;
   background:
-    radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.12) 0%, transparent 28%),
-    linear-gradient(180deg, #f6f1ff 0%, #fcfaff 100%);
-  border-color: #d6c3ff;
+    linear-gradient(90deg, #6d2dff 0%, #5420cf 100%);
+  border-color: transparent;
+  box-shadow: 0 14px 28px rgba(94, 23, 235, 0.16);
 }
 
 .messages-thread-item p {
@@ -5681,9 +5731,45 @@ a {
   white-space: pre-wrap;
 }
 
+.messages-thread-item.mine p,
+.messages-thread-item.mine span {
+  color: #ffffff;
+}
+
 .messages-thread-item span {
   color: #6a6383;
   font-size: 0.76rem;
+}
+
+.messages-thread-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #ebe4fb;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 246, 255, 0.98) 100%);
+}
+
+.messages-composer-field {
+  gap: 0;
+}
+
+.messages-composer-field textarea {
+  min-height: 58px;
+  max-height: 140px;
+  border-radius: 18px;
+  padding: 16px 18px;
+  resize: vertical;
+}
+
+.messages-thread-send {
+  min-width: 104px;
+  min-height: 58px;
+  border-radius: 18px;
+  align-self: stretch;
 }
 
 .messages-tabs-panel .button-primary,
