@@ -1,4 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useNotifications } from '../app/notifications/NotificationsProvider';
 import QuietLoadingCard from '../components/QuietLoadingCard';
 import { ApiError, apiRequest, resolveApiAssetUrl } from '../lib/api';
@@ -1437,9 +1438,31 @@ export default function ProfilePage() {
                     <strong>{item.tournamentTitle}</strong>
                     <span className="status-pill">{t(`profile.status.${item.tournamentStatus}`)}</span>
                   </div>
-                  <p>
-                    {t('profile.admin.rounds')}: {item.roundsCount}
-                  </p>
+                  <div className="profile-admin-meta">
+                    <p>
+                      {t('profile.admin.rounds')}: {item.roundsCount}
+                    </p>
+                    <p>
+                      {t('profile.admin.startsAt')}:{' '}
+                      {item.startsAt
+                        ? formatDateTime(item.startsAt, language)
+                        : t('profile.admin.startPending')}
+                    </p>
+                  </div>
+                  <div className="profile-card-actions">
+                    <Link
+                      to={`/app/tournaments/${item.tournamentId}`}
+                      className="button tournaments-card-action tournaments-card-action--purple"
+                    >
+                      {t('profile.admin.openTournament')}
+                    </Link>
+                    <Link
+                      to={`/app/leaderboard?tournamentId=${item.tournamentId}`}
+                      className="button tournaments-card-action tournaments-card-action--secondary"
+                    >
+                      {t('profile.admin.openLeaderboard')}
+                    </Link>
+                  </div>
                 </article>
               ))}
             </div>

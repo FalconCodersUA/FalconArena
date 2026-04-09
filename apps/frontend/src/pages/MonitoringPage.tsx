@@ -283,7 +283,7 @@ export default function MonitoringPage() {
           <h2>{t('monitoring.operationalStatusTitle')}</h2>
           <button
             type="button"
-            className="button button-soft"
+            className="button tournaments-card-action tournaments-card-action--secondary"
             onClick={() => void loadMonitoring({ keepContent: true })}
             disabled={refreshing}
           >

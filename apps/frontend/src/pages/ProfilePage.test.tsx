@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { ApiError, apiRequest } from '../lib/api';
@@ -16,9 +17,11 @@ const mockedApiRequest = vi.mocked(apiRequest);
 
 function renderProfilePage() {
   return render(
-    <I18nProvider>
-      <ProfilePage />
-    </I18nProvider>,
+    <MemoryRouter>
+      <I18nProvider>
+        <ProfilePage />
+      </I18nProvider>
+    </MemoryRouter>,
   );
 }
 
@@ -231,12 +234,14 @@ describe('ProfilePage', () => {
             title: 'Own Tournament',
             status: 'REGISTRATION',
             createdById: 'organizer-1',
+            startsAt: '2026-05-10T09:00:00.000Z',
           },
           {
             id: 'tour-external',
             title: 'External Tournament',
             status: 'RUNNING',
             createdById: 'another-user',
+            startsAt: '2026-06-15T09:00:00.000Z',
           },
         ];
       }
@@ -257,6 +262,15 @@ describe('ProfilePage', () => {
 
     expect(screen.getByText('Own Tournament')).toBeInTheDocument();
     expect(screen.getByText(/Rounds:\s*2/)).toBeInTheDocument();
+    expect(screen.getByText(/Starts at:/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open tournament' })).toHaveAttribute(
+      'href',
+      '/app/tournaments/tour-own',
+    );
+    expect(screen.getByRole('link', { name: 'Open leaderboard' })).toHaveAttribute(
+      'href',
+      '/app/leaderboard?tournamentId=tour-own',
+    );
     expect(screen.queryByText('External Tournament')).not.toBeInTheDocument();
   });
 

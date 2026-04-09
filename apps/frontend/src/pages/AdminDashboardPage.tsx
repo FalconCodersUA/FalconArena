@@ -1299,7 +1299,7 @@ export default function AdminDashboardPage() {
             <h2>{t('shell.overview')}</h2>
             <p>{t('adminDashboard.lead')}</p>
           </div>
-          <div className="dashboard-overview-status">
+          <div className="dashboard-overview-status admin-overview-status">
             <span>{t('adminDashboard.workspaceCurrentTournament')}</span>
             <strong>
               {selectedTournament?.title ?? t('adminDashboard.workspaceNoTournament')}
@@ -1523,7 +1523,7 @@ export default function AdminDashboardPage() {
             <p>{t('adminDashboard.workspaceLead')}</p>
           </div>
 
-          <div className="dashboard-workspace-status">
+          <div className="dashboard-workspace-status admin-workspace-status">
             <span>{t('adminDashboard.focusTitle')}</span>
             <strong>
               {selectedTournament?.title ?? t('adminDashboard.workspaceNoTournament')}

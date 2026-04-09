@@ -688,7 +688,7 @@ export default function SystemIntegrationsPage() {
         <div className="status-actions">
           <button
             type="button"
-            className="button button-soft admin-primary-action"
+            className="button tournaments-card-action tournaments-card-action--secondary"
             onClick={() => void testGoogleSheetsConnection()}
             disabled={googleTesting}
           >
@@ -856,7 +856,7 @@ export default function SystemIntegrationsPage() {
         <div className="status-actions">
           <button
             type="button"
-            className="button button-soft"
+            className="button tournaments-card-action tournaments-card-action--secondary"
             onClick={() => void testEmailDelivery()}
             disabled={emailTesting}
           >
@@ -866,7 +866,7 @@ export default function SystemIntegrationsPage() {
           </button>
           <button
             type="button"
-            className="button button-primary"
+            className="button button-primary admin-primary-action"
             onClick={() => void saveEmailSettings()}
             disabled={emailSaving}
           >
@@ -1073,6 +1073,7 @@ export default function SystemIntegrationsPage() {
           <label className="field">
             <span>{t('systemIntegrations.tournamentDefaults.form.defaultTournamentDescription')}</span>
             <textarea
+              className="textarea-input"
               value={tournamentDefaults.defaultTournamentDescription}
               onChange={(event) =>
                 setTournamentDefaults((current) =>
@@ -1089,6 +1090,7 @@ export default function SystemIntegrationsPage() {
           <label className="field">
             <span>{t('systemIntegrations.tournamentDefaults.form.defaultRoundDescription')}</span>
             <textarea
+              className="textarea-input"
               value={tournamentDefaults.defaultRoundDescription}
               onChange={(event) =>
                 setTournamentDefaults((current) =>
@@ -1107,7 +1109,7 @@ export default function SystemIntegrationsPage() {
         <div className="status-actions">
           <button
             type="button"
-            className="button button-primary"
+            className="button button-primary admin-primary-action"
             onClick={() => void saveTournamentDefaults()}
             disabled={defaultsSaving}
           >
@@ -1133,7 +1135,7 @@ export default function SystemIntegrationsPage() {
           <p>{t(`systemIntegrations.notificationRules.sourceHints.${notificationRules.source}`)}</p>
         </div>
 
-        <div className="profile-preferences-block">
+        <div className="profile-preferences-block integrations-toggle-list">
           <label className="profile-toggle-row" htmlFor="rule-registration-started">
             <button
               id="rule-registration-started"
@@ -1226,7 +1228,7 @@ export default function SystemIntegrationsPage() {
         <div className="status-actions">
           <button
             type="button"
-            className="button button-primary"
+            className="button button-primary admin-primary-action"
             onClick={() => void saveNotificationRules()}
             disabled={rulesSaving}
           >
