@@ -1356,6 +1356,10 @@ export const messages: TranslationMap = {
         title: 'Створені турніри',
         empty: 'Ви ще не створили турнірів.',
         rounds: 'Раунди',
+        startsAt: 'Старт',
+        startPending: 'Ще не заплановано',
+        openTournament: 'До турніру',
+        openLeaderboard: 'До лідерборду',
       },
       status: {
         DRAFT: 'Чернетка',
@@ -2952,6 +2956,10 @@ export const messages: TranslationMap = {
         title: 'Created tournaments',
         empty: 'You have not created tournaments yet.',
         rounds: 'Rounds',
+        startsAt: 'Starts at',
+        startPending: 'Not scheduled yet',
+        openTournament: 'Open tournament',
+        openLeaderboard: 'Open leaderboard',
       },
       status: {
         DRAFT: 'Draft',
