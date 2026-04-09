@@ -124,6 +124,18 @@ function normalizeRequestError(requestError: unknown, fallbackMessage: string) {
   return requestError.message;
 }
 
+function initialsFromName(fullName: string) {
+  const value = fullName
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((item) => item.charAt(0).toUpperCase())
+    .join('');
+
+  return value || 'FA';
+}
+
 export default function MessagesPage() {
   const { language, t } = useI18n();
   const location = useLocation();
@@ -1260,24 +1272,31 @@ export default function MessagesPage() {
                   }`}
                   onClick={() => setSelectedDialogId(dialog.id)}
                 >
-                  <strong>{dialog.otherUser.fullName}</strong>
-                  <div className="messages-dialog-meta">
-                    <span>{dialog.otherUser.email}</span>
-                    <span className="messages-dialog-role">
-                      {t(`profile.role.${dialog.otherUser.role}`)}
-                    </span>
-                    {dialog.isUnread ? (
-                      <span className="messages-dialog-unread">{t('messagesPage.unread')}</span>
-                    ) : null}
-                  </div>
-                  <p>
-                    {dialog.lastMessage
-                      ? dialog.lastMessage.body
-                      : t('messagesPage.dialogs.noMessages')}
-                  </p>
-                  <span className="messages-dialog-time">
-                    {formatDateTime(dialog.updatedAt, language)}
+                  <span className="messages-dialog-avatar" aria-hidden>
+                    {initialsFromName(dialog.otherUser.fullName)}
                   </span>
+                  <div className="messages-dialog-body">
+                    <div className="messages-dialog-topline">
+                      <strong>{dialog.otherUser.fullName}</strong>
+                      {dialog.isUnread ? (
+                        <span className="messages-dialog-unread">{t('messagesPage.unread')}</span>
+                      ) : null}
+                    </div>
+                    <div className="messages-dialog-meta">
+                      <span>{dialog.otherUser.email}</span>
+                      <span className="messages-dialog-role">
+                        {t(`profile.role.${dialog.otherUser.role}`)}
+                      </span>
+                    </div>
+                    <p>
+                      {dialog.lastMessage
+                        ? dialog.lastMessage.body
+                        : t('messagesPage.dialogs.noMessages')}
+                    </p>
+                    <span className="messages-dialog-time">
+                      {formatDateTime(dialog.updatedAt, language)}
+                    </span>
+                  </div>
                 </button>
               ))
             )}
@@ -1292,8 +1311,13 @@ export default function MessagesPage() {
             ) : (
               <>
                 <header className="messages-thread-head">
-                  <strong>{selectedDialog.otherUser.fullName}</strong>
-                  <span>{selectedDialog.otherUser.email}</span>
+                  <span className="messages-thread-avatar" aria-hidden>
+                    {initialsFromName(selectedDialog.otherUser.fullName)}
+                  </span>
+                  <div className="messages-thread-head-copy">
+                    <strong>{selectedDialog.otherUser.fullName}</strong>
+                    <span>{selectedDialog.otherUser.email}</span>
+                  </div>
                   <span className="messages-dialog-role">
                     {t(`profile.role.${selectedDialog.otherUser.role}`)}
                   </span>
@@ -1325,17 +1349,18 @@ export default function MessagesPage() {
                 )}
 
                 <form className="panel-form messages-thread-form" onSubmit={handleSendMessage}>
-                  <label className="field">
-                    <span>{t('messagesPage.dialogs.message')}</span>
+                  <label className="field messages-composer-field">
+                    <span className="visually-hidden">{t('messagesPage.dialogs.message')}</span>
                     <textarea
                       value={newMessageBody}
                       onChange={(event) => setNewMessageBody(event.target.value)}
                       maxLength={2000}
+                      placeholder={t('messagesPage.dialogs.message')}
                     />
                   </label>
                   <button
                     type="submit"
-                    className="button button-primary"
+                    className="button button-primary messages-thread-send"
                     disabled={dialogActionLoading || !selectedDialogId}
                   >
                     {t('messagesPage.dialogs.send')}
