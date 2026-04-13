@@ -248,6 +248,7 @@ SEED_ADMIN_EMAIL=admin@falconarena.live SEED_ADMIN_PASSWORD=change_me npm run pr
 
 ### Teams
 
+- `GET /teams`
 - `POST /tournaments/:tournamentId/teams/register`
 - `GET /tournaments/:tournamentId/teams`
 - `GET /tournaments/:tournamentId/teams/me`

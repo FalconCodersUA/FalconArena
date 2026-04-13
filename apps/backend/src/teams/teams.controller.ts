@@ -44,3 +44,13 @@ export class TeamsController {
     return this.teamsService.getMyTeam(tournamentId, request.user.userId);
   }
 }
+
+@Controller('teams')
+export class TeamsDirectoryController {
+  constructor(private readonly teamsService: TeamsService) {}
+
+  @Get()
+  listAllVisible() {
+    return this.teamsService.listAllVisible();
+  }
+}
