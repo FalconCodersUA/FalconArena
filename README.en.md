@@ -19,7 +19,8 @@ FalconArena is designed as a product platform for tournaments, where the core co
 - submissions through GitHub, demo, and live demo links;
 - jury evaluation and leaderboard generation;
 - archive views and certificates for completed tournaments;
-- announcements, direct dialogs, and system notifications.
+- announcements, direct dialogs, and system notifications;
+- a modern interface with light and dark themes.
 
 ## Who FalconArena is for
 
@@ -49,9 +50,17 @@ FalconArena is designed as a product platform for tournaments, where the core co
 - email delivery through `console` or `resend`
 - background processing for tournament events and reminders
 
+### UX and personalization
+
+- light and dark themes with the selected mode saved in the browser
+- a unified `app shell` across roles
+- quiet loading states without extra text noise
+- responsive workspaces for desktop and mobile
+- user profile with avatar, language, and time zone settings
+
 ### Administrative and operating layer
 
-- user, role, and access-block management
+- user, role, access-block management, and CSV export
 - tournament schedule
 - profile settings
 - participant and winner certificates
@@ -184,13 +193,13 @@ Ukrainian docs:
 - `ADMIN`: create the initial admin with the seed command, sign in, open `Admin panel`, and create a tournament and round.
 - `ORGANIZER` / `JURY`: sign in as `ADMIN`, open the user creation block in `Admin panel`, and create the required roles through the UI.
 
-## Demo Flow
+## Product Flow
 
-1. `TEAM`: register through `/app/register`, sign in, register a team in a tournament, and submit work for the active round.
-2. `ADMIN`: sign in, create a tournament, switch it to `Registration`, create a round, and create `JURY` and `ORGANIZER` users if needed.
-3. `JURY`: sign in, open `My jury`, choose a round, and evaluate assigned submissions.
-4. `ADMIN`: distribute assignments, close submissions or finish evaluation, then review the `Leaderboard`.
-5. Any role: open `Messages` (`/app/messages`) for announcements; `ADMIN/ORGANIZER` can publish announcements, all roles can use personal dialogs.
+1. `TEAM`: creates an account through `/app/register`, opens tournaments, registers a team, and submits work for the active round.
+2. `ADMIN`: creates a tournament, switches it to `Registration`, starts a round, and creates `JURY` and `ORGANIZER` users if needed.
+3. `JURY`: works in the jury workspace, opens assigned submissions, and scores them.
+4. `ADMIN`: distributes assignments, closes submissions or finishes evaluation, then reviews `Leaderboard`, `Archive`, and certificates.
+5. Any role: uses `Messages` (`/app/messages`) for announcements, system notifications, and personal dialogs.
 
 ## Backend API and Platform Capabilities
 
