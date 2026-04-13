@@ -7020,6 +7020,135 @@ body[data-theme='dark'] .app-page .status-pill {
   color: #d7c8ff;
 }
 
+body[data-theme='dark'] .app-page .dashboard-tool-card--teal,
+body[data-theme='dark'] .app-page .dashboard-tool-card--purple,
+body[data-theme='dark'] .app-page .dashboard-tool-card--orange,
+body[data-theme='dark'] .app-page .dashboard-tool-card--berry {
+  border-color: rgba(139, 93, 255, 0.16);
+  color: #eef2ff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 18px 34px rgba(2, 6, 18, 0.28);
+}
+
+body[data-theme='dark'] .app-page .dashboard-tool-card--teal {
+  border-color: rgba(45, 212, 191, 0.3);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(45, 212, 191, 0.34) 0%, transparent 36%),
+    linear-gradient(180deg, rgba(24, 118, 124, 0.88) 0%, rgba(16, 65, 83, 0.94) 100%);
+}
+
+body[data-theme='dark'] .app-page .dashboard-tool-card--purple {
+  border-color: rgba(139, 93, 255, 0.32);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.34) 0%, transparent 36%),
+    linear-gradient(180deg, rgba(86, 54, 195, 0.9) 0%, rgba(55, 38, 124, 0.96) 100%);
+}
+
+body[data-theme='dark'] .app-page .dashboard-tool-card--orange {
+  border-color: rgba(251, 146, 60, 0.3);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(251, 146, 60, 0.32) 0%, transparent 36%),
+    linear-gradient(180deg, rgba(167, 87, 17, 0.88) 0%, rgba(101, 59, 23, 0.96) 100%);
+}
+
+body[data-theme='dark'] .app-page .dashboard-tool-card--berry {
+  border-color: rgba(56, 189, 248, 0.3);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.32) 0%, transparent 36%),
+    linear-gradient(180deg, rgba(24, 116, 154, 0.88) 0%, rgba(19, 72, 105, 0.96) 100%);
+}
+
+body[data-theme='dark'] .app-page .dashboard-tool-card--teal:hover,
+body[data-theme='dark'] .app-page .dashboard-tool-card--purple:hover,
+body[data-theme='dark'] .app-page .dashboard-tool-card--orange:hover,
+body[data-theme='dark'] .app-page .dashboard-tool-card--berry:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 22px 42px rgba(2, 6, 18, 0.34);
+  transform: translateY(-1px);
+}
+
+body[data-theme='dark'] .app-page .dashboard-tool-card--teal strong,
+body[data-theme='dark'] .app-page .dashboard-tool-card--purple strong,
+body[data-theme='dark'] .app-page .dashboard-tool-card--orange strong,
+body[data-theme='dark'] .app-page .dashboard-tool-card--berry strong {
+  color: #f4f6ff;
+}
+
+body[data-theme='dark'] .app-page .dashboard-tool-card--teal span,
+body[data-theme='dark'] .app-page .dashboard-tool-card--purple span,
+body[data-theme='dark'] .app-page .dashboard-tool-card--orange span,
+body[data-theme='dark'] .app-page .dashboard-tool-card--berry span {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+body[data-theme='dark'] .app-page .dashboard-tool-card--teal p,
+body[data-theme='dark'] .app-page .dashboard-tool-card--teal em,
+body[data-theme='dark'] .app-page .dashboard-tool-card--purple p,
+body[data-theme='dark'] .app-page .dashboard-tool-card--purple em,
+body[data-theme='dark'] .app-page .dashboard-tool-card--orange p,
+body[data-theme='dark'] .app-page .dashboard-tool-card--orange em,
+body[data-theme='dark'] .app-page .dashboard-tool-card--berry p,
+body[data-theme='dark'] .app-page .dashboard-tool-card--berry em {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+body[data-theme='dark'] .app-page .dashboard-action {
+  color: #f4f6ff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 14px 26px rgba(2, 6, 18, 0.24);
+}
+
+body[data-theme='dark'] .app-page .dashboard-action.is-teal {
+  border-color: rgba(45, 212, 191, 0.3);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(45, 212, 191, 0.34) 0%, transparent 36%),
+    linear-gradient(180deg, rgba(24, 118, 124, 0.88) 0%, rgba(16, 65, 83, 0.94) 100%);
+}
+
+body[data-theme='dark'] .app-page .dashboard-action.is-orange {
+  border-color: rgba(139, 93, 255, 0.32);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.34) 0%, transparent 36%),
+    linear-gradient(180deg, rgba(86, 54, 195, 0.9) 0%, rgba(55, 38, 124, 0.96) 100%);
+}
+
+body[data-theme='dark'] .app-page .dashboard-action.is-cobalt {
+  border-color: rgba(251, 146, 60, 0.3);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(251, 146, 60, 0.32) 0%, transparent 36%),
+    linear-gradient(180deg, rgba(167, 87, 17, 0.88) 0%, rgba(101, 59, 23, 0.96) 100%);
+}
+
+body[data-theme='dark'] .app-page .dashboard-action.is-purple,
+body[data-theme='dark'] .app-page .dashboard-action.is-sand {
+  border-color: rgba(56, 189, 248, 0.3);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.32) 0%, transparent 36%),
+    linear-gradient(180deg, rgba(24, 116, 154, 0.88) 0%, rgba(19, 72, 105, 0.96) 100%);
+}
+
+body[data-theme='dark'] .app-page .dashboard-action:hover:not(:disabled),
+body[data-theme='dark'] .app-page .dashboard-action:focus-visible {
+  filter: none;
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 34px rgba(2, 6, 18, 0.32);
+}
+
+body[data-theme='dark'] .app-page .dashboard-action:disabled {
+  cursor: not-allowed;
+  filter: saturate(0.65) brightness(0.78);
+  opacity: 0.68;
+}
+
+body[data-theme='dark'] .app-page .dashboard-action::before {
+  background: rgba(255, 255, 255, 0.88);
+}
+
 body[data-theme='dark'] .app-page .dashboard-workspace-status,
 body[data-theme='dark'] .app-page .dashboard-overview-status,
 body[data-theme='dark'] .app-page .monitoring-workspace-status,
