@@ -63,6 +63,8 @@ describe('AppShell', () => {
     vi.clearAllMocks();
     localStorage.clear();
     localStorage.setItem('falconarena_language', 'en');
+    delete document.body.dataset.theme;
+    delete document.documentElement.dataset.theme;
   });
 
   it('shows unread badge and supports only-unread filter', async () => {
@@ -229,6 +231,51 @@ describe('AppShell', () => {
         '/app/messages?section=notifications&notification=new-1',
       );
     });
+  });
+
+  it('toggles and persists theme mode from the topbar', async () => {
+    seedAuthedUser();
+
+    mockedApiRequest.mockImplementation(async (path: string) => {
+      if (path === '/platform/defaults') {
+        return {
+          defaultProjectTimeZone: 'Europe/Kyiv',
+        };
+      }
+
+      if (path === '/auth/me') {
+        return {
+          id: 'user-1',
+          email: 'user1@example.com',
+          fullName: 'User One',
+          role: 'TEAM',
+        };
+      }
+
+      if (path === '/profile/settings') {
+        return { edit: { avatarUrl: '' } };
+      }
+
+      if (path === '/notifications') {
+        return [];
+      }
+
+      if (path === '/messages/dialogs') {
+        return [];
+      }
+
+      throw new Error(`Unexpected request: ${path}`);
+    });
+
+    renderShell();
+
+    const toggle = await screen.findByRole('button', { name: 'Switch to dark theme' });
+    fireEvent.click(toggle);
+
+    expect(localStorage.getItem('falconarena_theme')).toBe('dark');
+    expect(document.body.dataset.theme).toBe('dark');
+    expect(document.documentElement.dataset.theme).toBe('dark');
+    expect(screen.getByRole('button', { name: 'Switch to light theme' })).toBeInTheDocument();
   });
 
   it('renders avatar image in header after repeated sign-in mount', async () => {

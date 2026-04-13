@@ -324,9 +324,9 @@ a {
   justify-content: center;
   border-radius: 999px;
   background:
-    radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.56) 0%, transparent 38%),
-    linear-gradient(180deg, rgba(205, 195, 255, 0.98) 0%, rgba(170, 151, 244, 0.98) 100%);
-  border: 1px solid rgba(110, 88, 212, 0.26);
+    radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.72) 0%, transparent 40%),
+    linear-gradient(180deg, rgba(226, 219, 255, 0.98) 0%, rgba(196, 181, 253, 0.98) 100%);
+  border: 1px solid rgba(139, 93, 255, 0.18);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.75),
     0 6px 14px rgba(94, 23, 235, 0.14);
@@ -729,6 +729,15 @@ a {
 .app-topbar-icon svg {
   width: 18px;
   height: 18px;
+}
+
+.app-theme-toggle {
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
 .app-topbar-settings-icon {
@@ -6549,6 +6558,858 @@ a {
   min-width: 0;
   width: 100%;
   white-space: nowrap;
+}
+
+body[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #070913;
+  --ink: #eff2ff;
+  --muted: #96a0c5;
+  --panel: #10141f;
+  --border: #2a3147;
+  --brand: #8b5dff;
+  --brand-deep: #d6c6ff;
+  --brand-soft: rgba(139, 93, 255, 0.16);
+  --signal: #4dd5cc;
+  --signal-soft: rgba(77, 213, 204, 0.14);
+  --surface-0: #0b0f18;
+  --surface-1: #111625;
+  --surface-2: #171d2d;
+  --line-soft: #262d41;
+  --shadow-soft: 0 18px 36px rgba(3, 6, 14, 0.42);
+  --shadow-card: 0 28px 70px rgba(2, 6, 18, 0.55);
+  background:
+    radial-gradient(circle at 14% -6%, rgba(139, 93, 255, 0.18) 0%, transparent 28%),
+    radial-gradient(circle at 88% 118%, rgba(64, 110, 255, 0.18) 0%, transparent 32%),
+    linear-gradient(180deg, #05070d 0%, #090d16 48%, #0d1220 100%);
+  color: var(--ink);
+}
+
+body[data-theme='dark']:has(.auth-page) {
+  background:
+    radial-gradient(circle at 18% -8%, rgba(139, 93, 255, 0.22) 0%, transparent 30%),
+    radial-gradient(circle at 86% 112%, rgba(38, 124, 255, 0.14) 0%, transparent 28%),
+    linear-gradient(180deg, #05070d 0%, #090d16 54%, #0e1321 100%);
+}
+
+body[data-theme='dark'] .auth-shell-header,
+body[data-theme='dark'] .shell-header {
+  border-color: rgba(139, 93, 255, 0.16);
+  background: rgba(10, 14, 24, 0.7);
+  box-shadow: 0 18px 40px rgba(2, 6, 18, 0.34);
+  backdrop-filter: blur(18px);
+}
+
+body[data-theme='dark'] .auth-nav-link,
+body[data-theme='dark'] .nav-link,
+body[data-theme='dark'] .language-switch,
+body[data-theme='dark'] .app-topbar-language {
+  border-color: rgba(139, 93, 255, 0.18);
+  background: rgba(16, 21, 33, 0.86);
+  color: #d7dcf8;
+  box-shadow: 0 12px 24px rgba(2, 6, 18, 0.24);
+}
+
+body[data-theme='dark'] .lang-button {
+  color: #aeb6d8;
+}
+
+body[data-theme='dark'] .lang-button.active {
+  background: rgba(139, 93, 255, 0.18);
+  color: #f4f6ff;
+}
+
+body[data-theme='dark'] .button-primary,
+body[data-theme='dark'] .app-page .button-primary {
+  background: #8b5dff;
+  border-color: #8b5dff;
+  color: #ffffff;
+  box-shadow: 0 16px 30px rgba(112, 72, 255, 0.22);
+}
+
+body[data-theme='dark'] .button-primary:hover:not(:disabled),
+body[data-theme='dark'] .app-page .button-primary:hover:not(:disabled) {
+  background: #7546f5;
+  border-color: #7546f5;
+}
+
+body[data-theme='dark'] .app-page .messages-dialog-thread .button-primary {
+  background: #5e17eb;
+  border-color: #5e17eb;
+  color: #ffffff;
+}
+
+body[data-theme='dark'] .app-page .messages-dialog-thread .button-primary:hover:not(:disabled),
+body[data-theme='dark'] .app-page .messages-dialog-thread .button-primary:focus-visible {
+  background: #5214cf;
+  border-color: #5214cf;
+  color: #ffffff;
+}
+
+body[data-theme='dark'] .button-soft,
+body[data-theme='dark'] .app-page .button-soft {
+  background: rgba(139, 93, 255, 0.1);
+  border-color: rgba(139, 93, 255, 0.2);
+  color: #d8cbff;
+  box-shadow: none;
+}
+
+body[data-theme='dark'] .button-soft:hover:not(:disabled),
+body[data-theme='dark'] .app-page .button-soft:hover:not(:disabled) {
+  background: rgba(139, 93, 255, 0.16);
+  border-color: rgba(139, 93, 255, 0.26);
+  color: #f4f6ff;
+}
+
+body[data-theme='dark'] .app-shell-surface {
+  background: linear-gradient(180deg, rgba(14, 18, 30, 0.98) 0%, rgba(10, 14, 24, 0.98) 100%);
+  border-color: rgba(139, 93, 255, 0.12);
+  box-shadow: 0 32px 80px rgba(2, 6, 18, 0.55);
+}
+
+body[data-theme='dark'] .app-shell-surface::before {
+  background:
+    radial-gradient(circle at 78% 100%, rgba(139, 93, 255, 0.16) 0%, transparent 28%),
+    radial-gradient(circle at 4% 0%, rgba(63, 124, 255, 0.12) 0%, transparent 20%);
+}
+
+body[data-theme='dark'] .app-sidebar {
+  border-right-color: rgba(139, 93, 255, 0.12);
+  background:
+    radial-gradient(circle at 50% 115%, rgba(139, 93, 255, 0.18) 0%, transparent 36%),
+    linear-gradient(180deg, #0d111b 0%, #101626 58%, #0d121d 100%);
+}
+
+body[data-theme='dark'] .app-sidebar::after {
+  opacity: 0.16;
+}
+
+body[data-theme='dark'] .app-brand {
+  color: #f3f5ff;
+  background: linear-gradient(180deg, rgba(16, 21, 33, 0.94) 0%, rgba(20, 26, 40, 0.92) 100%);
+  border-color: rgba(139, 93, 255, 0.16);
+  box-shadow: 0 16px 34px rgba(2, 6, 18, 0.28);
+}
+
+body[data-theme='dark'] .app-brand-mark {
+  background:
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.24) 0%, transparent 36%),
+    linear-gradient(180deg, rgba(124, 82, 255, 0.98) 0%, rgba(80, 134, 255, 0.88) 100%);
+  border-color: rgba(157, 128, 255, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 8px 16px rgba(94, 23, 235, 0.28);
+}
+
+body[data-theme='dark'] .app-sidebar-link {
+  color: #98a6cb;
+}
+
+body[data-theme='dark'] .app-sidebar-link:hover {
+  background: rgba(139, 93, 255, 0.08);
+  color: #eef2ff;
+}
+
+body[data-theme='dark'] .app-sidebar-link.active {
+  color: #ffffff;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.18) 0%, transparent 28%),
+    linear-gradient(180deg, rgba(96, 50, 228, 0.98) 0%, rgba(74, 37, 188, 0.98) 100%);
+  box-shadow: 0 18px 32px rgba(80, 43, 189, 0.28);
+}
+
+body[data-theme='dark'] .app-sidebar-link.active::before {
+  background: linear-gradient(180deg, rgba(194, 172, 255, 0.98) 0%, rgba(114, 182, 255, 0.98) 100%);
+  box-shadow: 0 0 14px rgba(123, 84, 231, 0.32);
+}
+
+body[data-theme='dark'] .app-sidebar .button-soft {
+  background: rgba(139, 93, 255, 0.08);
+  border-color: rgba(139, 93, 255, 0.16);
+  color: #d4c9ff;
+}
+
+body[data-theme='dark'] .app-sidebar .button-primary {
+  background: #8b5dff;
+  border-color: #8b5dff;
+  color: #ffffff;
+}
+
+body[data-theme='dark'] .app-main {
+  background:
+    radial-gradient(circle at 58% 112%, rgba(139, 93, 255, 0.16) 0%, transparent 34%),
+    radial-gradient(circle at 100% 0%, rgba(64, 110, 255, 0.12) 0%, transparent 20%),
+    linear-gradient(180deg, #0b0f19 0%, #0e1321 58%, #0b101a 100%);
+}
+
+body[data-theme='dark'] .app-topbar {
+  border-bottom-color: rgba(139, 93, 255, 0.12);
+  background: linear-gradient(180deg, rgba(10, 14, 24, 0.92) 0%, rgba(14, 19, 31, 0.86) 100%);
+}
+
+body[data-theme='dark'] .app-topbar-title {
+  color: #eff2ff;
+}
+
+body[data-theme='dark'] .app-search,
+body[data-theme='dark'] .app-topbar-icon,
+body[data-theme='dark'] .app-topbar-nav-btn {
+  border-color: rgba(139, 93, 255, 0.16);
+  background: rgba(15, 20, 32, 0.88);
+  color: #aeb6d8;
+  box-shadow: 0 12px 24px rgba(2, 6, 18, 0.26);
+}
+
+body[data-theme='dark'] .app-theme-toggle {
+  color: #d7cbff;
+}
+
+body[data-theme='dark'] .app-theme-toggle.active {
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 224, 130, 0.22) 0%, transparent 32%),
+    linear-gradient(180deg, rgba(139, 93, 255, 0.22) 0%, rgba(76, 54, 151, 0.32) 100%);
+  color: #fff0ba;
+  border-color: rgba(224, 195, 255, 0.22);
+  box-shadow: 0 14px 28px rgba(99, 68, 214, 0.24);
+}
+
+body[data-theme='dark'] .app-topbar-icon:hover,
+body[data-theme='dark'] .app-topbar-icon.active,
+body[data-theme='dark'] .app-topbar-nav-btn:hover {
+  color: #f4f6ff;
+  border-color: rgba(139, 93, 255, 0.24);
+  background: rgba(139, 93, 255, 0.14);
+}
+
+body[data-theme='dark'] .app-search:focus-within {
+  border-color: rgba(139, 93, 255, 0.28);
+  background: rgba(17, 22, 36, 0.94);
+  box-shadow:
+    0 0 0 4px rgba(139, 93, 255, 0.08),
+    0 14px 28px rgba(2, 6, 18, 0.32);
+}
+
+body[data-theme='dark'] .app-search-icon,
+body[data-theme='dark'] .app-search input::placeholder {
+  color: #7d8aae;
+}
+
+body[data-theme='dark'] .app-search input,
+body[data-theme='dark'] .app-search-item,
+body[data-theme='dark'] .app-alerts-head strong,
+body[data-theme='dark'] .app-alert-item strong {
+  color: #eef2ff;
+}
+
+body[data-theme='dark'] .app-search-dropdown,
+body[data-theme='dark'] .app-alerts-popover {
+  border-color: rgba(139, 93, 255, 0.14);
+  background: rgba(10, 14, 24, 0.96);
+  box-shadow: 0 22px 50px rgba(2, 6, 18, 0.42);
+}
+
+body[data-theme='dark'] .app-search-item:hover {
+  background: rgba(139, 93, 255, 0.12);
+  color: #ffffff;
+}
+
+body[data-theme='dark'] .app-search-item small,
+body[data-theme='dark'] .app-search-empty,
+body[data-theme='dark'] .app-alerts-filter,
+body[data-theme='dark'] .app-alerts-state,
+body[data-theme='dark'] .app-alert-item p,
+body[data-theme='dark'] .app-alert-meta span {
+  color: #98a6cb;
+}
+
+body[data-theme='dark'] .app-alert-item {
+  border-color: rgba(139, 93, 255, 0.12);
+  background: rgba(16, 21, 33, 0.86);
+}
+
+body[data-theme='dark'] .app-avatar {
+  border-color: rgba(139, 93, 255, 0.2);
+  box-shadow: 0 10px 22px rgba(2, 6, 18, 0.22);
+}
+
+body[data-theme='dark'] .card,
+body[data-theme='dark'] .auth-card,
+body[data-theme='dark'] .state-card {
+  border-color: rgba(139, 93, 255, 0.14);
+  background: linear-gradient(180deg, rgba(14, 19, 31, 0.96) 0%, rgba(10, 14, 24, 0.98) 100%);
+  box-shadow: 0 20px 40px rgba(2, 6, 18, 0.34);
+}
+
+body[data-theme='dark'] .app-page .card,
+body[data-theme='dark'] .app-page .section-card,
+body[data-theme='dark'] .app-page .panel-card,
+body[data-theme='dark'] .app-page .state-card,
+body[data-theme='dark'] .app-page .round-card,
+body[data-theme='dark'] .app-page .assignment-item,
+body[data-theme='dark'] .app-page .leaderboard-row-card,
+body[data-theme='dark'] .app-page .leaderboard-metric,
+body[data-theme='dark'] .app-page .leaderboard-category-item,
+body[data-theme='dark'] .app-page .leaderboard-round-item,
+body[data-theme='dark'] .app-page .profile-item,
+body[data-theme='dark'] .app-page .profile-role-card,
+body[data-theme='dark'] .app-page .profile-history-card,
+body[data-theme='dark'] .app-page .quick-team-item,
+body[data-theme='dark'] .app-page .round-summary,
+body[data-theme='dark'] .app-page .distribute-box,
+body[data-theme='dark'] .app-page .status-row,
+body[data-theme='dark'] .app-page .meta-grid div,
+body[data-theme='dark'] .app-page .summary-card,
+body[data-theme='dark'] .archive-round-card {
+  border-color: rgba(139, 93, 255, 0.12);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.12) 0%, transparent 30%),
+    linear-gradient(180deg, rgba(17, 22, 35, 0.98) 0%, rgba(10, 14, 24, 0.98) 100%);
+  box-shadow: 0 20px 40px rgba(2, 6, 18, 0.28);
+}
+
+body[data-theme='dark'] .app-page .panel-card::after,
+body[data-theme='dark'] .app-page .section-card::after,
+body[data-theme='dark'] .app-page .state-card::after {
+  background: linear-gradient(180deg, rgba(139, 93, 255, 0.08) 0%, transparent 24%);
+}
+
+body[data-theme='dark'] .app-page .section-header h1,
+body[data-theme='dark'] .app-page .section-card h2,
+body[data-theme='dark'] .app-page .panel-card h2,
+body[data-theme='dark'] .app-page .panel-card h3,
+body[data-theme='dark'] .app-page .state-card h1,
+body[data-theme='dark'] .app-page .summary-card strong,
+body[data-theme='dark'] .app-page .leaderboard-row-head strong,
+body[data-theme='dark'] .app-page .leaderboard-category-item strong,
+body[data-theme='dark'] .app-page .profile-item strong,
+body[data-theme='dark'] .app-page .profile-role-card strong,
+body[data-theme='dark'] .app-page .profile-history-card strong,
+body[data-theme='dark'] .app-page .round-card-head strong,
+body[data-theme='dark'] .dashboard-workspace-copy h2,
+body[data-theme='dark'] .dashboard-overview-meta h2,
+body[data-theme='dark'] .messages-thread-head strong,
+body[data-theme='dark'] .messages-dialog-item strong,
+body[data-theme='dark'] .announcement-head h3 {
+  color: #eff2ff;
+}
+
+body[data-theme='dark'] .eyebrow,
+body[data-theme='dark'] .lead,
+body[data-theme='dark'] .inline-hint,
+body[data-theme='dark'] .app-error-note,
+body[data-theme='dark'] .app-page .summary-card span,
+body[data-theme='dark'] .app-page .summary-card p,
+body[data-theme='dark'] .app-page .profile-role-card p,
+body[data-theme='dark'] .app-page .profile-history-card p,
+body[data-theme='dark'] .app-page .leaderboard-row-head span,
+body[data-theme='dark'] .app-page .leaderboard-category-item span,
+body[data-theme='dark'] .app-page .field span,
+body[data-theme='dark'] .app-page dt,
+body[data-theme='dark'] .app-page dd,
+body[data-theme='dark'] .app-page .state-callout p,
+body[data-theme='dark'] .app-page .status-row span,
+body[data-theme='dark'] .app-page .round-card p,
+body[data-theme='dark'] .app-page .team-details p,
+body[data-theme='dark'] .app-page .messages-thread-item p,
+body[data-theme='dark'] .app-page .messages-thread-item span {
+  color: #96a0c5;
+}
+
+body[data-theme='dark'] .app-page .state-callout,
+body[data-theme='dark'] .app-page .state-callout.subtle {
+  border-color: rgba(139, 93, 255, 0.14);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.12) 0%, transparent 28%),
+    linear-gradient(180deg, rgba(16, 21, 33, 0.96) 0%, rgba(12, 16, 28, 0.98) 100%);
+}
+
+body[data-theme='dark'] .page-skeleton-chip,
+body[data-theme='dark'] .page-skeleton-card,
+body[data-theme='dark'] .page-skeleton-block,
+body[data-theme='dark'] .state-card-quiet-line,
+body[data-theme='dark'] .quiet-inline-loading-line {
+  border-color: rgba(139, 93, 255, 0.12);
+  background:
+    linear-gradient(180deg, rgba(26, 32, 50, 0.92) 0%, rgba(15, 20, 32, 0.98) 100%);
+  box-shadow: none;
+}
+
+body[data-theme='dark'] .page-skeleton-chip::after,
+body[data-theme='dark'] .page-skeleton-card::after,
+body[data-theme='dark'] .page-skeleton-block::after,
+body[data-theme='dark'] .state-card-quiet-line::after,
+body[data-theme='dark'] .quiet-inline-loading-line::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(139, 93, 255, 0.05) 40%,
+    rgba(190, 171, 255, 0.16) 50%,
+    rgba(139, 93, 255, 0.05) 60%,
+    transparent 100%
+  );
+}
+
+body[data-theme='dark'] .app-page .state-callout strong,
+body[data-theme='dark'] .app-page .profile-links a,
+body[data-theme='dark'] .app-page .round-summary a,
+body[data-theme='dark'] .app-page .inline-link {
+  color: #d8c8ff;
+}
+
+body[data-theme='dark'] .app-page .leaderboard-row-card h3,
+body[data-theme='dark'] .app-page .leaderboard-metric strong,
+body[data-theme='dark'] .app-page .leaderboard-round-item strong {
+  color: #eef2ff;
+}
+
+body[data-theme='dark'] .app-page .leaderboard-metric span,
+body[data-theme='dark'] .app-page .leaderboard-row-head span,
+body[data-theme='dark'] .app-page .leaderboard-round-item p {
+  color: #b8c1e2;
+}
+
+body[data-theme='dark'] .app-page .field input,
+body[data-theme='dark'] .app-page .member-row input,
+body[data-theme='dark'] .app-page .textarea-input,
+body[data-theme='dark'] .app-page .select-input,
+body[data-theme='dark'] .app-page .panel-form textarea,
+body[data-theme='dark'] .app-page .auth-field input {
+  border-color: rgba(139, 93, 255, 0.16);
+  background: linear-gradient(180deg, rgba(15, 20, 32, 0.96) 0%, rgba(10, 14, 24, 0.98) 100%);
+  color: #eef2ff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.02),
+    0 12px 24px rgba(2, 6, 18, 0.18);
+}
+
+body[data-theme='dark'] .app-page .field input::placeholder,
+body[data-theme='dark'] .app-page .textarea-input::placeholder,
+body[data-theme='dark'] .app-page .panel-form textarea::placeholder,
+body[data-theme='dark'] .app-page .auth-field input::placeholder {
+  color: #7180a8;
+}
+
+body[data-theme='dark'] .app-page .field input:focus,
+body[data-theme='dark'] .app-page .member-row input:focus,
+body[data-theme='dark'] .app-page .textarea-input:focus,
+body[data-theme='dark'] .app-page .select-input:focus,
+body[data-theme='dark'] .app-page .panel-form textarea:focus {
+  border-color: rgba(139, 93, 255, 0.34);
+  box-shadow:
+    0 0 0 4px rgba(139, 93, 255, 0.08),
+    0 14px 28px rgba(2, 6, 18, 0.24);
+}
+
+body[data-theme='dark'] .app-page .filter-button,
+body[data-theme='dark'] .messages-section-tabs,
+body[data-theme='dark'] .messages-section-tabs .filter-button {
+  border-color: rgba(139, 93, 255, 0.14);
+  background: rgba(15, 20, 32, 0.84);
+  color: #aab4d8;
+}
+
+body[data-theme='dark'] .app-page .filter-button.active,
+body[data-theme='dark'] .messages-section-tabs .filter-button.active {
+  background: rgba(139, 93, 255, 0.18);
+  border-color: rgba(139, 93, 255, 0.24);
+  color: #f2f4ff;
+}
+
+body[data-theme='dark'] .app-page .status-pill {
+  background: rgba(139, 93, 255, 0.16);
+  color: #d7c8ff;
+}
+
+body[data-theme='dark'] .app-page .dashboard-workspace-status,
+body[data-theme='dark'] .app-page .dashboard-overview-status,
+body[data-theme='dark'] .app-page .monitoring-workspace-status,
+body[data-theme='dark'] .app-page .tournaments-workspace-status,
+body[data-theme='dark'] .app-page .teams-workspace-status,
+body[data-theme='dark'] .app-page .profile-workspace-status,
+body[data-theme='dark'] .app-page .messages-workspace-status,
+body[data-theme='dark'] .app-page .archive-workspace-status,
+body[data-theme='dark'] .app-page .leaderboard-workspace-status {
+  border-color: rgba(139, 93, 255, 0.16);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.16) 0%, transparent 32%),
+    linear-gradient(180deg, rgba(18, 24, 38, 0.96) 0%, rgba(12, 16, 28, 0.98) 100%);
+  box-shadow: 0 18px 34px rgba(2, 6, 18, 0.24);
+}
+
+body[data-theme='dark'] .app-page .dashboard-workspace-status span,
+body[data-theme='dark'] .app-page .dashboard-workspace-status p,
+body[data-theme='dark'] .app-page .dashboard-overview-status span,
+body[data-theme='dark'] .app-page .dashboard-overview-status p,
+body[data-theme='dark'] .app-page .monitoring-workspace-status span,
+body[data-theme='dark'] .app-page .monitoring-workspace-status p,
+body[data-theme='dark'] .app-page .messages-workspace-status span,
+body[data-theme='dark'] .app-page .messages-workspace-status p,
+body[data-theme='dark'] .app-page .archive-workspace-status span,
+body[data-theme='dark'] .app-page .archive-workspace-status p {
+  color: #c7bbff;
+}
+
+body[data-theme='dark'] .app-page .dashboard-workspace-status strong,
+body[data-theme='dark'] .app-page .dashboard-overview-status strong,
+body[data-theme='dark'] .app-page .monitoring-workspace-status strong,
+body[data-theme='dark'] .app-page .messages-workspace-status strong,
+body[data-theme='dark'] .app-page .archive-workspace-status strong {
+  color: #ffffff;
+}
+
+body[data-theme='dark'] .dashboard-workspace-copy p,
+body[data-theme='dark'] .integrations-workspace-copy p,
+body[data-theme='dark'] .monitoring-workspace-copy p,
+body[data-theme='dark'] .tournaments-workspace-copy p,
+body[data-theme='dark'] .teams-workspace-copy p,
+body[data-theme='dark'] .profile-workspace-copy p,
+body[data-theme='dark'] .messages-workspace-copy p,
+body[data-theme='dark'] .archive-workspace-copy p,
+body[data-theme='dark'] .leaderboard-workspace-copy p {
+  color: #aeb8dc;
+}
+
+body[data-theme='dark'] .auth-card,
+body[data-theme='dark'] .auth-shell-header,
+body[data-theme='dark'] .auth-page-section .app-route-stage > * {
+  color: #eef2ff;
+}
+
+body[data-theme='dark'] .app-page .dashboard-muted-tile,
+body[data-theme='dark'] .app-page .dashboard-quick-actions,
+body[data-theme='dark'] .app-page .dashboard-workspace-panel,
+body[data-theme='dark'] .app-page .dashboard-chart-card,
+body[data-theme='dark'] .app-page .dashboard-pie-card,
+body[data-theme='dark'] .app-page .dashboard-mini-card,
+body[data-theme='dark'] .app-page .dashboard-empty-note,
+body[data-theme='dark'] .app-page .dashboard-line-wrap,
+body[data-theme='dark'] .app-page .onboarding-card,
+body[data-theme='dark'] .app-page .leaderboard-scoring,
+body[data-theme='dark'] .app-page .messages-new-dialog-form,
+body[data-theme='dark'] .app-page .messages-dialog-list,
+body[data-theme='dark'] .app-page .messages-dialog-item,
+body[data-theme='dark'] .app-page .messages-dialog-thread,
+body[data-theme='dark'] .app-page .messages-thread-feed,
+body[data-theme='dark'] .app-page .messages-thread-form,
+body[data-theme='dark'] .app-page .announcement-item,
+body[data-theme='dark'] .app-page .messages-status-note,
+body[data-theme='dark'] .app-page .profile-settings-shell,
+body[data-theme='dark'] .app-page .profile-settings-tabs,
+body[data-theme='dark'] .app-page .profile-preferences-block,
+body[data-theme='dark'] .app-page .team-list-card,
+body[data-theme='dark'] .app-page .admin-user-card,
+body[data-theme='dark'] .app-page .admin-user-card-stat,
+body[data-theme='dark'] .app-page .admin-user-block-history,
+body[data-theme='dark'] .app-page .monitoring-signal-tile,
+body[data-theme='dark'] .app-page .monitoring-report-card,
+body[data-theme='dark'] .app-modal-card {
+  border-color: rgba(139, 93, 255, 0.14);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.12) 0%, transparent 30%),
+    linear-gradient(180deg, rgba(17, 22, 35, 0.98) 0%, rgba(10, 14, 24, 0.98) 100%);
+  box-shadow: 0 20px 40px rgba(2, 6, 18, 0.26);
+}
+
+body[data-theme='dark'] .app-page .announcement-item.unread,
+body[data-theme='dark'] .app-page .announcement-item.inactive,
+body[data-theme='dark'] .app-page .messages-dialog-item.active {
+  border-color: rgba(139, 93, 255, 0.24);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.18) 0%, transparent 28%),
+    linear-gradient(180deg, rgba(24, 30, 48, 0.98) 0%, rgba(12, 16, 28, 0.98) 100%);
+}
+
+body[data-theme='dark'] .app-page .dashboard-muted-tile strong,
+body[data-theme='dark'] .app-page .dashboard-quick-actions strong,
+body[data-theme='dark'] .app-page .dashboard-workspace-panel-head h3,
+body[data-theme='dark'] .app-page .dashboard-chart-card h3,
+body[data-theme='dark'] .app-page .dashboard-pie-card h3,
+body[data-theme='dark'] .app-page .dashboard-mini-card h3,
+body[data-theme='dark'] .app-page .dashboard-pie-center,
+body[data-theme='dark'] .app-page .dashboard-mini-caption strong,
+body[data-theme='dark'] .app-page .dashboard-mini-item strong,
+body[data-theme='dark'] .app-page .activity-feed-item strong,
+body[data-theme='dark'] .app-page .dashboard-checklist-item strong,
+body[data-theme='dark'] .app-page .onboarding-card strong,
+body[data-theme='dark'] .app-page .leaderboard-scoring strong,
+body[data-theme='dark'] .app-page .team-list-card h3,
+body[data-theme='dark'] .app-page .admin-user-card-head strong,
+body[data-theme='dark'] .app-page .admin-user-card-stat strong,
+body[data-theme='dark'] .app-page .admin-user-block-history strong,
+body[data-theme='dark'] .app-page .monitoring-signal-tile strong,
+body[data-theme='dark'] .app-page .monitoring-report-head strong,
+body[data-theme='dark'] .app-page .messages-dialog-item strong,
+body[data-theme='dark'] .app-page .messages-thread-head strong,
+body[data-theme='dark'] .app-page .announcement-head h3,
+body[data-theme='dark'] .app-modal-head h2 {
+  color: #eef2ff;
+}
+
+body[data-theme='dark'] .app-page .dashboard-muted-tile span,
+body[data-theme='dark'] .app-page .dashboard-muted-tile p,
+body[data-theme='dark'] .app-page .dashboard-quick-head p,
+body[data-theme='dark'] .app-page .dashboard-workspace-panel-head p,
+body[data-theme='dark'] .app-page .dashboard-chart-legend span,
+body[data-theme='dark'] .app-page .dashboard-bar-labels span,
+body[data-theme='dark'] .app-page .dashboard-pie-card p,
+body[data-theme='dark'] .app-page .dashboard-mini-lead,
+body[data-theme='dark'] .app-page .dashboard-mini-caption p,
+body[data-theme='dark'] .app-page .dashboard-mini-item p,
+body[data-theme='dark'] .app-page .dashboard-empty-note,
+body[data-theme='dark'] .app-page .activity-feed-item p,
+body[data-theme='dark'] .app-page .dashboard-checklist-item p,
+body[data-theme='dark'] .app-page .onboarding-card p,
+body[data-theme='dark'] .app-page .leaderboard-scoring p,
+body[data-theme='dark'] .app-page .messages-dialog-list p,
+body[data-theme='dark'] .app-page .messages-dialog-item span,
+body[data-theme='dark'] .app-page .messages-dialog-item p,
+body[data-theme='dark'] .app-page .messages-dialog-time,
+body[data-theme='dark'] .app-page .messages-thread-head-copy span,
+body[data-theme='dark'] .app-page .messages-thread-feed > p,
+body[data-theme='dark'] .app-page .messages-thread-item p,
+body[data-theme='dark'] .app-page .messages-thread-item span,
+body[data-theme='dark'] .app-page .announcement-body,
+body[data-theme='dark'] .app-page .announcement-meta,
+body[data-theme='dark'] .app-page .admin-user-card-head p,
+body[data-theme='dark'] .app-page .admin-user-card-stat span,
+body[data-theme='dark'] .app-page .admin-user-block-history span,
+body[data-theme='dark'] .app-page .admin-user-block-history p,
+body[data-theme='dark'] .app-page .monitoring-signal-tile span,
+body[data-theme='dark'] .app-page .monitoring-signal-tile p,
+body[data-theme='dark'] .app-page .monitoring-report-head p {
+  color: #98a6cb;
+}
+
+body[data-theme='dark'] .app-page .profile-settings-tab {
+  border-color: rgba(139, 93, 255, 0.18);
+  color: #aeb6d8;
+}
+
+body[data-theme='dark'] .app-page .profile-settings-tab:hover,
+body[data-theme='dark'] .app-page .profile-settings-tab.active {
+  background: #8b5dff;
+  border-color: #8b5dff;
+  color: #ffffff;
+}
+
+body[data-theme='dark'] .app-page .profile-toggle-row span {
+  color: #c7d0ee;
+}
+
+body[data-theme='dark'] .app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-secondary,
+body[data-theme='dark'] .app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-secondary:visited {
+  background: rgba(139, 93, 255, 0.18);
+  border-color: rgba(139, 93, 255, 0.34);
+  color: #e4dcff;
+  box-shadow: 0 14px 28px rgba(2, 6, 18, 0.2);
+}
+
+body[data-theme='dark'] .app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-secondary:hover:not(:disabled),
+body[data-theme='dark'] .app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-secondary:focus-visible {
+  background: rgba(139, 93, 255, 0.26);
+  border-color: rgba(190, 171, 255, 0.42);
+  color: #ffffff;
+}
+
+body[data-theme='dark'] .app-page .settings-toggle {
+  background: rgba(139, 93, 255, 0.16);
+  border-color: rgba(139, 93, 255, 0.24);
+}
+
+body[data-theme='dark'] .app-page .settings-toggle::before {
+  background: #d8cbff;
+}
+
+body[data-theme='dark'] .app-page .settings-toggle.on {
+  background: #8b5dff;
+  border-color: #8b5dff;
+}
+
+body[data-theme='dark'] .app-page .select-input option {
+  background: #0d121d;
+  color: #eef2ff;
+}
+
+body[data-theme='dark'] .app-page .dashboard-checklist-item {
+  border-top-color: rgba(139, 93, 255, 0.12);
+}
+
+body[data-theme='dark'] .app-page .dashboard-checklist-bullet {
+  background: rgba(139, 93, 255, 0.24);
+  border-color: rgba(139, 93, 255, 0.34);
+  box-shadow: inset 0 0 0 3px rgba(10, 14, 24, 0.9);
+}
+
+body[data-theme='dark'] .app-page .dashboard-checklist-item.is-done .dashboard-checklist-bullet {
+  background: #4dd5cc;
+  border-color: #4dd5cc;
+}
+
+body[data-theme='dark'] .app-page .dashboard-pie::before {
+  background: #0d121d;
+  box-shadow: inset 0 0 0 1px rgba(139, 93, 255, 0.12);
+}
+
+body[data-theme='dark'] .app-page .dashboard-bar.is-primary {
+  background: #8b5dff;
+}
+
+body[data-theme='dark'] .app-page .dashboard-bar.is-secondary,
+body[data-theme='dark'] .app-page .dot.is-secondary,
+body[data-theme='dark'] .app-page .dot.is-teal {
+  background: #4dd5cc;
+}
+
+body[data-theme='dark'] .app-page .dot.is-primary,
+body[data-theme='dark'] .app-page .dashboard-line-svg path {
+  background: #8b5dff;
+  stroke: #a98cff;
+}
+
+body[data-theme='dark'] .app-page .dashboard-line-wrap {
+  background:
+    linear-gradient(180deg, rgba(12, 16, 28, 0.98) 0%, rgba(17, 22, 35, 0.98) 100%),
+    linear-gradient(90deg, rgba(139, 93, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(139, 93, 255, 0.1) 1px, transparent 1px);
+  background-size: auto, 46px 100%, 100% 28px;
+}
+
+body[data-theme='dark'] .app-page .activity-feed-item {
+  border-color: rgba(139, 93, 255, 0.12);
+}
+
+body[data-theme='dark'] .app-page .onboarding-step,
+body[data-theme='dark'] .app-page .messages-dialog-avatar,
+body[data-theme='dark'] .app-page .messages-thread-avatar {
+  background: rgba(139, 93, 255, 0.2);
+  color: #d8cbff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+body[data-theme='dark'] .app-page .messages-thread-item {
+  border-color: rgba(139, 93, 255, 0.14);
+  background: rgba(139, 93, 255, 0.12);
+  box-shadow: 0 12px 24px rgba(2, 6, 18, 0.2);
+}
+
+body[data-theme='dark'] .app-page .messages-thread-item.mine {
+  background: linear-gradient(90deg, #8b5dff 0%, #6740dd 100%);
+  border-color: transparent;
+}
+
+body[data-theme='dark'] .app-page .messages-thread-item.mine p,
+body[data-theme='dark'] .app-page .messages-thread-item.mine span {
+  color: #ffffff;
+}
+
+body[data-theme='dark'] .app-page .messages-controls {
+  border-bottom-color: rgba(139, 93, 255, 0.12);
+}
+
+body[data-theme='dark'] .app-page .messages-status-note.is-empty {
+  color: #d8cbff;
+}
+
+body[data-theme='dark'] .app-page .messages-status-note.is-error {
+  background: rgba(255, 122, 0, 0.12);
+  border-color: rgba(255, 122, 0, 0.24);
+  color: #ffd0a3;
+}
+
+body[data-theme='dark'] .app-page .tournaments-section .tournament-card {
+  border-color: rgba(139, 93, 255, 0.18);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.16) 0%, transparent 30%),
+    linear-gradient(180deg, rgba(15, 20, 32, 0.98) 0%, rgba(9, 13, 23, 0.98) 100%);
+  box-shadow: 0 20px 42px rgba(2, 6, 18, 0.3);
+}
+
+body[data-theme='dark'] .app-page .tournaments-section .tournament-head h3 {
+  color: #eef2ff;
+}
+
+body[data-theme='dark'] .app-page .tournaments-section .tournament-card .meta-grid div {
+  border-color: rgba(139, 93, 255, 0.16);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.1) 0%, transparent 28%),
+    linear-gradient(180deg, rgba(20, 25, 42, 0.98) 0%, rgba(13, 18, 31, 0.98) 100%);
+}
+
+body[data-theme='dark'] .app-page .tournaments-section .tournament-card .meta-grid dt {
+  color: #b8c1e2;
+}
+
+body[data-theme='dark'] .app-page .tournaments-section .tournament-card .meta-grid dd,
+body[data-theme='dark'] .app-page .tournaments-section .tournament-card .register-flag {
+  color: #d7def5;
+}
+
+body[data-theme='dark'] .app-page .tournaments-section .tournament-card.is-running .status-pill,
+body[data-theme='dark'] .app-page .tournaments-section .tournament-card.is-registration .status-pill,
+body[data-theme='dark'] .app-page .tournaments-section .tournament-card.is-draft .status-pill {
+  background: rgba(139, 93, 255, 0.18);
+  color: #d8cbff;
+}
+
+body[data-theme='dark'] .app-page .tournaments-card-action--secondary,
+body[data-theme='dark'] .app-page .tournaments-card-action--secondary:visited {
+  background: rgba(139, 93, 255, 0.18);
+  border-color: rgba(139, 93, 255, 0.34);
+  color: #e4dcff;
+  box-shadow: 0 14px 28px rgba(2, 6, 18, 0.2);
+}
+
+body[data-theme='dark'] .app-page .tournaments-card-action--secondary:hover:not(:disabled),
+body[data-theme='dark'] .app-page .tournaments-card-action--secondary:focus-visible {
+  background: rgba(139, 93, 255, 0.26);
+  border-color: rgba(190, 171, 255, 0.42);
+  color: #ffffff;
+}
+
+body[data-theme='dark'] .app-page #archive-summary .summary-card,
+body[data-theme='dark'] .app-page #leaderboard-summary .summary-card {
+  border-color: rgba(139, 93, 255, 0.18);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.14) 0%, transparent 30%),
+    linear-gradient(180deg, rgba(18, 23, 39, 0.98) 0%, rgba(12, 16, 28, 0.98) 100%);
+}
+
+body[data-theme='dark'] .app-page #archive-summary .summary-card strong,
+body[data-theme='dark'] .app-page #leaderboard-summary .summary-card strong,
+body[data-theme='dark'] .app-page #archive-rounds .leaderboard-metric strong {
+  color: #eef2ff;
+}
+
+body[data-theme='dark'] .app-page #archive-summary .summary-card span,
+body[data-theme='dark'] .app-page #archive-summary .summary-card p,
+body[data-theme='dark'] .app-page #leaderboard-summary .summary-card span,
+body[data-theme='dark'] .app-page #leaderboard-summary .summary-card p,
+body[data-theme='dark'] .app-page #archive-rounds .leaderboard-metric span {
+  color: #b8c1e2;
+}
+
+body[data-theme='dark'] .app-page .archive-round-card .meta-grid dt {
+  color: #b8c1e2;
+}
+
+body[data-theme='dark'] .app-page .archive-round-card .meta-grid dd,
+body[data-theme='dark'] .app-page .archive-empty-note {
+  color: #d7def5;
+}
+
+body[data-theme='dark'] .app-page .monitoring-status-danger {
+  background: rgba(248, 113, 113, 0.16);
+  color: #fecaca;
+}
+
+body[data-theme='dark'] .app-page .monitoring-status-warning {
+  background: rgba(251, 191, 36, 0.16);
+  color: #fde68a;
+}
+
+body[data-theme='dark'] .app-page .monitoring-status-success {
+  background: rgba(52, 211, 153, 0.16);
+  color: #bbf7d0;
 }
 
 @media (max-width: 1240px) {

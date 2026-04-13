@@ -65,6 +65,8 @@ export const messages: TranslationMap = {
       open: 'Відкрити',
       openInMessages: 'Відкрити в повідомленнях',
       scrollTop: 'Повернутися вгору',
+      themeToDark: 'Увімкнути темну тему',
+      themeToLight: 'Увімкнути світлу тему',
     },
     errorPage: {
       title: 'Щось пішло не так',
@@ -1671,6 +1673,8 @@ export const messages: TranslationMap = {
       open: 'Open',
       openInMessages: 'Open in messages',
       scrollTop: 'Back to top',
+      themeToDark: 'Switch to dark theme',
+      themeToLight: 'Switch to light theme',
     },
     errorPage: {
       title: 'Something went wrong',

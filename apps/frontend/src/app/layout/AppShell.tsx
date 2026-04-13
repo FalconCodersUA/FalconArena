@@ -75,6 +75,15 @@ type SearchItem = {
   category: string;
 };
 
+type ThemeMode = 'light' | 'dark';
+
+const THEME_STORAGE_KEY = 'falconarena_theme';
+
+function getStoredTheme(): ThemeMode {
+  const value = localStorage.getItem(THEME_STORAGE_KEY);
+  return value === 'dark' ? 'dark' : 'light';
+}
+
 function profileAvatarKey(userId: string) {
   return `falconarena_avatar_url_${userId}`;
 }
@@ -127,6 +136,7 @@ export default function AppShell() {
   const navigate = useNavigate();
   const authed = isAuthenticated();
   const { language, setLanguage, t } = useI18n();
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => getStoredTheme());
   const [fullName, setFullName] = useState<string>(() => getAuthUser()?.fullName ?? '');
   const [currentUserId, setCurrentUserId] = useState<string>(() => getAuthUser()?.id ?? '');
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string>(() => {
@@ -173,6 +183,12 @@ export default function AppShell() {
 
     void syncPlatformDefaults();
   }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = themeMode;
+    document.body.dataset.theme = themeMode;
+    localStorage.setItem(THEME_STORAGE_KEY, themeMode);
+  }, [themeMode]);
 
   useEffect(() => {
     if (!authed) {
@@ -682,6 +698,10 @@ export default function AppShell() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  function toggleTheme() {
+    setThemeMode((current) => (current === 'light' ? 'dark' : 'light'));
+  }
+
   if (isAuthRoute) {
     return (
       <div className="page auth-page">
@@ -960,6 +980,38 @@ export default function AppShell() {
                   </div>
                 ) : null}
               </div>
+
+              <button
+                type="button"
+                className={`app-topbar-icon app-theme-toggle${themeMode === 'dark' ? ' active' : ''}`}
+                aria-label={
+                  themeMode === 'dark' ? t('shell.themeToLight') : t('shell.themeToDark')
+                }
+                title={themeMode === 'dark' ? t('shell.themeToLight') : t('shell.themeToDark')}
+                onClick={toggleTheme}
+              >
+                {themeMode === 'dark' ? (
+                  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="10" cy="10" r="3.2" stroke="currentColor" strokeWidth="1.5" />
+                    <path
+                      d="M10 2.6V4.2M10 15.8V17.4M17.4 10H15.8M4.2 10H2.6M15.2 4.8L14.1 5.9M5.9 14.1L4.8 15.2M15.2 15.2L14.1 14.1M5.9 5.9L4.8 4.8"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M12.9 2.9C10.2 3.3 8.1 5.7 8.1 8.5C8.1 11.7 10.7 14.3 13.9 14.3C15.1 14.3 16.3 13.9 17.2 13.2C16.5 15.6 14.2 17.4 11.6 17.4C8.3 17.4 5.6 14.7 5.6 11.4C5.6 8.7 7.4 6.4 9.9 5.8C10.9 5.5 11.9 5.4 12.9 5.5V2.9Z"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </button>
 
               <div
                 className="language-switch app-topbar-language"
