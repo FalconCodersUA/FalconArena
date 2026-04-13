@@ -17,6 +17,12 @@ type TeamPublicView = {
   membersCount: number;
 };
 
+type TeamDirectoryView = TeamPublicView & {
+  tournamentId: string;
+  tournamentTitle: string;
+  tournamentStatus: TournamentStatus;
+};
+
 type TeamPrivateView = {
   id: string;
   tournamentId: string;
@@ -207,6 +213,53 @@ export class TeamsService {
 
     return teams.map((team) => ({
       id: team.id,
+      name: team.name,
+      organization: team.organization,
+      createdAt: team.createdAt,
+      membersCount: team._count.members,
+    }));
+  }
+
+  async listAllVisible(): Promise<TeamDirectoryView[]> {
+    const defaults = await this.systemIntegrationsService.getTournamentDefaultsConfig();
+    const where: Prisma.TeamWhereInput = defaults.hideTeamsUntilRegistrationClose
+      ? {
+          tournament: {
+            is: {
+              OR: [
+                { status: { in: [TournamentStatus.RUNNING, TournamentStatus.FINISHED] } },
+                { registrationCloseAt: { lt: new Date() } },
+              ],
+            },
+          },
+        }
+      : {};
+
+    const teams = await this.prisma.team.findMany({
+      where,
+      orderBy: [
+        { tournament: { createdAt: 'desc' } },
+        { createdAt: 'asc' },
+      ],
+      include: {
+        tournament: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+          },
+        },
+        _count: {
+          select: { members: true },
+        },
+      },
+    });
+
+    return teams.map((team) => ({
+      id: team.id,
+      tournamentId: team.tournament.id,
+      tournamentTitle: team.tournament.title,
+      tournamentStatus: team.tournament.status,
       name: team.name,
       organization: team.organization,
       createdAt: team.createdAt,

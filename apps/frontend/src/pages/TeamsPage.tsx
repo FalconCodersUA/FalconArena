@@ -6,6 +6,8 @@ import { useI18n } from '../i18n/I18nProvider';
 import { apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
 
+const ALL_TOURNAMENTS_VALUE = 'all';
+
 type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
 
 type Tournament = {
@@ -16,6 +18,9 @@ type Tournament = {
 
 type TeamRow = {
   id: string;
+  tournamentId?: string;
+  tournamentTitle?: string;
+  tournamentStatus?: TournamentStatus;
   name: string;
   organization: string | null;
   createdAt: string;
@@ -35,6 +40,7 @@ export default function TeamsPage() {
 
   const selectedTournament =
     tournaments.find((item) => item.id === selectedTournamentId) ?? null;
+  const isAllTournaments = selectedTournamentId === ALL_TOURNAMENTS_VALUE;
   const averageMembers = teams.length
     ? Math.round((teams.reduce((acc, item) => acc + item.membersCount, 0) / teams.length) * 10) / 10
     : 0;
@@ -56,7 +62,9 @@ export default function TeamsPage() {
       const running = data.find((item) => item.status === 'RUNNING');
       const registration = data.find((item) => item.status === 'REGISTRATION');
       const defaultId =
-        (initialTournamentId && data.some((item) => item.id === initialTournamentId)
+        initialTournamentId === ALL_TOURNAMENTS_VALUE
+          ? ALL_TOURNAMENTS_VALUE
+          : (initialTournamentId && data.some((item) => item.id === initialTournamentId)
           ? initialTournamentId
           : null) ??
         running?.id ??
@@ -78,7 +86,9 @@ export default function TeamsPage() {
     setError('');
 
     try {
-      const data = await apiRequest<TeamRow[]>(`/tournaments/${tournamentId}/teams`);
+      const endpoint =
+        tournamentId === ALL_TOURNAMENTS_VALUE ? '/teams' : `/tournaments/${tournamentId}/teams`;
+      const data = await apiRequest<TeamRow[]>(endpoint);
       setTeams(data);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : t('teamsPage.loadFailed'));
@@ -150,7 +160,11 @@ export default function TeamsPage() {
           <div className="dashboard-workspace-status teams-workspace-status">
             <span>{t('teamsPage.workspaceStatusLabel')}</span>
             <strong>{teams.length}</strong>
-            <p>{t('teamsPage.workspaceStatusLead')}</p>
+            <p>
+              {isAllTournaments
+                ? t('teamsPage.workspaceStatusLeadAll')
+                : t('teamsPage.workspaceStatusLead')}
+            </p>
           </div>
         </div>
 
@@ -158,7 +172,11 @@ export default function TeamsPage() {
           <article className="dashboard-tool-card dashboard-tool-card--teal">
             <span>{t('teamsPage.summary.teams')}</span>
             <strong>{t('teamsPage.workspaceCards.directoryTitle')}</strong>
-            <p>{t('teamsPage.workspaceCards.directoryLead')}</p>
+            <p>
+              {isAllTournaments
+                ? t('teamsPage.workspaceCards.directoryLeadAll')
+                : t('teamsPage.workspaceCards.directoryLead')}
+            </p>
             <em>{teams.length} {t('teamsPage.workspaceCards.directorySuffix')}</em>
           </article>
           <article className="dashboard-tool-card dashboard-tool-card--purple">
@@ -168,22 +186,34 @@ export default function TeamsPage() {
             <em>{averageMembers} {t('teamsPage.workspaceCards.densitySuffix')}</em>
           </article>
           <Link
-            to={`/app/tournaments/${selectedTournamentId}`}
+            to={isAllTournaments ? '/app/tournaments' : `/app/tournaments/${selectedTournamentId}`}
             className="dashboard-tool-card dashboard-tool-card--orange"
           >
             <span>{t('shell.tournamentsNav')}</span>
             <strong>{t('teamsPage.workspaceCards.tournamentTitle')}</strong>
-            <p>{t('teamsPage.workspaceCards.tournamentLead')}</p>
-            <em>{selectedTournament?.title ?? '-'}</em>
+            <p>
+              {isAllTournaments
+                ? t('teamsPage.workspaceCards.tournamentLeadAll')
+                : t('teamsPage.workspaceCards.tournamentLead')}
+            </p>
+            <em>{isAllTournaments ? t('teamsPage.allTournaments') : selectedTournament?.title ?? '-'}</em>
           </Link>
           <Link
-            to={`/app/leaderboard?tournamentId=${selectedTournamentId}`}
+            to={isAllTournaments ? '/app/leaderboard' : `/app/leaderboard?tournamentId=${selectedTournamentId}`}
             className="dashboard-tool-card dashboard-tool-card--berry"
           >
             <span>{t('shell.leaderboard')}</span>
             <strong>{t('teamsPage.workspaceCards.resultsTitle')}</strong>
-            <p>{t('teamsPage.workspaceCards.resultsLead')}</p>
-            <em>{t(`tournaments.status.${selectedTournament?.status ?? 'DRAFT'}`)}</em>
+            <p>
+              {isAllTournaments
+                ? t('teamsPage.workspaceCards.resultsLeadAll')
+                : t('teamsPage.workspaceCards.resultsLead')}
+            </p>
+            <em>
+              {isAllTournaments
+                ? t('teamsPage.allTournamentsStatus')
+                : t(`tournaments.status.${selectedTournament?.status ?? 'DRAFT'}`)}
+            </em>
           </Link>
         </div>
       </article>
@@ -197,6 +227,7 @@ export default function TeamsPage() {
             value={selectedTournamentId}
             onChange={(event) => setSelectedTournamentId(event.target.value)}
           >
+            <option value={ALL_TOURNAMENTS_VALUE}>{t('teamsPage.allTournamentsOption')}</option>
             {tournaments.map((tournament) => (
               <option key={tournament.id} value={tournament.id}>
                 {tournament.title}
@@ -207,14 +238,20 @@ export default function TeamsPage() {
 
         <div className="status-row">
           <span>{t('teamsPage.tournamentStatus')}</span>
-          <strong>{selectedTournament ? t(`tournaments.status.${selectedTournament.status}`) : '-'}</strong>
+          <strong>
+            {isAllTournaments
+              ? t('teamsPage.allTournamentsStatus')
+              : selectedTournament
+                ? t(`tournaments.status.${selectedTournament.status}`)
+                : '-'}
+          </strong>
         </div>
 
         <div className="summary-grid compact-summary-grid">
           <div className="summary-card">
             <span>{t('teamsPage.summary.teams')}</span>
             <strong>{teams.length}</strong>
-            <p>{selectedTournament?.title ?? '-'}</p>
+            <p>{isAllTournaments ? t('teamsPage.allTournaments') : selectedTournament?.title ?? '-'}</p>
           </div>
           <div className="summary-card">
             <span>{t('teamsPage.summary.averageMembers')}</span>
@@ -232,7 +269,7 @@ export default function TeamsPage() {
         {!loadingTeams && teams.length === 0 ? (
           <div className="state-callout subtle">
             <strong>{t('teamsPage.resultsTitle')}</strong>
-            <p>{t('teamsPage.emptyTeams')}</p>
+            <p>{isAllTournaments ? t('teamsPage.emptyTeamsAll') : t('teamsPage.emptyTeams')}</p>
           </div>
         ) : null}
 
@@ -245,6 +282,13 @@ export default function TeamsPage() {
                   <span className="status-pill">{t('teamsPage.membersCount')}: {team.membersCount}</span>
                 </div>
                 <p className="inline-hint">{team.organization || t('teamsPage.noOrganization')}</p>
+                {isAllTournaments ? (
+                  <p className="inline-hint">
+                    {t('teamsPage.teamTournament')}:{' '}
+                    {team.tournamentTitle ?? t('teamsPage.allTournaments')}{' '}
+                    {team.tournamentStatus ? `· ${t(`tournaments.status.${team.tournamentStatus}`)}` : ''}
+                  </p>
+                ) : null}
                 <div className="leaderboard-metrics team-list-metrics">
                   <div className="leaderboard-metric">
                     <span>{t('teamsPage.membersCount')}</span>

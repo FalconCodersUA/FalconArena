@@ -219,6 +219,7 @@ Ukrainian docs:
   - `POST /tournaments` (roles: `ADMIN`, `ORGANIZER`)
   - `PATCH /tournaments/:id/status` (roles: `ADMIN`, `ORGANIZER`)
 - Team registration endpoints:
+  - `GET /teams`
   - `POST /tournaments/:tournamentId/teams/register` (roles: `TEAM`, `ADMIN`, `ORGANIZER`)
   - `GET /tournaments/:tournamentId/teams`
   - `GET /tournaments/:tournamentId/teams/me` (roles: `TEAM`, `ADMIN`, `ORGANIZER`)
