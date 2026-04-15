@@ -935,7 +935,9 @@ export default function AppShell() {
 
         <main className="app-main">
           <header className="app-topbar">
-            <h1 className="app-topbar-title">{pageTitle}</h1>
+            <div className="app-topbar-heading">
+              <h1 className="app-topbar-title">{pageTitle}</h1>
+            </div>
             <div className="app-topbar-actions">
               <div className="app-search" ref={searchRef}>
                 <form className="app-search-form" aria-label={t('shell.searchPlaceholder')} onSubmit={onSearchSubmit}>
