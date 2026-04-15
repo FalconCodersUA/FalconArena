@@ -994,23 +994,21 @@ export default function AppShell() {
               >
                 {themeMode === 'dark' ? (
                   <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="10" cy="10" r="3.2" stroke="currentColor" strokeWidth="1.5" />
+                    <circle cx="10" cy="10" r="3.9" fill="currentColor" />
                     <path
-                      d="M10 2.6V4.2M10 15.8V17.4M17.4 10H15.8M4.2 10H2.6M15.2 4.8L14.1 5.9M5.9 14.1L4.8 15.2M15.2 15.2L14.1 14.1M5.9 5.9L4.8 4.8"
+                      d="M10 1.9V3.8M10 16.2V18.1M18.1 10H16.2M3.8 10H1.9M15.75 4.25L14.42 5.58M5.58 14.42L4.25 15.75M15.75 15.75L14.42 14.42M5.58 5.58L4.25 4.25"
                       stroke="currentColor"
-                      strokeWidth="1.5"
+                      strokeWidth="1.65"
                       strokeLinecap="round"
                     />
                   </svg>
                 ) : (
                   <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M12.9 2.9C10.2 3.3 8.1 5.7 8.1 8.5C8.1 11.7 10.7 14.3 13.9 14.3C15.1 14.3 16.3 13.9 17.2 13.2C16.5 15.6 14.2 17.4 11.6 17.4C8.3 17.4 5.6 14.7 5.6 11.4C5.6 8.7 7.4 6.4 9.9 5.8C10.9 5.5 11.9 5.4 12.9 5.5V2.9Z"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+                    <mask id="theme-moon-mask">
+                      <rect width="20" height="20" fill="white" />
+                      <circle cx="12.8" cy="7.35" r="6.15" fill="black" />
+                    </mask>
+                    <circle cx="9.45" cy="10.4" r="7.35" fill="currentColor" mask="url(#theme-moon-mask)" />
                   </svg>
                 )}
               </button>
