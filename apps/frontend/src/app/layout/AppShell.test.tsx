@@ -278,6 +278,54 @@ describe('AppShell', () => {
     expect(screen.getByRole('button', { name: 'Switch to light theme' })).toBeInTheDocument();
   });
 
+  it('keeps the existing FalconArena brand in the sidebar shell', async () => {
+    seedAuthedUser();
+
+    mockedApiRequest.mockImplementation(async (path: string) => {
+      if (path === '/platform/defaults') {
+        return {
+          defaultProjectTimeZone: 'Europe/Kyiv',
+        };
+      }
+
+      if (path === '/auth/me') {
+        return {
+          id: 'user-1',
+          email: 'user1@example.com',
+          fullName: 'User One',
+          role: 'TEAM',
+        };
+      }
+
+      if (path === '/profile/settings') {
+        return { edit: { avatarUrl: '' } };
+      }
+
+      if (path === '/notifications') {
+        return [];
+      }
+
+      if (path === '/messages/dialogs') {
+        return [];
+      }
+
+      if (path === '/tournaments') {
+        return [];
+      }
+
+      throw new Error(`Unexpected request: ${path}`);
+    });
+
+    const view = renderShell();
+
+    await screen.findByText('Tournaments page');
+
+    const sidebarBrand = view.container.querySelector('.app-sidebar .app-brand');
+    expect(sidebarBrand).toBeInTheDocument();
+    expect(sidebarBrand).toHaveTextContent('FalconArena');
+    expect(view.container.querySelector('.app-topbar-brand')).not.toBeInTheDocument();
+  });
+
   it('renders avatar image in header after repeated sign-in mount', async () => {
     seedAuthedUser();
 
