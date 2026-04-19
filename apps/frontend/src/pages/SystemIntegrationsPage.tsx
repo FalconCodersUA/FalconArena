@@ -821,7 +821,6 @@ export default function SystemIntegrationsPage() {
         },
       };
       setPlatformContent(nextContent);
-      setPlatformBannerFileSelected(true);
 
       const saved = await apiRequest<unknown>(
         '/admin/system-integrations/platform-content',
@@ -831,6 +830,7 @@ export default function SystemIntegrationsPage() {
         },
       );
       setPlatformContent(normalizePlatformContent(saved));
+      setPlatformBannerFileSelected(true);
       setPlatformContentNotice(t('systemIntegrations.platformContent.bannerUploaded'));
     } catch (requestError) {
       setPlatformContentError(
@@ -2052,9 +2052,9 @@ export default function SystemIntegrationsPage() {
             type="button"
             className="button button-primary admin-primary-action"
             onClick={() => void savePlatformContent()}
-            disabled={platformContentSaving}
+            disabled={platformContentSaving || platformBannerUploading}
           >
-            {platformContentSaving
+            {platformContentSaving || platformBannerUploading
               ? t('systemIntegrations.saving')
               : t('systemIntegrations.save')}
           </button>
