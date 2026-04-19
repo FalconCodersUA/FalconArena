@@ -3925,27 +3925,29 @@ a {
   margin: 0;
 }
 
-.platform-content-banner-field input[type='file'] {
-  min-height: 48px;
-  padding: 9px 12px;
-  cursor: pointer;
+.platform-content-upload-control {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
 }
 
-.platform-content-banner-field input[type='file']::file-selector-button {
-  margin-right: 12px;
-  border: 1px solid rgba(94, 23, 235, 0.18);
-  border-radius: 999px;
-  background: #efe8ff;
-  color: #5e17eb;
-  padding: 8px 14px;
-  font: inherit;
-  font-weight: 800;
-  cursor: pointer;
+.platform-content-upload-button {
+  min-height: 44px;
 }
 
-.platform-content-banner-field input[type='file']:disabled {
-  cursor: not-allowed;
+.platform-content-upload-button[aria-disabled='true'] {
+  pointer-events: none;
   opacity: 0.72;
+}
+
+.platform-content-file-state {
+  border-radius: 999px;
+  background: #f6f0ff;
+  color: #718ebf;
+  padding: 9px 13px;
+  font-size: 0.82rem;
+  font-weight: 800;
 }
 
 .platform-content-upload-hint {
@@ -7808,10 +7810,9 @@ body[data-theme='dark'] .app-page .about-contact-card:focus-visible {
   box-shadow: 0 18px 34px rgba(2, 6, 18, 0.26);
 }
 
-body[data-theme='dark'] .app-page .platform-content-banner-field input[type='file']::file-selector-button {
-  border-color: rgba(172, 142, 255, 0.28);
-  background: rgba(139, 93, 255, 0.18);
-  color: #d9ccff;
+body[data-theme='dark'] .app-page .platform-content-file-state {
+  background: rgba(139, 93, 255, 0.14);
+  color: #aeb8dc;
 }
 
 body[data-theme='dark'] .app-page .about-cta-panel {

@@ -20,6 +20,7 @@ FalconArena is designed as a product platform for tournaments, where the core co
 - jury evaluation and leaderboard generation;
 - archive views and certificates for completed tournaments;
 - announcements, direct dialogs, and system notifications;
+- public `About` page with platform copy, a banner, role blocks, CTA, and contact channels;
 - a modern interface with light and dark themes.
 
 ## Who FalconArena is for
@@ -63,9 +64,11 @@ FalconArena is designed as a product platform for tournaments, where the core co
 - user, role, access-block management, and CSV export
 - tournament schedule
 - profile settings
+- `About` page with managed platform copy, banner, and contact channels
 - participant and winner certificates
 - Google Sheets export via webhook
 - `Integrations / System settings` admin screen
+- About page content management from `Integrations`: hero copy, banner, workflow copy, role blocks, CTA, and contacts
 - monitoring, activity history, automated checks, and deployment documentation
 
 ## Tech Stack

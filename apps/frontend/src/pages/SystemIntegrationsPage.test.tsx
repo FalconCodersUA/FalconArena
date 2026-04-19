@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { I18nProvider } from '../i18n/I18nProvider';
-import { apiRequest } from '../lib/api';
+import { apiRequest, uploadApiFile } from '../lib/api';
 import SystemIntegrationsPage from './SystemIntegrationsPage';
 
 vi.mock('../lib/api', async () => {
@@ -10,10 +10,12 @@ vi.mock('../lib/api', async () => {
   return {
     ...actual,
     apiRequest: vi.fn(),
+    uploadApiFile: vi.fn(),
   };
 });
 
 const mockedApiRequest = vi.mocked(apiRequest);
+const mockedUploadApiFile = vi.mocked(uploadApiFile);
 
 function createPlatformContent() {
   return {
@@ -426,5 +428,51 @@ describe('SystemIntegrationsPage', () => {
         'The platform content endpoint is not available yet. The system fallback is shown; saving will work after the updated backend is running.',
       ),
     ).toBeInTheDocument();
+  });
+
+  it('uploads and saves the About page banner without native file input copy', async () => {
+    const uploadedBannerUrl = '/uploads/about-banners/about-test.png';
+    const baseMock = createSettingsMock();
+    mockedUploadApiFile.mockResolvedValue({ url: uploadedBannerUrl });
+    mockedApiRequest.mockImplementation(async (path, options) => {
+      if (path === '/admin/system-integrations/platform-content' && options?.method === 'PATCH') {
+        expect(options.body).toMatchObject({
+          hero: {
+            bannerImageUrl: uploadedBannerUrl,
+          },
+        });
+
+        return {
+          ...createPlatformContent(),
+          hero: {
+            ...createPlatformContent().hero,
+            bannerImageUrl: uploadedBannerUrl,
+          },
+        };
+      }
+
+      return baseMock(path, options);
+    });
+
+    renderPage();
+
+    const uploadInput = await screen.findByLabelText('Upload from computer');
+    expect(screen.getByText('Choose file')).toBeInTheDocument();
+    expect(screen.getByText('No file selected')).toBeInTheDocument();
+
+    fireEvent.change(uploadInput, {
+      target: {
+        files: [new File(['banner'], 'about-banner.png', { type: 'image/png' })],
+      },
+    });
+
+    expect(await screen.findByDisplayValue(uploadedBannerUrl)).toBeInTheDocument();
+    expect(screen.getByText('File selected')).toBeInTheDocument();
+    expect(screen.getByText('Banner uploaded and saved. It is already applied on the About page.')).toBeInTheDocument();
+    expect(mockedUploadApiFile).toHaveBeenCalledWith(
+      '/admin/system-integrations/platform-content/banner',
+      'file',
+      expect.any(File),
+    );
   });
 });
