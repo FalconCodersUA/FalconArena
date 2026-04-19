@@ -291,6 +291,11 @@ export default function AppShell() {
           category: t('shell.searchCategories.sections'),
         },
         {
+          path: '/app/about',
+          label: t('shell.about'),
+          category: t('shell.searchCategories.sections'),
+        },
+        {
           path: '/app/archive',
           label: t('shell.archive'),
           category: t('shell.searchCategories.sections'),
@@ -379,6 +384,10 @@ export default function AppShell() {
       location.pathname.startsWith('/app/tournaments')
     ) {
       return t('shell.tournamentsNav');
+    }
+
+    if (location.pathname.startsWith('/app/about')) {
+      return t('shell.about');
     }
 
     if (location.pathname.startsWith('/app/teams')) {
@@ -787,6 +796,21 @@ export default function AppShell() {
                 </svg>
               </span>
               <span>{t('shell.tournamentsNav')}</span>
+            </NavLink>
+
+            <NavLink to="/app/about" className="app-sidebar-link">
+              <span className="app-sidebar-icon" aria-hidden>
+                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="10" cy="10" r="6.2" stroke="currentColor" strokeWidth="1.5" />
+                  <path
+                    d="M10 8.8V13.2M10 6.5V6.55"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+              <span>{t('shell.about')}</span>
             </NavLink>
 
             <NavLink to="/app/archive" className="app-sidebar-link">

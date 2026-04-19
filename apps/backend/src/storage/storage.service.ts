@@ -30,6 +30,20 @@ export class StorageService {
     });
   }
 
+  async storePlatformBanner(input: {
+    extension: string;
+    mimeType: string;
+    body: Buffer;
+  }) {
+    const fileName = `about-${Date.now()}-${randomUUID()}.${input.extension}`;
+    return this.storeObject({
+      directory: 'about-banners',
+      fileName,
+      contentType: input.mimeType,
+      body: input.body,
+    });
+  }
+
   async removeManagedObject(url: string | null | undefined) {
     if (!this.isManagedUrl(url)) {
       return;

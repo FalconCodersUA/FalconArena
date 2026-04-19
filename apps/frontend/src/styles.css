@@ -3642,6 +3642,469 @@ a {
   font-weight: 700;
 }
 
+.about-page {
+  display: grid;
+  gap: 18px;
+}
+
+.about-text-panel {
+  position: relative;
+  overflow: clip;
+  min-height: clamp(320px, 36vw, 480px);
+  border: 1px solid #e6ddfa;
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(122, 67, 243, 0.18) 0%, transparent 30%),
+    radial-gradient(circle at 10% 100%, rgba(29, 172, 214, 0.12) 0%, transparent 28%),
+    linear-gradient(135deg, #ffffff 0%, #f8f3ff 54%, #ffffff 100%);
+  box-shadow: 0 28px 60px rgba(37, 26, 72, 0.1);
+  padding: clamp(30px, 5vw, 64px);
+  display: grid;
+  align-content: center;
+  gap: clamp(24px, 4vw, 42px);
+}
+
+.about-text-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 160px;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #5e17eb 0%, #b291eb 100%);
+}
+
+.about-text-panel::after {
+  content: '';
+  position: absolute;
+  inset: auto -90px -150px auto;
+  width: 390px;
+  height: 390px;
+  border-radius: 999px;
+  background: rgba(94, 23, 235, 0.08);
+  filter: blur(6px);
+}
+
+.about-text-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 18px;
+  max-width: 880px;
+}
+
+.about-text-copy h1 {
+  margin: 0;
+  color: #343c6a;
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: clamp(2.1rem, 4.6vw, 4.2rem);
+  line-height: 1;
+  letter-spacing: -0.055em;
+}
+
+.about-text-copy p:not(.eyebrow) {
+  margin: 0;
+  max-width: 78ch;
+  color: #65709a;
+  font-size: clamp(1rem, 1.25vw, 1.14rem);
+  line-height: 1.75;
+  white-space: pre-line;
+}
+
+.about-hero-banner {
+  position: relative;
+  z-index: 1;
+  overflow: clip;
+  width: 100%;
+  margin: 0;
+  border: 1px solid rgba(178, 145, 235, 0.34);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: 0 24px 48px rgba(52, 60, 106, 0.12);
+}
+
+.about-hero-banner img {
+  display: block;
+  width: 100%;
+  height: clamp(190px, 28vw, 360px);
+  object-fit: cover;
+}
+
+.about-product-card {
+  position: relative;
+  overflow: clip;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.32fr);
+  gap: 24px;
+  align-items: center;
+  border: 1px solid #e8defa;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.14) 0%, transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 243, 255, 0.94) 100%);
+  box-shadow: 0 22px 46px rgba(52, 60, 106, 0.08);
+  padding: clamp(24px, 3.5vw, 40px);
+}
+
+.about-product-copy {
+  display: grid;
+  gap: 12px;
+  max-width: 820px;
+}
+
+.about-product-copy h2 {
+  margin: 0;
+  color: #343c6a;
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: clamp(1.55rem, 3vw, 2.6rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.about-product-copy p:not(.eyebrow) {
+  margin: 0;
+  color: #65709a;
+  line-height: 1.68;
+}
+
+.about-product-signal {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  justify-self: end;
+  width: min(100%, 220px);
+}
+
+.about-product-signal span {
+  display: block;
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(94, 23, 235, 0.18) 0%, rgba(94, 23, 235, 0.72) 100%);
+  box-shadow: 0 12px 28px rgba(94, 23, 235, 0.12);
+}
+
+.about-product-signal span:nth-child(2) {
+  width: 76%;
+  margin-left: auto;
+  background: linear-gradient(90deg, rgba(22, 219, 204, 0.18) 0%, rgba(22, 219, 204, 0.72) 100%);
+}
+
+.about-product-signal span:nth-child(3) {
+  width: 58%;
+  margin-left: 12%;
+  background: linear-gradient(90deg, rgba(255, 183, 77, 0.18) 0%, rgba(255, 183, 77, 0.74) 100%);
+}
+
+.about-role-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.about-role-card {
+  position: relative;
+  overflow: clip;
+  min-height: 220px;
+  border: 1px solid #e8defa;
+  border-radius: 26px;
+  background: #ffffff;
+  box-shadow: 0 20px 42px rgba(52, 60, 106, 0.08);
+  padding: 24px;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.about-role-card::after {
+  content: '';
+  position: absolute;
+  inset: auto -44px -64px auto;
+  width: 170px;
+  height: 170px;
+  border-radius: 999px;
+  background: rgba(94, 23, 235, 0.08);
+}
+
+.about-role-card span {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  border-radius: 999px;
+  background: #f1eaff;
+  color: #5e17eb;
+  padding: 7px 11px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.about-role-card h3 {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: #343c6a;
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 1.28rem;
+  letter-spacing: -0.025em;
+}
+
+.about-role-card p {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: #65709a;
+  line-height: 1.62;
+}
+
+.about-role-card--organizers {
+  background: linear-gradient(180deg, #ffffff 0%, #f8f3ff 100%);
+}
+
+.about-role-card--teams::after {
+  background: rgba(22, 219, 204, 0.11);
+}
+
+.about-role-card--jury::after {
+  background: rgba(255, 183, 77, 0.12);
+}
+
+.platform-content-editor {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.platform-content-section {
+  display: grid;
+  gap: 14px;
+  border: 1px solid #e8defa;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf8ff 100%);
+  padding: 18px;
+}
+
+.platform-content-section h3 {
+  margin: 0;
+  color: #343c6a;
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 1rem;
+  letter-spacing: -0.015em;
+}
+
+.platform-content-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.platform-content-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.platform-content-localized-field {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(226, 214, 251, 0.78);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 14px;
+}
+
+.platform-content-localized-field strong {
+  color: #343c6a;
+  font-size: 0.86rem;
+}
+
+.platform-content-localized-field .field {
+  margin: 0;
+}
+
+.platform-content-banner-field {
+  margin: 0;
+}
+
+.platform-content-banner-field input[type='file'] {
+  min-height: 48px;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+.platform-content-banner-field input[type='file']::file-selector-button {
+  margin-right: 12px;
+  border: 1px solid rgba(94, 23, 235, 0.18);
+  border-radius: 999px;
+  background: #efe8ff;
+  color: #5e17eb;
+  padding: 8px 14px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.platform-content-banner-field input[type='file']:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.platform-content-upload-hint {
+  margin: 0;
+}
+
+.about-cta-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 8% 15%, rgba(255, 255, 255, 0.24) 0%, transparent 28%),
+    linear-gradient(135deg, #6f32f6 0%, #5620d6 52%, #7c4dff 100%);
+  box-shadow: 0 26px 54px rgba(94, 23, 235, 0.22);
+  padding: clamp(24px, 3.4vw, 38px);
+}
+
+.about-cta-panel div {
+  display: grid;
+  gap: 10px;
+  max-width: 760px;
+}
+
+.about-cta-panel .eyebrow,
+.about-cta-panel h2,
+.about-cta-panel p {
+  color: #ffffff;
+}
+
+.about-cta-panel h2 {
+  margin: 0;
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: clamp(1.45rem, 2.8vw, 2.35rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.about-cta-panel p:not(.eyebrow) {
+  margin: 0;
+  max-width: 68ch;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.65;
+}
+
+.about-cta-panel .button,
+.app-page .about-cta-panel .button-primary {
+  flex: 0 0 auto;
+  border-color: rgba(255, 255, 255, 0.7);
+  background: #ffffff;
+  color: #5e17eb;
+  box-shadow: 0 18px 34px rgba(42, 15, 120, 0.2);
+}
+
+.about-cta-panel .button:hover,
+.about-cta-panel .button:focus-visible,
+.app-page .about-cta-panel .button-primary:hover:not(:disabled),
+.app-page .about-cta-panel .button-primary:focus-visible {
+  border-color: rgba(255, 255, 255, 0.82);
+  background: #f5f0ff;
+  color: #4f12cf;
+}
+
+.about-contacts-panel {
+  position: relative;
+  overflow: clip;
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(280px, 1fr);
+  gap: clamp(22px, 4vw, 42px);
+  align-items: center;
+  border: 1px solid #e8defa;
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(94, 23, 235, 0.1) 0%, transparent 28%),
+    linear-gradient(135deg, #ffffff 0%, #fbf8ff 100%);
+  box-shadow: 0 22px 46px rgba(52, 60, 106, 0.08);
+  padding: clamp(24px, 3.6vw, 42px);
+}
+
+.about-contacts-panel::after {
+  content: '';
+  position: absolute;
+  inset: auto -90px -120px auto;
+  width: 260px;
+  height: 260px;
+  border-radius: 999px;
+  background: rgba(94, 23, 235, 0.08);
+}
+
+.about-contacts-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 12px;
+}
+
+.about-contacts-copy h2 {
+  margin: 0;
+  color: #343c6a;
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: clamp(1.55rem, 3vw, 2.55rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.about-contacts-copy p:not(.eyebrow) {
+  margin: 0;
+  color: #65709a;
+  line-height: 1.68;
+}
+
+.about-contacts-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.about-contact-card {
+  display: grid;
+  gap: 8px;
+  min-height: 116px;
+  border: 1px solid rgba(226, 214, 251, 0.84);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.78);
+  color: inherit;
+  padding: 18px;
+  text-decoration: none;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.about-contact-card:hover,
+.about-contact-card:focus-visible {
+  border-color: rgba(94, 23, 235, 0.34);
+  box-shadow: 0 18px 34px rgba(94, 23, 235, 0.12);
+  transform: translateY(-2px);
+}
+
+.about-contact-card span {
+  color: #718ebf;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.about-contact-card strong {
+  color: #343c6a;
+  font-size: 1rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 .dashboard-overview-top {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(250px, 0.42fr);
@@ -7243,6 +7706,142 @@ body[data-theme='dark'] .leaderboard-workspace-copy p {
   color: #aeb8dc;
 }
 
+body[data-theme='dark'] .app-page .about-text-panel {
+  border-color: rgba(139, 93, 255, 0.18);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(139, 93, 255, 0.24) 0%, transparent 30%),
+    radial-gradient(circle at 10% 100%, rgba(56, 189, 248, 0.12) 0%, transparent 28%),
+    linear-gradient(135deg, rgba(18, 24, 38, 0.98) 0%, rgba(12, 16, 28, 0.98) 54%, rgba(9, 12, 22, 0.98) 100%);
+  box-shadow: 0 30px 62px rgba(2, 6, 18, 0.34);
+}
+
+body[data-theme='dark'] .app-page .about-text-panel::after {
+  background: rgba(139, 93, 255, 0.12);
+}
+
+body[data-theme='dark'] .app-page .about-text-copy h1 {
+  color: #eff2ff;
+}
+
+body[data-theme='dark'] .app-page .about-text-copy p:not(.eyebrow) {
+  color: #aeb8dc;
+}
+
+body[data-theme='dark'] .app-page .about-hero-banner {
+  border-color: rgba(172, 142, 255, 0.24);
+  background: rgba(15, 20, 34, 0.72);
+  box-shadow: 0 26px 54px rgba(2, 6, 18, 0.34);
+}
+
+body[data-theme='dark'] .app-page .about-product-card,
+body[data-theme='dark'] .app-page .about-role-card {
+  border-color: rgba(139, 93, 255, 0.18);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.16) 0%, transparent 34%),
+    linear-gradient(135deg, rgba(18, 24, 38, 0.94) 0%, rgba(12, 16, 28, 0.96) 100%);
+  box-shadow: 0 24px 52px rgba(2, 6, 18, 0.28);
+}
+
+body[data-theme='dark'] .app-page .about-product-copy h2,
+body[data-theme='dark'] .app-page .about-role-card h3 {
+  color: #eff2ff;
+}
+
+body[data-theme='dark'] .app-page .about-product-copy p:not(.eyebrow),
+body[data-theme='dark'] .app-page .about-role-card p {
+  color: #aeb8dc;
+}
+
+body[data-theme='dark'] .app-page .about-role-card span {
+  background: rgba(139, 93, 255, 0.18);
+  color: #d9ccff;
+}
+
+body[data-theme='dark'] .app-page .about-role-card::after {
+  opacity: 0.72;
+}
+
+body[data-theme='dark'] .app-page .platform-content-section {
+  border-color: rgba(139, 93, 255, 0.18);
+  background: linear-gradient(135deg, rgba(18, 24, 38, 0.94) 0%, rgba(12, 16, 28, 0.96) 100%);
+}
+
+body[data-theme='dark'] .app-page .platform-content-section h3,
+body[data-theme='dark'] .app-page .platform-content-localized-field strong {
+  color: #eff2ff;
+}
+
+body[data-theme='dark'] .app-page .platform-content-localized-field {
+  border-color: rgba(139, 93, 255, 0.16);
+  background: rgba(15, 20, 34, 0.72);
+}
+
+body[data-theme='dark'] .app-page .about-contacts-panel {
+  border-color: rgba(139, 93, 255, 0.18);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(139, 93, 255, 0.16) 0%, transparent 28%),
+    linear-gradient(135deg, rgba(18, 24, 38, 0.94) 0%, rgba(12, 16, 28, 0.96) 100%);
+  box-shadow: 0 24px 52px rgba(2, 6, 18, 0.28);
+}
+
+body[data-theme='dark'] .app-page .about-contacts-panel::after {
+  background: rgba(139, 93, 255, 0.1);
+}
+
+body[data-theme='dark'] .app-page .about-contacts-copy h2,
+body[data-theme='dark'] .app-page .about-contact-card strong {
+  color: #eff2ff;
+}
+
+body[data-theme='dark'] .app-page .about-contacts-copy p:not(.eyebrow) {
+  color: #aeb8dc;
+}
+
+body[data-theme='dark'] .app-page .about-contact-card {
+  border-color: rgba(139, 93, 255, 0.16);
+  background: rgba(15, 20, 34, 0.72);
+}
+
+body[data-theme='dark'] .app-page .about-contact-card:hover,
+body[data-theme='dark'] .app-page .about-contact-card:focus-visible {
+  border-color: rgba(172, 142, 255, 0.32);
+  box-shadow: 0 18px 34px rgba(2, 6, 18, 0.26);
+}
+
+body[data-theme='dark'] .app-page .platform-content-banner-field input[type='file']::file-selector-button {
+  border-color: rgba(172, 142, 255, 0.28);
+  background: rgba(139, 93, 255, 0.18);
+  color: #d9ccff;
+}
+
+body[data-theme='dark'] .app-page .about-cta-panel {
+  border-color: rgba(172, 142, 255, 0.28);
+  background:
+    radial-gradient(circle at 8% 15%, rgba(255, 255, 255, 0.12) 0%, transparent 28%),
+    linear-gradient(135deg, rgba(112, 62, 244, 0.9) 0%, rgba(80, 35, 202, 0.92) 50%, rgba(113, 81, 255, 0.86) 100%);
+  box-shadow: 0 26px 54px rgba(2, 6, 18, 0.34);
+}
+
+body[data-theme='dark'] .app-page .about-cta-panel p:not(.eyebrow) {
+  color: rgba(238, 242, 255, 0.82);
+}
+
+body[data-theme='dark'] .app-page .about-cta-panel .button,
+body[data-theme='dark'] .app-page .about-cta-panel .button-primary {
+  border-color: rgba(255, 255, 255, 0.7);
+  background: #ffffff;
+  color: #5e17eb;
+}
+
+body[data-theme='dark'] .app-page .about-cta-panel .button:hover,
+body[data-theme='dark'] .app-page .about-cta-panel .button:focus-visible,
+body[data-theme='dark'] .app-page .about-cta-panel .button-primary:hover:not(:disabled),
+body[data-theme='dark'] .app-page .about-cta-panel .button-primary:focus-visible {
+  border-color: rgba(255, 255, 255, 0.82);
+  background: #f2ecff;
+  color: #4f12cf;
+}
+
 body[data-theme='dark'] .auth-card,
 body[data-theme='dark'] .auth-shell-header,
 body[data-theme='dark'] .auth-page-section .app-route-stage > * {
@@ -7922,6 +8521,36 @@ body[data-theme='dark'] .app-page .monitoring-status-success {
   .leaderboard-selector-panel {
     grid-template-columns: 1fr;
   }
+
+  .about-text-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .about-product-card,
+  .about-role-grid,
+  .about-contacts-panel,
+  .platform-content-field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-content-contact-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .about-product-signal {
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .about-cta-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .about-cta-panel .button {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 860px) {
@@ -8070,6 +8699,15 @@ body[data-theme='dark'] .app-page .monitoring-status-success {
   }
 
   .dashboard-toolset-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-text-panel {
+    min-height: auto;
+  }
+
+  .about-contacts-grid,
+  .platform-content-contact-grid {
     grid-template-columns: 1fr;
   }
 

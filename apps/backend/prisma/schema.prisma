@@ -395,12 +395,15 @@ model SystemIntegrationSettings {
   defaultTournamentMaxTeams    Int?
   defaultRegistrationWindowHours Int?
   defaultRoundDurationHours    Int?
-  defaultTournamentDescription String?
-  defaultRoundDescription      String?
-  updatedByUserId              String?
-  createdAt                    DateTime @default(now())
-  updatedAt                    DateTime @updatedAt
-}
+    defaultTournamentDescription String?
+    defaultRoundDescription      String?
+    aboutPageTitle               String?
+    aboutPageDescription         String?
+    aboutPageContent             Json?
+    updatedByUserId              String?
+    createdAt                    DateTime @default(now())
+    updatedAt                    DateTime @updatedAt
+  }
 
 model AuditLog {
   id          String   @id @default(cuid())

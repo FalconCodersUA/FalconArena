@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import QuietLoadingCard from '../components/QuietLoadingCard';
 import { useI18n } from '../i18n/I18nProvider';
 import { getAuthUser } from '../lib/auth';
-import { apiRequest } from '../lib/api';
+import { apiRequest, uploadApiFile } from '../lib/api';
 
 type GoogleSheetsSettingsResponse = {
   webhookUrl: string;
@@ -69,9 +69,273 @@ type TournamentDefaultsResponse = {
   source: 'database' | 'default';
 };
 
+type LocalizedText = {
+  uk: string;
+  en: string;
+};
+
+type PlatformContentResponse = {
+  hero: {
+    eyebrow: LocalizedText;
+    title: LocalizedText;
+    description: LocalizedText;
+    bannerImageUrl: string | null;
+  };
+  product: {
+    eyebrow: LocalizedText;
+    title: LocalizedText;
+    lead: LocalizedText;
+  };
+  roles: {
+    label: LocalizedText;
+    organizers: {
+      title: LocalizedText;
+      lead: LocalizedText;
+    };
+    teams: {
+      title: LocalizedText;
+      lead: LocalizedText;
+    };
+    jury: {
+      title: LocalizedText;
+      lead: LocalizedText;
+    };
+  };
+  cta: {
+    eyebrow: LocalizedText;
+    title: LocalizedText;
+    lead: LocalizedText;
+    registerLabel: LocalizedText;
+    workspaceLabel: LocalizedText;
+  };
+  contacts: {
+    eyebrow: LocalizedText;
+    title: LocalizedText;
+    lead: LocalizedText;
+    items: Array<{
+      label: LocalizedText;
+      value: LocalizedText;
+      url: string | null;
+    }>;
+  };
+  source: 'database' | 'default';
+};
+
+type PlatformContentBannerUploadResponse = {
+  url: string;
+};
+
+type PlatformContentPath = string[];
+
 function trimToUndefined(value: string) {
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : undefined;
+}
+
+function localized(uk: string, en: string): LocalizedText {
+  return { uk, en };
+}
+
+function createDefaultPlatformContent(): PlatformContentResponse {
+  return {
+    hero: {
+      eyebrow: localized('Про платформу', 'About the platform'),
+      title: localized(
+        'FalconArena - вебплатформа для командних турнірів з програмування',
+        'FalconArena - a web platform for team programming tournaments',
+      ),
+      description: localized(
+        'FalconArena допомагає організаторам проводити командні турніри з програмування в одному робочому просторі. Платформа обʼєднує реєстрацію команд, керування раундами, подання робіт, оцінювання журі, лідерборд, повідомлення та експорт результатів.',
+        'FalconArena helps organizers run team programming tournaments in one workspace. The platform combines team registration, round management, submissions, jury evaluation, leaderboard, messages, and result export.',
+      ),
+      bannerImageUrl: null,
+    },
+    product: {
+      eyebrow: localized('Робочий процес', 'Workflow'),
+      title: localized(
+        'Один маршрут для турніру від реєстрації до фінального лідерборда',
+        'One tournament route from registration to the final leaderboard',
+      ),
+      lead: localized(
+        'Адміністратор задає правила, команди працюють із завданнями, журі оцінює сабміти, а результати збираються в архіві без ручних таблиць.',
+        'Admins define rules, teams work with tasks, jury members review submissions, and results move into the archive without manual spreadsheets.',
+      ),
+    },
+    roles: {
+      label: localized('Ролі платформи', 'Platform roles'),
+      organizers: {
+        title: localized('Організатори', 'Organizers'),
+        lead: localized(
+          'Створюють турніри, керують раундами, командами, сповіщеннями та експортом результатів.',
+          'Create tournaments, manage rounds, teams, notifications, and result export.',
+        ),
+      },
+      teams: {
+        title: localized('Команди', 'Teams'),
+        lead: localized(
+          'Бачать актуальні завдання, дедлайни, статус реєстрації та подають посилання на GitHub і демо.',
+          'See current tasks, deadlines, registration status, and submit GitHub and demo links.',
+        ),
+      },
+      jury: {
+        title: localized('Журі', 'Jury'),
+        lead: localized(
+          'Отримує призначені роботи, виставляє оцінки за критеріями та формує прозорий результат.',
+          'Receive assigned work, score by criteria, and build a transparent final result.',
+        ),
+      },
+    },
+    cta: {
+      eyebrow: localized('Почати роботу', 'Start working'),
+      title: localized(
+        'Відкрийте турнірний простір і перевірте платформу в реальному сценарії',
+        'Open the tournament workspace and test the platform in a real scenario',
+      ),
+      lead: localized(
+        'Найкраще FalconArena видно в дії: турніри, команди, сабміти, оцінювання та результати працюють як єдиний продукт.',
+        'FalconArena is clearest in action: tournaments, teams, submissions, evaluation, and results operate as one product.',
+      ),
+      registerLabel: localized('Створити акаунт команди', 'Create team account'),
+      workspaceLabel: localized('Перейти до турнірів', 'Go to tournaments'),
+    },
+    contacts: {
+      eyebrow: localized('Наші контакти', 'Our contacts'),
+      title: localized(
+        'Звʼяжіться з командою FalconArena',
+        'Contact the FalconArena team',
+      ),
+      lead: localized(
+        'Виберіть зручний канал, щоб поставити питання про платформу, турнір або співпрацю.',
+        'Choose a convenient channel for questions about the platform, tournaments, or collaboration.',
+      ),
+      items: [
+        {
+          label: localized('Email', 'Email'),
+          value: localized('team@falconarena.live', 'team@falconarena.live'),
+          url: 'mailto:team@falconarena.live',
+        },
+        {
+          label: localized('Telegram', 'Telegram'),
+          value: localized('@falconarena', '@falconarena'),
+          url: 'https://t.me/falconarena',
+        },
+        {
+          label: localized('GitHub', 'GitHub'),
+          value: localized('github.com/falconarena', 'github.com/falconarena'),
+          url: 'https://github.com/falconarena',
+        },
+        {
+          label: localized('LinkedIn', 'LinkedIn'),
+          value: localized('FalconArena', 'FalconArena'),
+          url: 'https://www.linkedin.com',
+        },
+      ],
+    },
+    source: 'default',
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function mergeLocalized(value: unknown, fallback: LocalizedText): LocalizedText {
+  if (!isRecord(value)) {
+    return fallback;
+  }
+
+  return {
+    uk: typeof value.uk === 'string' && value.uk.trim() ? value.uk : fallback.uk,
+    en: typeof value.en === 'string' && value.en.trim() ? value.en : fallback.en,
+  };
+}
+
+function mergeOptionalString(value: unknown) {
+  const normalized = typeof value === 'string' ? value.trim() : '';
+  return normalized.length > 0 ? normalized : null;
+}
+
+function mergeContactItems(
+  value: unknown,
+  fallback: PlatformContentResponse['contacts']['items'],
+) {
+  const source = Array.isArray(value) ? value : [];
+
+  return fallback.map((fallbackItem, index) => {
+    const item = isRecord(source[index]) ? source[index] : {};
+
+    return {
+      label: mergeLocalized(item.label, fallbackItem.label),
+      value: mergeLocalized(item.value, fallbackItem.value),
+      url: typeof item.url === 'string' ? mergeOptionalString(item.url) : fallbackItem.url,
+    };
+  });
+}
+
+function normalizePlatformContent(value: unknown): PlatformContentResponse {
+  const fallback = createDefaultPlatformContent();
+  if (!isRecord(value)) {
+    return fallback;
+  }
+
+  const hero = isRecord(value.hero) ? value.hero : {};
+  const product = isRecord(value.product) ? value.product : {};
+  const roles = isRecord(value.roles) ? value.roles : {};
+  const organizers = isRecord(roles.organizers) ? roles.organizers : {};
+  const teams = isRecord(roles.teams) ? roles.teams : {};
+  const jury = isRecord(roles.jury) ? roles.jury : {};
+  const cta = isRecord(value.cta) ? value.cta : {};
+  const contacts = isRecord(value.contacts) ? value.contacts : {};
+  const legacyTitle = typeof value.aboutPageTitle === 'string' ? value.aboutPageTitle : '';
+  const legacyDescription =
+    typeof value.aboutPageDescription === 'string' ? value.aboutPageDescription : '';
+
+  return {
+    hero: {
+      eyebrow: mergeLocalized(hero.eyebrow, fallback.hero.eyebrow),
+      title: legacyTitle
+        ? { ...fallback.hero.title, uk: legacyTitle }
+        : mergeLocalized(hero.title, fallback.hero.title),
+      description: legacyDescription
+        ? { ...fallback.hero.description, uk: legacyDescription }
+        : mergeLocalized(hero.description, fallback.hero.description),
+      bannerImageUrl: mergeOptionalString(hero.bannerImageUrl),
+    },
+    product: {
+      eyebrow: mergeLocalized(product.eyebrow, fallback.product.eyebrow),
+      title: mergeLocalized(product.title, fallback.product.title),
+      lead: mergeLocalized(product.lead, fallback.product.lead),
+    },
+    roles: {
+      label: mergeLocalized(roles.label, fallback.roles.label),
+      organizers: {
+        title: mergeLocalized(organizers.title, fallback.roles.organizers.title),
+        lead: mergeLocalized(organizers.lead, fallback.roles.organizers.lead),
+      },
+      teams: {
+        title: mergeLocalized(teams.title, fallback.roles.teams.title),
+        lead: mergeLocalized(teams.lead, fallback.roles.teams.lead),
+      },
+      jury: {
+        title: mergeLocalized(jury.title, fallback.roles.jury.title),
+        lead: mergeLocalized(jury.lead, fallback.roles.jury.lead),
+      },
+    },
+    cta: {
+      eyebrow: mergeLocalized(cta.eyebrow, fallback.cta.eyebrow),
+      title: mergeLocalized(cta.title, fallback.cta.title),
+      lead: mergeLocalized(cta.lead, fallback.cta.lead),
+      registerLabel: mergeLocalized(cta.registerLabel, fallback.cta.registerLabel),
+      workspaceLabel: mergeLocalized(cta.workspaceLabel, fallback.cta.workspaceLabel),
+    },
+    contacts: {
+      eyebrow: mergeLocalized(contacts.eyebrow, fallback.contacts.eyebrow),
+      title: mergeLocalized(contacts.title, fallback.contacts.title),
+      lead: mergeLocalized(contacts.lead, fallback.contacts.lead),
+      items: mergeContactItems(contacts.items, fallback.contacts.items),
+    },
+    source: value.source === 'database' ? 'database' : 'default',
+  };
 }
 
 function formatDateTime(value: string | null, language: 'uk' | 'en', fallback: string) {
@@ -90,6 +354,8 @@ export default function SystemIntegrationsPage() {
   const [notificationRules, setNotificationRules] = useState<NotificationRulesResponse | null>(null);
   const [tournamentDefaults, setTournamentDefaults] =
     useState<TournamentDefaultsResponse | null>(null);
+  const [platformContent, setPlatformContent] =
+    useState<PlatformContentResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [googleSaving, setGoogleSaving] = useState(false);
@@ -107,10 +373,100 @@ export default function SystemIntegrationsPage() {
   const [defaultsSaving, setDefaultsSaving] = useState(false);
   const [defaultsError, setDefaultsError] = useState('');
   const [defaultsNotice, setDefaultsNotice] = useState('');
+  const [platformContentSaving, setPlatformContentSaving] = useState(false);
+  const [platformBannerUploading, setPlatformBannerUploading] = useState(false);
+  const [platformContentError, setPlatformContentError] = useState('');
+  const [platformContentNotice, setPlatformContentNotice] = useState('');
+
+  function getPlatformContentField(path: PlatformContentPath, locale: 'uk' | 'en') {
+    let current: unknown = platformContent;
+
+    for (const key of path) {
+      if (!isRecord(current) && !Array.isArray(current)) {
+        return '';
+      }
+
+      current = (current as Record<string, unknown>)[key];
+    }
+
+    return isRecord(current) && typeof current[locale] === 'string'
+      ? current[locale]
+      : '';
+  }
+
+  function getPlatformContentString(path: PlatformContentPath) {
+    let current: unknown = platformContent;
+
+    for (const key of path) {
+      if (!isRecord(current) && !Array.isArray(current)) {
+        return '';
+      }
+
+      current = (current as Record<string, unknown>)[key];
+    }
+
+    return typeof current === 'string' ? current : '';
+  }
+
+  function updatePlatformContentField(
+    path: PlatformContentPath,
+    locale: 'uk' | 'en',
+    value: string,
+  ) {
+    setPlatformContent((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const next = structuredClone(current);
+      let target = next as unknown as Record<string, unknown>;
+
+      for (const key of path) {
+        target = target[key] as Record<string, unknown>;
+      }
+
+      target[locale] = value;
+      return next;
+    });
+  }
+
+  function updatePlatformContentString(path: PlatformContentPath, value: string) {
+    setPlatformContent((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const next = structuredClone(current);
+      let target = next as unknown as Record<string, unknown>;
+      const lastKey = path[path.length - 1];
+
+      for (const key of path.slice(0, -1)) {
+        target = target[key] as Record<string, unknown>;
+      }
+
+      target[lastKey] = value;
+      return next;
+    });
+  }
+
+  function updatePlatformContentHeroBanner(value: string) {
+    setPlatformContent((current) =>
+      current
+        ? {
+            ...current,
+            hero: {
+              ...current.hero,
+              bannerImageUrl: value,
+            },
+          }
+        : current,
+    );
+  }
 
   async function loadSettings() {
     setLoading(true);
     setLoadError('');
+    setPlatformContentError('');
 
     try {
       const [googleData, emailData, rulesData, defaultsData] = await Promise.all([
@@ -125,6 +481,16 @@ export default function SystemIntegrationsPage() {
       setEmailSettings(emailData);
       setNotificationRules(rulesData);
       setTournamentDefaults(defaultsData);
+
+      try {
+        const contentData = await apiRequest<unknown>(
+          '/admin/system-integrations/platform-content',
+        );
+        setPlatformContent(normalizePlatformContent(contentData));
+      } catch {
+        setPlatformContent(createDefaultPlatformContent());
+        setPlatformContentError(t('systemIntegrations.platformContent.unavailable'));
+      }
     } catch (requestError) {
       setLoadError(
         requestError instanceof Error
@@ -135,6 +501,7 @@ export default function SystemIntegrationsPage() {
       setEmailSettings(null);
       setNotificationRules(null);
       setTournamentDefaults(null);
+      setPlatformContent(null);
     } finally {
       setLoading(false);
     }
@@ -390,11 +757,75 @@ export default function SystemIntegrationsPage() {
     }
   }
 
+  async function savePlatformContent() {
+    if (!platformContent) {
+      return;
+    }
+
+    setPlatformContentSaving(true);
+    setPlatformContentNotice('');
+    setPlatformContentError('');
+
+    try {
+      const saved = await apiRequest<unknown>(
+        '/admin/system-integrations/platform-content',
+        {
+          method: 'PATCH',
+          body: {
+            hero: platformContent.hero,
+            product: platformContent.product,
+            roles: platformContent.roles,
+            cta: platformContent.cta,
+            contacts: platformContent.contacts,
+          },
+        },
+      );
+      setPlatformContent(normalizePlatformContent(saved));
+      setPlatformContentNotice(t('systemIntegrations.saved'));
+    } catch (requestError) {
+      setPlatformContentError(
+        requestError instanceof Error
+          ? requestError.message
+          : t('systemIntegrations.saveFailed'),
+      );
+    } finally {
+      setPlatformContentSaving(false);
+    }
+  }
+
+  async function uploadPlatformBanner(file: File | undefined) {
+    if (!file || !platformContent) {
+      return;
+    }
+
+    setPlatformBannerUploading(true);
+    setPlatformContentNotice('');
+    setPlatformContentError('');
+
+    try {
+      const result = await uploadApiFile<PlatformContentBannerUploadResponse>(
+        '/admin/system-integrations/platform-content/banner',
+        'file',
+        file,
+      );
+      updatePlatformContentHeroBanner(result.url);
+      setPlatformContentNotice(t('systemIntegrations.platformContent.bannerUploaded'));
+    } catch (requestError) {
+      setPlatformContentError(
+        requestError instanceof Error
+          ? requestError.message
+          : t('systemIntegrations.platformContent.bannerUploadFailed'),
+      );
+    } finally {
+      setPlatformBannerUploading(false);
+    }
+  }
+
   if (loading) {
     return <QuietLoadingCard label={t('systemIntegrations.loading')} />;
   }
 
-  if (!googleSheets && !emailSettings && !notificationRules && !tournamentDefaults) {
+  if (!googleSheets && !emailSettings && !notificationRules && !tournamentDefaults && !platformContent) {
     return (
       <article className="card state-card">
         <p className="form-error">{loadError || t('systemIntegrations.loadFailed')}</p>
@@ -405,7 +836,7 @@ export default function SystemIntegrationsPage() {
     );
   }
 
-  if (!googleSheets || !emailSettings || !notificationRules || !tournamentDefaults) {
+  if (!googleSheets || !emailSettings || !notificationRules || !tournamentDefaults || !platformContent) {
     return (
       <article className="card state-card">
         <p className="form-error">{loadError || t('systemIntegrations.loadFailed')}</p>
@@ -501,6 +932,142 @@ export default function SystemIntegrationsPage() {
         return 'dashboard-tool-card';
     }
   };
+  const platformContentSections = [
+    {
+      id: 'hero',
+      title: t('systemIntegrations.platformContent.sections.hero'),
+      fields: [
+        {
+          label: t('systemIntegrations.platformContent.form.heroEyebrow'),
+          path: ['hero', 'eyebrow'],
+        },
+        {
+          label: t('systemIntegrations.platformContent.form.heroTitle'),
+          path: ['hero', 'title'],
+        },
+        {
+          label: t('systemIntegrations.platformContent.form.heroDescription'),
+          path: ['hero', 'description'],
+          multiline: true,
+        },
+      ],
+    },
+    {
+      id: 'product',
+      title: t('systemIntegrations.platformContent.sections.product'),
+      fields: [
+        {
+          label: t('systemIntegrations.platformContent.form.productEyebrow'),
+          path: ['product', 'eyebrow'],
+        },
+        {
+          label: t('systemIntegrations.platformContent.form.productTitle'),
+          path: ['product', 'title'],
+        },
+        {
+          label: t('systemIntegrations.platformContent.form.productLead'),
+          path: ['product', 'lead'],
+          multiline: true,
+        },
+      ],
+    },
+    {
+      id: 'roles',
+      title: t('systemIntegrations.platformContent.sections.roles'),
+      fields: [
+        {
+          label: t('systemIntegrations.platformContent.form.rolesLabel'),
+          path: ['roles', 'label'],
+        },
+        {
+          label: t('systemIntegrations.platformContent.form.organizersTitle'),
+          path: ['roles', 'organizers', 'title'],
+        },
+        {
+          label: t('systemIntegrations.platformContent.form.organizersLead'),
+          path: ['roles', 'organizers', 'lead'],
+          multiline: true,
+        },
+        {
+          label: t('systemIntegrations.platformContent.form.teamsTitle'),
+          path: ['roles', 'teams', 'title'],
+        },
+        {
+          label: t('systemIntegrations.platformContent.form.teamsLead'),
+          path: ['roles', 'teams', 'lead'],
+          multiline: true,
+        },
+        {
+          label: t('systemIntegrations.platformContent.form.juryTitle'),
+          path: ['roles', 'jury', 'title'],
+        },
+        {
+          label: t('systemIntegrations.platformContent.form.juryLead'),
+          path: ['roles', 'jury', 'lead'],
+          multiline: true,
+        },
+      ],
+    },
+    {
+      id: 'cta',
+      title: t('systemIntegrations.platformContent.sections.cta'),
+      fields: [
+        {
+          label: t('systemIntegrations.platformContent.form.ctaEyebrow'),
+          path: ['cta', 'eyebrow'],
+        },
+        {
+          label: t('systemIntegrations.platformContent.form.ctaTitle'),
+          path: ['cta', 'title'],
+        },
+        {
+          label: t('systemIntegrations.platformContent.form.ctaLead'),
+          path: ['cta', 'lead'],
+          multiline: true,
+        },
+        {
+          label: t('systemIntegrations.platformContent.form.registerLabel'),
+          path: ['cta', 'registerLabel'],
+        },
+        {
+          label: t('systemIntegrations.platformContent.form.workspaceLabel'),
+          path: ['cta', 'workspaceLabel'],
+        },
+      ],
+    },
+    {
+      id: 'contacts',
+      title: t('systemIntegrations.platformContent.sections.contacts'),
+      fields: [
+        {
+          label: t('systemIntegrations.platformContent.form.contactsEyebrow'),
+          path: ['contacts', 'eyebrow'],
+        },
+        {
+          label: t('systemIntegrations.platformContent.form.contactsTitle'),
+          path: ['contacts', 'title'],
+        },
+        {
+          label: t('systemIntegrations.platformContent.form.contactsLead'),
+          path: ['contacts', 'lead'],
+          multiline: true,
+        },
+      ],
+    },
+  ] satisfies Array<{
+    id: string;
+    title: string;
+    fields: Array<{
+      label: string;
+      path: PlatformContentPath;
+      multiline?: boolean;
+    }>;
+  }>;
+  const platformContactItems = platformContent.contacts.items.map((item, index) => ({
+    id: `contact-${index}`,
+    label: item.label[language] || `${t('systemIntegrations.platformContent.form.contact')} ${index + 1}`,
+    index,
+  }));
 
   return (
     <section className="team-dashboard">
@@ -1238,6 +1805,220 @@ export default function SystemIntegrationsPage() {
 
         {rulesNotice ? <p className="form-success">{rulesNotice}</p> : null}
         {rulesError ? <p className="form-error">{rulesError}</p> : null}
+      </article>
+
+      <article id="integrations-platform-content" className="card panel-card">
+        <div className="tournament-head">
+          <h2>{t('systemIntegrations.platformContent.title')}</h2>
+          <span className="status-pill active">
+            {t(`systemIntegrations.platformContent.sources.${platformContent.source}`)}
+          </span>
+        </div>
+
+        <p className="inline-hint">{t('systemIntegrations.platformContent.lead')}</p>
+        <div className="state-callout subtle">
+          <strong>
+            {t(`systemIntegrations.platformContent.sources.${platformContent.source}`)}
+          </strong>
+          <p>
+            {t(
+              `systemIntegrations.platformContent.sourceHints.${platformContent.source}`,
+            )}
+          </p>
+        </div>
+
+        <div className="platform-content-editor">
+          <section className="platform-content-section">
+            <h3>{t('systemIntegrations.platformContent.sections.heroMedia')}</h3>
+            <label className="field platform-content-banner-field">
+              <span>{t('systemIntegrations.platformContent.form.heroBannerImageUrl')}</span>
+              <input
+                type="text"
+                inputMode="url"
+                value={platformContent.hero.bannerImageUrl ?? ''}
+                placeholder={t('systemIntegrations.platformContent.form.heroBannerPlaceholder')}
+                onChange={(event) => updatePlatformContentHeroBanner(event.target.value)}
+              />
+            </label>
+            <label className="field platform-content-banner-field">
+              <span>{t('systemIntegrations.platformContent.form.heroBannerUpload')}</span>
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                disabled={platformBannerUploading}
+                onChange={(event) => {
+                  void uploadPlatformBanner(event.currentTarget.files?.[0]);
+                  event.currentTarget.value = '';
+                }}
+              />
+            </label>
+            <p className="inline-hint platform-content-upload-hint">
+              {platformBannerUploading
+                ? t('systemIntegrations.platformContent.bannerUploading')
+                : t('systemIntegrations.platformContent.bannerUploadHint')}
+            </p>
+          </section>
+
+          {platformContentSections.map((section) => (
+            <section key={section.id} className="platform-content-section">
+              <h3>{section.title}</h3>
+              <div className="platform-content-field-grid">
+                {section.fields.map((field) => (
+                  <div key={field.path.join('.')} className="platform-content-localized-field">
+                    <strong>{field.label}</strong>
+                    <label className="field">
+                      <span>{t('systemIntegrations.platformContent.locales.uk')}</span>
+                      {field.multiline ? (
+                        <textarea
+                          className="textarea-input platform-content-textarea"
+                          value={getPlatformContentField(field.path, 'uk')}
+                          onChange={(event) =>
+                            updatePlatformContentField(field.path, 'uk', event.target.value)
+                          }
+                        />
+                      ) : (
+                        <input
+                          value={getPlatformContentField(field.path, 'uk')}
+                          onChange={(event) =>
+                            updatePlatformContentField(field.path, 'uk', event.target.value)
+                          }
+                        />
+                      )}
+                    </label>
+                    <label className="field">
+                      <span>{t('systemIntegrations.platformContent.locales.en')}</span>
+                      {field.multiline ? (
+                        <textarea
+                          className="textarea-input platform-content-textarea"
+                          value={getPlatformContentField(field.path, 'en')}
+                          onChange={(event) =>
+                            updatePlatformContentField(field.path, 'en', event.target.value)
+                          }
+                        />
+                      ) : (
+                        <input
+                          value={getPlatformContentField(field.path, 'en')}
+                          onChange={(event) =>
+                            updatePlatformContentField(field.path, 'en', event.target.value)
+                          }
+                        />
+                      )}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
+
+          <section className="platform-content-section">
+            <h3>{t('systemIntegrations.platformContent.sections.contactChannels')}</h3>
+            <div className="platform-content-contact-grid">
+              {platformContactItems.map((contact) => (
+                <div key={contact.id} className="platform-content-localized-field">
+                  <strong>{contact.label}</strong>
+                  <label className="field">
+                    <span>{t('systemIntegrations.platformContent.form.contactLabelUk')}</span>
+                    <input
+                      value={getPlatformContentField(
+                        ['contacts', 'items', String(contact.index), 'label'],
+                        'uk',
+                      )}
+                      onChange={(event) =>
+                        updatePlatformContentField(
+                          ['contacts', 'items', String(contact.index), 'label'],
+                          'uk',
+                          event.target.value,
+                        )
+                      }
+                    />
+                  </label>
+                  <label className="field">
+                    <span>{t('systemIntegrations.platformContent.form.contactLabelEn')}</span>
+                    <input
+                      value={getPlatformContentField(
+                        ['contacts', 'items', String(contact.index), 'label'],
+                        'en',
+                      )}
+                      onChange={(event) =>
+                        updatePlatformContentField(
+                          ['contacts', 'items', String(contact.index), 'label'],
+                          'en',
+                          event.target.value,
+                        )
+                      }
+                    />
+                  </label>
+                  <label className="field">
+                    <span>{t('systemIntegrations.platformContent.form.contactValueUk')}</span>
+                    <input
+                      value={getPlatformContentField(
+                        ['contacts', 'items', String(contact.index), 'value'],
+                        'uk',
+                      )}
+                      onChange={(event) =>
+                        updatePlatformContentField(
+                          ['contacts', 'items', String(contact.index), 'value'],
+                          'uk',
+                          event.target.value,
+                        )
+                      }
+                    />
+                  </label>
+                  <label className="field">
+                    <span>{t('systemIntegrations.platformContent.form.contactValueEn')}</span>
+                    <input
+                      value={getPlatformContentField(
+                        ['contacts', 'items', String(contact.index), 'value'],
+                        'en',
+                      )}
+                      onChange={(event) =>
+                        updatePlatformContentField(
+                          ['contacts', 'items', String(contact.index), 'value'],
+                          'en',
+                          event.target.value,
+                        )
+                      }
+                    />
+                  </label>
+                  <label className="field">
+                    <span>{t('systemIntegrations.platformContent.form.contactUrl')}</span>
+                    <input
+                      value={getPlatformContentString([
+                        'contacts',
+                        'items',
+                        String(contact.index),
+                        'url',
+                      ])}
+                      placeholder="https://"
+                      onChange={(event) =>
+                        updatePlatformContentString(
+                          ['contacts', 'items', String(contact.index), 'url'],
+                          event.target.value,
+                        )
+                      }
+                    />
+                  </label>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <div className="status-actions">
+          <button
+            type="button"
+            className="button button-primary admin-primary-action"
+            onClick={() => void savePlatformContent()}
+            disabled={platformContentSaving}
+          >
+            {platformContentSaving
+              ? t('systemIntegrations.saving')
+              : t('systemIntegrations.save')}
+          </button>
+        </div>
+
+        {platformContentNotice ? <p className="form-success">{platformContentNotice}</p> : null}
+        {platformContentError ? <p className="form-error">{platformContentError}</p> : null}
       </article>
     </section>
   );

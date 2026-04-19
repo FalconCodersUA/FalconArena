@@ -5,6 +5,7 @@ import AdminDashboardPage from '../pages/AdminDashboardPage';
 import AdminUsersPage from '../pages/AdminUsersPage';
 import AppErrorPage from '../pages/AppErrorPage';
 import ArchivePage from '../pages/ArchivePage';
+import AboutPage from '../pages/AboutPage';
 import AppShell from './layout/AppShell';
 import CertificatePreviewPage from '../pages/CertificatePreviewPage';
 import JuryDashboardPage from '../pages/JuryDashboardPage';
@@ -92,6 +93,10 @@ export const router = createBrowserRouter([
       {
         path: 'tournaments',
         element: <TournamentsPage />,
+      },
+      {
+        path: 'about',
+        element: <AboutPage />,
       },
       {
         path: 'archive',
