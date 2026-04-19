@@ -1,4 +1,15 @@
-import { Body, Controller, Get, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Req,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { RateLimit } from '../common/decorators/rate-limit.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -9,8 +20,15 @@ import { TestGoogleSheetsConnectionDto } from './dto/test-google-sheets-connecti
 import { UpdateEmailSettingsDto } from './dto/update-email-settings.dto';
 import { UpdateGoogleSheetsSettingsDto } from './dto/update-google-sheets-settings.dto';
 import { UpdateNotificationRulesDto } from './dto/update-notification-rules.dto';
+import { UpdatePlatformContentDto } from './dto/update-platform-content.dto';
 import { UpdateTournamentDefaultsDto } from './dto/update-tournament-defaults.dto';
 import { SystemIntegrationsService } from './system-integrations.service';
+
+type UploadedPlatformContentBannerFile = {
+  buffer?: Buffer;
+  mimetype?: string;
+  size?: number;
+};
 
 @Controller('admin/system-integrations')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -100,6 +118,54 @@ export class SystemIntegrationsController {
   ) {
     return this.systemIntegrationsService.updateNotificationRules(
       dto,
+      request.user,
+    );
+  }
+
+  @Get('platform-content')
+  getPlatformContent() {
+    return this.systemIntegrationsService.getPlatformContent();
+  }
+
+  @Patch('platform-content')
+  @UseGuards(RateLimitGuard)
+  @RateLimit({
+    bucket: 'system-integrations-update',
+    limit: 10,
+    windowSeconds: 60,
+    keyStrategy: 'user',
+  })
+  updatePlatformContent(
+    @Body() dto: UpdatePlatformContentDto,
+    @Req() request: { user: AuthUser },
+  ) {
+    return this.systemIntegrationsService.updatePlatformContent(
+      dto,
+      request.user,
+    );
+  }
+
+  @Post('platform-content/banner')
+  @UseGuards(RateLimitGuard)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: {
+        fileSize: 5 * 1024 * 1024,
+      },
+    }),
+  )
+  @RateLimit({
+    bucket: 'system-integrations-upload',
+    limit: 10,
+    windowSeconds: 60,
+    keyStrategy: 'user',
+  })
+  uploadPlatformContentBanner(
+    @UploadedFile() file: UploadedPlatformContentBannerFile | undefined,
+    @Req() request: { user: AuthUser },
+  ) {
+    return this.systemIntegrationsService.uploadPlatformContentBanner(
+      file,
       request.user,
     );
   }

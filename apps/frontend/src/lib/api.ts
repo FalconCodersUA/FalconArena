@@ -69,6 +69,33 @@ export async function apiRequest<T>(
   return payload as T;
 }
 
+export async function uploadApiFile<T>(
+  path: string,
+  fieldName: string,
+  file: File,
+): Promise<T> {
+  const token = getToken();
+  const formData = new FormData();
+  formData.append(fieldName, file);
+
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  });
+
+  const text = await response.text();
+  const payload = parsePayload(text);
+
+  if (!response.ok) {
+    throw new ApiError(normalizeError(payload, response.status), response.status);
+  }
+
+  return payload as T;
+}
+
 export function buildApiUrl(path: string) {
   return `${API_BASE}${path}`;
 }

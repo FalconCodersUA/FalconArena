@@ -1,12 +1,19 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
-import { NotificationType } from '@prisma/client';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { NotificationType, Prisma } from '@prisma/client';
 import { AuditLogsService } from '../audit-logs.service';
 import { AuthUser } from '../common/types/auth-user.type';
 import { PrismaService } from '../prisma/prisma.service';
+import { StorageService } from '../storage/storage.service';
 import { TestGoogleSheetsConnectionDto } from './dto/test-google-sheets-connection.dto';
 import { UpdateEmailSettingsDto } from './dto/update-email-settings.dto';
 import { UpdateGoogleSheetsSettingsDto } from './dto/update-google-sheets-settings.dto';
 import { UpdateNotificationRulesDto } from './dto/update-notification-rules.dto';
+import { UpdatePlatformContentDto } from './dto/update-platform-content.dto';
 import { UpdateTournamentDefaultsDto } from './dto/update-tournament-defaults.dto';
 
 type GoogleSheetsConfig = {
@@ -32,6 +39,64 @@ type NotificationRules = {
   deadlineReminder: boolean;
   submissionClosed: boolean;
   source: 'database' | 'default';
+};
+
+type LocalizedText = {
+  uk: string;
+  en: string;
+};
+
+type PlatformContent = {
+  hero: {
+    eyebrow: LocalizedText;
+    title: LocalizedText;
+    description: LocalizedText;
+    bannerImageUrl: string | null;
+  };
+  product: {
+    eyebrow: LocalizedText;
+    title: LocalizedText;
+    lead: LocalizedText;
+  };
+  roles: {
+    label: LocalizedText;
+    organizers: {
+      title: LocalizedText;
+      lead: LocalizedText;
+    };
+    teams: {
+      title: LocalizedText;
+      lead: LocalizedText;
+    };
+    jury: {
+      title: LocalizedText;
+      lead: LocalizedText;
+    };
+  };
+  cta: {
+    eyebrow: LocalizedText;
+    title: LocalizedText;
+    lead: LocalizedText;
+    registerLabel: LocalizedText;
+    workspaceLabel: LocalizedText;
+  };
+  contacts: {
+    eyebrow: LocalizedText;
+    title: LocalizedText;
+    lead: LocalizedText;
+    items: Array<{
+      label: LocalizedText;
+      value: LocalizedText;
+      url: string | null;
+    }>;
+  };
+  source: 'database' | 'default';
+};
+
+type UploadedPlatformBannerFile = {
+  buffer?: Buffer;
+  mimetype?: string;
+  size?: number;
 };
 
 export type TournamentDefaultsConfig = {
@@ -61,11 +126,169 @@ const TOURNAMENT_DEFAULTS_FALLBACK = {
   defaultRoundDescription: '',
 } satisfies Omit<TournamentDefaultsConfig, 'source'>;
 
+const PLATFORM_CONTENT_FALLBACK = {
+  hero: {
+    eyebrow: {
+      uk: 'Про платформу',
+      en: 'About the platform',
+    },
+    title: {
+      uk: 'FalconArena - вебплатформа для командних турнірів з програмування',
+      en: 'FalconArena - a web platform for team programming tournaments',
+    },
+    description: {
+      uk: 'FalconArena допомагає організаторам проводити командні турніри з програмування в одному робочому просторі. Платформа обʼєднує реєстрацію команд, керування раундами, подання робіт, оцінювання журі, лідерборд, повідомлення та експорт результатів.',
+      en: 'FalconArena helps organizers run team programming tournaments in one workspace. The platform combines team registration, round management, submissions, jury evaluation, leaderboard, messages, and result export.',
+    },
+    bannerImageUrl: null,
+  },
+  product: {
+    eyebrow: {
+      uk: 'Робочий процес',
+      en: 'Workflow',
+    },
+    title: {
+      uk: 'Один маршрут для турніру від реєстрації до фінального лідерборда',
+      en: 'One tournament route from registration to the final leaderboard',
+    },
+    lead: {
+      uk: 'Адміністратор задає правила, команди працюють із завданнями, журі оцінює сабміти, а результати збираються в архіві без ручних таблиць.',
+      en: 'Admins define rules, teams work with tasks, jury members review submissions, and results move into the archive without manual spreadsheets.',
+    },
+  },
+  roles: {
+    label: {
+      uk: 'Ролі платформи',
+      en: 'Platform roles',
+    },
+    organizers: {
+      title: {
+        uk: 'Організатори',
+        en: 'Organizers',
+      },
+      lead: {
+        uk: 'Створюють турніри, керують раундами, командами, сповіщеннями та експортом результатів.',
+        en: 'Create tournaments, manage rounds, teams, notifications, and result export.',
+      },
+    },
+    teams: {
+      title: {
+        uk: 'Команди',
+        en: 'Teams',
+      },
+      lead: {
+        uk: 'Бачать актуальні завдання, дедлайни, статус реєстрації та подають посилання на GitHub і демо.',
+        en: 'See current tasks, deadlines, registration status, and submit GitHub and demo links.',
+      },
+    },
+    jury: {
+      title: {
+        uk: 'Журі',
+        en: 'Jury',
+      },
+      lead: {
+        uk: 'Отримує призначені роботи, виставляє оцінки за критеріями та формує прозорий результат.',
+        en: 'Receive assigned work, score by criteria, and build a transparent final result.',
+      },
+    },
+  },
+  cta: {
+    eyebrow: {
+      uk: 'Почати роботу',
+      en: 'Start working',
+    },
+    title: {
+      uk: 'Відкрийте турнірний простір і перевірте платформу в реальному сценарії',
+      en: 'Open the tournament workspace and test the platform in a real scenario',
+    },
+    lead: {
+      uk: 'Найкраще FalconArena видно в дії: турніри, команди, сабміти, оцінювання та результати працюють як єдиний продукт.',
+      en: 'FalconArena is clearest in action: tournaments, teams, submissions, evaluation, and results operate as one product.',
+    },
+    registerLabel: {
+      uk: 'Створити акаунт команди',
+      en: 'Create team account',
+    },
+    workspaceLabel: {
+      uk: 'Перейти до турнірів',
+      en: 'Go to tournaments',
+    },
+  },
+  contacts: {
+    eyebrow: {
+      uk: 'Наші контакти',
+      en: 'Our contacts',
+    },
+    title: {
+      uk: 'Звʼяжіться з командою FalconArena',
+      en: 'Contact the FalconArena team',
+    },
+    lead: {
+      uk: 'Виберіть зручний канал, щоб поставити питання про платформу, турнір або співпрацю.',
+      en: 'Choose a convenient channel for questions about the platform, tournaments, or collaboration.',
+    },
+    items: [
+      {
+        label: {
+          uk: 'Email',
+          en: 'Email',
+        },
+        value: {
+          uk: 'team@falconarena.live',
+          en: 'team@falconarena.live',
+        },
+        url: 'mailto:team@falconarena.live',
+      },
+      {
+        label: {
+          uk: 'Telegram',
+          en: 'Telegram',
+        },
+        value: {
+          uk: '@falconarena',
+          en: '@falconarena',
+        },
+        url: 'https://t.me/falconarena',
+      },
+      {
+        label: {
+          uk: 'GitHub',
+          en: 'GitHub',
+        },
+        value: {
+          uk: 'github.com/falconarena',
+          en: 'github.com/falconarena',
+        },
+        url: 'https://github.com/falconarena',
+      },
+      {
+        label: {
+          uk: 'LinkedIn',
+          en: 'LinkedIn',
+        },
+        value: {
+          uk: 'FalconArena',
+          en: 'FalconArena',
+        },
+        url: 'https://www.linkedin.com',
+      },
+    ],
+  },
+} satisfies Omit<PlatformContent, 'source'>;
+
 @Injectable()
 export class SystemIntegrationsService {
+  private static readonly platformBannerMimeExtensions: Record<string, string> = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+  };
+  private static readonly maxPlatformBannerBytes = 5 * 1024 * 1024;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditLogsService: AuditLogsService,
+    private readonly storageService: StorageService,
   ) {}
 
   async getGoogleSheetsSettings() {
@@ -459,6 +682,92 @@ export class SystemIntegrationsService {
     return this.getNotificationRules();
   }
 
+  async getPlatformContent(): Promise<PlatformContent> {
+    const settings = await this.getSettingsRow();
+    const hasOverride = this.hasDatabasePlatformContentOverride(settings);
+    const content = this.resolvePlatformContent(settings);
+
+    return {
+      ...content,
+      source: hasOverride ? 'database' : 'default',
+    };
+  }
+
+  async updatePlatformContent(
+    dto: UpdatePlatformContentDto,
+    actor: AuthUser,
+  ) {
+    this.assertAdminActor(actor);
+    const settings = await this.getSettingsRow();
+    const previousContent = this.resolvePlatformContent(settings);
+    const content = this.normalizePlatformContentInput(dto);
+
+    await this.upsertSettings({
+      aboutPageContent: content as unknown as Prisma.InputJsonValue,
+      aboutPageTitle: content.hero.title.uk,
+      aboutPageDescription: content.hero.description.uk,
+      updatedByUserId: actor.userId,
+    });
+
+    await this.auditLogsService.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'integration.platform_content_updated',
+      entityType: 'system_integration',
+      entityId: 'platform-content',
+      entityLabel: 'Platform content',
+      title: 'Updated platform content',
+      description: 'Public platform content was changed.',
+      metadata: {
+        hasHeroTitle: !!content.hero.title.uk || !!content.hero.title.en,
+        hasHeroDescription: !!content.hero.description.uk || !!content.hero.description.en,
+      },
+    });
+
+    if (previousContent.hero.bannerImageUrl !== content.hero.bannerImageUrl) {
+      await this.storageService.removeManagedObject(previousContent.hero.bannerImageUrl);
+    }
+
+    return this.getPlatformContent();
+  }
+
+  async uploadPlatformContentBanner(
+    file: UploadedPlatformBannerFile | undefined,
+    actor: AuthUser,
+  ) {
+    this.assertAdminActor(actor);
+
+    if (!file?.buffer || file.buffer.length === 0) {
+      throw new BadRequestException('Platform banner file is required');
+    }
+
+    const mimeType = file.mimetype?.toLowerCase() ?? '';
+    const extension = SystemIntegrationsService.platformBannerMimeExtensions[mimeType];
+    if (!extension) {
+      throw new BadRequestException('Platform banner image type is not supported');
+    }
+
+    if ((file.size ?? file.buffer.length) > SystemIntegrationsService.maxPlatformBannerBytes) {
+      throw new BadRequestException('Platform banner image is too large');
+    }
+
+    try {
+      const storedBanner = await this.storageService.storePlatformBanner({
+        extension,
+        mimeType,
+        body: file.buffer,
+      });
+
+      return {
+        url: storedBanner.publicUrl,
+      };
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unknown platform banner storage error';
+      throw new InternalServerErrorException(message);
+    }
+  }
+
   async getTournamentDefaultsConfig(): Promise<TournamentDefaultsConfig> {
     return this.getTournamentDefaults();
   }
@@ -581,6 +890,304 @@ export class SystemIntegrationsService {
         settings.defaultTournamentDescription !== null ||
         settings.defaultRoundDescription !== null)
     );
+  }
+
+  private hasDatabasePlatformContentOverride(
+    settings: Awaited<ReturnType<SystemIntegrationsService['getSettingsRow']>>,
+  ) {
+    return !!(
+      settings &&
+      (settings.aboutPageContent != null ||
+        settings.aboutPageTitle != null ||
+        settings.aboutPageDescription != null)
+    );
+  }
+
+  private resolvePlatformContent(
+    settings: Awaited<ReturnType<SystemIntegrationsService['getSettingsRow']>>,
+  ): Omit<PlatformContent, 'source'> {
+    const content = this.normalizePlatformContentInput(
+      this.isPlainRecord(settings?.aboutPageContent)
+        ? settings.aboutPageContent
+        : {},
+    );
+
+    if (settings?.aboutPageTitle) {
+      content.hero.title.uk = settings.aboutPageTitle;
+    }
+
+    if (settings?.aboutPageDescription) {
+      content.hero.description.uk = settings.aboutPageDescription;
+    }
+
+    return content;
+  }
+
+  private normalizePlatformContentInput(
+    value: UpdatePlatformContentDto | Record<string, unknown>,
+  ): Omit<PlatformContent, 'source'> {
+    const source = this.isPlainRecord(value) ? value : {};
+    const content: Omit<PlatformContent, 'source'> = structuredClone(
+      PLATFORM_CONTENT_FALLBACK,
+    );
+
+    content.hero.eyebrow = this.normalizeLocalizedText(
+      this.readPath(source, 'hero', 'eyebrow'),
+      PLATFORM_CONTENT_FALLBACK.hero.eyebrow,
+      160,
+    );
+    content.hero.title = this.normalizeLocalizedText(
+      this.readPath(source, 'hero', 'title'),
+      PLATFORM_CONTENT_FALLBACK.hero.title,
+      160,
+    );
+    content.hero.description = this.normalizeLocalizedText(
+      this.readPath(source, 'hero', 'description'),
+      PLATFORM_CONTENT_FALLBACK.hero.description,
+      5000,
+    );
+    content.hero.bannerImageUrl = this.normalizeOptionalImageUrl(
+      this.readPath(source, 'hero', 'bannerImageUrl'),
+    );
+    content.product.eyebrow = this.normalizeLocalizedText(
+      this.readPath(source, 'product', 'eyebrow'),
+      PLATFORM_CONTENT_FALLBACK.product.eyebrow,
+      160,
+    );
+    content.product.title = this.normalizeLocalizedText(
+      this.readPath(source, 'product', 'title'),
+      PLATFORM_CONTENT_FALLBACK.product.title,
+      160,
+    );
+    content.product.lead = this.normalizeLocalizedText(
+      this.readPath(source, 'product', 'lead'),
+      PLATFORM_CONTENT_FALLBACK.product.lead,
+      5000,
+    );
+    content.roles.label = this.normalizeLocalizedText(
+      this.readPath(source, 'roles', 'label'),
+      PLATFORM_CONTENT_FALLBACK.roles.label,
+      160,
+    );
+    content.roles.organizers.title = this.normalizeLocalizedText(
+      this.readPath(source, 'roles', 'organizers', 'title'),
+      PLATFORM_CONTENT_FALLBACK.roles.organizers.title,
+      160,
+    );
+    content.roles.organizers.lead = this.normalizeLocalizedText(
+      this.readPath(source, 'roles', 'organizers', 'lead'),
+      PLATFORM_CONTENT_FALLBACK.roles.organizers.lead,
+      5000,
+    );
+    content.roles.teams.title = this.normalizeLocalizedText(
+      this.readPath(source, 'roles', 'teams', 'title'),
+      PLATFORM_CONTENT_FALLBACK.roles.teams.title,
+      160,
+    );
+    content.roles.teams.lead = this.normalizeLocalizedText(
+      this.readPath(source, 'roles', 'teams', 'lead'),
+      PLATFORM_CONTENT_FALLBACK.roles.teams.lead,
+      5000,
+    );
+    content.roles.jury.title = this.normalizeLocalizedText(
+      this.readPath(source, 'roles', 'jury', 'title'),
+      PLATFORM_CONTENT_FALLBACK.roles.jury.title,
+      160,
+    );
+    content.roles.jury.lead = this.normalizeLocalizedText(
+      this.readPath(source, 'roles', 'jury', 'lead'),
+      PLATFORM_CONTENT_FALLBACK.roles.jury.lead,
+      5000,
+    );
+    content.cta.eyebrow = this.normalizeLocalizedText(
+      this.readPath(source, 'cta', 'eyebrow'),
+      PLATFORM_CONTENT_FALLBACK.cta.eyebrow,
+      160,
+    );
+    content.cta.title = this.normalizeLocalizedText(
+      this.readPath(source, 'cta', 'title'),
+      PLATFORM_CONTENT_FALLBACK.cta.title,
+      160,
+    );
+    content.cta.lead = this.normalizeLocalizedText(
+      this.readPath(source, 'cta', 'lead'),
+      PLATFORM_CONTENT_FALLBACK.cta.lead,
+      5000,
+    );
+    content.cta.registerLabel = this.normalizeLocalizedText(
+      this.readPath(source, 'cta', 'registerLabel'),
+      PLATFORM_CONTENT_FALLBACK.cta.registerLabel,
+      160,
+    );
+    content.cta.workspaceLabel = this.normalizeLocalizedText(
+      this.readPath(source, 'cta', 'workspaceLabel'),
+      PLATFORM_CONTENT_FALLBACK.cta.workspaceLabel,
+      160,
+    );
+    content.contacts.eyebrow = this.normalizeLocalizedText(
+      this.readPath(source, 'contacts', 'eyebrow'),
+      PLATFORM_CONTENT_FALLBACK.contacts.eyebrow,
+      160,
+    );
+    content.contacts.title = this.normalizeLocalizedText(
+      this.readPath(source, 'contacts', 'title'),
+      PLATFORM_CONTENT_FALLBACK.contacts.title,
+      160,
+    );
+    content.contacts.lead = this.normalizeLocalizedText(
+      this.readPath(source, 'contacts', 'lead'),
+      PLATFORM_CONTENT_FALLBACK.contacts.lead,
+      5000,
+    );
+    content.contacts.items = this.normalizeContactItems(
+      this.readPath(source, 'contacts', 'items'),
+      PLATFORM_CONTENT_FALLBACK.contacts.items,
+    );
+
+    const legacyTitle = this.normalizeOptionalString(
+      'aboutPageTitle' in source ? String(source.aboutPageTitle ?? '') : undefined,
+    );
+    const legacyDescription = this.normalizeOptionalString(
+      'aboutPageDescription' in source
+        ? String(source.aboutPageDescription ?? '')
+        : undefined,
+    );
+
+    if (legacyTitle) {
+      content.hero.title.uk = legacyTitle;
+    }
+
+    if (legacyDescription) {
+      content.hero.description.uk = legacyDescription;
+    }
+
+    return content;
+  }
+
+  private normalizeContactItems(
+    value: unknown,
+    fallback: Omit<PlatformContent, 'source'>['contacts']['items'],
+  ) {
+    const source = Array.isArray(value) ? value : [];
+
+    return fallback.map((fallbackItem, index) => {
+      const item = this.isPlainRecord(source[index]) ? source[index] : {};
+
+      return {
+        label: this.normalizeLocalizedText(item.label, fallbackItem.label, 80),
+        value: this.normalizeLocalizedText(item.value, fallbackItem.value, 180),
+        url:
+          typeof item.url === 'string'
+            ? this.normalizeOptionalLinkUrl(item.url)
+            : fallbackItem.url,
+      };
+    });
+  }
+
+  private normalizeLocalizedText(
+    value: unknown,
+    fallback: LocalizedText,
+    maxLength: number,
+  ): LocalizedText {
+    const source = this.isPlainRecord(value) ? value : {};
+
+    return {
+      uk: this.normalizeRequiredContentString(source.uk, fallback.uk, maxLength),
+      en: this.normalizeRequiredContentString(source.en, fallback.en, maxLength),
+    };
+  }
+
+  private normalizeRequiredContentString(
+    value: unknown,
+    fallback: string,
+    maxLength: number,
+  ) {
+    const normalized = typeof value === 'string' ? value.trim() : '';
+    const result = normalized.length > 0 ? normalized : fallback;
+
+    if (result.length > maxLength) {
+      throw new BadRequestException(`Platform content field exceeds ${maxLength} characters`);
+    }
+
+    return result;
+  }
+
+  private normalizeOptionalImageUrl(value: unknown) {
+    const normalized = typeof value === 'string' ? value.trim() : '';
+    if (!normalized) {
+      return null;
+    }
+
+    if (normalized.length > 2000) {
+      throw new BadRequestException('Platform content image URL exceeds 2000 characters');
+    }
+
+    if (normalized.startsWith('/')) {
+      return normalized;
+    }
+
+    try {
+      const url = new URL(normalized);
+      if (url.protocol === 'http:' || url.protocol === 'https:') {
+        return normalized;
+      }
+    } catch {
+      throw new BadRequestException(
+        'Platform content image URL must be an HTTP(S) URL or an absolute path',
+      );
+    }
+
+    throw new BadRequestException(
+      'Platform content image URL must be an HTTP(S) URL or an absolute path',
+    );
+  }
+
+  private normalizeOptionalLinkUrl(value: unknown) {
+    const normalized = typeof value === 'string' ? value.trim() : '';
+    if (!normalized) {
+      return null;
+    }
+
+    if (normalized.length > 2000) {
+      throw new BadRequestException('Platform content contact URL exceeds 2000 characters');
+    }
+
+    if (normalized.startsWith('/')) {
+      return normalized;
+    }
+
+    try {
+      const url = new URL(normalized);
+      if (url.protocol === 'http:' || url.protocol === 'https:' || url.protocol === 'mailto:') {
+        return normalized;
+      }
+    } catch {
+      throw new BadRequestException(
+        'Platform content contact URL must be an HTTP(S), mailto, or absolute path URL',
+      );
+    }
+
+    throw new BadRequestException(
+      'Platform content contact URL must be an HTTP(S), mailto, or absolute path URL',
+    );
+  }
+
+  private readPath(source: Record<string, unknown>, ...path: string[]) {
+    let current: unknown = source;
+
+    for (const key of path) {
+      if (!this.isPlainRecord(current)) {
+        return undefined;
+      }
+
+      current = current[key];
+    }
+
+    return current;
+  }
+
+  private isPlainRecord(value: unknown): value is Record<string, unknown> {
+    return !!value && typeof value === 'object' && !Array.isArray(value);
   }
 
   private toTournamentDefaults(

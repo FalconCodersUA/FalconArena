@@ -17,6 +17,84 @@ function createAuditLogsServiceMock() {
   };
 }
 
+function createStorageServiceMock() {
+  return {
+    storePlatformBanner: vi.fn().mockResolvedValue({
+      publicUrl: '/uploads/about-banners/about-test.png',
+      cleanupHandle: '/uploads/about-banners/about-test.png',
+    }),
+    removeManagedObject: vi.fn().mockResolvedValue(undefined),
+  };
+}
+
+function createPlatformContentInput() {
+  return {
+    hero: {
+      eyebrow: { uk: 'Про продукт', en: 'About product' },
+      title: { uk: 'Про FalconArena', en: 'About FalconArena' },
+      description: {
+        uk: 'Опис платформи для публічної сторінки.',
+        en: 'Public platform description.',
+      },
+      bannerImageUrl: '/uploads/about/banner.png',
+    },
+    product: {
+      eyebrow: { uk: 'Процес', en: 'Process' },
+      title: { uk: 'Маршрут турніру', en: 'Tournament route' },
+      lead: { uk: 'Опис процесу.', en: 'Workflow description.' },
+    },
+    roles: {
+      label: { uk: 'Ролі', en: 'Roles' },
+      organizers: {
+        title: { uk: 'Організатори', en: 'Organizers' },
+        lead: { uk: 'Опис організаторів.', en: 'Organizers description.' },
+      },
+      teams: {
+        title: { uk: 'Команди', en: 'Teams' },
+        lead: { uk: 'Опис команд.', en: 'Teams description.' },
+      },
+      jury: {
+        title: { uk: 'Журі', en: 'Jury' },
+        lead: { uk: 'Опис журі.', en: 'Jury description.' },
+      },
+    },
+    cta: {
+      eyebrow: { uk: 'Старт', en: 'Start' },
+      title: { uk: 'Почати роботу', en: 'Start working' },
+      lead: { uk: 'Опис CTA.', en: 'CTA description.' },
+      registerLabel: { uk: 'Створити акаунт команди', en: 'Create team account' },
+      workspaceLabel: { uk: 'Відкрити робочий простір', en: 'Open workspace' },
+    },
+    contacts: {
+      eyebrow: { uk: 'Контакти', en: 'Contacts' },
+      title: { uk: 'Наші канали', en: 'Our channels' },
+      lead: { uk: 'Напишіть нам.', en: 'Reach us.' },
+      items: [
+        {
+          label: { uk: 'Telegram', en: 'Telegram' },
+          value: { uk: '@falconarena_team', en: '@falconarena_team' },
+          url: 'https://t.me/falconarena_team',
+        },
+        {
+          label: { uk: 'GitHub', en: 'GitHub' },
+          value: { uk: 'github.com/falconarena', en: 'github.com/falconarena' },
+          url: 'https://github.com/falconarena',
+        },
+        {
+          label: { uk: 'Email', en: 'Email' },
+          value: { uk: 'team@falconarena.live', en: 'team@falconarena.live' },
+          url: 'mailto:team@falconarena.live',
+        },
+        {
+          label: { uk: 'LinkedIn', en: 'LinkedIn' },
+          value: { uk: 'FalconArena', en: 'FalconArena' },
+          url: 'https://www.linkedin.com',
+        },
+      ],
+    },
+  };
+}
+
 describe('SystemIntegrationsService', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -40,6 +118,7 @@ describe('SystemIntegrationsService', () => {
     const service = new SystemIntegrationsService(
       prisma as never,
       createAuditLogsServiceMock() as never,
+      createStorageServiceMock() as never,
     );
     const result = await service.getGoogleSheetsSettings();
 
@@ -69,6 +148,7 @@ describe('SystemIntegrationsService', () => {
     const service = new SystemIntegrationsService(
       prisma as never,
       createAuditLogsServiceMock() as never,
+      createStorageServiceMock() as never,
     );
     await service.updateGoogleSheetsSettings(
       {
@@ -102,6 +182,7 @@ describe('SystemIntegrationsService', () => {
     const service = new SystemIntegrationsService(
       prisma as never,
       createAuditLogsServiceMock() as never,
+      createStorageServiceMock() as never,
     );
 
     await expect(
@@ -112,6 +193,150 @@ describe('SystemIntegrationsService', () => {
         { userId: 'organizer-1', role: 'ORGANIZER', email: 'organizer@example.com' },
       ),
     ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('returns fallback platform content when no override is configured', async () => {
+    const prisma = createPrismaMock();
+    prisma.systemIntegrationSettings.findUnique.mockResolvedValue(null);
+
+    const service = new SystemIntegrationsService(
+      prisma as never,
+      createAuditLogsServiceMock() as never,
+      createStorageServiceMock() as never,
+    );
+
+    await expect(service.getPlatformContent()).resolves.toMatchObject({
+      hero: {
+        title: {
+          uk: 'FalconArena - вебплатформа для командних турнірів з програмування',
+        },
+        bannerImageUrl: null,
+      },
+      source: 'default',
+    });
+  });
+
+  it('updates platform content in the database', async () => {
+    const prisma = createPrismaMock();
+    const auditLogsService = createAuditLogsServiceMock();
+    const content = createPlatformContentInput();
+    prisma.systemIntegrationSettings.findUnique.mockResolvedValue({
+      id: 'default',
+      aboutPageContent: content,
+    });
+
+    const service = new SystemIntegrationsService(
+      prisma as never,
+      auditLogsService as never,
+      createStorageServiceMock() as never,
+    );
+
+    await service.updatePlatformContent(
+      content,
+      { userId: 'admin-1', role: 'ADMIN', email: 'admin@example.com' },
+    );
+
+    expect(prisma.systemIntegrationSettings.upsert).toHaveBeenCalledWith({
+      where: { id: 'default' },
+      update: {
+        aboutPageContent: content,
+        aboutPageTitle: 'Про FalconArena',
+        aboutPageDescription: 'Опис платформи для публічної сторінки.',
+        updatedByUserId: 'admin-1',
+      },
+      create: {
+        id: 'default',
+        aboutPageContent: content,
+        aboutPageTitle: 'Про FalconArena',
+        aboutPageDescription: 'Опис платформи для публічної сторінки.',
+        updatedByUserId: 'admin-1',
+      },
+    });
+    expect(auditLogsService.record).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'integration.platform_content_updated',
+        entityId: 'platform-content',
+      }),
+    );
+  });
+
+  it('uploads platform banner images through storage service', async () => {
+    const prisma = createPrismaMock();
+    const storageService = createStorageServiceMock();
+    const service = new SystemIntegrationsService(
+      prisma as never,
+      createAuditLogsServiceMock() as never,
+      storageService as never,
+    );
+
+    const result = await service.uploadPlatformContentBanner(
+      {
+        buffer: Buffer.from('banner-image'),
+        mimetype: 'image/png',
+        size: 12,
+      },
+      { userId: 'admin-1', role: 'ADMIN', email: 'admin@example.com' },
+    );
+
+    expect(result).toEqual({
+      url: '/uploads/about-banners/about-test.png',
+    });
+    expect(storageService.storePlatformBanner).toHaveBeenCalledWith({
+      extension: 'png',
+      mimeType: 'image/png',
+      body: Buffer.from('banner-image'),
+    });
+  });
+
+  it('fills missing platform content fields from fallback', async () => {
+    const prisma = createPrismaMock();
+    prisma.systemIntegrationSettings.findUnique.mockResolvedValue({
+      id: 'default',
+      aboutPageContent: {
+        hero: {
+          title: {
+            uk: 'Кастомний заголовок',
+          },
+        },
+      },
+    });
+
+    const service = new SystemIntegrationsService(
+      prisma as never,
+      createAuditLogsServiceMock() as never,
+      createStorageServiceMock() as never,
+    );
+
+    await expect(service.getPlatformContent()).resolves.toMatchObject({
+      hero: {
+        title: {
+          uk: 'Кастомний заголовок',
+          en: 'FalconArena - a web platform for team programming tournaments',
+        },
+        bannerImageUrl: null,
+      },
+      roles: {
+        jury: {
+          title: {
+            uk: 'Журі',
+          },
+        },
+      },
+      contacts: {
+        title: {
+          uk: 'Звʼяжіться з командою FalconArena',
+        },
+        items: expect.arrayContaining([
+          expect.objectContaining({
+            label: {
+              uk: 'Email',
+              en: 'Email',
+            },
+          }),
+        ]),
+      },
+      source: 'database',
+    });
   });
 
   it('returns database-backed email settings and notification rules', async () => {
@@ -152,6 +377,7 @@ describe('SystemIntegrationsService', () => {
     const service = new SystemIntegrationsService(
       prisma as never,
       createAuditLogsServiceMock() as never,
+      createStorageServiceMock() as never,
     );
     const emailSettings = await service.getEmailSettings();
     const rules = await service.getNotificationRules();
@@ -217,6 +443,7 @@ describe('SystemIntegrationsService', () => {
     const service = new SystemIntegrationsService(
       prisma as never,
       createAuditLogsServiceMock() as never,
+      createStorageServiceMock() as never,
     );
 
     await service.updateEmailSettings(
@@ -370,6 +597,7 @@ describe('SystemIntegrationsService', () => {
     const service = new SystemIntegrationsService(
       prisma as never,
       createAuditLogsServiceMock() as never,
+      createStorageServiceMock() as never,
     );
     const result = await service.testGoogleSheetsConnection(
       {
@@ -407,6 +635,7 @@ describe('SystemIntegrationsService', () => {
     const service = new SystemIntegrationsService(
       prisma as never,
       createAuditLogsServiceMock() as never,
+      createStorageServiceMock() as never,
     );
 
     await expect(

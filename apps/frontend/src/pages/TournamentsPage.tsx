@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import QuietLoadingInline from '../components/QuietLoadingInline';
 import QuietLoadingCard from '../components/QuietLoadingCard';
@@ -76,6 +76,17 @@ export default function TournamentsPage() {
   const [quickError, setQuickError] = useState('');
   const [quickData, setQuickData] = useState<QuickTeamBlock | null>(null);
   const [showFinished, setShowFinished] = useState(false);
+  const tournamentsListRef = useRef<HTMLDivElement | null>(null);
+
+  function applyFilterAndScroll(nextFilter: FilterType) {
+    setFilter(nextFilter);
+    window.requestAnimationFrame(() => {
+      tournamentsListRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
+  }
 
   async function loadQuickTeamBlock(tournaments: Tournament[]) {
     if (!isAuthenticated()) {
@@ -284,7 +295,7 @@ export default function TournamentsPage() {
           <button
             type="button"
             className="dashboard-tool-card dashboard-tool-card--teal dashboard-tool-button"
-            onClick={() => setFilter('registrationOpen')}
+            onClick={() => applyFilterAndScroll('registrationOpen')}
           >
             <span>{t('tournaments.filters.registrationOpen')}</span>
             <strong>{t('tournaments.workspaceCards.registrationTitle')}</strong>
@@ -294,12 +305,12 @@ export default function TournamentsPage() {
           <button
             type="button"
             className="dashboard-tool-card dashboard-tool-card--purple dashboard-tool-button"
-            onClick={() => setFilter('running')}
+            onClick={() => applyFilterAndScroll('all')}
           >
-            <span>{t('tournaments.filters.running')}</span>
-            <strong>{t('tournaments.workspaceCards.runningTitle')}</strong>
-            <p>{t('tournaments.workspaceCards.runningLead')}</p>
-            <em>{activeItems.length} {t('tournaments.workspaceCards.runningSuffix')}</em>
+            <span>{t('tournaments.filters.all')}</span>
+            <strong>{t('tournaments.workspaceCards.allTitle')}</strong>
+            <p>{t('tournaments.workspaceCards.allLead')}</p>
+            <em>{items.length} {t('tournaments.workspaceCards.allSuffix')}</em>
           </button>
           <button
             type="button"
@@ -436,7 +447,12 @@ export default function TournamentsPage() {
         </article>
       ) : null}
 
-      <div className="filters-row" role="group" aria-label="Tournament filters">
+      <div
+        ref={tournamentsListRef}
+        className="filters-row"
+        role="group"
+        aria-label="Tournament filters"
+      >
         {filterButtons.map((item) => (
           <button
             key={item}

@@ -34,6 +34,21 @@ describe('StorageService', () => {
     expect(storedFiles).toHaveLength(1);
   });
 
+  it('stores platform banners locally by default', async () => {
+    delete process.env.STORAGE_PROVIDER;
+    const service = new StorageService();
+
+    const result = await service.storePlatformBanner({
+      extension: 'webp',
+      mimeType: 'image/webp',
+      body: Buffer.from('about-banner'),
+    });
+
+    expect(result.publicUrl).toMatch(/^\/uploads\/about-banners\/about-/);
+    const storedFiles = await readdir(join(process.cwd(), 'storage', 'about-banners'));
+    expect(storedFiles).toHaveLength(1);
+  });
+
   it('stores avatar in s3-compatible mode via signed PUT request', async () => {
     process.env.STORAGE_PROVIDER = 's3';
     process.env.STORAGE_S3_ENDPOINT = 'https://storage.example.com';
