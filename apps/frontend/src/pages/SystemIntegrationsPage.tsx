@@ -127,6 +127,16 @@ type PlatformContentBannerUploadResponse = {
 
 type PlatformContentPath = string[];
 
+function createPlatformContentPayload(platformContent: PlatformContentResponse) {
+  return {
+    hero: platformContent.hero,
+    product: platformContent.product,
+    roles: platformContent.roles,
+    cta: platformContent.cta,
+    contacts: platformContent.contacts,
+  };
+}
+
 function trimToUndefined(value: string) {
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : undefined;
@@ -375,6 +385,7 @@ export default function SystemIntegrationsPage() {
   const [defaultsNotice, setDefaultsNotice] = useState('');
   const [platformContentSaving, setPlatformContentSaving] = useState(false);
   const [platformBannerUploading, setPlatformBannerUploading] = useState(false);
+  const [platformBannerFileSelected, setPlatformBannerFileSelected] = useState(false);
   const [platformContentError, setPlatformContentError] = useState('');
   const [platformContentNotice, setPlatformContentNotice] = useState('');
 
@@ -771,13 +782,7 @@ export default function SystemIntegrationsPage() {
         '/admin/system-integrations/platform-content',
         {
           method: 'PATCH',
-          body: {
-            hero: platformContent.hero,
-            product: platformContent.product,
-            roles: platformContent.roles,
-            cta: platformContent.cta,
-            contacts: platformContent.contacts,
-          },
+          body: createPlatformContentPayload(platformContent),
         },
       );
       setPlatformContent(normalizePlatformContent(saved));
@@ -808,7 +813,24 @@ export default function SystemIntegrationsPage() {
         'file',
         file,
       );
-      updatePlatformContentHeroBanner(result.url);
+      const nextContent = {
+        ...platformContent,
+        hero: {
+          ...platformContent.hero,
+          bannerImageUrl: result.url,
+        },
+      };
+      setPlatformContent(nextContent);
+      setPlatformBannerFileSelected(true);
+
+      const saved = await apiRequest<unknown>(
+        '/admin/system-integrations/platform-content',
+        {
+          method: 'PATCH',
+          body: createPlatformContentPayload(nextContent),
+        },
+      );
+      setPlatformContent(normalizePlatformContent(saved));
       setPlatformContentNotice(t('systemIntegrations.platformContent.bannerUploaded'));
     } catch (requestError) {
       setPlatformContentError(
@@ -1840,18 +1862,39 @@ export default function SystemIntegrationsPage() {
                 onChange={(event) => updatePlatformContentHeroBanner(event.target.value)}
               />
             </label>
-            <label className="field platform-content-banner-field">
-              <span>{t('systemIntegrations.platformContent.form.heroBannerUpload')}</span>
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                disabled={platformBannerUploading}
-                onChange={(event) => {
-                  void uploadPlatformBanner(event.currentTarget.files?.[0]);
-                  event.currentTarget.value = '';
-                }}
-              />
-            </label>
+            <div className="field platform-content-banner-field">
+              <span id="platform-content-banner-upload-label">
+                {t('systemIntegrations.platformContent.form.heroBannerUpload')}
+              </span>
+              <div className="platform-content-upload-control">
+                <input
+                  id="platform-content-banner-upload"
+                  className="visually-hidden"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  disabled={platformBannerUploading}
+                  aria-labelledby="platform-content-banner-upload-label"
+                  onChange={(event) => {
+                    void uploadPlatformBanner(event.currentTarget.files?.[0]);
+                    event.currentTarget.value = '';
+                  }}
+                />
+                <label
+                  htmlFor="platform-content-banner-upload"
+                  className="button button-soft platform-content-upload-button"
+                  aria-disabled={platformBannerUploading}
+                >
+                  {platformBannerUploading
+                    ? t('systemIntegrations.platformContent.bannerUploading')
+                    : t('systemIntegrations.platformContent.form.heroBannerChooseFile')}
+                </label>
+                <span className="platform-content-file-state">
+                  {platformBannerFileSelected
+                    ? t('systemIntegrations.platformContent.form.heroBannerFileSelected')
+                    : t('systemIntegrations.platformContent.form.heroBannerNoFile')}
+                </span>
+              </div>
+            </div>
             <p className="inline-hint platform-content-upload-hint">
               {platformBannerUploading
                 ? t('systemIntegrations.platformContent.bannerUploading')
