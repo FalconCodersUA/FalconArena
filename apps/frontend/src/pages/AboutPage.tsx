@@ -509,7 +509,6 @@ export default function AboutPage() {
             <p>{t('aboutPage.reviews.lead')}</p>
           </div>
           <div className="about-reviews-actions">
-            <span>{t('aboutPage.reviews.moderationBadge')}</span>
             {isSignedIn && authUser ? (
               <button
                 type="button"
