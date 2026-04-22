@@ -113,7 +113,7 @@ export const messages: TranslationMap = {
       reviews: {
         eyebrow: 'Відгуки користувачів',
         title: 'Що кажуть учасники платформи',
-        lead: 'Тут зʼявляються лише відгуки, які пройшли модерацію адміністратора.',
+        lead: 'Відгуки показують, як FalconArena працює для команд, журі та організаторів у реальних турнірних сценаріях.',
         moderationBadge: 'Після модерації',
         emptyTitle: 'Публічних відгуків поки немає',
         emptyLead: 'Перші схвалені відгуки зʼявляться тут після перевірки адміністратором.',
@@ -1884,7 +1884,7 @@ export const messages: TranslationMap = {
       reviews: {
         eyebrow: 'User reviews',
         title: 'What platform users say',
-        lead: 'Only reviews approved by an administrator are shown here.',
+        lead: 'Reviews show how FalconArena works for teams, jury members, and organizers in real tournament workflows.',
         moderationBadge: 'After moderation',
         emptyTitle: 'No public reviews yet',
         emptyLead: 'The first approved reviews will appear here after admin review.',
