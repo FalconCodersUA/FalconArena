@@ -181,7 +181,7 @@ describe('AboutPage', () => {
     expect(
       screen.getByRole('link', { name: 'Створити акаунт команди' }),
     ).toHaveAttribute('href', '/app/register');
-    expect(screen.getByText('Капітан демо-команди')).toBeInTheDocument();
+    expect(screen.getByText('Капітан команди')).toBeInTheDocument();
   });
 
   it('routes the CTA to tournaments for signed-in users', async () => {
