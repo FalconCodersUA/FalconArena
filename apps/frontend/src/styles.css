@@ -4184,16 +4184,6 @@ a {
   justify-content: flex-end;
 }
 
-.about-reviews-actions > span {
-  flex: 0 0 auto;
-  border-radius: 999px;
-  background: #f1eaff;
-  color: #5e17eb;
-  padding: 9px 13px;
-  font-size: 0.76rem;
-  font-weight: 800;
-}
-
 .app-page .about-reviews-actions .button-primary,
 .app-page .about-reviews-actions .button-primary:visited {
   background: #5e17eb;
@@ -8148,7 +8138,6 @@ body[data-theme='dark'] .app-page .platform-review-admin-card {
   background: rgba(15, 20, 34, 0.72);
 }
 
-body[data-theme='dark'] .app-page .about-reviews-actions > span,
 body[data-theme='dark'] .app-page .platform-review-admin-meta div {
   background: rgba(139, 93, 255, 0.14);
   color: #d9ccff;
