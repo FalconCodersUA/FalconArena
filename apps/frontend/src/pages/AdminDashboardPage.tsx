@@ -357,7 +357,11 @@ function AdminActionModal({
       >
         <header className="app-modal-head">
           <h2>{title}</h2>
-          <button type="button" className="app-modal-close" onClick={onClose}>
+          <button
+            type="button"
+            className="button button-soft app-modal-close app-modal-secondary-action"
+            onClick={onClose}
+          >
             {closeLabel}
           </button>
         </header>

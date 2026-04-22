@@ -284,7 +284,12 @@ a {
   overflow: hidden;
   box-shadow: 0 18px 40px rgba(36, 26, 66, 0.08);
   background:
-    radial-gradient(circle at 0% 0%, rgba(94, 23, 235, 0.98) 0%, rgba(94, 23, 235, 0.62) 24%, transparent 56%),
+    radial-gradient(
+      circle at 0% 0%,
+      rgba(94, 23, 235, 0.98) 0%,
+      rgba(94, 23, 235, 0.62) 24%,
+      transparent 56%
+    ),
     radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.18) 0%, transparent 34%),
     radial-gradient(circle at 8% 100%, rgba(51, 84, 127, 0.44) 0%, transparent 30%),
     radial-gradient(circle at 98% 100%, rgba(62, 96, 128, 0.34) 0%, transparent 28%),
@@ -712,7 +717,9 @@ a {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(165, 128, 255, 0.05) 100%),
     radial-gradient(rgba(125, 104, 180, 0.05) 0.7px, transparent 0.7px);
-  background-size: auto, 4px 4px;
+  background-size:
+    auto,
+    4px 4px;
   opacity: 0.3;
 }
 
@@ -742,8 +749,8 @@ a {
 }
 
 .app-brand-mark {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
@@ -759,8 +766,8 @@ a {
 }
 
 .app-brand-mark svg {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
 }
 
 .app-sidebar-nav {
@@ -1490,8 +1497,7 @@ a {
   position: relative;
   overflow: hidden;
   border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(246, 239, 255, 0.95) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(246, 239, 255, 0.95) 100%);
   border: 1px solid rgba(231, 223, 248, 0.92);
   box-shadow: 0 14px 30px rgba(52, 60, 106, 0.05);
 }
@@ -2222,7 +2228,12 @@ a {
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.78) 50%, transparent 100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.78) 50%,
+    transparent 100%
+  );
   animation: skeletonShimmer 1.2s ease-in-out infinite;
 }
 
@@ -2260,7 +2271,12 @@ a {
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.78) 50%, transparent 100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.78) 50%,
+    transparent 100%
+  );
   animation: skeletonShimmer 1.2s ease-in-out infinite;
 }
 
@@ -3376,8 +3392,14 @@ a {
   box-shadow: 0 14px 28px rgba(94, 23, 235, 0.14);
 }
 
-.app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-primary:hover:not(:disabled),
-.app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-primary:focus-visible {
+.app-page
+  .dashboard-onboarding-card
+  .onboarding-card-actions
+  .onboarding-action-primary:hover:not(:disabled),
+.app-page
+  .dashboard-onboarding-card
+  .onboarding-card-actions
+  .onboarding-action-primary:focus-visible {
   background: #5214cf;
   border-color: #5214cf;
   color: #ffffff;
@@ -3391,8 +3413,14 @@ a {
   box-shadow: none;
 }
 
-.app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-secondary:hover:not(:disabled),
-.app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-secondary:focus-visible {
+.app-page
+  .dashboard-onboarding-card
+  .onboarding-card-actions
+  .onboarding-action-secondary:hover:not(:disabled),
+.app-page
+  .dashboard-onboarding-card
+  .onboarding-card-actions
+  .onboarding-action-secondary:focus-visible {
   background: rgba(94, 23, 235, 0.1);
   border-color: rgba(94, 23, 235, 0.18);
   color: #5e17eb;
@@ -4107,6 +4135,265 @@ a {
   overflow-wrap: anywhere;
 }
 
+.about-reviews-panel {
+  display: grid;
+  gap: 18px;
+  border: 1px solid #e8defa;
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(94, 23, 235, 0.1) 0%, transparent 30%),
+    linear-gradient(135deg, #ffffff 0%, #fbf8ff 100%);
+  box-shadow: 0 22px 46px rgba(52, 60, 106, 0.08);
+  padding: clamp(24px, 3.6vw, 42px);
+}
+
+.about-reviews-head {
+  display: flex;
+  gap: 18px;
+  align-items: start;
+  justify-content: space-between;
+}
+
+.about-reviews-head div {
+  display: grid;
+  gap: 10px;
+  max-width: 760px;
+}
+
+.about-reviews-head h2 {
+  margin: 0;
+  color: #343c6a;
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: clamp(1.55rem, 3vw, 2.55rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.about-reviews-head p:not(.eyebrow) {
+  margin: 0;
+  color: #65709a;
+  line-height: 1.68;
+}
+
+.about-reviews-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.about-reviews-actions > span {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #f1eaff;
+  color: #5e17eb;
+  padding: 9px 13px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.app-page .about-reviews-actions .button-primary,
+.app-page .about-reviews-actions .button-primary:visited {
+  background: #5e17eb;
+  border-color: #5e17eb;
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(94, 23, 235, 0.16);
+}
+
+.app-page .about-reviews-actions .button-primary:hover:not(:disabled),
+.app-page .about-reviews-actions .button-primary:focus-visible {
+  background: #5214cf;
+  border-color: #5214cf;
+  color: #ffffff;
+}
+
+.about-reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.about-review-card,
+.about-review-empty,
+.about-review-form,
+.about-review-auth-note {
+  border: 1px solid rgba(226, 214, 251, 0.84);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 18px;
+}
+
+.about-review-card {
+  display: grid;
+  gap: 18px;
+  align-content: space-between;
+  min-height: 190px;
+}
+
+.about-review-card p,
+.about-review-empty p,
+.about-review-auth-note p,
+.about-review-form-footer p {
+  margin: 0;
+  color: #65709a;
+  line-height: 1.62;
+}
+
+.about-review-card footer {
+  display: grid;
+  gap: 4px;
+}
+
+.about-review-card strong,
+.about-review-empty strong {
+  color: #343c6a;
+}
+
+.about-review-card span {
+  color: #718ebf;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.about-review-form {
+  display: grid;
+  gap: 14px;
+}
+
+.about-review-form .field {
+  margin: 0;
+}
+
+.about-review-form .textarea-input {
+  min-height: 132px;
+}
+
+.about-review-modal {
+  width: min(720px, 100%);
+}
+
+.about-review-modal .about-review-form {
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.about-review-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.about-review-form-footer,
+.about-review-auth-note {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.about-review-auth-note {
+  background: #f8f4ff;
+}
+
+.platform-review-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.platform-review-filter-row .button-soft.active {
+  background: #5e17eb;
+  border-color: #5e17eb;
+  color: #ffffff;
+}
+
+.platform-review-admin-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.platform-review-admin-card {
+  display: grid;
+  gap: 14px;
+  border: 1px solid rgba(226, 214, 251, 0.84);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 18px;
+}
+
+.platform-review-admin-head {
+  display: flex;
+  gap: 14px;
+  align-items: start;
+  justify-content: space-between;
+}
+
+.platform-review-admin-head div {
+  display: grid;
+  gap: 4px;
+}
+
+.platform-review-admin-head strong {
+  color: #343c6a;
+}
+
+.platform-review-admin-head span:not(.status-pill) {
+  color: #718ebf;
+  font-size: 0.84rem;
+}
+
+.platform-review-admin-card > p {
+  margin: 0;
+  color: #65709a;
+  line-height: 1.62;
+}
+
+.platform-review-admin-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.platform-review-admin-meta div {
+  border-radius: 16px;
+  background: #f8f4ff;
+  padding: 12px;
+}
+
+.platform-review-admin-meta dt {
+  color: #718ebf;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.platform-review-admin-meta dd {
+  margin: 4px 0 0;
+  color: #343c6a;
+  font-weight: 800;
+}
+
+.platform-review-status-pending {
+  background: rgba(255, 183, 77, 0.18);
+  color: #9a5a12;
+}
+
+.platform-review-status-approved {
+  background: rgba(22, 163, 74, 0.14);
+  color: #15803d;
+}
+
+.platform-review-status-rejected {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+}
+
 .dashboard-overview-top {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(250px, 0.42fr);
@@ -4675,7 +4962,10 @@ a {
     linear-gradient(180deg, #f8f5ff 0%, #ffffff 100%),
     linear-gradient(90deg, rgba(126, 143, 178, 0.12) 1px, transparent 1px),
     linear-gradient(0deg, rgba(126, 143, 178, 0.12) 1px, transparent 1px);
-  background-size: auto, 46px 100%, 100% 28px;
+  background-size:
+    auto,
+    46px 100%,
+    100% 28px;
   overflow: hidden;
   padding: 10px;
 }
@@ -5940,6 +6230,21 @@ a {
   gap: 12px;
 }
 
+.app-page .app-modal-card .button-primary,
+.app-page .app-modal-card .button-primary:visited {
+  background: #5e17eb;
+  border-color: #5e17eb;
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(94, 23, 235, 0.16);
+}
+
+.app-page .app-modal-card .button-primary:hover:not(:disabled),
+.app-page .app-modal-card .button-primary:focus-visible {
+  background: #5214cf;
+  border-color: #5214cf;
+  color: #ffffff;
+}
+
 .app-modal-secondary-action,
 .app-modal-secondary-action:visited {
   min-height: 44px;
@@ -6079,8 +6384,7 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background:
-    linear-gradient(180deg, rgba(122, 67, 243, 0.14) 0%, rgba(94, 23, 235, 0.2) 100%);
+  background: linear-gradient(180deg, rgba(122, 67, 243, 0.14) 0%, rgba(94, 23, 235, 0.2) 100%);
   color: #5e17eb;
   font-family: 'Chakra Petch', sans-serif;
   font-size: 0.94rem;
@@ -6213,8 +6517,7 @@ a {
   border: 1px solid rgba(94, 23, 235, 0.08);
   border-radius: 22px;
   padding: 14px 18px;
-  background:
-    linear-gradient(180deg, #f6f3ff 0%, #f0edfb 100%);
+  background: linear-gradient(180deg, #f6f3ff 0%, #f0edfb 100%);
   box-shadow: 0 10px 22px rgba(37, 26, 72, 0.05);
   display: grid;
   gap: 6px;
@@ -6222,8 +6525,7 @@ a {
 
 .messages-thread-item.mine {
   margin-left: auto;
-  background:
-    linear-gradient(90deg, #6d2dff 0%, #5420cf 100%);
+  background: linear-gradient(90deg, #6d2dff 0%, #5420cf 100%);
   border-color: transparent;
   box-shadow: 0 14px 28px rgba(94, 23, 235, 0.16);
 }
@@ -6252,8 +6554,7 @@ a {
   padding: 14px;
   border: 1px solid #ebe4fb;
   border-radius: 22px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 246, 255, 0.98) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 246, 255, 0.98) 100%);
 }
 
 .messages-composer-field {
@@ -6345,8 +6646,8 @@ a {
 .tournaments-section .tournaments-workspace-card,
 .tournaments-section .summary-card,
 .tournaments-section .quick-team-item,
- .tournaments-section .meta-grid div,
- .tournaments-section .state-callout.subtle {
+.tournaments-section .meta-grid div,
+.tournaments-section .state-callout.subtle {
   background:
     radial-gradient(circle at 100% 0%, rgba(94, 23, 235, 0.05) 0%, transparent 30%),
     linear-gradient(180deg, #ffffff 0%, #fcf9ff 100%);
@@ -6825,7 +7126,6 @@ a {
   padding: 12px 14px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 247, 242, 0.98) 100%);
 }
-
 
 .meta-grid dt {
   font-size: 0.76rem;
@@ -7439,8 +7739,7 @@ body[data-theme='dark'] .page-skeleton-block,
 body[data-theme='dark'] .state-card-quiet-line,
 body[data-theme='dark'] .quiet-inline-loading-line {
   border-color: rgba(139, 93, 255, 0.12);
-  background:
-    linear-gradient(180deg, rgba(26, 32, 50, 0.92) 0%, rgba(15, 20, 32, 0.98) 100%);
+  background: linear-gradient(180deg, rgba(26, 32, 50, 0.92) 0%, rgba(15, 20, 32, 0.98) 100%);
   box-shadow: none;
 }
 
@@ -7713,7 +8012,12 @@ body[data-theme='dark'] .app-page .about-text-panel {
   background:
     radial-gradient(circle at 88% 12%, rgba(139, 93, 255, 0.24) 0%, transparent 30%),
     radial-gradient(circle at 10% 100%, rgba(56, 189, 248, 0.12) 0%, transparent 28%),
-    linear-gradient(135deg, rgba(18, 24, 38, 0.98) 0%, rgba(12, 16, 28, 0.98) 54%, rgba(9, 12, 22, 0.98) 100%);
+    linear-gradient(
+      135deg,
+      rgba(18, 24, 38, 0.98) 0%,
+      rgba(12, 16, 28, 0.98) 54%,
+      rgba(9, 12, 22, 0.98) 100%
+    );
   box-shadow: 0 30px 62px rgba(2, 6, 18, 0.34);
 }
 
@@ -7810,6 +8114,52 @@ body[data-theme='dark'] .app-page .about-contact-card:focus-visible {
   box-shadow: 0 18px 34px rgba(2, 6, 18, 0.26);
 }
 
+body[data-theme='dark'] .app-page .about-reviews-panel {
+  border-color: rgba(139, 93, 255, 0.18);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.16) 0%, transparent 30%),
+    linear-gradient(135deg, rgba(18, 24, 38, 0.94) 0%, rgba(12, 16, 28, 0.96) 100%);
+  box-shadow: 0 24px 52px rgba(2, 6, 18, 0.28);
+}
+
+body[data-theme='dark'] .app-page .about-reviews-head h2,
+body[data-theme='dark'] .app-page .about-review-card strong,
+body[data-theme='dark'] .app-page .about-review-empty strong,
+body[data-theme='dark'] .app-page .platform-review-admin-head strong,
+body[data-theme='dark'] .app-page .platform-review-admin-meta dd {
+  color: #eff2ff;
+}
+
+body[data-theme='dark'] .app-page .about-reviews-head p:not(.eyebrow),
+body[data-theme='dark'] .app-page .about-review-card p,
+body[data-theme='dark'] .app-page .about-review-empty p,
+body[data-theme='dark'] .app-page .about-review-auth-note p,
+body[data-theme='dark'] .app-page .about-review-form-footer p,
+body[data-theme='dark'] .app-page .platform-review-admin-card > p {
+  color: #aeb8dc;
+}
+
+body[data-theme='dark'] .app-page .about-review-card,
+body[data-theme='dark'] .app-page .about-review-empty,
+body[data-theme='dark'] .app-page .about-review-form,
+body[data-theme='dark'] .app-page .about-review-auth-note,
+body[data-theme='dark'] .app-page .platform-review-admin-card {
+  border-color: rgba(139, 93, 255, 0.16);
+  background: rgba(15, 20, 34, 0.72);
+}
+
+body[data-theme='dark'] .app-page .about-reviews-actions > span,
+body[data-theme='dark'] .app-page .platform-review-admin-meta div {
+  background: rgba(139, 93, 255, 0.14);
+  color: #d9ccff;
+}
+
+body[data-theme='dark'] .app-page .about-review-card span,
+body[data-theme='dark'] .app-page .platform-review-admin-head span:not(.status-pill),
+body[data-theme='dark'] .app-page .platform-review-admin-meta dt {
+  color: #aeb8dc;
+}
+
 body[data-theme='dark'] .app-page .platform-content-file-state {
   background: rgba(139, 93, 255, 0.14);
   color: #aeb8dc;
@@ -7819,7 +8169,12 @@ body[data-theme='dark'] .app-page .about-cta-panel {
   border-color: rgba(172, 142, 255, 0.28);
   background:
     radial-gradient(circle at 8% 15%, rgba(255, 255, 255, 0.12) 0%, transparent 28%),
-    linear-gradient(135deg, rgba(112, 62, 244, 0.9) 0%, rgba(80, 35, 202, 0.92) 50%, rgba(113, 81, 255, 0.86) 100%);
+    linear-gradient(
+      135deg,
+      rgba(112, 62, 244, 0.9) 0%,
+      rgba(80, 35, 202, 0.92) 50%,
+      rgba(113, 81, 255, 0.86) 100%
+    );
   box-shadow: 0 26px 54px rgba(2, 6, 18, 0.34);
 }
 
@@ -7970,16 +8325,32 @@ body[data-theme='dark'] .app-page .profile-toggle-row span {
   color: #c7d0ee;
 }
 
-body[data-theme='dark'] .app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-secondary,
-body[data-theme='dark'] .app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-secondary:visited {
+body[data-theme='dark']
+  .app-page
+  .dashboard-onboarding-card
+  .onboarding-card-actions
+  .onboarding-action-secondary,
+body[data-theme='dark']
+  .app-page
+  .dashboard-onboarding-card
+  .onboarding-card-actions
+  .onboarding-action-secondary:visited {
   background: rgba(139, 93, 255, 0.18);
   border-color: rgba(139, 93, 255, 0.34);
   color: #e4dcff;
   box-shadow: 0 14px 28px rgba(2, 6, 18, 0.2);
 }
 
-body[data-theme='dark'] .app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-secondary:hover:not(:disabled),
-body[data-theme='dark'] .app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-secondary:focus-visible {
+body[data-theme='dark']
+  .app-page
+  .dashboard-onboarding-card
+  .onboarding-card-actions
+  .onboarding-action-secondary:hover:not(:disabled),
+body[data-theme='dark']
+  .app-page
+  .dashboard-onboarding-card
+  .onboarding-card-actions
+  .onboarding-action-secondary:focus-visible {
   background: rgba(139, 93, 255, 0.26);
   border-color: rgba(190, 171, 255, 0.42);
   color: #ffffff;
@@ -8045,7 +8416,10 @@ body[data-theme='dark'] .app-page .dashboard-line-wrap {
     linear-gradient(180deg, rgba(12, 16, 28, 0.98) 0%, rgba(17, 22, 35, 0.98) 100%),
     linear-gradient(90deg, rgba(139, 93, 255, 0.1) 1px, transparent 1px),
     linear-gradient(0deg, rgba(139, 93, 255, 0.1) 1px, transparent 1px);
-  background-size: auto, 46px 100%, 100% 28px;
+  background-size:
+    auto,
+    46px 100%,
+    100% 28px;
 }
 
 body[data-theme='dark'] .app-page .activity-feed-item {
@@ -8119,7 +8493,11 @@ body[data-theme='dark'] .app-page .tournaments-section .tournament-card .registe
 }
 
 body[data-theme='dark'] .app-page .tournaments-section .tournament-card.is-running .status-pill,
-body[data-theme='dark'] .app-page .tournaments-section .tournament-card.is-registration .status-pill,
+body[data-theme='dark']
+  .app-page
+  .tournaments-section
+  .tournament-card.is-registration
+  .status-pill,
 body[data-theme='dark'] .app-page .tournaments-section .tournament-card.is-draft .status-pill {
   background: rgba(139, 93, 255, 0.18);
   color: #d8cbff;
@@ -8272,7 +8650,11 @@ body[data-theme='dark'] .app-page .monitoring-status-success {
   min-height: 760px;
   border-radius: 28px;
   background:
-    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--certificate-accent) 10%, transparent) 0%, transparent 36%),
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in srgb, var(--certificate-accent) 10%, transparent) 0%,
+      transparent 36%
+    ),
     linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
   border: 1px solid #ddd2f6;
   box-shadow: 0 28px 60px rgba(33, 24, 58, 0.12);
@@ -8529,9 +8911,28 @@ body[data-theme='dark'] .app-page .monitoring-status-success {
 
   .about-product-card,
   .about-role-grid,
+  .about-reviews-grid,
+  .platform-review-admin-meta,
   .about-contacts-panel,
   .platform-content-field-grid {
     grid-template-columns: 1fr;
+  }
+
+  .about-reviews-head,
+  .about-reviews-actions,
+  .about-review-form-footer,
+  .about-review-auth-note,
+  .platform-review-admin-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .about-review-modal-actions {
+    justify-content: stretch;
+  }
+
+  .about-review-modal-actions .button {
+    width: 100%;
   }
 
   .platform-content-contact-grid {
@@ -8708,6 +9109,7 @@ body[data-theme='dark'] .app-page .monitoring-status-success {
   }
 
   .about-contacts-grid,
+  .about-reviews-grid,
   .platform-content-contact-grid {
     grid-template-columns: 1fr;
   }

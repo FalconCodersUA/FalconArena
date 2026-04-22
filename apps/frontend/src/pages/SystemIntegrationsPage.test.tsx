@@ -89,6 +89,26 @@ function createPlatformContent() {
   };
 }
 
+function createPlatformReviews() {
+  return [
+    {
+      id: 'review-1',
+      text: 'FalconArena keeps moderation and tournament work clear.',
+      status: 'PENDING',
+      author: {
+        id: 'team-user',
+        fullName: 'Team User',
+        email: 'team@example.com',
+        role: 'TEAM',
+      },
+      moderator: null,
+      reviewedAt: null,
+      createdAt: '2026-04-21T08:00:00.000Z',
+      updatedAt: '2026-04-21T08:10:00.000Z',
+    },
+  ];
+}
+
 function createSettingsMock({
   platformContentError = false,
 }: {
@@ -161,6 +181,29 @@ function createSettingsMock({
 
       return {
         ...createPlatformContent(),
+      };
+    }
+
+    if (path === '/admin/system-integrations/platform-reviews' && !options?.method) {
+      return createPlatformReviews();
+    }
+
+    if (
+      path === '/admin/system-integrations/platform-reviews/review-1' &&
+      options?.method === 'PATCH'
+    ) {
+      expect(options.body).toEqual({ status: 'APPROVED' });
+
+      return {
+        ...createPlatformReviews()[0],
+        status: 'APPROVED',
+        moderator: {
+          id: 'admin-user',
+          fullName: 'Admin User',
+          email: 'admin@example.com',
+        },
+        reviewedAt: '2026-04-21T09:00:00.000Z',
+        updatedAt: '2026-04-21T09:00:00.000Z',
       };
     }
 
@@ -359,6 +402,7 @@ describe('SystemIntegrationsPage', () => {
     expect(screen.getByDisplayValue('Open workspace')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Our channels')).toBeInTheDocument();
     expect(screen.getAllByDisplayValue('@falconarena_team').length).toBeGreaterThan(0);
+    expect(screen.getByText('FalconArena keeps moderation and tournament work clear.')).toBeInTheDocument();
 
     fireEvent.change(screen.getByDisplayValue('Initial public platform description.'), {
       target: { value: 'Updated public platform description.' },
@@ -412,6 +456,10 @@ describe('SystemIntegrationsPage', () => {
     });
     fireEvent.click(screen.getAllByRole('button', { name: 'Save settings' })[2]);
     expect((await screen.findAllByText('Integration settings were saved.')).length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Approve' }));
+    expect(await screen.findByText('Review status was updated.')).toBeInTheDocument();
+    expect(screen.getAllByText('Approved').length).toBeGreaterThan(0);
   });
 
   it('keeps integrations available when platform content endpoint is missing', async () => {

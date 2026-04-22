@@ -127,6 +127,28 @@ type PlatformContentBannerUploadResponse = {
 
 type PlatformContentPath = string[];
 
+type PlatformReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+type PlatformReviewResponse = {
+  id: string;
+  text: string;
+  status: PlatformReviewStatus;
+  author: {
+    id: string;
+    fullName: string;
+    email: string | null;
+    role: 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
+  };
+  moderator: {
+    id: string;
+    fullName: string;
+    email: string | null;
+  } | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
 function createPlatformContentPayload(platformContent: PlatformContentResponse) {
   return {
     hero: platformContent.hero,
@@ -348,6 +370,57 @@ function normalizePlatformContent(value: unknown): PlatformContentResponse {
   };
 }
 
+function normalizePlatformReviews(value: unknown): PlatformReviewResponse[] {
+  const source = Array.isArray(value) ? value : [];
+
+  return source
+    .map((item) => {
+      if (!isRecord(item) || !isRecord(item.author)) {
+        return null;
+      }
+
+      const status = item.status;
+      const role = item.author.role;
+
+      if (
+        typeof item.id !== 'string' ||
+        typeof item.text !== 'string' ||
+        (status !== 'PENDING' && status !== 'APPROVED' && status !== 'REJECTED') ||
+        typeof item.author.id !== 'string' ||
+        typeof item.author.fullName !== 'string' ||
+        (role !== 'ADMIN' && role !== 'TEAM' && role !== 'JURY' && role !== 'ORGANIZER')
+      ) {
+        return null;
+      }
+
+      const moderator = isRecord(item.moderator) ? item.moderator : null;
+
+      return {
+        id: item.id,
+        text: item.text,
+        status,
+        author: {
+          id: item.author.id,
+          fullName: item.author.fullName,
+          email: typeof item.author.email === 'string' ? item.author.email : null,
+          role,
+        },
+        moderator:
+          moderator && typeof moderator.id === 'string' && typeof moderator.fullName === 'string'
+            ? {
+                id: moderator.id,
+                fullName: moderator.fullName,
+                email: typeof moderator.email === 'string' ? moderator.email : null,
+              }
+            : null,
+        reviewedAt: typeof item.reviewedAt === 'string' ? item.reviewedAt : null,
+        createdAt: typeof item.createdAt === 'string' ? item.createdAt : '',
+        updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : '',
+      };
+    })
+    .filter((item): item is PlatformReviewResponse => !!item);
+}
+
 function formatDateTime(value: string | null, language: 'uk' | 'en', fallback: string) {
   if (!value) {
     return fallback;
@@ -388,6 +461,12 @@ export default function SystemIntegrationsPage() {
   const [platformBannerFileSelected, setPlatformBannerFileSelected] = useState(false);
   const [platformContentError, setPlatformContentError] = useState('');
   const [platformContentNotice, setPlatformContentNotice] = useState('');
+  const [platformReviews, setPlatformReviews] = useState<PlatformReviewResponse[]>([]);
+  const [platformReviewsFilter, setPlatformReviewsFilter] =
+    useState<PlatformReviewStatus | 'ALL'>('PENDING');
+  const [platformReviewsSavingId, setPlatformReviewsSavingId] = useState('');
+  const [platformReviewsError, setPlatformReviewsError] = useState('');
+  const [platformReviewsNotice, setPlatformReviewsNotice] = useState('');
 
   function getPlatformContentField(path: PlatformContentPath, locale: 'uk' | 'en') {
     let current: unknown = platformContent;
@@ -478,6 +557,7 @@ export default function SystemIntegrationsPage() {
     setLoading(true);
     setLoadError('');
     setPlatformContentError('');
+    setPlatformReviewsError('');
 
     try {
       const [googleData, emailData, rulesData, defaultsData] = await Promise.all([
@@ -501,6 +581,16 @@ export default function SystemIntegrationsPage() {
       } catch {
         setPlatformContent(createDefaultPlatformContent());
         setPlatformContentError(t('systemIntegrations.platformContent.unavailable'));
+      }
+
+      try {
+        const reviewsData = await apiRequest<unknown>(
+          '/admin/system-integrations/platform-reviews',
+        );
+        setPlatformReviews(normalizePlatformReviews(reviewsData));
+      } catch {
+        setPlatformReviews([]);
+        setPlatformReviewsError(t('systemIntegrations.platformReviews.unavailable'));
       }
     } catch (requestError) {
       setLoadError(
@@ -843,6 +933,37 @@ export default function SystemIntegrationsPage() {
     }
   }
 
+  async function moderatePlatformReview(reviewId: string, status: PlatformReviewStatus) {
+    setPlatformReviewsSavingId(reviewId);
+    setPlatformReviewsError('');
+    setPlatformReviewsNotice('');
+
+    try {
+      const updated = await apiRequest<unknown>(
+        `/admin/system-integrations/platform-reviews/${reviewId}`,
+        {
+          method: 'PATCH',
+          body: { status },
+        },
+      );
+      const [normalized] = normalizePlatformReviews([updated]);
+      if (normalized) {
+        setPlatformReviews((current) =>
+          current.map((review) => (review.id === normalized.id ? normalized : review)),
+        );
+      }
+      setPlatformReviewsNotice(t('systemIntegrations.platformReviews.saved'));
+    } catch (requestError) {
+      setPlatformReviewsError(
+        requestError instanceof Error
+          ? requestError.message
+          : t('systemIntegrations.platformReviews.saveFailed'),
+      );
+    } finally {
+      setPlatformReviewsSavingId('');
+    }
+  }
+
   if (loading) {
     return <QuietLoadingCard label={t('systemIntegrations.loading')} />;
   }
@@ -1090,6 +1211,10 @@ export default function SystemIntegrationsPage() {
     label: item.label[language] || `${t('systemIntegrations.platformContent.form.contact')} ${index + 1}`,
     index,
   }));
+  const platformReviewStatusFilters = ['PENDING', 'APPROVED', 'REJECTED', 'ALL'] as const;
+  const filteredPlatformReviews = platformReviews.filter((review) =>
+    platformReviewsFilter === 'ALL' ? true : review.status === platformReviewsFilter,
+  );
 
   return (
     <section className="team-dashboard">
@@ -2062,6 +2187,94 @@ export default function SystemIntegrationsPage() {
 
         {platformContentNotice ? <p className="form-success">{platformContentNotice}</p> : null}
         {platformContentError ? <p className="form-error">{platformContentError}</p> : null}
+      </article>
+
+      <article id="integrations-platform-reviews" className="card panel-card">
+        <div className="tournament-head">
+          <h2>{t('systemIntegrations.platformReviews.title')}</h2>
+          <span className="status-pill active">
+            {t('systemIntegrations.platformReviews.moderation')}
+          </span>
+        </div>
+
+        <p className="inline-hint">{t('systemIntegrations.platformReviews.lead')}</p>
+
+        <div className="platform-review-filter-row" role="group" aria-label={t('systemIntegrations.platformReviews.filterAria')}>
+          {platformReviewStatusFilters.map((status) => (
+            <button
+              key={status}
+              type="button"
+              className={`button button-soft ${platformReviewsFilter === status ? 'active' : ''}`}
+              onClick={() => setPlatformReviewsFilter(status)}
+            >
+              {t(`systemIntegrations.platformReviews.filters.${status}`)}
+            </button>
+          ))}
+        </div>
+
+        {filteredPlatformReviews.length > 0 ? (
+          <div className="platform-review-admin-grid">
+            {filteredPlatformReviews.map((review) => (
+              <article key={review.id} className="platform-review-admin-card">
+                <div className="platform-review-admin-head">
+                  <div>
+                    <strong>{review.author.fullName}</strong>
+                    <span>
+                      {t(`profile.role.${review.author.role}`)}
+                      {review.author.email ? ` · ${review.author.email}` : ''}
+                    </span>
+                  </div>
+                  <span className={`status-pill platform-review-status-${review.status.toLowerCase()}`}>
+                    {t(`systemIntegrations.platformReviews.status.${review.status}`)}
+                  </span>
+                </div>
+                <p>{review.text}</p>
+                <dl className="platform-review-admin-meta">
+                  <div>
+                    <dt>{t('systemIntegrations.platformReviews.updatedAt')}</dt>
+                    <dd>
+                      {formatDateTime(
+                        review.updatedAt,
+                        language,
+                        t('systemIntegrations.platformReviews.notReviewed'),
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('systemIntegrations.platformReviews.moderator')}</dt>
+                    <dd>{review.moderator?.fullName ?? t('systemIntegrations.platformReviews.notReviewed')}</dd>
+                  </div>
+                </dl>
+                <div className="status-actions">
+                  <button
+                    type="button"
+                    className="button button-primary admin-primary-action"
+                    disabled={platformReviewsSavingId === review.id || review.status === 'APPROVED'}
+                    onClick={() => void moderatePlatformReview(review.id, 'APPROVED')}
+                  >
+                    {t('systemIntegrations.platformReviews.approve')}
+                  </button>
+                  <button
+                    type="button"
+                    className="button button-soft"
+                    disabled={platformReviewsSavingId === review.id || review.status === 'REJECTED'}
+                    onClick={() => void moderatePlatformReview(review.id, 'REJECTED')}
+                  >
+                    {t('systemIntegrations.platformReviews.reject')}
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="state-callout subtle">
+            <strong>{t('systemIntegrations.platformReviews.emptyTitle')}</strong>
+            <p>{t('systemIntegrations.platformReviews.emptyLead')}</p>
+          </div>
+        )}
+
+        {platformReviewsNotice ? <p className="form-success">{platformReviewsNotice}</p> : null}
+        {platformReviewsError ? <p className="form-error">{platformReviewsError}</p> : null}
       </article>
     </section>
   );
