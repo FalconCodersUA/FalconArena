@@ -71,7 +71,19 @@ Status: implemented.
 
 Status: implemented.
 
-## 9. User Profile
+## 9. About Page
+
+- Available at `/app/about`
+- Shows platform copy, a banner, workflow block, role cards, CTA, contacts, and user reviews
+- CTA sends guests to registration and signed-in users to tournaments
+- Contact channels support email, messengers, and social links
+- Reviews show approved user feedback or demo examples when no public reviews exist yet
+- Signed-in users can open the review modal and submit feedback for moderation
+- `ADMIN` manages About page content and review moderation from `/app/integrations`
+
+Status: implemented.
+
+## 10. User Profile
 
 - Basic info: full name, email, role
 - `TEAM`: participation, submissions, round-by-round history
@@ -80,7 +92,7 @@ Status: implemented.
 
 Status: implemented.
 
-## 10. Documentation, Tests, CI
+## 11. Documentation, Tests, CI
 
 - Ukrainian main `README.md` and English `README.en.md`
 - Deployment docs, smoke scenarios, architectural decision docs, and this review checklist
@@ -91,7 +103,7 @@ Status: implemented.
 
 Status: implemented.
 
-## 11. Additional Product Capabilities
+## 12. Additional Product Capabilities
 
 Implemented as full strengths on top of the base specification:
 
@@ -102,6 +114,7 @@ Implemented as full strengths on top of the base specification:
 - Google Sheets export
 - certificates through printable preview and browser print flow
 - tournament schedule
+- managed `About` page with contacts and moderated user reviews
 - archive of previous tournaments
 - monitoring, activity history, integration settings, audit trail, and background jobs
 
@@ -116,4 +129,4 @@ Status: implemented.
 5. `ADMIN`: distribute assignments.
 6. `JURY`: submit an evaluation.
 7. `ADMIN`: finish evaluation.
-8. Review `Leaderboard`, `Archive`, `Messages`, `Integrations`, `Monitoring`, and `Profile`.
+8. Review `Leaderboard`, `Archive`, `Messages`, `Integrations`, `About`, `Monitoring`, and `Profile`.
