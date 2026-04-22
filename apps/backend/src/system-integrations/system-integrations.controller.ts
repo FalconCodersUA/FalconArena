@@ -2,8 +2,10 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Patch,
   Post,
+  Query,
   Req,
   UploadedFile,
   UseGuards,
@@ -16,12 +18,15 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RateLimitGuard } from '../common/guards/rate-limit.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { AuthUser } from '../common/types/auth-user.type';
+import { ListPlatformReviewsDto } from './dto/list-platform-reviews.dto';
 import { TestGoogleSheetsConnectionDto } from './dto/test-google-sheets-connection.dto';
 import { UpdateEmailSettingsDto } from './dto/update-email-settings.dto';
 import { UpdateGoogleSheetsSettingsDto } from './dto/update-google-sheets-settings.dto';
 import { UpdateNotificationRulesDto } from './dto/update-notification-rules.dto';
 import { UpdatePlatformContentDto } from './dto/update-platform-content.dto';
+import { UpdatePlatformReviewStatusDto } from './dto/update-platform-review-status.dto';
 import { UpdateTournamentDefaultsDto } from './dto/update-tournament-defaults.dto';
+import { PlatformReviewsService } from './platform-reviews.service';
 import { SystemIntegrationsService } from './system-integrations.service';
 
 type UploadedPlatformContentBannerFile = {
@@ -36,6 +41,7 @@ type UploadedPlatformContentBannerFile = {
 export class SystemIntegrationsController {
   constructor(
     private readonly systemIntegrationsService: SystemIntegrationsService,
+    private readonly platformReviewsService: PlatformReviewsService,
   ) {}
 
   @Get('google-sheets')
@@ -166,6 +172,31 @@ export class SystemIntegrationsController {
   ) {
     return this.systemIntegrationsService.uploadPlatformContentBanner(
       file,
+      request.user,
+    );
+  }
+
+  @Get('platform-reviews')
+  listPlatformReviews(@Query() query: ListPlatformReviewsDto) {
+    return this.platformReviewsService.listAdminReviews(query);
+  }
+
+  @Patch('platform-reviews/:reviewId')
+  @UseGuards(RateLimitGuard)
+  @RateLimit({
+    bucket: 'platform-review-moderation',
+    limit: 30,
+    windowSeconds: 60,
+    keyStrategy: 'user',
+  })
+  moderatePlatformReview(
+    @Param('reviewId') reviewId: string,
+    @Body() dto: UpdatePlatformReviewStatusDto,
+    @Req() request: { user: AuthUser },
+  ) {
+    return this.platformReviewsService.moderateReview(
+      reviewId,
+      dto,
       request.user,
     );
   }

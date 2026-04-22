@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useI18n } from '../i18n/I18nProvider';
 import { apiRequest, resolveApiAssetUrl } from '../lib/api';
-import { isAuthenticated } from '../lib/auth';
+import { AuthRole, getAuthUser, isAuthenticated } from '../lib/auth';
 
 type LocalizedText = {
   uk: string;
@@ -55,6 +55,73 @@ type PlatformAboutResponse = {
   };
   source: 'database' | 'default';
 };
+
+type PlatformReview = {
+  id: string;
+  text: string;
+  authorName: string;
+  authorRole: AuthRole;
+  reviewedAt: string | null;
+  createdAt: string;
+};
+
+function createSampleReviews(language: 'uk' | 'en'): PlatformReview[] {
+  if (language === 'en') {
+    return [
+      {
+        id: 'sample-review-1',
+        text: 'FalconArena keeps tournament work structured: registration, submissions, reviews, and leaderboard stay in one clear workspace.',
+        authorName: 'Demo Team Captain',
+        authorRole: 'TEAM',
+        reviewedAt: null,
+        createdAt: '',
+      },
+      {
+        id: 'sample-review-2',
+        text: 'The jury flow is easy to follow. Assigned submissions, criteria, and final scores are visible without extra spreadsheets.',
+        authorName: 'Jury Member',
+        authorRole: 'JURY',
+        reviewedAt: null,
+        createdAt: '',
+      },
+      {
+        id: 'sample-review-3',
+        text: 'For organizers, the platform gives enough control over teams, rounds, notifications, and archive exports for a real event.',
+        authorName: 'Tournament Organizer',
+        authorRole: 'ORGANIZER',
+        reviewedAt: null,
+        createdAt: '',
+      },
+    ];
+  }
+
+  return [
+    {
+      id: 'sample-review-1',
+      text: 'FalconArena тримає турнірний процес структурованим: реєстрація, сабміти, оцінювання та лідерборд працюють в одному просторі.',
+      authorName: 'Капітан демо-команди',
+      authorRole: 'TEAM',
+      reviewedAt: null,
+      createdAt: '',
+    },
+    {
+      id: 'sample-review-2',
+      text: 'Для журі все зрозуміло: призначені роботи, критерії та фінальні оцінки видно без додаткових таблиць.',
+      authorName: 'Учасник журі',
+      authorRole: 'JURY',
+      reviewedAt: null,
+      createdAt: '',
+    },
+    {
+      id: 'sample-review-3',
+      text: 'Організаторам вистачає контролю над командами, раундами, сповіщеннями та архівом результатів для реальної події.',
+      authorName: 'Організатор турніру',
+      authorRole: 'ORGANIZER',
+      reviewedAt: null,
+      createdAt: '',
+    },
+  ];
+}
 
 function localized(uk: string, en: string): LocalizedText {
   return { uk, en };
@@ -258,12 +325,55 @@ function normalizeContent(value: unknown, fallback: PlatformAboutResponse): Plat
   };
 }
 
+function normalizeReviews(value: unknown): PlatformReview[] {
+  const source = Array.isArray(value) ? value : [];
+
+  return source
+    .map((item) => {
+      if (!isRecord(item)) {
+        return null;
+      }
+
+      const authorRole = item.authorRole;
+
+      if (
+        typeof item.id !== 'string' ||
+        typeof item.text !== 'string' ||
+        typeof item.authorName !== 'string' ||
+        (authorRole !== 'ADMIN' &&
+          authorRole !== 'TEAM' &&
+          authorRole !== 'JURY' &&
+          authorRole !== 'ORGANIZER')
+      ) {
+        return null;
+      }
+
+      return {
+        id: item.id,
+        text: item.text,
+        authorName: item.authorName,
+        authorRole,
+        reviewedAt: typeof item.reviewedAt === 'string' ? item.reviewedAt : null,
+        createdAt: typeof item.createdAt === 'string' ? item.createdAt : '',
+      };
+    })
+    .filter((item): item is PlatformReview => !!item);
+}
+
 export default function AboutPage() {
-  const { language } = useI18n();
+  const { language, t } = useI18n();
   const isSignedIn = isAuthenticated();
+  const authUser = getAuthUser();
   const fallbackContent = useMemo(() => createFallbackContent(), []);
   const ctaPath = isSignedIn ? '/app/tournaments' : '/app/register';
   const [content, setContent] = useState<PlatformAboutResponse>(() => fallbackContent);
+  const [reviews, setReviews] = useState<PlatformReview[]>([]);
+  const [reviewText, setReviewText] = useState('');
+  const [reviewSaving, setReviewSaving] = useState(false);
+  const [reviewNotice, setReviewNotice] = useState('');
+  const [reviewError, setReviewError] = useState('');
+  const [isReviewModalOpen, setReviewModalOpen] = useState(false);
+  const visibleReviews = reviews.length > 0 ? reviews : createSampleReviews(language);
   const ctaLabel = isSignedIn
     ? content.cta.workspaceLabel[language]
     : content.cta.registerLabel[language];
@@ -290,6 +400,57 @@ export default function AboutPage() {
       cancelled = true;
     };
   }, [fallbackContent]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadReviews() {
+      try {
+        const data = await apiRequest<unknown>('/platform/about/reviews');
+        if (!cancelled) {
+          setReviews(normalizeReviews(data));
+        }
+      } catch {
+        if (!cancelled) {
+          setReviews([]);
+        }
+      }
+    }
+
+    void loadReviews();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function submitReview(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const text = reviewText.trim();
+    if (text.length < 10) {
+      setReviewError(t('aboutPage.reviews.validation.tooShort'));
+      setReviewNotice('');
+      return;
+    }
+
+    setReviewSaving(true);
+    setReviewError('');
+    setReviewNotice('');
+
+    try {
+      await apiRequest('/platform/about/reviews', {
+        method: 'POST',
+        body: { text },
+      });
+      setReviewText('');
+      setReviewModalOpen(false);
+      setReviewNotice(t('aboutPage.reviews.submitSuccess'));
+    } catch {
+      setReviewError(t('aboutPage.reviews.submitFailed'));
+    } finally {
+      setReviewSaving(false);
+    }
+  }
 
   return (
     <section className="about-page app-page">
@@ -339,6 +500,113 @@ export default function AboutPage() {
           <p>{content.roles.jury.lead[language]}</p>
         </article>
       </section>
+
+      <section className="about-reviews-panel" aria-labelledby="about-reviews-title">
+        <div className="about-reviews-head">
+          <div>
+            <p className="eyebrow">{t('aboutPage.reviews.eyebrow')}</p>
+            <h2 id="about-reviews-title">{t('aboutPage.reviews.title')}</h2>
+            <p>{t('aboutPage.reviews.lead')}</p>
+          </div>
+          <div className="about-reviews-actions">
+            <span>{t('aboutPage.reviews.moderationBadge')}</span>
+            {isSignedIn && authUser ? (
+              <button
+                type="button"
+                className="button button-primary"
+                onClick={() => {
+                  setReviewError('');
+                  setReviewModalOpen(true);
+                }}
+              >
+                {t('aboutPage.reviews.writeAction')}
+              </button>
+            ) : (
+              <Link to="/app/login" className="button button-soft">
+                {t('aboutPage.reviews.authAction')}
+              </Link>
+            )}
+          </div>
+        </div>
+
+        <div className="about-reviews-grid">
+          {visibleReviews.map((review) => (
+            <article key={review.id} className="about-review-card">
+              <p>{review.text}</p>
+              <footer>
+                <strong>{review.authorName}</strong>
+                <span>{t(`profile.role.${review.authorRole}`)}</span>
+              </footer>
+            </article>
+          ))}
+        </div>
+
+        {reviewNotice ? <p className="form-success">{reviewNotice}</p> : null}
+      </section>
+
+      {isReviewModalOpen && authUser ? (
+        <div
+          className="app-modal-overlay"
+          role="presentation"
+          onClick={() => setReviewModalOpen(false)}
+        >
+          <div
+            className="app-modal-card about-review-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="about-review-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="app-modal-head">
+              <h2 id="about-review-modal-title">{t('aboutPage.reviews.modalTitle')}</h2>
+              <button
+                type="button"
+                className="button button-soft app-modal-close app-modal-secondary-action"
+                onClick={() => setReviewModalOpen(false)}
+              >
+                {t('aboutPage.reviews.close')}
+              </button>
+            </header>
+            <form className="about-review-form" onSubmit={(event) => void submitReview(event)}>
+              <label className="field">
+                <span>{t('aboutPage.reviews.formLabel')}</span>
+                <textarea
+                  className="textarea-input"
+                  maxLength={700}
+                  value={reviewText}
+                  placeholder={t('aboutPage.reviews.placeholder')}
+                  onChange={(event) => setReviewText(event.target.value)}
+                />
+              </label>
+              <div className="about-review-form-footer">
+                <p>
+                  {t('aboutPage.reviews.signedAs')} {authUser.fullName} ·{' '}
+                  {t(`profile.role.${authUser.role}`)}
+                </p>
+                <div className="about-review-modal-actions">
+                  <button
+                    type="button"
+                    className="button button-soft app-modal-secondary-action"
+                    onClick={() => setReviewModalOpen(false)}
+                  >
+                    {t('aboutPage.reviews.cancel')}
+                  </button>
+                  <button
+                    type="submit"
+                    className="button button-primary"
+                    disabled={reviewSaving || reviewText.trim().length < 10}
+                  >
+                    {reviewSaving
+                      ? t('aboutPage.reviews.submitting')
+                      : t('aboutPage.reviews.submit')}
+                  </button>
+                </div>
+              </div>
+              {reviewError ? <p className="form-error">{reviewError}</p> : null}
+            </form>
+          </div>
+        </div>
+      ) : null}
 
       <section className="about-cta-panel" aria-labelledby="about-cta-title">
         <div>

@@ -42,6 +42,12 @@ enum AnnouncementAudience {
   ORGANIZER
 }
 
+enum PlatformReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum NotificationAudience {
   ALL
   TEAM
@@ -108,6 +114,8 @@ model User {
   sentDirectMessages DirectMessage[] @relation("DirectMessageSender")
   auditLogs       AuditLog[]             @relation("AuditLogActor")
   blockedUsers    User[]                 @relation("UserBlockedBy")
+  platformReviews PlatformReview[]       @relation("PlatformReviewAuthor")
+  moderatedPlatformReviews PlatformReview[] @relation("PlatformReviewModerator")
 
   @@index([role, isBlocked, createdAt])
   @@index([blockedByUserId])
@@ -404,6 +412,22 @@ model SystemIntegrationSettings {
     createdAt                    DateTime @default(now())
     updatedAt                    DateTime @updatedAt
   }
+
+model PlatformReview {
+  id            String               @id @default(cuid())
+  authorId      String               @unique
+  author        User                 @relation("PlatformReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  text          String
+  status        PlatformReviewStatus @default(PENDING)
+  moderatorId   String?
+  moderator     User?                @relation("PlatformReviewModerator", fields: [moderatorId], references: [id], onDelete: SetNull)
+  reviewedAt    DateTime?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  @@index([status, updatedAt])
+  @@index([moderatorId])
+}
 
 model AuditLog {
   id          String   @id @default(cuid())

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { I18nProvider } from '../i18n/I18nProvider';
@@ -87,6 +87,19 @@ function renderPage() {
   );
 }
 
+function createPublicReviews() {
+  return [
+    {
+      id: 'review-1',
+      text: 'FalconArena helped our team follow tournament deadlines without extra chats.',
+      authorName: 'Team Captain',
+      authorRole: 'TEAM',
+      reviewedAt: '2026-04-21T09:00:00.000Z',
+      createdAt: '2026-04-21T08:00:00.000Z',
+    },
+  ];
+}
+
 describe('AboutPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -168,6 +181,7 @@ describe('AboutPage', () => {
     expect(
       screen.getByRole('link', { name: 'Створити акаунт команди' }),
     ).toHaveAttribute('href', '/app/register');
+    expect(screen.getByText('Капітан демо-команди')).toBeInTheDocument();
   });
 
   it('routes the CTA to tournaments for signed-in users', async () => {
@@ -191,5 +205,71 @@ describe('AboutPage', () => {
       screen.getByRole('link', { name: 'Відкрити робочий простір' }),
     ).toHaveAttribute('href', '/app/tournaments');
     expect(screen.queryByRole('link', { name: 'Створити акаунт команди' })).not.toBeInTheDocument();
+  });
+
+  it('renders approved reviews and submits a signed-in user review for moderation', async () => {
+    localStorage.setItem('falconarena_access_token', 'test-token');
+    localStorage.setItem(
+      'falconarena_auth_user',
+      JSON.stringify({
+        id: 'team-user',
+        email: 'team@example.com',
+        fullName: 'Team User',
+        role: 'TEAM',
+      }),
+    );
+    mockedApiRequest.mockImplementation(async (path, options) => {
+      if (path === '/platform/about') {
+        return createAboutContent();
+      }
+
+      if (path === '/platform/about/reviews' && !options?.method) {
+        return createPublicReviews();
+      }
+
+      if (path === '/platform/about/reviews' && options?.method === 'POST') {
+        expect(options.body).toEqual({
+          text: 'FalconArena made tournament work easier for our team.',
+        });
+
+        return {
+          id: 'review-2',
+          text: 'FalconArena made tournament work easier for our team.',
+          status: 'PENDING',
+          authorName: 'Team User',
+          authorRole: 'TEAM',
+          reviewedAt: null,
+          updatedAt: '2026-04-21T10:00:00.000Z',
+        };
+      }
+
+      throw new Error(`Unexpected request: ${path}`);
+    });
+
+    renderPage();
+
+    expect(
+      await screen.findByText(
+        'FalconArena helped our team follow tournament deadlines without extra chats.',
+      ),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Написати відгук' }));
+    expect(screen.getByRole('dialog', { name: 'Написати відгук' })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Ваш відгук'), {
+      target: { value: 'FalconArena made tournament work easier for our team.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Надіслати відгук' }));
+
+    expect(await screen.findByText('Відгук надіслано на модерацію.')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(mockedApiRequest).toHaveBeenCalledWith('/platform/about/reviews', {
+        method: 'POST',
+        body: {
+          text: 'FalconArena made tournament work easier for our team.',
+        },
+      });
+    });
   });
 });
