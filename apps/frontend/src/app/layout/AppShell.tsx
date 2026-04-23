@@ -281,23 +281,13 @@ export default function AppShell() {
           category: t('shell.searchCategories.sections'),
         },
         {
-          path: '/app/teams',
-          label: t('shell.teams'),
-          category: t('shell.searchCategories.sections'),
-        },
-        {
           path: '/app/tournaments',
           label: t('shell.tournamentsNav'),
           category: t('shell.searchCategories.sections'),
         },
         {
-          path: '/app/about',
-          label: t('shell.about'),
-          category: t('shell.searchCategories.sections'),
-        },
-        {
-          path: '/app/archive',
-          label: t('shell.archive'),
+          path: '/app/teams',
+          label: t('shell.teams'),
           category: t('shell.searchCategories.sections'),
         },
         {
@@ -306,8 +296,18 @@ export default function AppShell() {
           category: t('shell.searchCategories.sections'),
         },
         {
+          path: '/app/archive',
+          label: t('shell.archive'),
+          category: t('shell.searchCategories.sections'),
+        },
+        {
           path: '/app/messages',
           label: t('shell.messages'),
+          category: t('shell.searchCategories.sections'),
+        },
+        {
+          path: '/app/about',
+          label: t('shell.about'),
           category: t('shell.searchCategories.sections'),
         },
         canManageUsers
@@ -754,7 +754,10 @@ export default function AppShell() {
             <span className="app-brand-mark" aria-hidden>
               <BrandMark />
             </span>
-            <span>FalconArena</span>
+            <span className="app-brand-wordmark">
+              <span>Falcon</span>
+              <span>Arena</span>
+            </span>
           </Link>
 
           <nav className="app-sidebar-nav" aria-label={t('shell.navAria')}>
@@ -772,6 +775,21 @@ export default function AppShell() {
               <span>{t('shell.dashboard')}</span>
             </NavLink>
 
+            <NavLink to="/app/tournaments" className="app-sidebar-link">
+              <span className="app-sidebar-icon" aria-hidden>
+                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M6.2 4.8H8.7V6.8C8.7 8 7.8 8.9 6.6 8.9H6.2C5 8.9 4.1 8 4.1 6.8V4.8H6.2ZM11.3 4.8H13.8H15.9V6.8C15.9 8 15 8.9 13.8 8.9H13.4C12.2 8.9 11.3 8 11.3 6.8V4.8ZM7.4 9.2C7.6 10.7 8.6 11.9 10 12.4C11.4 11.9 12.4 10.7 12.6 9.2M10 12.4V15.1M7.6 15.2H12.4"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              <span>{t('shell.tournamentsNav')}</span>
+            </NavLink>
+
             <NavLink to="/app/teams" className="app-sidebar-link">
               <span className="app-sidebar-icon" aria-hidden>
                 <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -784,33 +802,18 @@ export default function AppShell() {
               <span>{t('shell.teams')}</span>
             </NavLink>
 
-            <NavLink to="/app/tournaments" className="app-sidebar-link">
+            <NavLink to="/app/leaderboard" className="app-sidebar-link">
               <span className="app-sidebar-icon" aria-hidden>
                 <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path
-                    d="M4 16H16M6 14V9M10 14V6M14 14V11"
+                    d="M5 16H15M6.4 14V11.2M10 14V8M13.6 14V9.6"
                     stroke="currentColor"
-                    strokeWidth="1.8"
+                    strokeWidth="1.6"
                     strokeLinecap="round"
                   />
                 </svg>
               </span>
-              <span>{t('shell.tournamentsNav')}</span>
-            </NavLink>
-
-            <NavLink to="/app/about" className="app-sidebar-link">
-              <span className="app-sidebar-icon" aria-hidden>
-                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="10" cy="10" r="6.2" stroke="currentColor" strokeWidth="1.5" />
-                  <path
-                    d="M10 8.8V13.2M10 6.5V6.55"
-                    stroke="currentColor"
-                    strokeWidth="1.7"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
-              <span>{t('shell.about')}</span>
+              <span>{t('shell.leaderboard')}</span>
             </NavLink>
 
             <NavLink to="/app/archive" className="app-sidebar-link">
@@ -832,20 +835,6 @@ export default function AppShell() {
               <span>{t('shell.archive')}</span>
             </NavLink>
 
-            <NavLink to="/app/leaderboard" className="app-sidebar-link">
-              <span className="app-sidebar-icon" aria-hidden>
-                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M5 16H15M6.4 14V11.2M10 14V8M13.6 14V9.6"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
-              <span>{t('shell.leaderboard')}</span>
-            </NavLink>
-
             <NavLink to="/app/messages" className="app-sidebar-link">
               <span className="app-sidebar-icon" aria-hidden>
                 <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -861,20 +850,41 @@ export default function AppShell() {
               <span>{t('shell.messages')}</span>
             </NavLink>
 
+            <NavLink to="/app/about" className="app-sidebar-link">
+              <span className="app-sidebar-icon" aria-hidden>
+                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="10" cy="10" r="6.2" stroke="currentColor" strokeWidth="1.5" />
+                  <path
+                    d="M10 8.8V13.2M10 6.5V6.55"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+              <span>{t('shell.about')}</span>
+            </NavLink>
+
             {canManageUsers ? (
               <NavLink to="/app/users" className="app-sidebar-link">
                 <span className="app-sidebar-icon" aria-hidden>
                   <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="7" cy="7.2" r="2.1" fill="currentColor" />
-                    <circle cx="13.2" cy="8.4" r="1.8" fill="currentColor" opacity="0.72" />
                     <path
-                      d="M3.7 15.6C3.7 13.6 5.4 12.2 7.8 12.2C10.2 12.2 11.9 13.6 11.9 15.6"
-                      fill="currentColor"
+                      d="M10 10.2C11.878 10.2 13.4 8.678 13.4 6.8C13.4 4.922 11.878 3.4 10 3.4C8.122 3.4 6.6 4.922 6.6 6.8C6.6 8.678 8.122 10.2 10 10.2Z"
+                      stroke="currentColor"
+                      strokeWidth="1.4"
                     />
                     <path
-                      d="M11.4 15.6C11.4 14.1 12.7 13 14.3 13C15.9 13 17.2 14.1 17.2 15.6"
-                      fill="currentColor"
-                      opacity="0.72"
+                      d="M4.7 16.2C4.7 13.9 7 12.1 10 12.1C13 12.1 15.3 13.9 15.3 16.2"
+                      stroke="currentColor"
+                      strokeWidth="1.4"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M15.2 10.8L17 11.5V13.1C17 14.8 15.9 16.3 14.2 16.8C12.5 16.3 11.4 14.8 11.4 13.1V11.5L13.2 10.8L14.2 10.3L15.2 10.8Z"
+                      stroke="currentColor"
+                      strokeWidth="1.3"
+                      strokeLinejoin="round"
                     />
                   </svg>
                 </span>
