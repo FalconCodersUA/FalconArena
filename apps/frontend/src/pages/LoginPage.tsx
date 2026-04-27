@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthSplitLayout from '../app/layout/AuthSplitLayout';
+import OAuthButtons from '../components/OAuthButtons';
 import { ApiError, apiRequest } from '../lib/api';
 import { AuthUser, isAuthenticated, setAuthUser, setToken } from '../lib/auth';
 import { useI18n } from '../i18n/I18nProvider';
@@ -91,6 +92,8 @@ export default function LoginPage() {
       }
     >
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
+        <OAuthButtons />
+
         <div className="auth-login-divider" aria-hidden>
           <span>{t('login.divider')}</span>
         </div>

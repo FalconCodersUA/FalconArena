@@ -510,7 +510,7 @@ export default function AdminUsersPage() {
           </div>
           <button
             type="button"
-            className="button button-soft admin-primary-action admin-users-toolbar-action"
+            className="button button-soft admin-primary-action admin-users-toolbar-action admin-users-export-action"
             aria-disabled={exportingCsv}
             onClick={() => {
               if (exportingCsv) {

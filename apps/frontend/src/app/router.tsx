@@ -14,6 +14,7 @@ import LoginPage from '../pages/LoginPage';
 import MessagesPage from '../pages/MessagesPage';
 import MonitoringPage from '../pages/MonitoringPage';
 import NotFoundPage from '../pages/NotFoundPage';
+import OAuthCallbackPage from '../pages/OAuthCallbackPage';
 import ProfilePage from '../pages/ProfilePage';
 import RegisterPage from '../pages/RegisterPage';
 import SystemIntegrationsPage from '../pages/SystemIntegrationsPage';
@@ -117,6 +118,10 @@ export const router = createBrowserRouter([
       {
         path: 'register',
         element: <RegisterPage />,
+      },
+      {
+        path: 'oauth/callback',
+        element: <OAuthCallbackPage />,
       },
       {
         path: 'leaderboard',

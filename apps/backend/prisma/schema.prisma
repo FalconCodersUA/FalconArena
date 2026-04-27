@@ -14,6 +14,11 @@ enum Role {
   ORGANIZER
 }
 
+enum OAuthProvider {
+  GOOGLE
+  GITHUB
+}
+
 enum TournamentStatus {
   DRAFT
   REGISTRATION
@@ -116,9 +121,25 @@ model User {
   blockedUsers    User[]                 @relation("UserBlockedBy")
   platformReviews PlatformReview[]       @relation("PlatformReviewAuthor")
   moderatedPlatformReviews PlatformReview[] @relation("PlatformReviewModerator")
+  oauthAccounts  UserOAuthAccount[]
 
   @@index([role, isBlocked, createdAt])
   @@index([blockedByUserId])
+}
+
+model UserOAuthAccount {
+  id             String        @id @default(cuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider       OAuthProvider
+  providerUserId String
+  email          String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@unique([provider, providerUserId])
+  @@unique([userId, provider])
+  @@index([email])
 }
 
 model UserSettings {

@@ -138,6 +138,17 @@ export const messages: TranslationMap = {
       uk: 'Українська',
       en: 'English',
     },
+    auth: {
+      oauth: {
+        google: 'Увійти через Google',
+        github: 'Увійти через GitHub',
+        callbackTitle: 'Завершуємо вхід',
+        callbackLead: 'Підключаємо ваш акаунт до FalconArena.',
+        callbackTitleFailed: 'Не вдалося завершити вхід',
+        callbackError: 'Спробуйте ще раз або увійдіть за допомогою email і пароля.',
+        backToLogin: 'Повернутися до входу',
+      },
+    },
     login: {
       eyebrow: 'Доступ до панелі',
       panelTitle: 'Увійдіть у ваш акаунт',
@@ -1907,6 +1918,17 @@ export const messages: TranslationMap = {
     language: {
       uk: 'Українська',
       en: 'English',
+    },
+    auth: {
+      oauth: {
+        google: 'Sign in with Google',
+        github: 'Sign in with GitHub',
+        callbackTitle: 'Completing sign-in',
+        callbackLead: 'Connecting your account to FalconArena.',
+        callbackTitleFailed: 'Could not complete sign-in',
+        callbackError: 'Try again or sign in with email and password.',
+        backToLogin: 'Back to sign in',
+      },
     },
     login: {
       eyebrow: 'Control panel access',

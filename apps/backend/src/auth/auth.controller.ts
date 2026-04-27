@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { OAuthProvider } from '@prisma/client';
 import { RateLimit } from '../common/decorators/rate-limit.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -47,6 +48,34 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
+  @Get('google')
+  startGoogleOAuth(@Res() response: { redirect: (url: string) => void }) {
+    response.redirect(this.authService.getOAuthAuthorizationUrl(OAuthProvider.GOOGLE));
+  }
+
+  @Get('google/callback')
+  async completeGoogleOAuth(
+    @Query('code') code: string | undefined,
+    @Query('error') error: string | undefined,
+    @Res() response: { redirect: (url: string) => void },
+  ) {
+    await this.completeOAuthCallback(OAuthProvider.GOOGLE, code, error, response);
+  }
+
+  @Get('github')
+  startGitHubOAuth(@Res() response: { redirect: (url: string) => void }) {
+    response.redirect(this.authService.getOAuthAuthorizationUrl(OAuthProvider.GITHUB));
+  }
+
+  @Get('github/callback')
+  async completeGitHubOAuth(
+    @Query('code') code: string | undefined,
+    @Query('error') error: string | undefined,
+    @Res() response: { redirect: (url: string) => void },
+  ) {
+    await this.completeOAuthCallback(OAuthProvider.GITHUB, code, error, response);
+  }
+
   @Get('me')
   @UseGuards(JwtAuthGuard)
   me(@Req() request: { user: AuthUser }) {
@@ -62,5 +91,31 @@ export class AuthController {
       role: request.user.role,
       userId: request.user.userId,
     };
+  }
+
+  private async completeOAuthCallback(
+    provider: OAuthProvider,
+    code: string | undefined,
+    error: string | undefined,
+    response: { redirect: (url: string) => void },
+  ) {
+    if (error) {
+      response.redirect(this.authService.buildOAuthFailureRedirect(error));
+      return;
+    }
+
+    if (!code) {
+      response.redirect(this.authService.buildOAuthFailureRedirect('missing_code'));
+      return;
+    }
+
+    try {
+      const authResponse = await this.authService.completeOAuthLogin(provider, code);
+      response.redirect(this.authService.buildOAuthSuccessRedirect(authResponse));
+    } catch (requestError) {
+      const message =
+        requestError instanceof Error ? requestError.message : 'oauth_failed';
+      response.redirect(this.authService.buildOAuthFailureRedirect(message));
+    }
   }
 }
