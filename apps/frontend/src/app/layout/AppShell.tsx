@@ -149,6 +149,7 @@ export default function AppShell() {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileSearchExpanded, setMobileSearchExpanded] = useState(false);
   const [searchCatalogItems, setSearchCatalogItems] = useState<SearchItem[]>([]);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [alertsOpen, setAlertsOpen] = useState(false);
@@ -160,6 +161,7 @@ export default function AppShell() {
   const [unreadDialogsCount, setUnreadDialogsCount] = useState(0);
   const [showOnlyUnreadAlerts, setShowOnlyUnreadAlerts] = useState(false);
   const searchRef = useRef<HTMLDivElement | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
   const alertsRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLElement | null>(null);
   const isAuthRoute = location.pathname === '/app/login' || location.pathname === '/app/register';
@@ -431,6 +433,7 @@ export default function AppShell() {
 
       if (searchRef.current && !searchRef.current.contains(target)) {
         setSearchOpen(false);
+        setMobileSearchExpanded(false);
       }
 
       if (alertsRef.current && !alertsRef.current.contains(target)) {
@@ -441,6 +444,7 @@ export default function AppShell() {
     function handleGlobalKeydown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         setSearchOpen(false);
+        setMobileSearchExpanded(false);
         setAlertsOpen(false);
       }
     }
@@ -685,6 +689,13 @@ export default function AppShell() {
     navigate('/app/messages?section=dialogs');
   }
 
+  function openMobileSearch() {
+    setMobileSearchExpanded(true);
+    setSearchOpen(true);
+    setAlertsOpen(false);
+    window.setTimeout(() => searchInputRef.current?.focus(), 0);
+  }
+
   function onSearchSubmit(event: FormEvent) {
     event.preventDefault();
     const target = filteredSearchItems[0];
@@ -694,12 +705,14 @@ export default function AppShell() {
 
     setSearchOpen(false);
     setSearchQuery('');
+    setMobileSearchExpanded(false);
     navigate(target.path);
   }
 
   function goToSearchItem(path: string) {
     setSearchOpen(false);
     setSearchQuery('');
+    setMobileSearchExpanded(false);
     navigate(path);
   }
 
@@ -973,15 +986,21 @@ export default function AppShell() {
               <h1 className="app-topbar-title">{pageTitle}</h1>
             </div>
             <div className="app-topbar-actions">
-              <div className="app-search" ref={searchRef}>
+              <div className={`app-search${mobileSearchExpanded ? ' is-mobile-expanded' : ''}`} ref={searchRef}>
                 <form className="app-search-form" aria-label={t('shell.searchPlaceholder')} onSubmit={onSearchSubmit}>
-                  <span className="app-search-icon" aria-hidden>
+                  <button
+                    type="button"
+                    className="app-search-icon"
+                    aria-label={t('shell.searchPlaceholder')}
+                    onClick={openMobileSearch}
+                  >
                     <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <circle cx="9" cy="9" r="5" stroke="currentColor" strokeWidth="1.6" />
                       <path d="M12.8 12.8L16 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
                     </svg>
-                  </span>
+                  </button>
                   <input
+                    ref={searchInputRef}
                     type="text"
                     placeholder={t('shell.searchPlaceholder')}
                     value={searchQuery}
