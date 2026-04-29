@@ -761,7 +761,7 @@ a {
   max-height: calc(100vh - 22px);
   overflow: hidden;
   min-width: 0;
-  padding: 18px 12px 14px;
+  padding: 2px 12px 14px;
   border-right: 1px solid #e6eff5;
   display: flex;
   flex-direction: column;
@@ -817,8 +817,8 @@ a {
 }
 
 .app-brand-mark {
-  width: 42px;
-  height: 42px;
+  width: 60px;
+  height: 52px;
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
@@ -830,8 +830,8 @@ a {
 }
 
 .app-brand-mark svg {
-  width: 40px;
-  height: 32px;
+  width: 60px;
+  height: 52px;
   display: block;
 }
 
@@ -969,7 +969,6 @@ a {
 .app-topbar {
   min-height: 66px;
   padding: 14px 22px;
-  position: sticky;
   top: 11px;
   z-index: 8;
   border-bottom: 1px solid rgba(94, 23, 235, 0.12);
@@ -6124,7 +6123,7 @@ a {
 
 .filter-button {
   min-height: 38px;
-  border-radius: 999px;
+  border-radius: 9px;
   border: 1px solid #e6dff2;
   background: rgba(255, 255, 255, 0.84);
   color: #534f65;
@@ -6777,7 +6776,7 @@ a {
 
 .tournaments-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
 }
 
