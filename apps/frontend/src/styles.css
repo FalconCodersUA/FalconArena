@@ -854,7 +854,7 @@ a {
 
 .app-sidebar-link {
   min-height: 44px;
-  border-radius: 16px;
+  border-radius: 10px;
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
   align-items: center;
@@ -7238,7 +7238,7 @@ a {
 
 .status-pill {
   padding: 5px 9px;
-  border-radius: 999px;
+  border-radius: 9px;
   background: var(--signal-soft);
   color: #8d4921;
   font-size: 0.75rem;

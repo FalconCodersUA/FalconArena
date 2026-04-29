@@ -271,7 +271,7 @@ export const messages: TranslationMap = {
       filters: {
         all: 'Усі',
         registrationOpen: 'Реєстрація',
-        running: 'Триває',
+        running: 'Тривають',
         finished: 'Завершені',
       },
       sections: {
