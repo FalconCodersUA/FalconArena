@@ -274,6 +274,11 @@ export const messages: TranslationMap = {
         running: 'Тривають',
         finished: 'Завершені',
       },
+      viewMode: {
+        label: 'Перемикання вигляду турнірів',
+        list: 'Список',
+        grid: 'Плитка',
+      },
       sections: {
         active: 'Активні турніри',
         upcoming: 'Майбутні турніри',
@@ -2116,6 +2121,11 @@ export const messages: TranslationMap = {
         registrationOpen: 'Registration open',
         running: 'Running',
         finished: 'Finished',
+      },
+      viewMode: {
+        label: 'Tournament view switch',
+        list: 'List',
+        grid: 'Grid',
       },
       sections: {
         active: 'Active tournaments',

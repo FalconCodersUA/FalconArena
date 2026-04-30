@@ -49,6 +49,7 @@ type QuickTeamBlock = {
 };
 
 type FilterType = 'all' | 'registrationOpen' | 'running' | 'finished';
+type ViewMode = 'list' | 'grid';
 
 const TOURNAMENT_PRIORITY: Record<TournamentStatus, number> = {
   RUNNING: 1,
@@ -70,6 +71,7 @@ export default function TournamentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
 
   const [quickRole, setQuickRole] = useState<UserRole | null>(null);
   const [quickLoading, setQuickLoading] = useState(false);
@@ -447,22 +449,58 @@ export default function TournamentsPage() {
         </article>
       ) : null}
 
-      <div
-        ref={tournamentsListRef}
-        className="filters-row"
-        role="group"
-        aria-label="Tournament filters"
-      >
-        {filterButtons.map((item) => (
+      <div ref={tournamentsListRef} className="tournaments-list-toolbar">
+        <div
+          className="filters-row"
+          role="group"
+          aria-label="Tournament filters"
+        >
+          {filterButtons.map((item) => (
+            <button
+              key={item}
+              type="button"
+              className={`filter-button${filter === item ? ' active' : ''}`}
+              onClick={() => setFilter(item)}
+            >
+              {t(`tournaments.filters.${item}`)}
+            </button>
+          ))}
+        </div>
+
+        <div
+          className="tournaments-view-switch"
+          role="group"
+          aria-label={t('tournaments.viewMode.label')}
+        >
           <button
-            key={item}
             type="button"
-            className={`filter-button${filter === item ? ' active' : ''}`}
-            onClick={() => setFilter(item)}
+            className={`tournaments-view-button${viewMode === 'list' ? ' active' : ''}`}
+            aria-pressed={viewMode === 'list'}
+            title={t('tournaments.viewMode.list')}
+            onClick={() => setViewMode('list')}
           >
-            {t(`tournaments.filters.${item}`)}
+            <span aria-hidden>
+              <svg viewBox="0 0 20 20" focusable="false">
+                <path d="M4 5.5h12M4 10h12M4 14.5h12" />
+              </svg>
+            </span>
+            {t('tournaments.viewMode.list')}
           </button>
-        ))}
+          <button
+            type="button"
+            className={`tournaments-view-button${viewMode === 'grid' ? ' active' : ''}`}
+            aria-pressed={viewMode === 'grid'}
+            title={t('tournaments.viewMode.grid')}
+            onClick={() => setViewMode('grid')}
+          >
+            <span aria-hidden>
+              <svg viewBox="0 0 20 20" focusable="false">
+                <path d="M4.5 4.5h4v4h-4zM11.5 4.5h4v4h-4zM4.5 11.5h4v4h-4zM11.5 11.5h4v4h-4z" />
+              </svg>
+            </span>
+            {t('tournaments.viewMode.grid')}
+          </button>
+        </div>
       </div>
 
       <p className="total-label">
@@ -518,7 +556,7 @@ export default function TournamentsPage() {
                     </button>
                   </div>
                 ) : null}
-                <div className="tournaments-grid">
+                <div className={`tournaments-grid tournaments-grid--${viewMode}`}>
                   {section.items.map((tournament) => (
                     <article
                       key={tournament.id}
