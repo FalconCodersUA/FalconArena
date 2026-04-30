@@ -855,7 +855,7 @@ a {
 .app-sidebar-link {
   min-height: 44px;
   border: 1px solid transparent;
-  border-radius: 14px;
+  border-radius: 10px;
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
   align-items: center;
@@ -884,7 +884,13 @@ a {
   color: #4f1ed5;
   background:
     linear-gradient(#ffffff, #ffffff) padding-box,
-    linear-gradient(135deg, rgba(94, 23, 235, 0.54), rgba(29, 172, 214, 0.34), rgba(255, 255, 255, 0.74)) border-box;
+    linear-gradient(
+        135deg,
+        rgba(94, 23, 235, 0.54),
+        rgba(29, 172, 214, 0.34),
+        rgba(255, 255, 255, 0.74)
+      )
+      border-box;
   box-shadow:
     0 12px 24px rgba(94, 23, 235, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.96);
@@ -6832,8 +6838,95 @@ a {
   gap: 14px;
 }
 
+.tournaments-grid--grid {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  align-items: stretch;
+}
+
 .tournaments-grid > * {
   min-width: 0;
+}
+
+.tournaments-list-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tournaments-list-toolbar .filters-row {
+  margin-bottom: 0;
+}
+
+.tournaments-view-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(139, 93, 255, 0.16);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.08) 0%, transparent 34%),
+    linear-gradient(180deg, #ffffff 0%, #faf7ff 100%);
+  box-shadow: 0 14px 30px rgba(94, 23, 235, 0.06);
+}
+
+.tournaments-view-button {
+  min-height: 34px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 0 10px;
+  background: transparent;
+  color: #63739e;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
+}
+
+.tournaments-view-button:hover {
+  color: #5e17eb;
+  background: rgba(94, 23, 235, 0.06);
+}
+
+.tournaments-view-button.active {
+  border-color: rgba(94, 23, 235, 0.16);
+  background: #5e17eb;
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(94, 23, 235, 0.16);
+}
+
+.tournaments-view-button span {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+}
+
+.tournaments-view-button svg {
+  width: 100%;
+  height: 100%;
+}
+
+.tournaments-view-button path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tournaments-view-button:nth-child(2) path {
+  fill: currentColor;
+  stroke: none;
 }
 
 .tournaments-section .summary-grid {
@@ -7859,7 +7952,13 @@ body[data-theme='dark'] .app-sidebar-link.active {
   color: #ffffff;
   background:
     linear-gradient(180deg, rgba(23, 29, 46, 0.92) 0%, rgba(15, 20, 34, 0.96) 100%) padding-box,
-    linear-gradient(135deg, rgba(190, 171, 255, 0.44), rgba(56, 189, 248, 0.28), rgba(139, 93, 255, 0.24)) border-box;
+    linear-gradient(
+        135deg,
+        rgba(190, 171, 255, 0.44),
+        rgba(56, 189, 248, 0.28),
+        rgba(139, 93, 255, 0.24)
+      )
+      border-box;
   box-shadow:
     0 16px 32px rgba(2, 6, 18, 0.28),
     0 0 24px rgba(139, 93, 255, 0.12),
@@ -8827,6 +8926,30 @@ body[data-theme='dark'] .app-page .tournaments-section .tournament-card {
   box-shadow: 0 20px 42px rgba(2, 6, 18, 0.3);
 }
 
+body[data-theme='dark'] .app-page .tournaments-view-switch {
+  border-color: rgba(139, 93, 255, 0.18);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.14) 0%, transparent 34%),
+    linear-gradient(180deg, rgba(18, 24, 38, 0.96) 0%, rgba(12, 16, 28, 0.98) 100%);
+  box-shadow: 0 16px 32px rgba(2, 6, 18, 0.26);
+}
+
+body[data-theme='dark'] .app-page .tournaments-view-button {
+  color: #aeb8dc;
+}
+
+body[data-theme='dark'] .app-page .tournaments-view-button:hover {
+  background: rgba(139, 93, 255, 0.12);
+  color: #f4f6ff;
+}
+
+body[data-theme='dark'] .app-page .tournaments-view-button.active {
+  border-color: rgba(190, 171, 255, 0.26);
+  background: #8b5dff;
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(2, 6, 18, 0.28);
+}
+
 body[data-theme='dark'] .app-page .tournaments-section .tournament-head h3 {
   color: #eef2ff;
 }
@@ -9613,6 +9736,24 @@ body[data-theme='dark'] .app-page .monitoring-status-success {
 
   .tournaments-grid {
     grid-template-columns: 1fr;
+  }
+
+  .tournaments-list-toolbar {
+    align-items: stretch;
+  }
+
+  .tournaments-list-toolbar .filters-row,
+  .tournaments-view-switch {
+    width: 100%;
+  }
+
+  .tournaments-view-switch {
+    justify-content: space-between;
+  }
+
+  .tournaments-view-button {
+    flex: 1;
+    justify-content: center;
   }
 
   .tournament-showcase-grid {
