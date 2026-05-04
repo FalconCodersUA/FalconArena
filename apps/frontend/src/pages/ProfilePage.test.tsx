@@ -302,7 +302,8 @@ describe('ProfilePage', () => {
 
     renderProfilePage();
 
-    await screen.findByText('Profile request failed');
+    await screen.findByText('Could not load profile');
+    expect(screen.queryByText('Profile request failed')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
 
