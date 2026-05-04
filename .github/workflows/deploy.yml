@@ -78,6 +78,14 @@ jobs:
             GOOGLE_SHEETS_WEBHOOK_URL_VALUE="${{ secrets.GOOGLE_SHEETS_WEBHOOK_URL || '' }}" \
             GOOGLE_SHEETS_WEBHOOK_SECRET_VALUE="${{ secrets.GOOGLE_SHEETS_WEBHOOK_SECRET || '' }}" \
             GOOGLE_SHEETS_DEFAULT_SHEET_NAME_VALUE="${{ secrets.GOOGLE_SHEETS_DEFAULT_SHEET_NAME || '' }}" \
+            GOOGLE_CLIENT_ID_VALUE="${{ secrets.GOOGLE_CLIENT_ID || '' }}" \
+            GOOGLE_CLIENT_SECRET_VALUE="${{ secrets.GOOGLE_CLIENT_SECRET || '' }}" \
+            GOOGLE_CALLBACK_URL_VALUE="${{ secrets.GOOGLE_CALLBACK_URL || 'https://falconarena.live/auth/google/callback' }}" \
+            GITHUB_CLIENT_ID_VALUE="${{ secrets.GH_OAUTH_CLIENT_ID || '' }}" \
+            GITHUB_CLIENT_SECRET_VALUE="${{ secrets.GH_OAUTH_CLIENT_SECRET || '' }}" \
+            GITHUB_CALLBACK_URL_VALUE="${{ secrets.GITHUB_CALLBACK_URL || 'https://falconarena.live/auth/github/callback' }}" \
+            FRONTEND_OAUTH_SUCCESS_URL_VALUE="${{ secrets.FRONTEND_OAUTH_SUCCESS_URL || 'https://falconarena.live/app/oauth/callback' }}" \
+            FRONTEND_OAUTH_FAILURE_URL_VALUE="${{ secrets.FRONTEND_OAUTH_FAILURE_URL || 'https://falconarena.live/app/oauth/callback' }}" \
             python3 scripts/update-compose-env.py infra/docker-compose/.env
 
             docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docker-compose/.env up -d --build --remove-orphans
