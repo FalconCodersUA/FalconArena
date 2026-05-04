@@ -3,6 +3,7 @@ import QuietLoadingCard from '../components/QuietLoadingCard';
 import { useI18n } from '../i18n/I18nProvider';
 import { getAuthUser } from '../lib/auth';
 import { apiRequest, uploadApiFile } from '../lib/api';
+import { normalizeApiErrorMessage } from '../lib/errorMessages';
 
 type GoogleSheetsSettingsResponse = {
   webhookUrl: string;
@@ -594,9 +595,7 @@ export default function SystemIntegrationsPage() {
       }
     } catch (requestError) {
       setLoadError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('systemIntegrations.loadFailed'),
+        normalizeApiErrorMessage(requestError, t, t('systemIntegrations.loadFailed')),
       );
       setGoogleSheets(null);
       setEmailSettings(null);
@@ -637,9 +636,7 @@ export default function SystemIntegrationsPage() {
       setGoogleNotice(t('systemIntegrations.saved'));
     } catch (requestError) {
       setGoogleError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('systemIntegrations.saveFailed'),
+        normalizeApiErrorMessage(requestError, t, t('systemIntegrations.saveFailed')),
       );
     } finally {
       setGoogleSaving(false);
@@ -681,9 +678,7 @@ export default function SystemIntegrationsPage() {
       setGoogleNotice(result.message);
     } catch (requestError) {
       setGoogleError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('systemIntegrations.testFailed'),
+        normalizeApiErrorMessage(requestError, t, t('systemIntegrations.testFailed')),
       );
     } finally {
       setGoogleTesting(false);
@@ -717,9 +712,7 @@ export default function SystemIntegrationsPage() {
       setEmailNotice(t('systemIntegrations.saved'));
     } catch (requestError) {
       setEmailError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('systemIntegrations.saveFailed'),
+        normalizeApiErrorMessage(requestError, t, t('systemIntegrations.saveFailed')),
       );
     } finally {
       setEmailSaving(false);
@@ -761,9 +754,7 @@ export default function SystemIntegrationsPage() {
       setEmailNotice(result.message);
     } catch (requestError) {
       setEmailError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('systemIntegrations.testFailed'),
+        normalizeApiErrorMessage(requestError, t, t('systemIntegrations.testFailed')),
       );
     } finally {
       setEmailTesting(false);
@@ -797,9 +788,7 @@ export default function SystemIntegrationsPage() {
       setRulesNotice(t('systemIntegrations.saved'));
     } catch (requestError) {
       setRulesError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('systemIntegrations.saveFailed'),
+        normalizeApiErrorMessage(requestError, t, t('systemIntegrations.saveFailed')),
       );
     } finally {
       setRulesSaving(false);
@@ -849,9 +838,7 @@ export default function SystemIntegrationsPage() {
       setDefaultsNotice(t('systemIntegrations.saved'));
     } catch (requestError) {
       setDefaultsError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('systemIntegrations.saveFailed'),
+        normalizeApiErrorMessage(requestError, t, t('systemIntegrations.saveFailed')),
       );
     } finally {
       setDefaultsSaving(false);
@@ -879,9 +866,7 @@ export default function SystemIntegrationsPage() {
       setPlatformContentNotice(t('systemIntegrations.saved'));
     } catch (requestError) {
       setPlatformContentError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('systemIntegrations.saveFailed'),
+        normalizeApiErrorMessage(requestError, t, t('systemIntegrations.saveFailed')),
       );
     } finally {
       setPlatformContentSaving(false);
@@ -924,9 +909,11 @@ export default function SystemIntegrationsPage() {
       setPlatformContentNotice(t('systemIntegrations.platformContent.bannerUploaded'));
     } catch (requestError) {
       setPlatformContentError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('systemIntegrations.platformContent.bannerUploadFailed'),
+        normalizeApiErrorMessage(
+          requestError,
+          t,
+          t('systemIntegrations.platformContent.bannerUploadFailed'),
+        ),
       );
     } finally {
       setPlatformBannerUploading(false);
@@ -955,9 +942,11 @@ export default function SystemIntegrationsPage() {
       setPlatformReviewsNotice(t('systemIntegrations.platformReviews.saved'));
     } catch (requestError) {
       setPlatformReviewsError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('systemIntegrations.platformReviews.saveFailed'),
+        normalizeApiErrorMessage(
+          requestError,
+          t,
+          t('systemIntegrations.platformReviews.saveFailed'),
+        ),
       );
     } finally {
       setPlatformReviewsSavingId('');

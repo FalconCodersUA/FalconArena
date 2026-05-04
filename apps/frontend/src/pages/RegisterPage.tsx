@@ -4,6 +4,7 @@ import AuthSplitLayout from '../app/layout/AuthSplitLayout';
 import OAuthButtons from '../components/OAuthButtons';
 import { apiRequest } from '../lib/api';
 import { AuthUser, isAuthenticated, setAuthUser, setToken } from '../lib/auth';
+import { normalizeApiErrorMessage } from '../lib/errorMessages';
 import { useI18n } from '../i18n/I18nProvider';
 
 type RegisterResponse = {
@@ -86,7 +87,7 @@ export default function RegisterPage() {
       setAuthUser(data.user);
       navigate('/app/team', { replace: true });
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : t('register.requestFailed'));
+      setError(normalizeApiErrorMessage(requestError, t, t('register.requestFailed')));
     } finally {
       setSubmitting(false);
     }

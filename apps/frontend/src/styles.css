@@ -3124,6 +3124,22 @@ a {
   font-size: 0.9rem;
 }
 
+.profile-preferences-block .profile-toggle-row {
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.profile-preferences-block .profile-toggle-row .settings-toggle {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.profile-preferences-block .profile-toggle-row span {
+  flex: 0 1 auto;
+  max-width: 760px;
+}
+
 .integrations-toggle-list .profile-toggle-row {
   justify-content: flex-start;
   width: fit-content;

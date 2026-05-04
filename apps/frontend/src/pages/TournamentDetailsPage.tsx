@@ -4,6 +4,7 @@ import QuietLoadingCard from '../components/QuietLoadingCard';
 import TournamentSchedulePanel from '../components/TournamentSchedulePanel';
 import { apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
+import { normalizeApiErrorMessage } from '../lib/errorMessages';
 import { getAuthRole, isAuthenticated } from '../lib/auth';
 import { TournamentScheduleEvent } from '../lib/tournamentSchedule';
 import { useI18n } from '../i18n/I18nProvider';
@@ -97,9 +98,7 @@ export default function TournamentDetailsPage() {
         } catch (scheduleRequestError) {
           setScheduleEvents([]);
           setScheduleError(
-            scheduleRequestError instanceof Error
-              ? scheduleRequestError.message
-              : t('schedule.loadFailed'),
+            normalizeApiErrorMessage(scheduleRequestError, t, t('schedule.loadFailed')),
           );
         }
 
@@ -111,7 +110,7 @@ export default function TournamentDetailsPage() {
         }
       } catch (requestError) {
         setError(
-          requestError instanceof Error ? requestError.message : t('tournamentDetails.loadFailed'),
+          normalizeApiErrorMessage(requestError, t, t('tournamentDetails.loadFailed')),
         );
         setTournament(null);
         setRounds([]);
@@ -334,9 +333,7 @@ export default function TournamentDetailsPage() {
               setScheduleEvents(data);
             } catch (requestError) {
               setScheduleError(
-                requestError instanceof Error
-                  ? requestError.message
-                  : t('schedule.loadFailed'),
+                normalizeApiErrorMessage(requestError, t, t('schedule.loadFailed')),
               );
             }
           })();

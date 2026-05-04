@@ -7,15 +7,7 @@ function resolveErrorMessage(error: unknown, fallback: string) {
       return fallback;
     }
 
-    if (typeof error.data === 'string' && error.data.trim()) {
-      return error.data;
-    }
-
     return error.statusText || fallback;
-  }
-
-  if (error instanceof Error && error.message.trim()) {
-    return error.message;
   }
 
   return fallback;

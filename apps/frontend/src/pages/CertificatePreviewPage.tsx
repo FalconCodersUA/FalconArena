@@ -2,6 +2,7 @@ import { CSSProperties, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
+import { normalizeApiErrorMessage } from '../lib/errorMessages';
 import { useI18n } from '../i18n/I18nProvider';
 
 type CertificateKind = 'participation' | 'winner';
@@ -83,7 +84,7 @@ export default function CertificatePreviewPage() {
         setData(response);
       } catch (requestError) {
         setError(
-          requestError instanceof Error ? requestError.message : t('certificatePage.loadFailed'),
+          normalizeApiErrorMessage(requestError, t, t('certificatePage.loadFailed')),
         );
         setData(null);
       } finally {

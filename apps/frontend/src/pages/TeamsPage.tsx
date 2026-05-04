@@ -5,6 +5,7 @@ import QuietLoadingInline from '../components/QuietLoadingInline';
 import { useI18n } from '../i18n/I18nProvider';
 import { apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
+import { normalizeApiErrorMessage } from '../lib/errorMessages';
 
 const ALL_TOURNAMENTS_VALUE = 'all';
 
@@ -72,7 +73,7 @@ export default function TeamsPage() {
         data[0].id;
       setSelectedTournamentId((current) => current || defaultId);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : t('teamsPage.loadFailed'));
+      setError(normalizeApiErrorMessage(requestError, t, t('teamsPage.loadFailed')));
       setTournaments([]);
       setSelectedTournamentId('');
       setTeams([]);
@@ -91,7 +92,7 @@ export default function TeamsPage() {
       const data = await apiRequest<TeamRow[]>(endpoint);
       setTeams(data);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : t('teamsPage.loadFailed'));
+      setError(normalizeApiErrorMessage(requestError, t, t('teamsPage.loadFailed')));
       setTeams([]);
     } finally {
       setLoadingTeams(false);

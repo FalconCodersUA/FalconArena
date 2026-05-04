@@ -4,6 +4,7 @@ import QuietLoadingCard from '../components/QuietLoadingCard';
 import QuietLoadingInline from '../components/QuietLoadingInline';
 import { apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
+import { normalizeApiErrorMessage } from '../lib/errorMessages';
 import { useI18n } from '../i18n/I18nProvider';
 
 type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
@@ -110,18 +111,6 @@ function ensureListResponse<T>(value: unknown, errorMessage: string): T[] {
   }
 
   return value as T[];
-}
-
-function normalizeRequestError(requestError: unknown, fallbackMessage: string) {
-  if (!(requestError instanceof Error)) {
-    return fallbackMessage;
-  }
-
-  if (/failed to fetch/i.test(requestError.message.trim())) {
-    return fallbackMessage;
-  }
-
-  return requestError.message;
 }
 
 function initialsFromName(fullName: string) {
@@ -267,7 +256,7 @@ export default function MessagesPage() {
       setNotifications(data);
     } catch (requestError) {
       setNotificationsError(
-        normalizeRequestError(requestError, t('messagesPage.notifications.loadFailed')),
+        normalizeApiErrorMessage(requestError, t, t('messagesPage.notifications.loadFailed')),
       );
     }
   }
@@ -319,7 +308,7 @@ export default function MessagesPage() {
         setAnnouncements(data);
       }
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : t('messagesPage.loadFailed'));
+      setError(normalizeApiErrorMessage(requestError, t, t('messagesPage.loadFailed')));
     } finally {
       if (showRefreshing) {
         setRefreshing(false);
@@ -357,7 +346,7 @@ export default function MessagesPage() {
       });
     } catch (requestError) {
       setDialogsError(
-        requestError instanceof Error ? requestError.message : t('messagesPage.dialogs.loadFailed'),
+        normalizeApiErrorMessage(requestError, t, t('messagesPage.dialogs.loadFailed')),
       );
     } finally {
       if (showLoading) {
@@ -395,9 +384,11 @@ export default function MessagesPage() {
       );
     } catch (requestError) {
       setDialogMessagesError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('messagesPage.dialogs.messagesLoadFailed'),
+        normalizeApiErrorMessage(
+          requestError,
+          t,
+          t('messagesPage.dialogs.messagesLoadFailed'),
+        ),
       );
       setDialogMessages([]);
     } finally {
@@ -427,7 +418,7 @@ export default function MessagesPage() {
       setDialogs([]);
       setSelectedDialogId('');
       setDialogMessages([]);
-      setError(requestError instanceof Error ? requestError.message : t('messagesPage.loadFailed'));
+      setError(normalizeApiErrorMessage(requestError, t, t('messagesPage.loadFailed')));
     } finally {
       setLoading(false);
     }
@@ -636,7 +627,7 @@ export default function MessagesPage() {
         await loadAnnouncements(me.role, includeInactive, false);
       }
     } catch (requestError) {
-      setManagerError(requestError instanceof Error ? requestError.message : t('messagesPage.saveFailed'));
+      setManagerError(normalizeApiErrorMessage(requestError, t, t('messagesPage.saveFailed')));
     } finally {
       setSaving(false);
     }
@@ -657,7 +648,7 @@ export default function MessagesPage() {
       );
       setNotice(t('messagesPage.updated'));
     } catch (requestError) {
-      setManagerError(requestError instanceof Error ? requestError.message : t('messagesPage.saveFailed'));
+      setManagerError(normalizeApiErrorMessage(requestError, t, t('messagesPage.saveFailed')));
     } finally {
       setPendingActionId('');
     }
@@ -678,7 +669,7 @@ export default function MessagesPage() {
       );
       setNotice(t('messagesPage.updated'));
     } catch (requestError) {
-      setManagerError(requestError instanceof Error ? requestError.message : t('messagesPage.saveFailed'));
+      setManagerError(normalizeApiErrorMessage(requestError, t, t('messagesPage.saveFailed')));
     } finally {
       setPendingActionId('');
     }
@@ -717,9 +708,7 @@ export default function MessagesPage() {
       await loadDialogMessages(created.id, false);
     } catch (requestError) {
       setDialogMessagesError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('messagesPage.dialogs.createFailed'),
+        normalizeApiErrorMessage(requestError, t, t('messagesPage.dialogs.createFailed')),
       );
     } finally {
       setDialogActionLoading(false);
@@ -770,9 +759,7 @@ export default function MessagesPage() {
       setDialogNotice(t('messagesPage.dialogs.sent'));
     } catch (requestError) {
       setDialogMessagesError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('messagesPage.dialogs.sendFailed'),
+        normalizeApiErrorMessage(requestError, t, t('messagesPage.dialogs.sendFailed')),
       );
     } finally {
       setDialogActionLoading(false);

@@ -6,6 +6,7 @@ import QuietLoadingInline from '../components/QuietLoadingInline';
 import TournamentSchedulePanel from '../components/TournamentSchedulePanel';
 import { ApiError, apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
+import { normalizeApiErrorMessage } from '../lib/errorMessages';
 import { TournamentScheduleEvent } from '../lib/tournamentSchedule';
 import { useI18n } from '../i18n/I18nProvider';
 
@@ -467,9 +468,7 @@ export default function TeamDashboardPage() {
       }
     } catch (requestError) {
       setError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('teamDashboard.loadFailed'),
+        normalizeApiErrorMessage(requestError, t, t('teamDashboard.loadFailed')),
       );
     } finally {
       setLoading(false);
@@ -491,9 +490,7 @@ export default function TeamDashboardPage() {
         setTeam(null);
       } else {
         setTeamError(
-          requestError instanceof Error
-            ? requestError.message
-            : t('teamDashboard.teamLoadFailed'),
+          normalizeApiErrorMessage(requestError, t, t('teamDashboard.teamLoadFailed')),
         );
       }
     } finally {
@@ -527,9 +524,11 @@ export default function TeamDashboardPage() {
           applySubmissionDraft(null);
         } else {
           setSubmissionError(
-            requestError instanceof Error
-              ? requestError.message
-              : t('teamDashboard.submissionLoadFailed'),
+            normalizeApiErrorMessage(
+              requestError,
+              t,
+              t('teamDashboard.submissionLoadFailed'),
+            ),
           );
         }
       }
@@ -537,9 +536,7 @@ export default function TeamDashboardPage() {
       setActiveRound(null);
       applySubmissionDraft(null);
       setSubmissionError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('teamDashboard.roundLoadFailed'),
+        normalizeApiErrorMessage(requestError, t, t('teamDashboard.roundLoadFailed')),
       );
     } finally {
       setSubmissionLoading(false);
@@ -558,7 +555,7 @@ export default function TeamDashboardPage() {
     } catch (requestError) {
       setScheduleEvents([]);
       setScheduleError(
-        requestError instanceof Error ? requestError.message : t('schedule.loadFailed'),
+        normalizeApiErrorMessage(requestError, t, t('schedule.loadFailed')),
       );
     } finally {
       setScheduleLoading(false);
@@ -720,10 +717,11 @@ export default function TeamDashboardPage() {
       await loadDashboardMetrics(selectedTournamentId);
       notifySuccess(t('teamDashboard.registrationSuccess'));
     } catch (requestError) {
-      const message =
-        requestError instanceof Error
-          ? requestError.message
-          : t('teamDashboard.registrationFailed');
+      const message = normalizeApiErrorMessage(
+        requestError,
+        t,
+        t('teamDashboard.registrationFailed'),
+      );
       setTeamError(message);
       notifyError(message);
     } finally {
@@ -793,10 +791,11 @@ export default function TeamDashboardPage() {
       await loadDashboardMetrics(selectedTournamentId || undefined);
       notifySuccess(t('teamDashboard.submissionSaved'));
     } catch (requestError) {
-      const message =
-        requestError instanceof Error
-          ? requestError.message
-          : t('teamDashboard.submissionSaveFailed');
+      const message = normalizeApiErrorMessage(
+        requestError,
+        t,
+        t('teamDashboard.submissionSaveFailed'),
+      );
       setSubmissionError(message);
       notifyError(message);
     } finally {
