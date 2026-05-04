@@ -12,7 +12,8 @@ import {
   isAuthenticated,
   setAuthUser,
 } from '../../lib/auth';
-import { setSystemDefaultTimeZone } from '../../lib/dateTime';
+import { formatDateTime, setSystemDefaultTimeZone } from '../../lib/dateTime';
+import { normalizeApiErrorMessage } from '../../lib/errorMessages';
 
 type MeResponse = {
   id: string;
@@ -27,7 +28,7 @@ type TopbarNotification = {
   title: string;
   body: string;
   linkUrl: string | null;
-  createdAt: string;
+  createdAt: string | null;
   isUnread: boolean;
 };
 
@@ -100,9 +101,21 @@ function setCachedProfileAvatar(userId: string, avatarUrl: string) {
   }
 }
 
-function toTimestamp(value: string) {
+function toTimestamp(value: string | null | undefined) {
+  if (!value) {
+    return 0;
+  }
+
   const parsed = new Date(value).getTime();
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatTopbarNotificationDate(value: string | null | undefined, language: string) {
+  if (!value || toTimestamp(value) === 0) {
+    return '-';
+  }
+
+  return formatDateTime(value, language);
 }
 
 function initialsFromName(fullName: string | undefined, fallback = 'FA') {
@@ -641,7 +654,7 @@ export default function AppShell() {
         setUnreadAlertsCount(unreadCount);
       }
     } catch (requestError) {
-      setAlertsError(requestError instanceof Error ? requestError.message : t('messagesPage.loadFailed'));
+      setAlertsError(normalizeApiErrorMessage(requestError, t, t('messagesPage.loadFailed')));
       setAlerts([]);
       setUnreadAlertIds([]);
       setUnreadAlertsCount(0);
@@ -1198,7 +1211,7 @@ export default function AppShell() {
                             <strong>{item.title}</strong>
                             <p>{item.body}</p>
                             <div className="app-alert-meta">
-                              <span>{new Date(item.createdAt).toLocaleString(language === 'uk' ? 'uk-UA' : 'en-US')}</span>
+                              <span>{formatTopbarNotificationDate(item.createdAt, language)}</span>
                               <button
                                 type="button"
                                 className="app-alert-meta-btn"

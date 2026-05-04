@@ -4,6 +4,7 @@ import AuthSplitLayout from '../app/layout/AuthSplitLayout';
 import OAuthButtons from '../components/OAuthButtons';
 import { ApiError, apiRequest } from '../lib/api';
 import { AuthUser, isAuthenticated, setAuthUser, setToken } from '../lib/auth';
+import { normalizeApiErrorMessage } from '../lib/errorMessages';
 import { useI18n } from '../i18n/I18nProvider';
 
 type LoginResponse = {
@@ -69,9 +70,7 @@ export default function LoginPage() {
         return;
       }
 
-      setError(
-        requestError instanceof Error ? requestError.message : t('login.requestFailed'),
-      );
+      setError(normalizeApiErrorMessage(requestError, t, t('login.requestFailed')));
     } finally {
       setSubmitting(false);
     }

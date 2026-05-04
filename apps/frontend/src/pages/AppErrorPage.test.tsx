@@ -40,7 +40,12 @@ describe('AppErrorPage', () => {
     renderWithError(new Error('Team workspace failed to load'));
 
     expect(await screen.findByText('Something went wrong')).toBeInTheDocument();
-    expect(screen.getByText('Team workspace failed to load')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'The platform hit an unexpected error. Open the workspace again or jump back to the tournament hub.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Team workspace failed to load')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Go to tournaments' })).toBeInTheDocument();
   });
 });

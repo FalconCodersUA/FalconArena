@@ -6,6 +6,7 @@ import QuietLoadingInline from '../components/QuietLoadingInline';
 import TournamentSchedulePanel from '../components/TournamentSchedulePanel';
 import { ApiError, apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
+import { normalizeApiErrorMessage } from '../lib/errorMessages';
 import { TournamentScheduleEvent } from '../lib/tournamentSchedule';
 import { useI18n } from '../i18n/I18nProvider';
 
@@ -335,9 +336,7 @@ export default function JuryDashboardPage() {
       }
     } catch (requestError) {
       setError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('juryDashboard.loadFailed'),
+        normalizeApiErrorMessage(requestError, t, t('juryDashboard.loadFailed')),
       );
     } finally {
       setLoading(false);
@@ -366,9 +365,7 @@ export default function JuryDashboardPage() {
     } catch (requestError) {
       setRounds([]);
       setRoundsError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('juryDashboard.roundsLoadFailed'),
+        normalizeApiErrorMessage(requestError, t, t('juryDashboard.roundsLoadFailed')),
       );
     } finally {
       setRoundsLoading(false);
@@ -400,9 +397,7 @@ export default function JuryDashboardPage() {
         setSelectedAssignmentId('');
       } else {
         setAssignmentsError(
-          requestError instanceof Error
-            ? requestError.message
-            : t('juryDashboard.assignmentsLoadFailed'),
+          normalizeApiErrorMessage(requestError, t, t('juryDashboard.assignmentsLoadFailed')),
         );
       }
     } finally {
@@ -422,7 +417,7 @@ export default function JuryDashboardPage() {
     } catch (requestError) {
       setScheduleEvents([]);
       setScheduleError(
-        requestError instanceof Error ? requestError.message : t('schedule.loadFailed'),
+        normalizeApiErrorMessage(requestError, t, t('schedule.loadFailed')),
       );
     } finally {
       setScheduleLoading(false);
@@ -527,10 +522,11 @@ export default function JuryDashboardPage() {
       ]);
       notifySuccess(t('juryDashboard.saved'));
     } catch (requestError) {
-      const message =
-        requestError instanceof Error
-          ? requestError.message
-          : t('juryDashboard.saveFailed');
+      const message = normalizeApiErrorMessage(
+        requestError,
+        t,
+        t('juryDashboard.saveFailed'),
+      );
       setAssignmentsError(message);
       notifyError(message);
     } finally {

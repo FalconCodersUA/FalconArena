@@ -5,6 +5,7 @@ import QuietLoadingCard from '../components/QuietLoadingCard';
 import QuietLoadingInline from '../components/QuietLoadingInline';
 import { apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
+import { normalizeApiErrorMessage } from '../lib/errorMessages';
 import {
   TournamentScheduleEvent,
   TournamentScheduleEventType,
@@ -669,9 +670,7 @@ export default function AdminDashboardPage() {
     } catch (requestError) {
       setRounds([]);
       setRoundsError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('adminDashboard.roundsLoadFailed'),
+        normalizeApiErrorMessage(requestError, t, t('adminDashboard.roundsLoadFailed')),
       );
     } finally {
       setRoundsLoading(false);
@@ -689,9 +688,7 @@ export default function AdminDashboardPage() {
     } catch (requestError) {
       setScheduleEvents([]);
       setScheduleError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('schedule.loadFailed'),
+        normalizeApiErrorMessage(requestError, t, t('schedule.loadFailed')),
       );
     } finally {
       setScheduleLoading(false);
@@ -738,9 +735,7 @@ export default function AdminDashboardPage() {
       }
     } catch (requestError) {
       setError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('adminDashboard.loadFailed'),
+        normalizeApiErrorMessage(requestError, t, t('adminDashboard.loadFailed')),
       );
     } finally {
       setLoading(false);
@@ -752,6 +747,9 @@ export default function AdminDashboardPage() {
   }, []);
 
   useEffect(() => {
+    setStatusError('');
+    setStatusNotice('');
+
     if (!selectedTournamentId || !roleAllowed) {
       setRounds([]);
       setScheduleEvents([]);
@@ -833,10 +831,11 @@ export default function AdminDashboardPage() {
       await loadActivityFeed(selectedTournamentId || undefined);
       closeQuickModal();
     } catch (requestError) {
-      const message =
-        requestError instanceof Error
-          ? requestError.message
-          : t('adminDashboard.createTournamentFailed');
+      const message = normalizeApiErrorMessage(
+        requestError,
+        t,
+        t('adminDashboard.createTournamentFailed'),
+      );
       setCreateTournamentError(message);
       notifyError(message);
     } finally {
@@ -867,10 +866,11 @@ export default function AdminDashboardPage() {
         loadActivityFeed(selectedTournamentId),
       ]);
     } catch (requestError) {
-      const message =
-        requestError instanceof Error
-          ? requestError.message
-          : t('adminDashboard.tournamentStatusFailed');
+      const message = normalizeApiErrorMessage(
+        requestError,
+        t,
+        t('adminDashboard.tournamentStatusFailed'),
+      );
       setStatusError(message);
       notifyError(message);
     } finally {
@@ -939,10 +939,11 @@ export default function AdminDashboardPage() {
       await loadDashboardMetrics(selectedTournamentId);
       closeQuickModal();
     } catch (requestError) {
-      const message =
-        requestError instanceof Error
-          ? requestError.message
-          : t('adminDashboard.createRoundFailed');
+      const message = normalizeApiErrorMessage(
+        requestError,
+        t,
+        t('adminDashboard.createRoundFailed'),
+      );
       setCreateRoundError(message);
       notifyError(message);
     } finally {
@@ -1014,8 +1015,11 @@ export default function AdminDashboardPage() {
       await loadActivityFeed(selectedTournamentId || undefined);
       closeQuickModal();
     } catch (requestError) {
-      const message =
-        requestError instanceof Error ? requestError.message : t('adminDashboard.createUserFailed');
+      const message = normalizeApiErrorMessage(
+        requestError,
+        t,
+        t('adminDashboard.createUserFailed'),
+      );
       setCreateUserError(message);
       notifyError(message);
     } finally {
@@ -1046,10 +1050,11 @@ export default function AdminDashboardPage() {
         loadActivityFeed(selectedTournamentId),
       ]);
     } catch (requestError) {
-      const message =
-        requestError instanceof Error
-          ? requestError.message
-          : t('adminDashboard.roundStatusFailed');
+      const message = normalizeApiErrorMessage(
+        requestError,
+        t,
+        t('adminDashboard.roundStatusFailed'),
+      );
       updateRoundOperationState(roundId, {
         loading: false,
         error: message,
@@ -1137,10 +1142,11 @@ export default function AdminDashboardPage() {
       setScheduleOp({ loading: false, error: '', notice });
       notifySuccess(notice);
     } catch (requestError) {
-      const message =
-        requestError instanceof Error
-          ? requestError.message
-          : t('adminDashboard.schedule.saveFailed');
+      const message = normalizeApiErrorMessage(
+        requestError,
+        t,
+        t('adminDashboard.schedule.saveFailed'),
+      );
       setScheduleOp({ loading: false, error: message, notice: '' });
       notifyError(message);
     }
@@ -1168,10 +1174,11 @@ export default function AdminDashboardPage() {
       setScheduleOp({ loading: false, error: '', notice });
       notifySuccess(notice);
     } catch (requestError) {
-      const message =
-        requestError instanceof Error
-          ? requestError.message
-          : t('adminDashboard.schedule.deleteFailed');
+      const message = normalizeApiErrorMessage(
+        requestError,
+        t,
+        t('adminDashboard.schedule.deleteFailed'),
+      );
       setScheduleOp({ loading: false, error: message, notice: '' });
       notifyError(message);
     }
@@ -1212,10 +1219,11 @@ export default function AdminDashboardPage() {
         loadActivityFeed(selectedTournamentId || undefined),
       ]);
     } catch (requestError) {
-      const message =
-        requestError instanceof Error
-          ? requestError.message
-          : t('adminDashboard.distributeFailed');
+      const message = normalizeApiErrorMessage(
+        requestError,
+        t,
+        t('adminDashboard.distributeFailed'),
+      );
       updateRoundOperationState(roundId, {
         loading: false,
         error: message,
@@ -1247,10 +1255,11 @@ export default function AdminDashboardPage() {
       }
       await loadDashboardMetrics(selectedTournamentId || undefined);
     } catch (requestError) {
-      const message =
-        requestError instanceof Error
-          ? requestError.message
-          : t('adminDashboard.finishEvaluationFailed');
+      const message = normalizeApiErrorMessage(
+        requestError,
+        t,
+        t('adminDashboard.finishEvaluationFailed'),
+      );
       updateRoundOperationState(roundId, {
         loading: false,
         error: message,
@@ -1325,7 +1334,7 @@ export default function AdminDashboardPage() {
               </div>
               <strong>{runningTournaments}</strong>
               <div className="dashboard-tile-foot">
-                <a href="#admin-manage-tournament">{t('shell.viewAll')}</a>
+                <a href="#admin-manage-tournament">{t('adminDashboard.summary.openTournament')}</a>
                 <span>
                   +{runningDelta} {t('shell.thisMonth')}
                 </span>
@@ -1338,7 +1347,7 @@ export default function AdminDashboardPage() {
               </div>
               <strong>{metrics.summary.tournamentsTotal}</strong>
               <div className="dashboard-tile-foot">
-                <a href="#admin-rounds">{t('shell.viewAll')}</a>
+                <a href="#admin-rounds">{t('adminDashboard.summary.openRounds')}</a>
                 <span>
                   +{totalDelta} {t('shell.thisMonth')}
                 </span>

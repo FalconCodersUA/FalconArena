@@ -5,6 +5,7 @@ import QuietLoadingInline from '../components/QuietLoadingInline';
 import { useI18n } from '../i18n/I18nProvider';
 import { getAuthRole, isAuthenticated } from '../lib/auth';
 import { apiRequest, buildApiUrl } from '../lib/api';
+import { normalizeApiErrorMessage } from '../lib/errorMessages';
 
 type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
 
@@ -179,7 +180,7 @@ export default function LeaderboardPage() {
       });
     } catch (requestError) {
       setTournamentsError(
-        requestError instanceof Error ? requestError.message : t('leaderboard.loadTournamentsFailed'),
+        normalizeApiErrorMessage(requestError, t, t('leaderboard.loadTournamentsFailed')),
       );
       setTournaments([]);
       setSelectedTournamentId('');
@@ -203,7 +204,7 @@ export default function LeaderboardPage() {
       setLastUpdatedAt(new Date().toISOString());
     } catch (requestError) {
       setLeaderboardError(
-        requestError instanceof Error ? requestError.message : t('leaderboard.loadLeaderboardFailed'),
+        normalizeApiErrorMessage(requestError, t, t('leaderboard.loadLeaderboardFailed')),
       );
       setLeaderboard(null);
     } finally {
@@ -239,9 +240,7 @@ export default function LeaderboardPage() {
       }
     } catch (requestError) {
       setGoogleSheetsError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('leaderboard.exportGoogleSheetsFailed'),
+        normalizeApiErrorMessage(requestError, t, t('leaderboard.exportGoogleSheetsFailed')),
       );
     } finally {
       setIsExportingGoogleSheets(false);

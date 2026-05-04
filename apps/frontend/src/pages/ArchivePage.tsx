@@ -6,6 +6,7 @@ import { useI18n } from '../i18n/I18nProvider';
 import { getAuthRole, isAuthenticated } from '../lib/auth';
 import { apiRequest, buildApiUrl } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
+import { normalizeApiErrorMessage } from '../lib/errorMessages';
 
 type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
 type RoundStatus = 'DRAFT' | 'ACTIVE' | 'SUBMISSION_CLOSED' | 'EVALUATED';
@@ -261,9 +262,7 @@ export default function ArchivePage() {
       });
     } catch (requestError) {
       setTournamentsError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('archivePage.loadTournamentsFailed'),
+        normalizeApiErrorMessage(requestError, t, t('archivePage.loadTournamentsFailed')),
       );
       setTournaments([]);
       setSelectedTournamentId('');
@@ -282,7 +281,7 @@ export default function ArchivePage() {
       setArchive(data);
     } catch (requestError) {
       setArchiveError(
-        requestError instanceof Error ? requestError.message : t('archivePage.loadArchiveFailed'),
+        normalizeApiErrorMessage(requestError, t, t('archivePage.loadArchiveFailed')),
       );
       setArchive(null);
     } finally {
@@ -307,9 +306,11 @@ export default function ArchivePage() {
       setCertificateTemplate(data);
     } catch (requestError) {
       setTemplateError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('archivePage.certificates.loadTemplateFailed'),
+        normalizeApiErrorMessage(
+          requestError,
+          t,
+          t('archivePage.certificates.loadTemplateFailed'),
+        ),
       );
       setCertificateTemplate(null);
     } finally {
@@ -361,9 +362,7 @@ export default function ArchivePage() {
       setTemplateNotice(t('archivePage.certificates.saved'));
     } catch (requestError) {
       setTemplateError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('archivePage.certificates.saveFailed'),
+        normalizeApiErrorMessage(requestError, t, t('archivePage.certificates.saveFailed')),
       );
     } finally {
       setSavingTemplate(false);
@@ -396,9 +395,7 @@ export default function ArchivePage() {
       }
     } catch (requestError) {
       setGoogleSheetsError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('archivePage.exportGoogleSheetsFailed'),
+        normalizeApiErrorMessage(requestError, t, t('archivePage.exportGoogleSheetsFailed')),
       );
     } finally {
       setExportingGoogleSheets(false);

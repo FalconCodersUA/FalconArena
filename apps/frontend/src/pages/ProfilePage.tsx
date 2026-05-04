@@ -4,6 +4,7 @@ import { useNotifications } from '../app/notifications/NotificationsProvider';
 import QuietLoadingCard from '../components/QuietLoadingCard';
 import { ApiError, apiRequest, resolveApiAssetUrl } from '../lib/api';
 import { formatDateTime, setPreferredTimeZone } from '../lib/dateTime';
+import { normalizeApiErrorMessage } from '../lib/errorMessages';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/messages';
 
@@ -587,7 +588,7 @@ export default function ProfilePage() {
         setActivityEntries([]);
       }
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : t('profile.loadFailed'));
+      setError(normalizeApiErrorMessage(requestError, t, t('profile.loadFailed')));
       setSummary(null);
       setMe(null);
       setActivityEntries([]);
@@ -715,8 +716,7 @@ export default function ProfilePage() {
         setSecurityNewPassword('');
       }
     } catch (requestError) {
-      const message =
-        requestError instanceof Error ? requestError.message : t('profile.loadFailed');
+      const message = normalizeApiErrorMessage(requestError, t, t('profile.loadFailed'));
       setSettingsError(message);
       notifyError(message);
     } finally {
@@ -741,6 +741,9 @@ export default function ProfilePage() {
       : summary.kind === 'JURY'
         ? t('profile.workspaceStatus.jury')
         : t('profile.workspaceStatus.admin');
+
+  const profileWorkspaceStatusLead =
+    !summary ? t('profile.workspaceStatusLead.ADMIN') : t(`profile.workspaceStatusLead.${summary.kind}`);
 
   const profileWorkspaceLead =
     !summary
@@ -1075,7 +1078,7 @@ export default function ProfilePage() {
           <div className="dashboard-workspace-status profile-workspace-status">
             <span>{profileWorkspacePrimaryLabel}</span>
             <strong>{profileWorkspacePrimaryValue}</strong>
-            <p>{t('profile.workspaceStatusLead')}</p>
+            <p>{profileWorkspaceStatusLead}</p>
           </div>
         </div>
 
@@ -1209,11 +1212,6 @@ export default function ProfilePage() {
             </div>
           </div>
         ) : null}
-
-        <div className="state-callout subtle">
-          <strong>{t('profile.nextStepTitle')}</strong>
-          <p>{t(`profile.nextStep.${summary.kind}`)}</p>
-        </div>
       </article>
 
       <article className="card panel-card">

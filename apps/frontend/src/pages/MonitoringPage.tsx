@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import QuietLoadingCard from '../components/QuietLoadingCard';
 import { useI18n } from '../i18n/I18nProvider';
 import { apiRequest } from '../lib/api';
+import { normalizeApiErrorMessage } from '../lib/errorMessages';
 
 type ErrorReport = {
   id: string;
@@ -82,9 +83,7 @@ export default function MonitoringPage() {
       setGoogleSheets(googleData);
       setEmailSettings(emailData);
     } catch (requestError) {
-      setError(
-        requestError instanceof Error ? requestError.message : t('monitoring.loadFailed'),
-      );
+      setError(normalizeApiErrorMessage(requestError, t, t('monitoring.loadFailed')));
       if (!keepContent) {
         setReports([]);
         setGoogleSheets(null);

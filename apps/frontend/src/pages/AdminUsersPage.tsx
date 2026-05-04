@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import QuietLoadingCard from '../components/QuietLoadingCard';
 import { apiRequest, buildApiUrl } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
+import { normalizeApiErrorMessage } from '../lib/errorMessages';
 import { getAuthUser, getToken, type AuthRole } from '../lib/auth';
 import { useI18n } from '../i18n/I18nProvider';
 
@@ -104,7 +105,7 @@ export default function AdminUsersPage() {
       );
     } catch (requestError) {
       setError(
-        requestError instanceof Error ? requestError.message : t('adminDashboard.adminUsers.loadFailed'),
+        normalizeApiErrorMessage(requestError, t, t('adminDashboard.adminUsers.loadFailed')),
       );
     } finally {
       if (showLoading) {
@@ -190,9 +191,7 @@ export default function AdminUsersPage() {
       URL.revokeObjectURL(downloadUrl);
     } catch (requestError) {
       setError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('adminDashboard.adminUsers.exportFailed'),
+        normalizeApiErrorMessage(requestError, t, t('adminDashboard.adminUsers.exportFailed')),
       );
     } finally {
       setExportingCsv(false);
@@ -267,9 +266,7 @@ export default function AdminUsersPage() {
       closeCreateUserModal();
     } catch (requestError) {
       setCreateUserError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('adminDashboard.createUserFailed'),
+        normalizeApiErrorMessage(requestError, t, t('adminDashboard.createUserFailed')),
       );
     } finally {
       setCreateUserLoading(false);
@@ -302,7 +299,7 @@ export default function AdminUsersPage() {
       );
     } catch (requestError) {
       setError(
-        requestError instanceof Error ? requestError.message : t('adminDashboard.adminUsers.updateFailed'),
+        normalizeApiErrorMessage(requestError, t, t('adminDashboard.adminUsers.updateFailed')),
       );
     } finally {
       setSavingRoleUserId('');
@@ -346,7 +343,7 @@ export default function AdminUsersPage() {
       closeBlockUserModal();
     } catch (requestError) {
       setBlockReasonError(
-        requestError instanceof Error ? requestError.message : t('adminDashboard.adminUsers.updateFailed'),
+        normalizeApiErrorMessage(requestError, t, t('adminDashboard.adminUsers.updateFailed')),
       );
     } finally {
       setTogglingBlockUserId('');
@@ -382,7 +379,7 @@ export default function AdminUsersPage() {
       );
     } catch (requestError) {
       setError(
-        requestError instanceof Error ? requestError.message : t('adminDashboard.adminUsers.updateFailed'),
+        normalizeApiErrorMessage(requestError, t, t('adminDashboard.adminUsers.updateFailed')),
       );
     } finally {
       setTogglingBlockUserId('');

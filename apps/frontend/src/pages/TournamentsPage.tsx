@@ -5,6 +5,7 @@ import QuietLoadingCard from '../components/QuietLoadingCard';
 import { isAuthenticated } from '../lib/auth';
 import { ApiError, apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
+import { normalizeApiErrorMessage } from '../lib/errorMessages';
 import { useI18n } from '../i18n/I18nProvider';
 
 type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
@@ -164,7 +165,7 @@ export default function TournamentsPage() {
     } catch (requestError) {
       setQuickData(null);
       setQuickError(
-        requestError instanceof Error ? requestError.message : t('tournaments.quickBlock.loadFailed'),
+        normalizeApiErrorMessage(requestError, t, t('tournaments.quickBlock.loadFailed')),
       );
     } finally {
       setQuickLoading(false);
@@ -181,9 +182,7 @@ export default function TournamentsPage() {
       void loadQuickTeamBlock(data);
     } catch (requestError) {
       setError(
-        requestError instanceof Error
-          ? requestError.message
-          : t('tournaments.requestFailed'),
+        normalizeApiErrorMessage(requestError, t, t('tournaments.requestFailed')),
       );
       setQuickRole(null);
       setQuickData(null);
@@ -317,7 +316,7 @@ export default function TournamentsPage() {
           <button
             type="button"
             className="dashboard-tool-card dashboard-tool-card--orange dashboard-tool-button"
-            onClick={() => setFilter('finished')}
+            onClick={() => applyFilterAndScroll('finished')}
           >
             <span>{t('tournaments.filters.finished')}</span>
             <strong>{t('tournaments.workspaceCards.archiveTitle')}</strong>
