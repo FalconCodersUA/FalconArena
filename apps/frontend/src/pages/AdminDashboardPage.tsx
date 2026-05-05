@@ -122,6 +122,8 @@ type AdminActivityFeedItem = {
   accent: 'purple' | 'teal' | 'orange' | 'cobalt';
 };
 
+const ADMIN_WORKSPACE_EXPANDED_KEY = 'falconarena_admin_workspace_expanded';
+
 type AuditActivityEntry = {
   id: string;
   actorName: string | null;
@@ -469,6 +471,9 @@ export default function AdminDashboardPage() {
   const [userRole, setUserRole] = useState<ManagedUserRole>('JURY');
   const [quickModal, setQuickModal] = useState<AdminQuickModal>('none');
   const [activityFeedEntries, setActivityFeedEntries] = useState<AuditActivityEntry[]>([]);
+  const [isWorkspaceExpanded, setIsWorkspaceExpanded] = useState(() => {
+    return localStorage.getItem(ADMIN_WORKSPACE_EXPANDED_KEY) === 'true';
+  });
 
   const selectedTournament =
     tournaments.find((entry) => entry.id === selectedTournamentId) ?? null;
@@ -789,6 +794,14 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     void loadInitial();
   }, []);
+
+  function toggleWorkspaceExpanded() {
+    setIsWorkspaceExpanded((current) => {
+      const next = !current;
+      localStorage.setItem(ADMIN_WORKSPACE_EXPANDED_KEY, String(next));
+      return next;
+    });
+  }
 
   useEffect(() => {
     setStatusError('');
@@ -1628,28 +1641,55 @@ export default function AdminDashboardPage() {
 
       </article>
 
-      <article className="card panel-card dashboard-workspace-card">
+      <article
+        className={`card panel-card dashboard-workspace-card dashboard-workspace-collapsible${
+          isWorkspaceExpanded ? ' is-expanded' : ''
+        }`}
+      >
         <div className="dashboard-workspace-head">
           <div className="dashboard-workspace-copy">
             <p className="eyebrow dashboard-workspace-eyebrow">
               {t('adminDashboard.workspaceEyebrow')}
             </p>
-            <h2>{t('adminDashboard.workspaceTitle')}</h2>
+            <div className="dashboard-workspace-title-row">
+              <span className="dashboard-workspace-info-icon" aria-hidden>
+                i
+              </span>
+              <h2>{t('adminDashboard.workspaceTitle')}</h2>
+            </div>
             <p>{t('adminDashboard.workspaceLead')}</p>
           </div>
 
-          <div className="dashboard-workspace-status admin-workspace-status">
-            <span>{t('adminDashboard.focusTitle')}</span>
-            <strong>
-              {selectedTournament?.title ?? t('adminDashboard.workspaceNoTournament')}
-            </strong>
-            <p>
-              {selectedTournament
-                ? `${t(`tournaments.status.${selectedTournament.status}`)} · ${rounds.length} ${t('adminDashboard.summary.rounds').toLowerCase()}`
-                : t('adminDashboard.focusEmpty')}
-            </p>
-          </div>
+          <button
+            type="button"
+            className="button button-soft dashboard-workspace-toggle"
+            aria-expanded={isWorkspaceExpanded}
+            onClick={toggleWorkspaceExpanded}
+          >
+            <span>
+              {isWorkspaceExpanded
+                ? t('adminDashboard.workspaceCollapse')
+                : t('adminDashboard.workspaceExpand')}
+            </span>
+            <svg viewBox="0 0 20 20" aria-hidden>
+              <path d="M5.5 7.5 10 12l4.5-4.5" />
+            </svg>
+          </button>
         </div>
+
+        {isWorkspaceExpanded ? (
+          <>
+            <div className="dashboard-workspace-status admin-workspace-status">
+              <span>{t('adminDashboard.focusTitle')}</span>
+              <strong>
+                {selectedTournament?.title ?? t('adminDashboard.workspaceNoTournament')}
+              </strong>
+              <p>
+                {selectedTournament
+                  ? `${t(`tournaments.status.${selectedTournament.status}`)} · ${rounds.length} ${t('adminDashboard.summary.rounds').toLowerCase()}`
+                  : t('adminDashboard.focusEmpty')}
+              </p>
+            </div>
 
         <div className="dashboard-workspace-grid">
           <article className="dashboard-insight-card">
@@ -1796,6 +1836,8 @@ export default function AdminDashboardPage() {
             ))}
           </div>
         </article>
+          </>
+        ) : null}
       </article>
 
       <article id="admin-manage-tournament" className="card panel-card">
