@@ -1891,27 +1891,31 @@ export default function AdminDashboardPage() {
         {tournamentJury && tournamentJury.candidates.length > 0 ? (
           <>
             <div className="admin-jury-grid">
-              {tournamentJury.candidates.map((jury) => (
-                <label
-                  key={jury.id}
-                  className="admin-jury-card"
-                  htmlFor={`admin-jury-${jury.id}`}
-                >
-                  <input
-                    id={`admin-jury-${jury.id}`}
-                    type="checkbox"
-                    checked={selectedJuryIds.includes(jury.id)}
-                    onChange={() => toggleJurySelection(jury.id)}
-                  />
-                  <span>
-                    <strong>{jury.fullName}</strong>
-                    <small>{jury.email}</small>
-                  </span>
-                </label>
-              ))}
+              {tournamentJury.candidates.map((jury) => {
+                const isSelected = selectedJuryIds.includes(jury.id);
+
+                return (
+                  <label
+                    key={jury.id}
+                    className={`admin-jury-card${isSelected ? ' is-selected' : ''}`}
+                    htmlFor={`admin-jury-${jury.id}`}
+                  >
+                    <input
+                      id={`admin-jury-${jury.id}`}
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleJurySelection(jury.id)}
+                    />
+                    <span>
+                      <strong>{jury.fullName}</strong>
+                      <small title={jury.email}>{jury.email}</small>
+                    </span>
+                  </label>
+                );
+              })}
             </div>
 
-            <div className="form-actions">
+            <div className="form-actions admin-jury-actions">
               <button
                 type="button"
                 className="button button-primary"
