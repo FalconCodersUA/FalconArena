@@ -6190,41 +6190,119 @@ a {
 
 .admin-jury-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
 }
 
 .admin-jury-card {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 72px;
-  padding: 12px 14px;
+  min-height: 78px;
+  padding: 14px 16px;
   border: 1px solid rgba(222, 213, 245, 0.9);
-  border-radius: 18px;
+  border-radius: 20px;
   background: linear-gradient(180deg, #ffffff 0%, #fbf8ff 100%);
   color: #343c6a;
   box-shadow: 0 14px 28px rgba(36, 26, 66, 0.05);
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .admin-jury-card input {
-  width: 18px;
-  height: 18px;
-  accent-color: #5e17eb;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .admin-jury-card span {
+  min-width: 0;
   display: grid;
   gap: 3px;
 }
 
 .admin-jury-card strong {
+  min-width: 0;
   font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .admin-jury-card small {
+  min-width: 0;
   color: #718ebf;
   font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-jury-card:hover,
+.admin-jury-card:focus-within {
+  transform: translateY(-2px);
+  border-color: rgba(94, 23, 235, 0.34);
+  box-shadow: 0 18px 34px rgba(94, 23, 235, 0.12);
+}
+
+.admin-jury-card.is-selected {
+  border-color: rgba(94, 23, 235, 0.72);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.24) 0%, transparent 34%),
+    linear-gradient(135deg, #5e17eb 0%, #7b3ff2 100%);
+  color: #ffffff;
+  box-shadow: 0 18px 36px rgba(94, 23, 235, 0.26);
+}
+
+.admin-jury-card.is-selected small {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.admin-jury-actions {
+  align-items: center;
+  gap: 16px;
+}
+
+.admin-jury-actions .button-primary {
+  background: linear-gradient(135deg, #5e17eb 0%, #7b3ff2 100%);
+  color: #ffffff;
+  border-color: rgba(94, 23, 235, 0.55);
+  box-shadow: 0 16px 30px rgba(94, 23, 235, 0.22);
+}
+
+.admin-jury-actions .inline-hint {
+  margin-left: 4px;
+}
+
+@media (max-width: 640px) {
+  .admin-jury-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-jury-card {
+    min-height: 70px;
+    padding: 13px 14px;
+  }
+
+  .admin-jury-actions {
+    align-items: stretch;
+  }
+
+  .admin-jury-actions .button {
+    width: 100%;
+  }
+
+  .admin-jury-actions .inline-hint {
+    margin-left: 0;
+  }
 }
 
 .filters-row {
@@ -8348,6 +8426,25 @@ body[data-theme='dark'] .admin-jury-card {
 
 body[data-theme='dark'] .admin-jury-card small {
   color: #b7aee4;
+}
+
+body[data-theme='dark'] .admin-jury-card:hover,
+body[data-theme='dark'] .admin-jury-card:focus-within {
+  border-color: rgba(166, 133, 255, 0.48);
+  box-shadow: 0 18px 34px rgba(139, 93, 255, 0.18);
+}
+
+body[data-theme='dark'] .admin-jury-card.is-selected {
+  border-color: rgba(166, 133, 255, 0.72);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.18) 0%, transparent 34%),
+    linear-gradient(135deg, #5e17eb 0%, #8b5dff 100%);
+  color: #ffffff;
+  box-shadow: 0 18px 36px rgba(139, 93, 255, 0.26);
+}
+
+body[data-theme='dark'] .admin-jury-card.is-selected small {
+  color: rgba(255, 255, 255, 0.82);
 }
 
 body[data-theme='dark'] .app-page .dashboard-tool-card--teal,
