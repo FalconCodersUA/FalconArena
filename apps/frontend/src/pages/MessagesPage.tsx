@@ -9,6 +9,7 @@ import { useI18n } from '../i18n/I18nProvider';
 
 type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
 type AnnouncementAudience = 'ALL' | 'TEAM' | 'JURY' | 'ADMIN' | 'ORGANIZER';
+type AnnouncementVisibility = 'AUTHENTICATED' | 'PUBLIC';
 type NotificationType =
   | 'REGISTRATION_STARTED'
   | 'ROUND_STARTED'
@@ -26,9 +27,11 @@ type AuthMe = {
 
 type Announcement = {
   id: string;
+  tournamentId: string | null;
   title: string;
   body: string;
   audience: AnnouncementAudience;
+  visibility: AnnouncementVisibility;
   linkUrl: string | null;
   isPinned: boolean;
   isActive: boolean;
@@ -36,6 +39,12 @@ type Announcement = {
   createdAt: string;
   updatedAt: string;
   isUnread: boolean;
+};
+
+type TournamentOption = {
+  id: string;
+  title: string;
+  status: string;
 };
 
 type NotificationItem = {
@@ -83,6 +92,8 @@ const ANNOUNCEMENT_AUDIENCES: AnnouncementAudience[] = [
   'ADMIN',
   'ORGANIZER',
 ];
+
+const ANNOUNCEMENT_VISIBILITIES: AnnouncementVisibility[] = ['AUTHENTICATED', 'PUBLIC'];
 
 function isManagerRole(role: UserRole | null | undefined): role is 'ADMIN' | 'ORGANIZER' {
   return role === 'ADMIN' || role === 'ORGANIZER';
@@ -144,6 +155,8 @@ export default function MessagesPage() {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [audience, setAudience] = useState<AnnouncementAudience>('ALL');
+  const [visibility, setVisibility] = useState<AnnouncementVisibility>('AUTHENTICATED');
+  const [selectedTournamentId, setSelectedTournamentId] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
   const [isPinned, setIsPinned] = useState(false);
   const [isActive, setIsActive] = useState(true);
@@ -163,6 +176,7 @@ export default function MessagesPage() {
   const [focusedAnnouncementId, setFocusedAnnouncementId] = useState('');
   const [activeSection, setActiveSection] = useState<MessagesSection>('all');
   const [lastRealtimeSyncAt, setLastRealtimeSyncAt] = useState('');
+  const [managerTournaments, setManagerTournaments] = useState<TournamentOption[]>([]);
 
   const isManager = isManagerRole(me?.role);
   const unreadNotificationsCount = useMemo(
@@ -184,6 +198,10 @@ export default function MessagesPage() {
   const selectedDialog = useMemo(
     () => dialogs.find((item) => item.id === selectedDialogId) ?? null,
     [dialogs, selectedDialogId],
+  );
+  const tournamentLabelById = useMemo(
+    () => new Map(managerTournaments.map((item) => [item.id, item.title])),
+    [managerTournaments],
   );
   const requestedDialogId = useMemo(() => {
     const query = new URLSearchParams(location.search);
@@ -316,6 +334,22 @@ export default function MessagesPage() {
     }
   }
 
+  async function loadManagerTournaments(role: UserRole) {
+    if (!isManagerRole(role)) {
+      setManagerTournaments([]);
+      return;
+    }
+
+    try {
+      const payload = await apiRequest<unknown>('/tournaments');
+      setManagerTournaments(
+        ensureListResponse<TournamentOption>(payload, t('messagesPage.loadFailed')),
+      );
+    } catch {
+      setManagerTournaments([]);
+    }
+  }
+
   async function loadDialogs(showLoading: boolean) {
     if (showLoading) {
       setDialogsLoading(true);
@@ -408,6 +442,7 @@ export default function MessagesPage() {
       await loadNotifications(
         requestedSection === 'all' || requestedSection === 'notifications',
       );
+      await loadManagerTournaments(meData.role);
       await loadAnnouncements(meData.role, false, false);
       await loadDialogs(false);
       setLastRealtimeSyncAt(new Date().toISOString());
@@ -586,6 +621,11 @@ export default function MessagesPage() {
       return;
     }
 
+    if (visibility === 'PUBLIC' && !selectedTournamentId) {
+      setManagerError(t('messagesPage.validation.publicTournamentRequired'));
+      return;
+    }
+
     setSaving(true);
     setManagerError('');
     setNotice('');
@@ -595,16 +635,23 @@ export default function MessagesPage() {
         title: string;
         body: string;
         audience: AnnouncementAudience;
+        visibility: AnnouncementVisibility;
         isPinned: boolean;
         isActive: boolean;
+        tournamentId?: string;
         linkUrl?: string;
       } = {
         title: trimmedTitle,
         body: trimmedBody,
         audience,
+        visibility,
         isPinned,
         isActive,
       };
+
+      if (selectedTournamentId) {
+        payload.tournamentId = selectedTournamentId;
+      }
 
       if (trimmedLink) {
         payload.linkUrl = trimmedLink;
@@ -619,6 +666,8 @@ export default function MessagesPage() {
       setBody('');
       setLinkUrl('');
       setAudience('ALL');
+      setVisibility('AUTHENTICATED');
+      setSelectedTournamentId('');
       setIsPinned(false);
       setIsActive(true);
       setNotice(t('messagesPage.created'));
@@ -1048,6 +1097,7 @@ export default function MessagesPage() {
                     id="announcement-audience-select"
                     className="select-input"
                     value={audience}
+                    disabled={visibility === 'PUBLIC'}
                     onChange={(event) =>
                       setAudience(event.target.value as AnnouncementAudience)
                     }
@@ -1055,6 +1105,45 @@ export default function MessagesPage() {
                     {ANNOUNCEMENT_AUDIENCES.map((item) => (
                       <option key={item} value={item}>
                         {t(`messagesPage.audience.${item}`)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="field" htmlFor="announcement-visibility-select">
+                  <span>{t('messagesPage.form.visibility')}</span>
+                  <select
+                    id="announcement-visibility-select"
+                    className="select-input"
+                    value={visibility}
+                    onChange={(event) => {
+                      const nextVisibility = event.target.value as AnnouncementVisibility;
+                      setVisibility(nextVisibility);
+                      if (nextVisibility === 'PUBLIC') {
+                        setAudience('ALL');
+                      }
+                    }}
+                  >
+                    {ANNOUNCEMENT_VISIBILITIES.map((item) => (
+                      <option key={item} value={item}>
+                        {t(`messagesPage.visibility.${item}`)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="field" htmlFor="announcement-tournament-select">
+                  <span>{t('messagesPage.form.tournament')}</span>
+                  <select
+                    id="announcement-tournament-select"
+                    className="select-input"
+                    value={selectedTournamentId}
+                    onChange={(event) => setSelectedTournamentId(event.target.value)}
+                  >
+                    <option value="">{t('messagesPage.form.platformWide')}</option>
+                    {managerTournaments.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.title}
                       </option>
                     ))}
                   </select>
@@ -1143,6 +1232,14 @@ export default function MessagesPage() {
                           <span className="status-pill">{t('messagesPage.unread')}</span>
                         ) : null}
                         <span className="status-pill">{t(`messagesPage.audience.${item.audience}`)}</span>
+                        <span className="status-pill">
+                          {t(`messagesPage.visibility.${item.visibility}`)}
+                        </span>
+                        <span className="status-pill">
+                          {item.tournamentId
+                            ? tournamentLabelById.get(item.tournamentId) ?? t('messagesPage.tags.tournament')
+                            : t('messagesPage.tags.platform')}
+                        </span>
                         {item.isPinned ? (
                           <span className="status-pill">{t('messagesPage.tags.pinned')}</span>
                         ) : null}

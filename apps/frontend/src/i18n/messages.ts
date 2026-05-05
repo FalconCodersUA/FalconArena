@@ -652,6 +652,12 @@ export const messages: TranslationMap = {
       teamVisibilityClosed: 'Список команд відкриється після завершення реєстрації.',
       activeRoundHint: 'Активний раунд зʼявиться після запуску етапу.',
       roundsHint: 'Опубліковані етапи, доступні для перегляду й планування.',
+      announcements: {
+        title: 'Оголошення турніру',
+        lead: 'Публічні оновлення, які організатори відкрили для сторінки цього турніру.',
+        empty: 'Публічних оголошень для цього турніру поки немає.',
+        loadFailed: 'Не вдалося завантажити оголошення турніру',
+      },
       spotlight: {
         registration: 'Реєстрація',
         rounds: 'Раунди',
@@ -811,6 +817,9 @@ export const messages: TranslationMap = {
         title: 'Заголовок',
         body: 'Текст оголошення',
         audience: 'Аудиторія',
+        visibility: 'Видимість',
+        tournament: 'Турнір',
+        platformWide: 'Уся платформа',
         link: 'Посилання (опціонально)',
         isPinned: 'Закріпити оголошення',
         isActive: 'Активне оголошення',
@@ -821,6 +830,7 @@ export const messages: TranslationMap = {
         titleLength: 'Заголовок має містити від 3 до 140 символів.',
         bodyLength: 'Текст оголошення має містити від 10 до 5000 символів.',
         linkInvalid: 'Вкажіть коректне URL-посилання (http/https).',
+        publicTournamentRequired: 'Публічне оголошення має бути привʼязане до турніру.',
       },
       audience: {
         ALL: 'Усі',
@@ -829,9 +839,15 @@ export const messages: TranslationMap = {
         ADMIN: 'Адміністратори',
         ORGANIZER: 'Організатори',
       },
+      visibility: {
+        AUTHENTICATED: 'Тільки для користувачів',
+        PUBLIC: 'Публічно на сторінці турніру',
+      },
       tags: {
         pinned: 'Закріплене',
         inactive: 'Неактивне',
+        platform: 'Платформа',
+        tournament: 'Турнір',
       },
       actions: {
         pin: 'Закріпити',
@@ -2605,6 +2621,12 @@ export const messages: TranslationMap = {
       teamVisibilityClosed: 'The team list opens after registration closes.',
       activeRoundHint: 'An active round appears here once the stage goes live.',
       roundsHint: 'Published stages ready for review and planning.',
+      announcements: {
+        title: 'Tournament announcements',
+        lead: 'Public updates that organizers opened for this tournament page.',
+        empty: 'No public announcements for this tournament yet.',
+        loadFailed: 'Could not load tournament announcements',
+      },
       spotlight: {
         registration: 'Registration',
         rounds: 'Rounds',
@@ -2765,6 +2787,9 @@ export const messages: TranslationMap = {
         title: 'Title',
         body: 'Announcement text',
         audience: 'Audience',
+        visibility: 'Visibility',
+        tournament: 'Tournament',
+        platformWide: 'Entire platform',
         link: 'Link (optional)',
         isPinned: 'Pin announcement',
         isActive: 'Active announcement',
@@ -2775,6 +2800,7 @@ export const messages: TranslationMap = {
         titleLength: 'Title must contain between 3 and 140 characters.',
         bodyLength: 'Announcement text must contain between 10 and 5000 characters.',
         linkInvalid: 'Enter a valid URL (http/https).',
+        publicTournamentRequired: 'A public announcement must be linked to a tournament.',
       },
       audience: {
         ALL: 'All',
@@ -2783,9 +2809,15 @@ export const messages: TranslationMap = {
         ADMIN: 'Admins',
         ORGANIZER: 'Organizers',
       },
+      visibility: {
+        AUTHENTICATED: 'Users only',
+        PUBLIC: 'Public on tournament page',
+      },
       tags: {
         pinned: 'Pinned',
         inactive: 'Inactive',
+        platform: 'Platform',
+        tournament: 'Tournament',
       },
       actions: {
         pin: 'Pin',

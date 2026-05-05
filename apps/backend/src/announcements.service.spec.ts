@@ -1,5 +1,5 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { AnnouncementAudience } from '@prisma/client';
+import { AnnouncementAudience, AnnouncementVisibility } from '@prisma/client';
 import { describe, expect, it, vi } from 'vitest';
 import { AnnouncementsService } from './announcements.service';
 
@@ -10,6 +10,9 @@ function createPrismaMock() {
       create: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
+    },
+    tournament: {
+      findUnique: vi.fn(),
     },
     userSettings: {
       findUnique: vi.fn(),
@@ -29,8 +32,19 @@ describe('AnnouncementsService', () => {
 
     expect(prisma.announcement.findMany).toHaveBeenCalledWith({
       where: {
-        isActive: true,
-        audience: { in: [AnnouncementAudience.ALL, AnnouncementAudience.TEAM] },
+        AND: [
+          {
+            isActive: true,
+            visibility: AnnouncementVisibility.AUTHENTICATED,
+            audience: { in: [AnnouncementAudience.ALL, AnnouncementAudience.TEAM] },
+          },
+          {
+            OR: [
+              { tournamentId: null },
+              { tournament: { teams: { some: { captainId: 'user-1' } } } },
+            ],
+          },
+        ],
       },
       orderBy: [{ isPinned: 'desc' }, { publishedAt: 'desc' }, { createdAt: 'desc' }],
     });
@@ -73,6 +87,8 @@ describe('AnnouncementsService', () => {
         title: 'New title',
         body: 'New body for announcement',
         audience: AnnouncementAudience.ALL,
+        visibility: AnnouncementVisibility.AUTHENTICATED,
+        tournamentId: null,
         linkUrl: null,
         isPinned: false,
         isActive: true,
@@ -99,5 +115,58 @@ describe('AnnouncementsService', () => {
     await expect(service.update('ann-1', {}, 'admin-1')).rejects.toBeInstanceOf(
       BadRequestException,
     );
+  });
+
+  it('lists only public active announcements for tournament page', async () => {
+    const prisma = createPrismaMock();
+    prisma.tournament.findUnique.mockResolvedValue({ id: 't-1' });
+    prisma.announcement.findMany.mockResolvedValue([]);
+    const service = new AnnouncementsService(prisma as never);
+
+    await service.listPublicForTournament('t-1');
+
+    expect(prisma.announcement.findMany).toHaveBeenCalledWith({
+      where: {
+        tournamentId: 't-1',
+        visibility: AnnouncementVisibility.PUBLIC,
+        isActive: true,
+      },
+      orderBy: [{ isPinned: 'desc' }, { publishedAt: 'desc' }, { createdAt: 'desc' }],
+    });
+  });
+
+  it('rejects public announcements without tournament scope', async () => {
+    const prisma = createPrismaMock();
+    const service = new AnnouncementsService(prisma as never);
+
+    await expect(
+      service.create(
+        {
+          title: 'Public update',
+          body: 'Public update for everyone.',
+          visibility: 'PUBLIC',
+        },
+        'admin-1',
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('rejects public announcements with role-specific audience', async () => {
+    const prisma = createPrismaMock();
+    prisma.tournament.findUnique.mockResolvedValue({ id: 't-1' });
+    const service = new AnnouncementsService(prisma as never);
+
+    await expect(
+      service.create(
+        {
+          title: 'Public jury update',
+          body: 'Public update should not target only jury.',
+          audience: 'JURY',
+          visibility: 'PUBLIC',
+          tournamentId: 't-1',
+        },
+        'admin-1',
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
   });
 });

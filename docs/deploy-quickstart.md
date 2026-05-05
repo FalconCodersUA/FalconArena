@@ -58,7 +58,7 @@ In `GitHub -> Repo -> Settings -> Secrets and variables -> Actions`, add:
 - `POSTGRES_PASSWORD`
 - `JWT_SECRET`
 - `VITE_API_URL` = `https://falconarena.live`
-- `PRISMA_SYNC_MODE` = `dbpush` (set `migrate` after baseline step)
+- `PRISMA_SYNC_MODE` = `migrate`
 
 ## 5) Domain and firewall
 
@@ -90,7 +90,9 @@ After success, open:
 
 ## 7) Migration baseline for existing database
 
-If your current production database was created with Prisma `db push`, add migration history once before enforcing strict `migrate deploy` runtime:
+GitHub Actions deploy passes `PRISMA_SYNC_MODE=migrate` by default. The backend container runs Prisma `migrate deploy` on startup, so tracked migrations are applied automatically before the health-check.
+
+If your current production database was previously created with Prisma `db push`, add migration history once before the first strict deploy in `migrate` mode:
 
 ```bash
 cd /opt/falconarena-deploy
@@ -98,6 +100,6 @@ npm run prisma:migrate:resolve:init -w @falconarena/backend
 npm run prisma:migrate:deploy -w @falconarena/backend
 ```
 
-Then update GitHub Actions secret `PRISMA_SYNC_MODE` from `dbpush` to `migrate`.
+Then keep the GitHub Actions secret `PRISMA_SYNC_MODE` empty or set it to `migrate`.
 
 Run this once per environment.

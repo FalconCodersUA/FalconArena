@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AnnouncementsService } from '../announcements.service';
 import { AuditLogsModule } from '../audit-logs.module';
 import { JobsModule } from '../jobs/jobs.module';
 import { LeaderboardModule } from '../leaderboard/leaderboard.module';
@@ -26,6 +27,7 @@ import { TournamentsService } from './tournaments.service';
   ],
   providers: [
     TournamentsService,
+    AnnouncementsService,
     TournamentScheduleService,
     TournamentCertificatesService,
   ],

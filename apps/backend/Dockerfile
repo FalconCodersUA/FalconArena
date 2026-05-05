@@ -18,7 +18,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=4000
 ENV PRISMA_SCHEMA_PATH=apps/backend/prisma/schema.prisma
-ENV PRISMA_SYNC_MODE=dbpush
+ENV PRISMA_SYNC_MODE=migrate
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/apps/backend/dist ./apps/backend/dist

@@ -47,6 +47,15 @@ type TeamRow = {
   membersCount: number;
 };
 
+type PublicAnnouncement = {
+  id: string;
+  title: string;
+  body: string;
+  linkUrl: string | null;
+  isPinned: boolean;
+  publishedAt: string;
+};
+
 function canShowTeamsList(tournament: Tournament) {
   if (!tournament.hideTeamsUntilRegistrationClose) {
     return true;
@@ -65,10 +74,12 @@ export default function TournamentDetailsPage() {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [rounds, setRounds] = useState<Round[]>([]);
   const [teams, setTeams] = useState<TeamRow[]>([]);
+  const [announcements, setAnnouncements] = useState<PublicAnnouncement[]>([]);
   const [scheduleEvents, setScheduleEvents] = useState<TournamentScheduleEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [scheduleError, setScheduleError] = useState('');
+  const [announcementsError, setAnnouncementsError] = useState('');
 
   useEffect(() => {
     if (!tournamentId) {
@@ -102,6 +113,23 @@ export default function TournamentDetailsPage() {
           );
         }
 
+        try {
+          const announcementData = await apiRequest<PublicAnnouncement[]>(
+            `/tournaments/${tournamentId}/announcements`,
+          );
+          setAnnouncements(announcementData);
+          setAnnouncementsError('');
+        } catch (announcementRequestError) {
+          setAnnouncements([]);
+          setAnnouncementsError(
+            normalizeApiErrorMessage(
+              announcementRequestError,
+              t,
+              t('tournamentDetails.announcements.loadFailed'),
+            ),
+          );
+        }
+
         if (canShowTeamsList(tournamentData)) {
           const teamsData = await apiRequest<TeamRow[]>(`/tournaments/${tournamentId}/teams`);
           setTeams(teamsData);
@@ -115,8 +143,10 @@ export default function TournamentDetailsPage() {
         setTournament(null);
         setRounds([]);
         setTeams([]);
+        setAnnouncements([]);
         setScheduleEvents([]);
         setScheduleError('');
+        setAnnouncementsError('');
       } finally {
         setLoading(false);
       }
@@ -295,6 +325,47 @@ export default function TournamentDetailsPage() {
             </p>
           </div>
         </div>
+      </article>
+
+      <article className="section-card">
+        <div className="tournament-head">
+          <div>
+            <h2>{t('tournamentDetails.announcements.title')}</h2>
+            <p className="inline-hint">{t('tournamentDetails.announcements.lead')}</p>
+          </div>
+          <span className="status-pill">{announcements.length}</span>
+        </div>
+        {announcementsError ? <p className="form-error">{announcementsError}</p> : null}
+        {!announcementsError && announcements.length === 0 ? (
+          <p>{t('tournamentDetails.announcements.empty')}</p>
+        ) : null}
+        {announcements.length > 0 ? (
+          <div className="announcements-feed">
+            {announcements.map((item) => (
+              <article key={item.id} className="announcement-item">
+                <div className="announcement-head">
+                  <h3>{item.title}</h3>
+                  <div className="announcement-tags">
+                    {item.isPinned ? (
+                      <span className="status-pill">{t('messagesPage.tags.pinned')}</span>
+                    ) : null}
+                    <span className="status-pill">
+                      {formatDateTime(item.publishedAt, language)}
+                    </span>
+                  </div>
+                </div>
+                <p className="announcement-body">{item.body}</p>
+                {item.linkUrl ? (
+                  <div className="announcement-meta">
+                    <a href={item.linkUrl} target="_blank" rel="noreferrer">
+                      {t('messagesPage.openLink')}
+                    </a>
+                  </div>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        ) : null}
       </article>
 
       {activeRound ? (

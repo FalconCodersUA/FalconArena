@@ -18,7 +18,10 @@ export const ANNOUNCEMENT_AUDIENCES = [
   'ORGANIZER',
 ] as const;
 
+export const ANNOUNCEMENT_VISIBILITIES = ['AUTHENTICATED', 'PUBLIC'] as const;
+
 type AnnouncementAudience = (typeof ANNOUNCEMENT_AUDIENCES)[number];
+type AnnouncementVisibility = (typeof ANNOUNCEMENT_VISIBILITIES)[number];
 
 function transformBoolean(value: unknown) {
   if (typeof value === 'boolean') {
@@ -43,6 +46,11 @@ export class ListAnnouncementsDto {
   @Transform(({ value }) => transformBoolean(value))
   @IsBoolean()
   includeInactive?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  tournamentId?: string;
 }
 
 export class CreateAnnouncementDto {
@@ -57,6 +65,15 @@ export class CreateAnnouncementDto {
   @IsOptional()
   @IsIn(ANNOUNCEMENT_AUDIENCES)
   audience?: AnnouncementAudience;
+
+  @IsOptional()
+  @IsIn(ANNOUNCEMENT_VISIBILITIES)
+  visibility?: AnnouncementVisibility;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  tournamentId?: string;
 
   @IsOptional()
   @IsUrl({ require_protocol: true })
@@ -86,6 +103,15 @@ export class UpdateAnnouncementDto {
   @IsOptional()
   @IsIn(ANNOUNCEMENT_AUDIENCES)
   audience?: AnnouncementAudience;
+
+  @IsOptional()
+  @IsIn(ANNOUNCEMENT_VISIBILITIES)
+  visibility?: AnnouncementVisibility;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  tournamentId?: string;
 
   @IsOptional()
   @IsUrl({ require_protocol: true })

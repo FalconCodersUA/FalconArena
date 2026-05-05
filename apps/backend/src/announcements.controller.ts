@@ -35,6 +35,7 @@ export class AnnouncementsController {
       request.user.role,
       request.user.userId,
       query.includeInactive ?? false,
+      query.tournamentId,
     );
   }
 

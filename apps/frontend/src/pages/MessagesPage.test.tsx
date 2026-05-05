@@ -46,9 +46,11 @@ describe('MessagesPage', () => {
         return [
           {
             id: 'a-1',
+            tournamentId: null,
             title: 'Round starts tomorrow',
             body: 'Prepare repository and demo links.',
             audience: 'TEAM',
+            visibility: 'AUTHENTICATED',
             linkUrl: null,
             isPinned: true,
             isActive: true,
@@ -98,9 +100,11 @@ describe('MessagesPage', () => {
       if (path === '/announcements' && options?.method === 'POST') {
         return {
           id: 'a-new',
+          tournamentId: null,
           title: 'Platform update',
           body: 'Registration deadline moved by one day.',
           audience: 'ALL',
+          visibility: 'AUTHENTICATED',
           linkUrl: null,
           isPinned: false,
           isActive: true,
@@ -112,6 +116,10 @@ describe('MessagesPage', () => {
       }
 
       if (path === '/announcements') {
+        return [];
+      }
+
+      if (path === '/tournaments') {
         return [];
       }
 
@@ -145,6 +153,7 @@ describe('MessagesPage', () => {
           title: 'Platform update',
           body: 'Registration deadline moved by one day.',
           audience: 'ALL',
+          visibility: 'AUTHENTICATED',
           isPinned: false,
           isActive: true,
         },

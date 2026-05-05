@@ -291,7 +291,7 @@ Database migrations:
 - Generate Prisma client: `npm run prisma:generate -w @falconarena/backend`
 - Apply tracked migrations: `npm run prisma:migrate:deploy -w @falconarena/backend`
 - For already-running databases created with `db push`, baseline once: `npm run prisma:migrate:resolve:init -w @falconarena/backend`
-- Runtime DB sync mode is controlled by `PRISMA_SYNC_MODE` (`dbpush` by default, switch to `migrate` after baseline).
+- Runtime DB sync mode is controlled by `PRISMA_SYNC_MODE`; production deploy uses `migrate` by default and applies tracked migrations during backend startup.
 - Current message-related migrations: `0003_announcements`, `0004_direct_dialogs`.
 
 Backend API automation scripts:

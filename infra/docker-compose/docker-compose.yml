@@ -42,7 +42,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-falcon}:${POSTGRES_PASSWORD:-falcon}@postgres:5432/${POSTGRES_DB:-falconarena}?schema=public
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:-change-me}
-      PRISMA_SYNC_MODE: ${PRISMA_SYNC_MODE:-dbpush}
+      PRISMA_SYNC_MODE: ${PRISMA_SYNC_MODE:-migrate}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-}

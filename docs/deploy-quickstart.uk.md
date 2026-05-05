@@ -58,7 +58,7 @@ cat falconarena_actions_ssh.pub
 - `POSTGRES_PASSWORD`
 - `JWT_SECRET`
 - `VITE_API_URL` = `https://falconarena.live`
-- `PRISMA_SYNC_MODE` = `dbpush` (після baseline переключити на `migrate`)
+- `PRISMA_SYNC_MODE` = `migrate`
 - `GOOGLE_CLIENT_ID` і `GOOGLE_CLIENT_SECRET` для Google OAuth
 - `GH_OAUTH_CLIENT_ID` і `GH_OAUTH_CLIENT_SECRET` для GitHub OAuth
 - `GOOGLE_CALLBACK_URL` = `https://falconarena.live/auth/google/callback`
@@ -98,7 +98,9 @@ docker rm caddy-caddy-1 || true
 
 ## 7) Baseline міграцій для існуючої БД
 
-Якщо production БД була створена через Prisma `db push`, один раз додайте історію міграцій перед жорстким runtime режимом `migrate deploy`:
+GitHub Actions deploy передає `PRISMA_SYNC_MODE=migrate` за замовчуванням. Backend container під час старту виконує Prisma `migrate deploy`, тому нові tracked migrations застосовуються автоматично перед health-check.
+
+Якщо production БД раніше була створена через Prisma `db push`, один раз додайте історію міграцій перед першим strict deploy у режимі `migrate`:
 
 ```bash
 cd /opt/falconarena-deploy
@@ -106,6 +108,6 @@ npm run prisma:migrate:resolve:init -w @falconarena/backend
 npm run prisma:migrate:deploy -w @falconarena/backend
 ```
 
-Після цього оновіть GitHub secret `PRISMA_SYNC_MODE`: `dbpush` -> `migrate`.
+Після цього залиште GitHub secret `PRISMA_SYNC_MODE` порожнім або встановіть його в `migrate`.
 
 Це потрібно виконати один раз для кожного середовища.
