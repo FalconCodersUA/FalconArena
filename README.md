@@ -247,6 +247,8 @@ SEED_ADMIN_EMAIL=admin@falconarena.live SEED_ADMIN_PASSWORD=change_me npm run pr
 - `npm run prisma:migrate:dev -w @falconarena/backend`
 - `npm run prisma:migrate:resolve:init -w @falconarena/backend`
 
+Production deploy використовує `PRISMA_SYNC_MODE=migrate` за замовчуванням і застосовує tracked Prisma migrations під час старту backend container.
+
 Примітка: після `npm install` Prisma Client також генерується автоматично через root `postinstall`.
 
 ## Backend API

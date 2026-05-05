@@ -47,6 +47,11 @@ enum AnnouncementAudience {
   ORGANIZER
 }
 
+enum AnnouncementVisibility {
+  AUTHENTICATED
+  PUBLIC
+}
+
 enum PlatformReviewStatus {
   PENDING
   APPROVED
@@ -177,6 +182,7 @@ model Tournament {
   createdBy          User?            @relation("TournamentCreatedBy", fields: [createdById], references: [id])
   teams              Team[]
   rounds             Round[]
+  announcements      Announcement[]
   juryMembers        TournamentJury[]
   scheduleEvents     TournamentScheduleEvent[]
   certificateTemplate CertificateTemplate?
@@ -294,9 +300,12 @@ model Evaluation {
 
 model Announcement {
   id          String               @id @default(cuid())
+  tournamentId String?
+  tournament   Tournament?         @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   title       String
   body        String
   audience    AnnouncementAudience @default(ALL)
+  visibility  AnnouncementVisibility @default(AUTHENTICATED)
   linkUrl     String?
   isPinned    Boolean              @default(false)
   isActive    Boolean              @default(true)
@@ -305,6 +314,8 @@ model Announcement {
   updatedById String?
   createdAt   DateTime             @default(now())
   updatedAt   DateTime             @updatedAt
+
+  @@index([tournamentId, visibility, isActive, publishedAt])
 }
 
 model Notification {

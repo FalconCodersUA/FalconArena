@@ -18,10 +18,14 @@ import { ListTournamentsDto } from './dto/list-tournaments.dto';
 import { UpdateTournamentJuryDto } from './dto/update-tournament-jury.dto';
 import { UpdateTournamentStatusDto } from './dto/update-tournament-status.dto';
 import { TournamentsService } from './tournaments.service';
+import { AnnouncementsService } from '../announcements.service';
 
 @Controller('tournaments')
 export class TournamentsController {
-  constructor(private readonly tournamentsService: TournamentsService) {}
+  constructor(
+    private readonly tournamentsService: TournamentsService,
+    private readonly announcementsService: AnnouncementsService,
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -46,6 +50,11 @@ export class TournamentsController {
   @Get(':id/archive')
   getArchive(@Param('id') id: string) {
     return this.tournamentsService.getArchive(id);
+  }
+
+  @Get(':id/announcements')
+  getPublicAnnouncements(@Param('id') id: string) {
+    return this.announcementsService.listPublicForTournament(id);
   }
 
   @Get(':id/jury')

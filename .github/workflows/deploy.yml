@@ -55,7 +55,7 @@ jobs:
             POSTGRES_PASSWORD_VALUE="${{ secrets.POSTGRES_PASSWORD }}" \
             JWT_SECRET_VALUE="${{ secrets.JWT_SECRET }}" \
             BACKEND_PORT_VALUE=4000 \
-            PRISMA_SYNC_MODE_VALUE="${{ secrets.PRISMA_SYNC_MODE || 'dbpush' }}" \
+            PRISMA_SYNC_MODE_VALUE="${{ secrets.PRISMA_SYNC_MODE || 'migrate' }}" \
             APP_DOMAIN_VALUE="${{ secrets.APP_DOMAIN || 'falconarena.live' }}" \
             VITE_API_URL_VALUE="${{ secrets.VITE_API_URL || 'https://falconarena.live' }}" \
             JOBS_WORKER_ENABLED_VALUE="${{ secrets.JOBS_WORKER_ENABLED || 'true' }}" \
