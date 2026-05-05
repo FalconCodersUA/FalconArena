@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { NotificationType, Tournament, TournamentStatus } from '@prisma/client';
+import { NotificationType, Role, Tournament, TournamentStatus } from '@prisma/client';
 import { AuditLogsService } from '../audit-logs.service';
 import { AuthUser } from '../common/types/auth-user.type';
 import { JobsService } from '../jobs/jobs.service';
@@ -25,6 +25,14 @@ type TournamentView = Tournament & {
   canTeamRegister: boolean;
   hideTeamsUntilRegistrationClose: boolean;
   defaultProjectTimeZone: string;
+};
+
+type TournamentJuryUserView = {
+  id: string;
+  fullName: string;
+  email: string;
+  role: Role;
+  isBlocked: boolean;
 };
 
 type ScoresPayload = {
@@ -109,6 +117,135 @@ export class TournamentsService {
     }
 
     return this.mapTournamentView(tournament, defaults);
+  }
+
+  async getTournamentJury(id: string) {
+    const tournament = await this.prisma.tournament.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        title: true,
+      },
+    });
+
+    if (!tournament) {
+      throw new NotFoundException('Tournament not found');
+    }
+
+    const [assigned, candidates] = await Promise.all([
+      this.prisma.tournamentJury.findMany({
+        where: { tournamentId: id },
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              role: true,
+              isBlocked: true,
+            },
+          },
+        },
+        orderBy: { assignedAt: 'asc' },
+      }),
+      this.prisma.user.findMany({
+        where: {
+          role: Role.JURY,
+          isBlocked: false,
+        },
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          role: true,
+          isBlocked: true,
+        },
+        orderBy: [{ fullName: 'asc' }, { email: 'asc' }],
+      }),
+    ]);
+
+    return {
+      tournamentId: tournament.id,
+      tournamentTitle: tournament.title,
+      assigned: assigned.map((item) => this.mapTournamentJuryUser(item.user)),
+      candidates: candidates.map((item) => this.mapTournamentJuryUser(item)),
+    };
+  }
+
+  async updateTournamentJury(
+    id: string,
+    juryUserIds: string[],
+    actor: AuthUser,
+  ) {
+    const tournament = await this.prisma.tournament.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        title: true,
+      },
+    });
+
+    if (!tournament) {
+      throw new NotFoundException('Tournament not found');
+    }
+
+    const uniqueIds = [...new Set(juryUserIds)];
+    const selectedUsers = uniqueIds.length > 0
+      ? await this.prisma.user.findMany({
+          where: {
+            id: { in: uniqueIds },
+            role: Role.JURY,
+            isBlocked: false,
+          },
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        })
+      : [];
+
+    if (selectedUsers.length !== uniqueIds.length) {
+      throw new BadRequestException(
+        'Some selected jury users are invalid, blocked, or not JURY',
+      );
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.tournamentJury.deleteMany({
+        where: { tournamentId: id },
+      }),
+      ...(uniqueIds.length > 0
+        ? [
+            this.prisma.tournamentJury.createMany({
+              data: uniqueIds.map((userId) => ({
+                tournamentId: id,
+                userId,
+              })),
+              skipDuplicates: true,
+            }),
+          ]
+        : []),
+    ]);
+
+    await this.auditLogsService?.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'tournament.jury_updated',
+      entityType: 'tournament',
+      entityId: tournament.id,
+      entityLabel: tournament.title,
+      tournamentId: tournament.id,
+      title: 'Updated tournament jury',
+      description: `${tournament.title} jury pool was updated.`,
+      metadata: {
+        juryUserIds: uniqueIds,
+        juryCount: uniqueIds.length,
+        juryEmails: selectedUsers.map((item) => item.email),
+      },
+    });
+
+    return this.getTournamentJury(id);
   }
 
   async getArchive(id: string) {
@@ -383,6 +520,16 @@ export class TournamentsService {
       defaultProjectTimeZone: defaults.defaultProjectTimeZone,
       canTeamRegister:
         tournament.status === TournamentStatus.REGISTRATION && registrationIsOpen,
+    };
+  }
+
+  private mapTournamentJuryUser(user: TournamentJuryUserView) {
+    return {
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      isBlocked: user.isBlocked,
     };
   }
 

@@ -56,6 +56,21 @@ type Round = {
   deadlineAt: string;
 };
 
+type TournamentJuryUser = {
+  id: string;
+  fullName: string;
+  email: string;
+  role: 'JURY';
+  isBlocked: boolean;
+};
+
+type TournamentJuryPayload = {
+  tournamentId: string;
+  tournamentTitle: string;
+  assigned: TournamentJuryUser[];
+  candidates: TournamentJuryUser[];
+};
+
 type RoundOperationState = {
   loading: boolean;
   notice: string;
@@ -396,6 +411,12 @@ export default function AdminDashboardPage() {
   const [statusLoading, setStatusLoading] = useState(false);
   const [statusError, setStatusError] = useState('');
   const [statusNotice, setStatusNotice] = useState('');
+  const [juryLoading, setJuryLoading] = useState(false);
+  const [jurySaving, setJurySaving] = useState(false);
+  const [juryError, setJuryError] = useState('');
+  const [juryNotice, setJuryNotice] = useState('');
+  const [tournamentJury, setTournamentJury] = useState<TournamentJuryPayload | null>(null);
+  const [selectedJuryIds, setSelectedJuryIds] = useState<string[]>([]);
 
   const [createTournamentLoading, setCreateTournamentLoading] = useState(false);
   const [createTournamentError, setCreateTournamentError] = useState('');
@@ -451,6 +472,9 @@ export default function AdminDashboardPage() {
 
   const selectedTournament =
     tournaments.find((entry) => entry.id === selectedTournamentId) ?? null;
+  const assignedJuryIds = tournamentJury?.assigned
+    .filter((jury) => !jury.isBlocked)
+    .map((jury) => jury.id) ?? [];
 
   const roleAllowed = me?.role === 'ADMIN' || me?.role === 'ORGANIZER';
   const creatableRoles: ManagedUserRole[] =
@@ -695,6 +719,26 @@ export default function AdminDashboardPage() {
     }
   }
 
+  async function loadTournamentJury(tournamentId: string) {
+    setJuryLoading(true);
+    setJuryError('');
+    setJuryNotice('');
+
+    try {
+      const data = await apiRequest<TournamentJuryPayload>(`/tournaments/${tournamentId}/jury`);
+      setTournamentJury(data);
+      setSelectedJuryIds(data.assigned.filter((jury) => !jury.isBlocked).map((jury) => jury.id));
+    } catch (requestError) {
+      setTournamentJury(null);
+      setSelectedJuryIds([]);
+      setJuryError(
+        normalizeApiErrorMessage(requestError, t, t('adminDashboard.jury.loadFailed')),
+      );
+    } finally {
+      setJuryLoading(false);
+    }
+  }
+
   async function loadDashboardMetrics(tournamentId?: string) {
     try {
       const query = tournamentId ? `?tournamentId=${encodeURIComponent(tournamentId)}` : '';
@@ -756,6 +800,10 @@ export default function AdminDashboardPage() {
       setActivityFeedEntries([]);
       setScheduleError('');
       setScheduleOp(EMPTY_SCHEDULE_OP_STATE);
+      setTournamentJury(null);
+      setSelectedJuryIds([]);
+      setJuryError('');
+      setJuryNotice('');
       resetScheduleForm();
       return;
     }
@@ -764,8 +812,53 @@ export default function AdminDashboardPage() {
     resetScheduleForm();
     void loadRounds(selectedTournamentId);
     void loadScheduleEvents(selectedTournamentId);
+    void loadTournamentJury(selectedTournamentId);
     void loadActivityFeed(selectedTournamentId);
   }, [selectedTournamentId, roleAllowed]);
+
+  function toggleJurySelection(userId: string) {
+    setSelectedJuryIds((current) =>
+      current.includes(userId)
+        ? current.filter((item) => item !== userId)
+        : [...current, userId],
+    );
+  }
+
+  async function saveTournamentJury() {
+    if (!selectedTournamentId) {
+      return;
+    }
+
+    setJurySaving(true);
+    setJuryError('');
+    setJuryNotice('');
+
+    try {
+      const saved = await apiRequest<TournamentJuryPayload>(
+        `/tournaments/${selectedTournamentId}/jury`,
+        {
+          method: 'PATCH',
+          body: {
+            juryUserIds: selectedJuryIds,
+          },
+        },
+      );
+      setTournamentJury(saved);
+      setSelectedJuryIds(saved.assigned.filter((jury) => !jury.isBlocked).map((jury) => jury.id));
+      setJuryNotice(t('adminDashboard.jury.saved'));
+      notifySuccess(t('adminDashboard.jury.saved'));
+    } catch (requestError) {
+      const message = normalizeApiErrorMessage(
+        requestError,
+        t,
+        t('adminDashboard.jury.saveFailed'),
+      );
+      setJuryError(message);
+      notifyError(message);
+    } finally {
+      setJurySaving(false);
+    }
+  }
 
   useEffect(() => {
     if (!roleAllowed) {
@@ -1201,10 +1294,19 @@ export default function AdminDashboardPage() {
         return;
       }
 
+      if (assignedJuryIds.length === 0) {
+        updateRoundOperationState(roundId, {
+          loading: false,
+          error: t('adminDashboard.jury.requiredForDistribution'),
+        });
+        return;
+      }
+
       await apiRequest(`/rounds/${roundId}/assignments/distribute`, {
         method: 'POST',
         body: {
           minReviewersPerSubmission: minReviewers,
+          juryUserIds: assignedJuryIds,
           resetExisting,
         },
       });
@@ -1767,6 +1869,68 @@ export default function AdminDashboardPage() {
 
           {statusError ? <p className="form-error">{statusError}</p> : null}
           {statusNotice ? <p className="form-success">{statusNotice}</p> : null}
+      </article>
+
+      <article id="admin-tournament-jury" className="card panel-card">
+        <div className="tournament-head">
+          <div>
+            <h2>{t('adminDashboard.jury.title')}</h2>
+            <p className="inline-hint">{t('adminDashboard.jury.lead')}</p>
+          </div>
+          <span className="status-pill">{assignedJuryIds.length}</span>
+        </div>
+
+        {juryLoading ? <QuietLoadingInline label={t('adminDashboard.jury.loading')} compact /> : null}
+        {juryError ? <p className="form-error">{juryError}</p> : null}
+        {juryNotice ? <p className="form-success">{juryNotice}</p> : null}
+
+        {!juryLoading && tournamentJury && tournamentJury.candidates.length === 0 ? (
+          <p className="inline-hint">{t('adminDashboard.jury.empty')}</p>
+        ) : null}
+
+        {tournamentJury && tournamentJury.candidates.length > 0 ? (
+          <>
+            <div className="admin-jury-grid">
+              {tournamentJury.candidates.map((jury) => (
+                <label
+                  key={jury.id}
+                  className="admin-jury-card"
+                  htmlFor={`admin-jury-${jury.id}`}
+                >
+                  <input
+                    id={`admin-jury-${jury.id}`}
+                    type="checkbox"
+                    checked={selectedJuryIds.includes(jury.id)}
+                    onChange={() => toggleJurySelection(jury.id)}
+                  />
+                  <span>
+                    <strong>{jury.fullName}</strong>
+                    <small>{jury.email}</small>
+                  </span>
+                </label>
+              ))}
+            </div>
+
+            <div className="form-actions">
+              <button
+                type="button"
+                className="button button-primary"
+                disabled={jurySaving || !selectedTournamentId}
+                onClick={() => void saveTournamentJury()}
+              >
+                {jurySaving
+                  ? t('adminDashboard.jury.saving')
+                  : t('adminDashboard.jury.save')}
+              </button>
+              <span className="inline-hint">
+                {t('adminDashboard.jury.selected').replace(
+                  '{count}',
+                  String(selectedJuryIds.length),
+                )}
+              </span>
+            </div>
+          </>
+        ) : null}
       </article>
 
       <article id="admin-schedule" className="card panel-card">

@@ -6188,6 +6188,45 @@ a {
   height: 16px;
 }
 
+.admin-jury-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.admin-jury-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+  padding: 12px 14px;
+  border: 1px solid rgba(222, 213, 245, 0.9);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf8ff 100%);
+  color: #343c6a;
+  box-shadow: 0 14px 28px rgba(36, 26, 66, 0.05);
+}
+
+.admin-jury-card input {
+  width: 18px;
+  height: 18px;
+  accent-color: #5e17eb;
+}
+
+.admin-jury-card span {
+  display: grid;
+  gap: 3px;
+}
+
+.admin-jury-card strong {
+  font-size: 0.95rem;
+}
+
+.admin-jury-card small {
+  color: #718ebf;
+  font-weight: 700;
+}
+
 .filters-row {
   display: flex;
   flex-wrap: wrap;
@@ -8298,6 +8337,17 @@ body[data-theme='dark'] .messages-section-tabs .filter-button.active {
 body[data-theme='dark'] .app-page .status-pill {
   background: rgba(139, 93, 255, 0.16);
   color: #d7c8ff;
+}
+
+body[data-theme='dark'] .admin-jury-card {
+  border-color: rgba(134, 113, 190, 0.32);
+  background: linear-gradient(180deg, rgba(38, 31, 62, 0.88) 0%, rgba(28, 23, 47, 0.9) 100%);
+  color: #f3efff;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.26);
+}
+
+body[data-theme='dark'] .admin-jury-card small {
+  color: #b7aee4;
 }
 
 body[data-theme='dark'] .app-page .dashboard-tool-card--teal,
