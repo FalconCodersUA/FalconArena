@@ -90,6 +90,11 @@ export const messages: TranslationMap = {
         noSubmissionsForRound: 'У цьому раунді ще немає сабмітів для розподілу.',
         noJuryUsers: 'У системі немає користувачів з роллю Jury.',
         invalidJuryUsers: 'Деякі вибрані користувачі не мають ролі Jury.',
+        noTournamentJury: 'До цього турніру ще не додано журі.',
+        invalidTournamentJuryUsers:
+          'Деякі вибрані користувачі недоступні, заблоковані або не мають ролі Jury.',
+        juryUsersNotAssignedToTournament:
+          'Деякі вибрані журі не призначені до цього турніру.',
         notEnoughJuryUsers: 'Недостатньо користувачів Jury для вибраної кількості ревʼюерів.',
         distributeWithoutDuplicatesFailed:
           'Неможливо розподілити призначення без повторів для одного сабміту.',
@@ -1294,9 +1299,23 @@ export const messages: TranslationMap = {
       finishEvaluationForce: 'Примусово завершити',
       finishEvaluationSuccess: 'Оцінювання раунду завершено.',
       finishEvaluationFailed: 'Не вдалося завершити оцінювання',
-      distributeAssignments: 'Розподілити призначення',
-      distributeSuccess: 'Призначення успішно розподілено.',
-      distributeFailed: 'Не вдалося розподілити призначення',
+        distributeAssignments: 'Розподілити призначення',
+        distributeSuccess: 'Призначення успішно розподілено.',
+        distributeFailed: 'Не вдалося розподілити призначення',
+      jury: {
+        title: 'Журі турніру',
+        lead: 'Оберіть журі, які працюватимуть саме з цим турніром. Розподіл сабмітів у раундах використовує цей список.',
+        loading: 'Завантаження журі...',
+        empty: 'У системі ще немає активних користувачів з роллю Jury.',
+        selected: 'Вибрано: {count}',
+        save: 'Зберегти журі турніру',
+        saving: 'Зберігаємо...',
+        saved: 'Журі турніру оновлено.',
+        loadFailed: 'Не вдалося завантажити журі турніру',
+        saveFailed: 'Не вдалося зберегти журі турніру',
+        requiredForDistribution:
+          'Спочатку додайте журі до турніру, щоб розподілити сабміти.',
+      },
       nextStepTitle: 'Що робити далі',
       nextStep: {
         createTournament: 'Почніть зі створення турніру, щоб відкрити подальші кроки керування.',
@@ -2026,6 +2045,11 @@ export const messages: TranslationMap = {
         noSubmissionsForRound: 'This round has no submissions to distribute yet.',
         noJuryUsers: 'There are no users with the Jury role in the system.',
         invalidJuryUsers: 'Some selected users do not have the Jury role.',
+        noTournamentJury: 'No jury members have been added to this tournament yet.',
+        invalidTournamentJuryUsers:
+          'Some selected users are unavailable, blocked, or do not have the Jury role.',
+        juryUsersNotAssignedToTournament:
+          'Some selected jury members are not assigned to this tournament.',
         notEnoughJuryUsers: 'There are not enough Jury users for the selected reviewer count.',
         distributeWithoutDuplicatesFailed:
           'Assignments cannot be distributed without duplicates for one submission.',
@@ -3232,9 +3256,23 @@ export const messages: TranslationMap = {
       finishEvaluationForce: 'Force finish',
       finishEvaluationSuccess: 'Round evaluation finished.',
       finishEvaluationFailed: 'Could not finish evaluation',
-      distributeAssignments: 'Distribute assignments',
-      distributeSuccess: 'Assignments distributed successfully.',
-      distributeFailed: 'Could not distribute assignments',
+        distributeAssignments: 'Distribute assignments',
+        distributeSuccess: 'Assignments distributed successfully.',
+        distributeFailed: 'Could not distribute assignments',
+      jury: {
+        title: 'Tournament jury',
+        lead: 'Select the jury members who will work with this tournament. Round assignment distribution uses this list.',
+        loading: 'Loading jury...',
+        empty: 'There are no active users with the Jury role yet.',
+        selected: 'Selected: {count}',
+        save: 'Save tournament jury',
+        saving: 'Saving...',
+        saved: 'Tournament jury updated.',
+        loadFailed: 'Could not load tournament jury',
+        saveFailed: 'Could not save tournament jury',
+        requiredForDistribution:
+          'Add jury members to the tournament before distributing submissions.',
+      },
       nextStepTitle: 'What to do next',
       nextStep: {
         createTournament: 'Start by creating a tournament to unlock the next management steps.',

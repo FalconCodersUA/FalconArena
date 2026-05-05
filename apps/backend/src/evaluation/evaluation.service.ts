@@ -84,7 +84,7 @@ export class EvaluationService {
     const defaults = await this.systemIntegrationsService.getTournamentDefaultsConfig();
     const minReviewersPerSubmission =
       dto.minReviewersPerSubmission ?? defaults.defaultMinReviewersPerSubmission;
-    const juryPool = await this.resolveJuryPool(dto.juryUserIds);
+    const juryPool = await this.resolveJuryPool(round.tournament.id, dto.juryUserIds);
 
     if (juryPool.length < minReviewersPerSubmission) {
       throw new BadRequestException(
@@ -528,40 +528,59 @@ export class EvaluationService {
     return result;
   }
 
-  private async resolveJuryPool(juryUserIds?: string[]): Promise<JuryCandidate[]> {
+  private async resolveJuryPool(
+    tournamentId: string,
+    juryUserIds?: string[],
+  ): Promise<JuryCandidate[]> {
     if (!juryUserIds || juryUserIds.length === 0) {
-      const allJury = await this.prisma.user.findMany({
-        where: {
-          role: Role.JURY,
-        },
+      const assignedJury = await this.prisma.tournamentJury.findMany({
+        where: { tournamentId },
         select: {
-          id: true,
+          user: {
+            select: {
+              id: true,
+              role: true,
+              isBlocked: true,
+            },
+          },
         },
+        orderBy: { assignedAt: 'asc' },
       });
 
-      if (allJury.length === 0) {
-        throw new BadRequestException('No users with JURY role found');
+      const activeJury = assignedJury
+        .map((item) => item.user)
+        .filter((user) => user.role === Role.JURY && !user.isBlocked)
+        .map((user) => ({ id: user.id }));
+
+      if (activeJury.length === 0) {
+        throw new BadRequestException('No jury assigned to this tournament');
       }
 
-      return allJury;
+      return activeJury;
     }
 
     const uniqueIds = [...new Set(juryUserIds)];
-    const selectedJury = await this.prisma.user.findMany({
+    const selectedJury = await this.prisma.tournamentJury.findMany({
       where: {
-        id: { in: uniqueIds },
-        role: Role.JURY,
+        tournamentId,
+        userId: { in: uniqueIds },
+        user: {
+          role: Role.JURY,
+          isBlocked: false,
+        },
       },
       select: {
-        id: true,
+        userId: true,
       },
     });
 
     if (selectedJury.length !== uniqueIds.length) {
-      throw new BadRequestException('Some provided juryUserIds are invalid or not JURY');
+      throw new BadRequestException(
+        'Some selected jury users are not assigned to this tournament',
+      );
     }
 
-    return selectedJury;
+    return selectedJury.map((item) => ({ id: item.userId }));
   }
 
   private pickLeastLoadedJury(

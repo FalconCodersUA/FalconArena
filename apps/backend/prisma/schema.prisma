@@ -109,6 +109,7 @@ model User {
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
   createdTournaments Tournament[]        @relation("TournamentCreatedBy")
+  tournamentJuryMemberships TournamentJury[] @relation("TournamentJuryUser")
   captainTeams    Team[]                 @relation("TeamCaptain")
   juryAssignments EvaluationAssignment[]
   evaluations     Evaluation[]
@@ -176,10 +177,22 @@ model Tournament {
   createdBy          User?            @relation("TournamentCreatedBy", fields: [createdById], references: [id])
   teams              Team[]
   rounds             Round[]
+  juryMembers        TournamentJury[]
   scheduleEvents     TournamentScheduleEvent[]
   certificateTemplate CertificateTemplate?
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
+}
+
+model TournamentJury {
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User       @relation("TournamentJuryUser", fields: [userId], references: [id], onDelete: Cascade)
+  assignedAt   DateTime   @default(now())
+
+  @@id([tournamentId, userId])
+  @@index([userId, assignedAt])
 }
 
 model Team {
