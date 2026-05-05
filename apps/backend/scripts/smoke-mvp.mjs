@@ -144,6 +144,18 @@ async function run() {
   const tournamentId = createdTournament.payload.id;
   assert(tournamentId, 'Missing tournamentId');
 
+  const tournamentJury = await request('PATCH', `/tournaments/${tournamentId}/jury`, {
+    token: adminToken,
+    expectedStatus: [200, 201],
+    body: {
+      juryUserIds: [juryUserId],
+    },
+  });
+  assert(
+    tournamentJury.payload.assigned?.some((juryUser) => juryUser.id === juryUserId),
+    'Created jury user must be assigned to the smoke tournament',
+  );
+
   const scheduleEvent = await request('POST', `/tournaments/${tournamentId}/schedule`, {
     token: adminToken,
     expectedStatus: [200, 201],

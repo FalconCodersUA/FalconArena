@@ -17,7 +17,7 @@ FalconArena is designed as a product platform for tournaments, where the core co
 - team registration and participant management;
 - rounds with tasks, deadlines, and supporting materials;
 - submissions through GitHub, demo, and live demo links;
-- jury evaluation and leaderboard generation;
+- tournament-level jury assignment, round evaluation distribution, and leaderboard generation;
 - archive views and certificates for completed tournaments;
 - announcements, direct dialogs, and system notifications;
 - public `About` page with platform copy, a banner, role blocks, CTA, contact channels, and user reviews;
@@ -34,11 +34,13 @@ FalconArena is designed as a product platform for tournaments, where the core co
 ### Tournament flow
 
 - role-based flow for `ADMIN`, `ORGANIZER`, `TEAM`, and `JURY`
+- email/password authentication and OAuth sign-in through Google or GitHub
 - public tournament pages
 - rounds with descriptions, requirements, deadlines, and materials
 - submissions with GitHub, demo, live demo, and structured summaries
 - automatic submission locking after the deadline
-- jury assignment distribution
+- managed jury pool for each tournament
+- submission distribution only across jury members assigned to the selected tournament
 - category-based evaluation
 - leaderboard, archive, and export flows
 
@@ -62,6 +64,8 @@ FalconArena is designed as a product platform for tournaments, where the core co
 ### Administrative and operating layer
 
 - user, role, access-block management, and CSV export
+- tournament-level jury assignment from the Dashboard
+- compact administrator guidance block with a launch checklist
 - tournament schedule
 - profile settings
 - `About` page with managed platform copy, banner, contact channels, and user reviews
@@ -143,7 +147,7 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 
 - PR to `main`: lint + test + build
 - Push/merge to `main`: deploy workflow connects to Ubuntu over SSH and runs Docker Compose update
-- Manual trigger: `Smoke Check (Manual)` runs backend smoke automation on demand
+- `Production Smoke Check` runs scheduled and on-demand backend smoke automation against the deployed platform
 
 Required repository secrets for deploy:
 
@@ -164,6 +168,12 @@ Required repository secrets for deploy:
 - `EMAIL_FROM` (required for real email sending)
 - `EMAIL_REPLY_TO` (optional)
 - `RESEND_API_KEY` (required only for `EMAIL_PROVIDER=resend`)
+- `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` for Google OAuth
+- `GH_OAUTH_CLIENT_ID` and `GH_OAUTH_CLIENT_SECRET` for GitHub OAuth
+- `GOOGLE_CALLBACK_URL` and `GITHUB_CALLBACK_URL` when production callbacks differ from defaults
+- `FRONTEND_OAUTH_SUCCESS_URL` and `FRONTEND_OAUTH_FAILURE_URL`
+
+GitHub OAuth uses `GH_OAUTH_CLIENT_ID` in repository secrets because the `GITHUB_` prefix is reserved by GitHub.
 
 Required repository secrets for manual smoke check:
 
@@ -201,7 +211,7 @@ Ukrainian docs:
 1. `TEAM`: creates an account through `/app/register`, opens tournaments, registers a team, and submits work for the active round.
 2. `ADMIN`: creates a tournament, switches it to `Registration`, starts a round, and creates `JURY` and `ORGANIZER` users if needed.
 3. `JURY`: works in the jury workspace, opens assigned submissions, and scores them.
-4. `ADMIN`: distributes assignments, closes submissions or finishes evaluation, then reviews `Leaderboard`, `Archive`, and certificates.
+4. `ADMIN`: assigns jury members to the tournament, distributes evaluation across that jury pool, closes submissions or finishes evaluation, then reviews `Leaderboard`, `Archive`, and certificates.
 5. Any role: uses `Messages` (`/app/messages`) for announcements, system notifications, and personal dialogs.
 
 ## Backend API and Platform Capabilities
@@ -211,6 +221,10 @@ Ukrainian docs:
   - `POST /auth/register` (public, always creates `TEAM` user)
   - `POST /auth/admin/users` (roles: `ADMIN`, `ORGANIZER`)
   - `POST /auth/login`
+  - `GET /auth/google`
+  - `GET /auth/google/callback`
+  - `GET /auth/github`
+  - `GET /auth/github/callback`
   - `GET /auth/me` (Bearer token)
   - `GET /auth/admin/ping` (roles: `ADMIN`, `ORGANIZER`)
 - Health endpoints:
@@ -221,6 +235,8 @@ Ukrainian docs:
   - `GET /tournaments/:id`
   - `POST /tournaments` (roles: `ADMIN`, `ORGANIZER`)
   - `PATCH /tournaments/:id/status` (roles: `ADMIN`, `ORGANIZER`)
+  - `GET /tournaments/:id/jury` (roles: `ADMIN`, `ORGANIZER`)
+  - `PATCH /tournaments/:id/jury` (roles: `ADMIN`, `ORGANIZER`)
 - Team registration endpoints:
   - `GET /teams`
   - `POST /tournaments/:tournamentId/teams/register` (roles: `TEAM`, `ADMIN`, `ORGANIZER`)

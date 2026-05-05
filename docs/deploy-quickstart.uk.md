@@ -59,6 +59,14 @@ cat falconarena_actions_ssh.pub
 - `JWT_SECRET`
 - `VITE_API_URL` = `https://falconarena.live`
 - `PRISMA_SYNC_MODE` = `dbpush` (після baseline переключити на `migrate`)
+- `GOOGLE_CLIENT_ID` і `GOOGLE_CLIENT_SECRET` для Google OAuth
+- `GH_OAUTH_CLIENT_ID` і `GH_OAUTH_CLIENT_SECRET` для GitHub OAuth
+- `GOOGLE_CALLBACK_URL` = `https://falconarena.live/auth/google/callback`
+- `GITHUB_CALLBACK_URL` = `https://falconarena.live/auth/github/callback`
+- `FRONTEND_OAUTH_SUCCESS_URL` = `https://falconarena.live/app/oauth/callback`
+- `FRONTEND_OAUTH_FAILURE_URL` = `https://falconarena.live/app/oauth/callback`
+
+Для GitHub OAuth використовуйте secret `GH_OAUTH_CLIENT_ID`, а не `GITHUB_CLIENT_ID`, тому що префікс `GITHUB_` зарезервований GitHub Actions.
 
 ## 5) Домен і firewall
 
