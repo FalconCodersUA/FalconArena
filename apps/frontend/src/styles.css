@@ -6278,6 +6278,15 @@ a {
   box-shadow: 0 16px 30px rgba(94, 23, 235, 0.22);
 }
 
+.app-page .admin-jury-actions .button-primary:hover:not(:disabled),
+.app-page .admin-jury-actions .button-primary:focus-visible {
+  background: linear-gradient(135deg, #6f2cff 0%, #8a56ff 100%);
+  color: #ffffff;
+  border-color: rgba(94, 23, 235, 0.68);
+  box-shadow: 0 18px 34px rgba(94, 23, 235, 0.28);
+  transform: translateY(-1px);
+}
+
 .admin-jury-actions .inline-hint {
   margin-left: 4px;
 }
