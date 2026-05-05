@@ -17,7 +17,7 @@ FalconArena побудовано як продуктову платформу д
 - реєстрація команд і ведення учасників;
 - раунди із завданнями, дедлайнами та матеріалами;
 - подання сабмітів через GitHub, demo і live demo;
-- оцінювання журі та формування таблиці лідерів;
+- призначення журі на рівні турніру, розподіл оцінювання по раундах і формування таблиці лідерів;
 - архів завершених турнірів і сертифікати;
 - оголошення, особисті діалоги та системні сповіщення;
 - публічна сторінка `Про нас` з описом платформи, банером, рольовими блоками, CTA, контактами і відгуками користувачів;
@@ -34,11 +34,13 @@ FalconArena побудовано як продуктову платформу д
 ### Турнірний контур
 
 - рольова модель `ADMIN`, `ORGANIZER`, `TEAM`, `JURY`
+- вхід через email/password, Google OAuth або GitHub OAuth
 - публічна сторінка турніру
 - раунди з описом, вимогами, дедлайнами та додатковими матеріалами
 - сабміти з GitHub, demo, live demo і коротким описом
 - блокування сабмітів після дедлайну
-- розподіл оцінювання для журі
+- керований пул журі для кожного турніру
+- розподіл сабмітів між журі, призначеними саме до вибраного турніру
 - оцінювання по категоріях
 - таблиця лідерів, архів і експорт результатів
 
@@ -62,6 +64,8 @@ FalconArena побудовано як продуктову платформу д
 ### Адміністративний і операційний шар
 
 - керування користувачами, ролями, блокуванням доступу і CSV-експортом
+- призначення журі на конкретний турнір у Dashboard
+- компактний інформаційний блок адміністратора із чеклистом запуску
 - розклад турніру
 - профіль користувача з налаштуваннями
 - сторінка `Про нас` з керованим описом платформи, банером, контактними каналами і відгуками
@@ -138,7 +142,7 @@ infra/
 1. `TEAM`: створює акаунт через `/app/register`, відкриває турніри, реєструє команду і подає сабміт.
 2. `ADMIN`: створює турнір, переводить його в `Registration`, запускає раунд і за потреби додає `JURY` та `ORGANIZER`.
 3. `JURY`: працює у власному кабінеті, відкриває призначені роботи та виставляє оцінки.
-4. `ADMIN`: розподіляє оцінювання, закриває сабміти або завершує оцінювання, перевіряє `Leaderboard`, `Archive` і сертифікати.
+4. `ADMIN`: призначає журі до турніру, розподіляє оцінювання між цим пулом журі, закриває сабміти або завершує оцінювання, перевіряє `Leaderboard`, `Archive` і сертифікати.
 5. Будь-яка роль: використовує `Повідомлення` для оголошень, системних сповіщень та особистих діалогів.
 6. Авторизований користувач: може залишити відгук на сторінці `Про нас`; `ADMIN` перевіряє його в `Інтеграціях` перед публікацією.
 
@@ -199,6 +203,19 @@ docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docke
 - `GOOGLE_SHEETS_WEBHOOK_SECRET`
 - `GOOGLE_SHEETS_DEFAULT_SHEET_NAME`
 
+Для OAuth-входу:
+
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_CALLBACK_URL`
+- `GITHUB_CLIENT_ID`
+- `GITHUB_CLIENT_SECRET`
+- `GITHUB_CALLBACK_URL`
+- `FRONTEND_OAUTH_SUCCESS_URL`
+- `FRONTEND_OAUTH_FAILURE_URL`
+
+У GitHub Actions secrets для GitHub OAuth client id використовується назва `GH_OAUTH_CLIENT_ID`, тому що префікс `GITHUB_` зарезервований GitHub.
+
 Для storage strategy:
 
 - `STORAGE_PROVIDER` - `local` або `s3`
@@ -238,6 +255,10 @@ SEED_ADMIN_EMAIL=admin@falconarena.live SEED_ADMIN_PASSWORD=change_me npm run pr
 
 - `POST /auth/register`
 - `POST /auth/login`
+- `GET /auth/google`
+- `GET /auth/google/callback`
+- `GET /auth/github`
+- `GET /auth/github/callback`
 - `GET /auth/me`
 - `POST /auth/admin/users`
 
@@ -247,6 +268,8 @@ SEED_ADMIN_EMAIL=admin@falconarena.live SEED_ADMIN_PASSWORD=change_me npm run pr
 - `GET /tournaments/:id`
 - `POST /tournaments`
 - `PATCH /tournaments/:id/status`
+- `GET /tournaments/:id/jury`
+- `PATCH /tournaments/:id/jury`
 - `GET /tournaments/:tournamentId/leaderboard`
 - `GET /tournaments/:tournamentId/leaderboard/export.csv`
 - `POST /tournaments/:tournamentId/leaderboard/export.google-sheets`

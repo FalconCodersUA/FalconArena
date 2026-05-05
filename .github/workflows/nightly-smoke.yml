@@ -1,4 +1,4 @@
-name: Smoke Check (Manual)
+name: Production Smoke Check
 
 on:
   schedule:
@@ -11,7 +11,7 @@ on:
         default: ''
 
 concurrency:
-  group: smoke-check-manual
+  group: production-smoke-check
   cancel-in-progress: true
 
 jobs:
