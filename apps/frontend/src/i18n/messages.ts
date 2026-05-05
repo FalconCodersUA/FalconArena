@@ -1080,6 +1080,8 @@ export const messages: TranslationMap = {
       workspaceTitle: 'Щоденний робочий простір адміністратора',
       workspaceLead:
         'Починайте день із цього екрана: керуйте активним турніром, перевіряйте готовність етапів і швидко переходьте до системних інструментів.',
+      workspaceExpand: 'Розгорнути',
+      workspaceCollapse: 'Згорнути',
       workspaceCurrentTournament: 'Обраний турнір',
       workspaceNoTournament: 'Турнір ще не обрано',
       workspaceStatusEmpty:
@@ -3035,6 +3037,8 @@ export const messages: TranslationMap = {
       workspaceTitle: 'Daily administrator workspace',
       workspaceLead:
         'Start here every day: manage the active tournament, verify stage readiness, and jump into the key operational tools.',
+      workspaceExpand: 'Expand',
+      workspaceCollapse: 'Collapse',
       workspaceCurrentTournament: 'Current focus',
       workspaceNoTournament: 'No tournament selected yet',
       workspaceStatusEmpty:
