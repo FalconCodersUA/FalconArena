@@ -1278,10 +1278,30 @@ export const messages: TranslationMap = {
       tournamentStatus: 'Статус турніру',
       tournamentStatusUpdated: 'Статус турніру оновлено.',
       tournamentStatusFailed: 'Не вдалося змінити статус турніру',
+      tournamentStatusCurrent: 'Поточний',
+      tournamentStatusUnavailable: 'Недоступно',
       tournamentStatusInvalidTransition:
         'Цей перехід статусу недоступний. Завершений турнір не можна повернути до реєстрації або активного стану.',
       tournamentStatusInvalidRegistrationWindow:
         'Неможливо відкрити реєстрацію: дата початку має бути раніше за дату завершення.',
+      statusRecovery: {
+        open: 'Відновити статус',
+        title: 'Відновлення статусу турніру',
+        lead: 'Доступно лише адміністратору для виправлення помилкового або операційного відкату статусу.',
+        current: 'Поточний статус',
+        target: 'Повернути до статусу',
+        reason: 'Причина відновлення',
+        reasonPlaceholder: 'Наприклад: турнір випадково завершили раніше часу.',
+        warningTitle: 'Відновлюється тільки статус турніру',
+        warningLead:
+          'Раунди, сабміти, журі, лідерборд і оголошення не змінюються автоматично.',
+        submit: 'Відновити статус',
+        saving: 'Відновлюємо...',
+        saved: 'Статус турніру відновлено.',
+        failed: 'Не вдалося відновити статус турніру',
+        reasonRequired: 'Вкажіть причину відновлення статусу.',
+        unavailable: 'Цей статус недоступний для відновлення.',
+      },
       registrationPeriod: 'Вікно реєстрації',
       noItemsDefined: 'Пункти ще не задані.',
       createTournamentSuccess: 'Турнір успішно створено.',
@@ -1317,6 +1337,23 @@ export const messages: TranslationMap = {
       finishEvaluationForce: 'Примусово завершити',
       finishEvaluationSuccess: 'Оцінювання раунду завершено.',
       finishEvaluationFailed: 'Не вдалося завершити оцінювання',
+      roundRecovery: {
+        open: 'Відновити оцінювання',
+        title: 'Відновлення оцінювання раунду',
+        roundLabel: 'Раунд',
+        target: 'Статус після відновлення',
+        reason: 'Причина відновлення',
+        reasonPlaceholder: 'Наприклад: оцінювання завершили випадково.',
+        warningTitle: 'Раунд повернеться до закритих сабмітів',
+        warningLead:
+          'Сабміти, оцінки, призначення журі та лідерборд не змінюються автоматично.',
+        submit: 'Відновити оцінювання',
+        saving: 'Відновлюємо...',
+        saved: 'Оцінювання раунду відновлено.',
+        failed: 'Не вдалося відновити оцінювання раунду',
+        reasonRequired: 'Вкажіть причину відновлення оцінювання.',
+        unavailable: 'Цей раунд недоступний для відновлення оцінювання.',
+      },
         distributeAssignments: 'Розподілити призначення',
         distributeSuccess: 'Призначення успішно розподілено.',
         distributeFailed: 'Не вдалося розподілити призначення',
@@ -1333,6 +1370,10 @@ export const messages: TranslationMap = {
         saveFailed: 'Не вдалося зберегти журі турніру',
         requiredForDistribution:
           'Спочатку додайте журі до турніру, щоб розподілити сабміти.',
+        minReviewersWarning:
+          'Для поточного мінімуму потрібно щонайменше {count} журі. Ви можете зберегти менший пул, але розподіл призначень не запуститься.',
+        distributionMinReviewersWarning:
+          'Для цього розподілу потрібно щонайменше {count} журі в збереженому пулі турніру.',
       },
       nextStepTitle: 'Що робити далі',
       nextStep: {
@@ -3253,10 +3294,30 @@ export const messages: TranslationMap = {
       tournamentStatus: 'Tournament status',
       tournamentStatusUpdated: 'Tournament status updated.',
       tournamentStatusFailed: 'Could not update tournament status',
+      tournamentStatusCurrent: 'Current',
+      tournamentStatusUnavailable: 'Unavailable',
       tournamentStatusInvalidTransition:
         'This status transition is not available. A finished tournament cannot be moved back to registration or running state.',
       tournamentStatusInvalidRegistrationWindow:
         'Registration cannot be opened because the start date must be earlier than the closing date.',
+      statusRecovery: {
+        open: 'Recover status',
+        title: 'Recover tournament status',
+        lead: 'Available only to admins for correcting an accidental or operational status rollback.',
+        current: 'Current status',
+        target: 'Recover to status',
+        reason: 'Recovery reason',
+        reasonPlaceholder: 'Example: the tournament was finished too early by mistake.',
+        warningTitle: 'Only the tournament status is restored',
+        warningLead:
+          'Rounds, submissions, jury, leaderboard data, and announcements are not changed automatically.',
+        submit: 'Recover status',
+        saving: 'Recovering...',
+        saved: 'Tournament status recovered.',
+        failed: 'Could not recover tournament status',
+        reasonRequired: 'Enter the status recovery reason.',
+        unavailable: 'This status is not available for recovery.',
+      },
       registrationPeriod: 'Registration window',
       noItemsDefined: 'No items defined yet.',
       createTournamentSuccess: 'Tournament created successfully.',
@@ -3292,6 +3353,23 @@ export const messages: TranslationMap = {
       finishEvaluationForce: 'Force finish',
       finishEvaluationSuccess: 'Round evaluation finished.',
       finishEvaluationFailed: 'Could not finish evaluation',
+      roundRecovery: {
+        open: 'Recover evaluation',
+        title: 'Recover round evaluation',
+        roundLabel: 'Round',
+        target: 'Status after recovery',
+        reason: 'Recovery reason',
+        reasonPlaceholder: 'Example: evaluation was finished by mistake.',
+        warningTitle: 'The round returns to closed submissions',
+        warningLead:
+          'Submissions, scores, jury assignments, and leaderboard data are not changed automatically.',
+        submit: 'Recover evaluation',
+        saving: 'Recovering...',
+        saved: 'Round evaluation recovered.',
+        failed: 'Could not recover round evaluation',
+        reasonRequired: 'Enter the evaluation recovery reason.',
+        unavailable: 'This round is not available for evaluation recovery.',
+      },
         distributeAssignments: 'Distribute assignments',
         distributeSuccess: 'Assignments distributed successfully.',
         distributeFailed: 'Could not distribute assignments',
@@ -3308,6 +3386,10 @@ export const messages: TranslationMap = {
         saveFailed: 'Could not save tournament jury',
         requiredForDistribution:
           'Add jury members to the tournament before distributing submissions.',
+        minReviewersWarning:
+          'The current minimum requires at least {count} jury members. You can save a smaller pool, but assignment distribution will not start.',
+        distributionMinReviewersWarning:
+          'This distribution requires at least {count} jury members in the saved tournament pool.',
       },
       nextStepTitle: 'What to do next',
       nextStep: {

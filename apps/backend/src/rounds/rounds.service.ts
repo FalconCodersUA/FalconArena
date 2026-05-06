@@ -2,6 +2,7 @@ import {
   Optional,
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -233,6 +234,61 @@ export class RoundsService {
     throw new BadRequestException(
       `Unsupported round status update: ${round.status} -> ${status}`,
     );
+  }
+
+  async overrideStatus(
+    tournamentId: string,
+    roundId: string,
+    status: RoundStatus,
+    reason: string,
+    actor: AuthUser,
+  ) {
+    if (actor.role !== 'ADMIN') {
+      throw new ForbiddenException('Only admins can override round status');
+    }
+
+    const normalizedReason = reason.trim();
+    if (!normalizedReason) {
+      throw new BadRequestException('Round status override reason is required');
+    }
+
+    const round = await this.prisma.round.findUnique({ where: { id: roundId } });
+    if (!round || round.tournamentId !== tournamentId) {
+      throw new NotFoundException('Round not found in this tournament');
+    }
+
+    if (
+      round.status !== RoundStatus.EVALUATED ||
+      status !== RoundStatus.SUBMISSION_CLOSED
+    ) {
+      throw new BadRequestException(
+        `Invalid round status override: ${round.status} -> ${status}`,
+      );
+    }
+
+    const updatedRound = await this.prisma.round.update({
+      where: { id: roundId },
+      data: { status },
+    });
+
+    await this.auditLogsService?.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'round.status_override',
+      entityType: 'round',
+      entityId: updatedRound.id,
+      entityLabel: updatedRound.title,
+      tournamentId,
+      title: 'Overrode round status',
+      description: `${updatedRound.title} status was restored from ${round.status} to ${status}.`,
+      metadata: {
+        previousStatus: round.status,
+        nextStatus: status,
+        reason: normalizedReason,
+      },
+    });
+
+    return this.mapRoundView(updatedRound);
   }
 
   async findById(roundId: string) {

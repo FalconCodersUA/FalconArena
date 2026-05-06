@@ -159,6 +159,20 @@ const EMPTY_SCHEDULE_OP_STATE: ScheduleOperationState = {
   error: '',
 };
 
+const TOURNAMENT_STATUSES: TournamentStatus[] = [
+  'DRAFT',
+  'REGISTRATION',
+  'RUNNING',
+  'FINISHED',
+];
+
+const TOURNAMENT_STATUS_ORDER: Record<TournamentStatus, number> = {
+  DRAFT: 0,
+  REGISTRATION: 1,
+  RUNNING: 2,
+  FINISHED: 3,
+};
+
 function formatDashboardRoundTitle(
   title: string,
   sequence: number,
@@ -267,6 +281,45 @@ function parseLineList(value: string) {
     .split(/\r?\n/)
     .map((entry) => entry.trim())
     .filter((entry) => entry.length > 0);
+}
+
+function canTransitionTournamentStatus(
+  currentStatus: TournamentStatus,
+  nextStatus: TournamentStatus,
+) {
+  const allowedTransitions: Record<TournamentStatus, TournamentStatus[]> = {
+    DRAFT: ['REGISTRATION'],
+    REGISTRATION: ['RUNNING', 'FINISHED'],
+    RUNNING: ['FINISHED'],
+    FINISHED: [],
+  };
+
+  return allowedTransitions[currentStatus].includes(nextStatus);
+}
+
+function getRecoverableTournamentStatuses(currentStatus: TournamentStatus) {
+  return TOURNAMENT_STATUSES.filter(
+    (status) => TOURNAMENT_STATUS_ORDER[status] < TOURNAMENT_STATUS_ORDER[currentStatus],
+  );
+}
+
+function canTransitionRoundStatus(currentStatus: RoundStatus, nextStatus: RoundStatus) {
+  const allowedTransitions: Record<RoundStatus, RoundStatus[]> = {
+    DRAFT: ['ACTIVE'],
+    ACTIVE: ['SUBMISSION_CLOSED'],
+    SUBMISSION_CLOSED: [],
+    EVALUATED: [],
+  };
+
+  return allowedTransitions[currentStatus].includes(nextStatus);
+}
+
+function canFinishRoundEvaluation(status: RoundStatus) {
+  return status === 'ACTIVE' || status === 'SUBMISSION_CLOSED';
+}
+
+function canDistributeRoundAssignments(status: RoundStatus) {
+  return status === 'ACTIVE' || status === 'SUBMISSION_CLOSED';
 }
 
 function toInitials(value: string) {
@@ -413,6 +466,16 @@ export default function AdminDashboardPage() {
   const [statusLoading, setStatusLoading] = useState(false);
   const [statusError, setStatusError] = useState('');
   const [statusNotice, setStatusNotice] = useState('');
+  const [statusRecoveryOpen, setStatusRecoveryOpen] = useState(false);
+  const [statusRecoveryTarget, setStatusRecoveryTarget] = useState<TournamentStatus | ''>('');
+  const [statusRecoveryReason, setStatusRecoveryReason] = useState('');
+  const [statusRecoveryLoading, setStatusRecoveryLoading] = useState(false);
+  const [statusRecoveryError, setStatusRecoveryError] = useState('');
+  const [roundRecoveryOpen, setRoundRecoveryOpen] = useState(false);
+  const [roundRecoveryRoundId, setRoundRecoveryRoundId] = useState('');
+  const [roundRecoveryReason, setRoundRecoveryReason] = useState('');
+  const [roundRecoveryLoading, setRoundRecoveryLoading] = useState(false);
+  const [roundRecoveryError, setRoundRecoveryError] = useState('');
   const [juryLoading, setJuryLoading] = useState(false);
   const [jurySaving, setJurySaving] = useState(false);
   const [juryError, setJuryError] = useState('');
@@ -480,10 +543,22 @@ export default function AdminDashboardPage() {
   const assignedJuryIds = tournamentJury?.assigned
     .filter((jury) => !jury.isBlocked)
     .map((jury) => jury.id) ?? [];
+  const selectedJuryBelowDefaultMinimum =
+    selectedJuryIds.length < platformDefaults.defaultMinReviewersPerSubmission;
+  const selectedJuryMinimumWarning = t('adminDashboard.jury.minReviewersWarning').replace(
+    '{count}',
+    String(platformDefaults.defaultMinReviewersPerSubmission),
+  );
 
+  const isAdmin = me?.role === 'ADMIN';
   const roleAllowed = me?.role === 'ADMIN' || me?.role === 'ORGANIZER';
   const creatableRoles: ManagedUserRole[] =
     me?.role === 'ADMIN' ? ['JURY', 'ORGANIZER', 'TEAM', 'ADMIN'] : ['JURY', 'ORGANIZER', 'TEAM'];
+  const recoverableTournamentStatuses = selectedTournament
+    ? getRecoverableTournamentStatuses(selectedTournament.status)
+    : [];
+  const canRecoverTournamentStatus = isAdmin && recoverableTournamentStatuses.length > 0;
+  const recoveryRound = rounds.find((round) => round.id === roundRecoveryRoundId) ?? null;
   const runningTournaments = metrics.summary.runningTournaments;
   const activeRounds = metrics.summary.activeRounds;
   const closedRounds = metrics.summary.closedRounds;
@@ -632,6 +707,46 @@ export default function AdminDashboardPage() {
     setQuickModal('none');
   }
 
+  function openStatusRecovery() {
+    if (!selectedTournament || recoverableTournamentStatuses.length === 0) {
+      return;
+    }
+
+    setStatusRecoveryTarget(recoverableTournamentStatuses[0]);
+    setStatusRecoveryReason('');
+    setStatusRecoveryError('');
+    setStatusRecoveryOpen(true);
+  }
+
+  function closeStatusRecovery() {
+    if (statusRecoveryLoading) {
+      return;
+    }
+
+    setStatusRecoveryOpen(false);
+    setStatusRecoveryTarget('');
+    setStatusRecoveryReason('');
+    setStatusRecoveryError('');
+  }
+
+  function openRoundRecovery(roundId: string) {
+    setRoundRecoveryRoundId(roundId);
+    setRoundRecoveryReason('');
+    setRoundRecoveryError('');
+    setRoundRecoveryOpen(true);
+  }
+
+  function closeRoundRecovery() {
+    if (roundRecoveryLoading) {
+      return;
+    }
+
+    setRoundRecoveryOpen(false);
+    setRoundRecoveryRoundId('');
+    setRoundRecoveryReason('');
+    setRoundRecoveryError('');
+  }
+
   function resetScheduleForm() {
     setScheduleEditingId('');
     setScheduleTitle('');
@@ -654,13 +769,21 @@ export default function AdminDashboardPage() {
   }
 
   useEffect(() => {
-    if (quickModal === 'none') {
+    if (quickModal === 'none' && !statusRecoveryOpen && !roundRecoveryOpen) {
       return;
     }
 
     function handleEscape(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        closeQuickModal();
+        if (quickModal !== 'none') {
+          closeQuickModal();
+        }
+        if (statusRecoveryOpen) {
+          closeStatusRecovery();
+        }
+        if (roundRecoveryOpen) {
+          closeRoundRecovery();
+        }
       }
     }
 
@@ -668,7 +791,13 @@ export default function AdminDashboardPage() {
     return () => {
       window.removeEventListener('keydown', handleEscape);
     };
-  }, [quickModal]);
+  }, [
+    quickModal,
+    statusRecoveryOpen,
+    statusRecoveryLoading,
+    roundRecoveryOpen,
+    roundRecoveryLoading,
+  ]);
 
   function updateRoundOperationState(roundId: string, patch: Partial<RoundOperationState>) {
     setOpsByRoundId((current) => ({
@@ -806,6 +935,14 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     setStatusError('');
     setStatusNotice('');
+    setStatusRecoveryOpen(false);
+    setStatusRecoveryTarget('');
+    setStatusRecoveryReason('');
+    setStatusRecoveryError('');
+    setRoundRecoveryOpen(false);
+    setRoundRecoveryRoundId('');
+    setRoundRecoveryReason('');
+    setRoundRecoveryError('');
 
     if (!selectedTournamentId || !roleAllowed) {
       setRounds([]);
@@ -950,7 +1087,16 @@ export default function AdminDashboardPage() {
   }
 
   async function updateTournamentStatus(status: TournamentStatus) {
-    if (!selectedTournamentId) {
+    if (!selectedTournamentId || !selectedTournament) {
+      return;
+    }
+
+    if (selectedTournament.status === status) {
+      return;
+    }
+
+    if (!canTransitionTournamentStatus(selectedTournament.status, status)) {
+      setStatusError(t('adminDashboard.tournamentStatusInvalidTransition'));
       return;
     }
 
@@ -981,6 +1127,60 @@ export default function AdminDashboardPage() {
       notifyError(message);
     } finally {
       setStatusLoading(false);
+    }
+  }
+
+  async function submitStatusRecovery(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedTournamentId || !selectedTournament || !statusRecoveryTarget) {
+      return;
+    }
+
+    const normalizedReason = statusRecoveryReason.trim();
+    if (normalizedReason.length < 3) {
+      setStatusRecoveryError(t('adminDashboard.statusRecovery.reasonRequired'));
+      return;
+    }
+
+    if (!recoverableTournamentStatuses.includes(statusRecoveryTarget)) {
+      setStatusRecoveryError(t('adminDashboard.statusRecovery.unavailable'));
+      return;
+    }
+
+    setStatusRecoveryLoading(true);
+    setStatusRecoveryError('');
+    setStatusError('');
+    setStatusNotice('');
+
+    try {
+      await apiRequest(`/tournaments/${selectedTournamentId}/status/override`, {
+        method: 'PATCH',
+        body: {
+          status: statusRecoveryTarget,
+          reason: normalizedReason,
+        },
+      });
+
+      setStatusNotice(t('adminDashboard.statusRecovery.saved'));
+      notifySuccess(t('adminDashboard.statusRecovery.saved'));
+      setStatusRecoveryOpen(false);
+      setStatusRecoveryTarget('');
+      setStatusRecoveryReason('');
+      await Promise.all([
+        loadTournaments(),
+        loadDashboardMetrics(selectedTournamentId),
+        loadActivityFeed(selectedTournamentId),
+      ]);
+    } catch (requestError) {
+      const message = normalizeApiErrorMessage(
+        requestError,
+        t,
+        t('adminDashboard.statusRecovery.failed'),
+      );
+      setStatusRecoveryError(message);
+      notifyError(message);
+    } finally {
+      setStatusRecoveryLoading(false);
     }
   }
 
@@ -1138,6 +1338,20 @@ export default function AdminDashboardPage() {
       return;
     }
 
+    const round = rounds.find((item) => item.id === roundId);
+    if (!round || round.status === status) {
+      return;
+    }
+
+    if (!canTransitionRoundStatus(round.status, status)) {
+      updateRoundOperationState(roundId, {
+        loading: false,
+        error: t('common.errors.invalidRoundStatusTransition'),
+        notice: '',
+      });
+      return;
+    }
+
     updateRoundOperationState(roundId, { loading: true, error: '', notice: '' });
     try {
       await apiRequest(`/tournaments/${selectedTournamentId}/rounds/${roundId}/status`, {
@@ -1291,6 +1505,19 @@ export default function AdminDashboardPage() {
   }
 
   async function distributeAssignments(roundId: string) {
+    const round = rounds.find((item) => item.id === roundId);
+    if (!round || !canDistributeRoundAssignments(round.status)) {
+      updateRoundOperationState(roundId, {
+        loading: false,
+        error:
+          round?.status === 'EVALUATED'
+            ? t('common.errors.distributeEvaluatedRound')
+            : t('common.errors.distributeDraftRound'),
+        notice: '',
+      });
+      return;
+    }
+
     updateRoundOperationState(roundId, { loading: true, error: '', notice: '' });
 
     try {
@@ -1348,6 +1575,19 @@ export default function AdminDashboardPage() {
   }
 
   async function finishEvaluation(roundId: string, force: boolean) {
+    const round = rounds.find((item) => item.id === roundId);
+    if (!round || !canFinishRoundEvaluation(round.status)) {
+      updateRoundOperationState(roundId, {
+        loading: false,
+        error:
+          round?.status === 'EVALUATED'
+            ? t('common.errors.evaluateEvaluatedRound')
+            : t('common.errors.finishDraftRound'),
+        notice: '',
+      });
+      return;
+    }
+
     updateRoundOperationState(roundId, { loading: true, error: '', notice: '' });
 
     try {
@@ -1380,6 +1620,64 @@ export default function AdminDashboardPage() {
         error: message,
       });
       notifyError(message);
+    }
+  }
+
+  async function submitRoundRecovery(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedTournamentId || !recoveryRound) {
+      return;
+    }
+
+    const normalizedReason = roundRecoveryReason.trim();
+    if (normalizedReason.length < 3) {
+      setRoundRecoveryError(t('adminDashboard.roundRecovery.reasonRequired'));
+      return;
+    }
+
+    setRoundRecoveryLoading(true);
+    setRoundRecoveryError('');
+    updateRoundOperationState(recoveryRound.id, { loading: true, error: '', notice: '' });
+
+    try {
+      await apiRequest(
+        `/tournaments/${selectedTournamentId}/rounds/${recoveryRound.id}/status/override`,
+        {
+          method: 'PATCH',
+          body: {
+            status: 'SUBMISSION_CLOSED',
+            reason: normalizedReason,
+          },
+        },
+      );
+
+      updateRoundOperationState(recoveryRound.id, {
+        loading: false,
+        notice: t('adminDashboard.roundRecovery.saved'),
+      });
+      notifySuccess(t('adminDashboard.roundRecovery.saved'));
+      setRoundRecoveryOpen(false);
+      setRoundRecoveryRoundId('');
+      setRoundRecoveryReason('');
+      await Promise.all([
+        loadRounds(selectedTournamentId),
+        loadDashboardMetrics(selectedTournamentId),
+        loadActivityFeed(selectedTournamentId),
+      ]);
+    } catch (requestError) {
+      const message = normalizeApiErrorMessage(
+        requestError,
+        t,
+        t('adminDashboard.roundRecovery.failed'),
+      );
+      setRoundRecoveryError(message);
+      updateRoundOperationState(recoveryRound.id, {
+        loading: false,
+        error: message,
+      });
+      notifyError(message);
+    } finally {
+      setRoundRecoveryLoading(false);
     }
   }
 
@@ -1885,21 +2183,53 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="status-actions">
-                {(['DRAFT', 'REGISTRATION', 'RUNNING', 'FINISHED'] as TournamentStatus[]).map(
-                  (status) => (
-                    <button
-                      key={status}
-                      type="button"
-                      className="button button-soft tournament-status-action"
-                      disabled={statusLoading}
-                      onClick={() => updateTournamentStatus(status)}
-                    >
-                      {t(`tournaments.status.${status}`)}
-                    </button>
-                  ),
+              <div className="status-actions admin-tournament-status-actions">
+                {TOURNAMENT_STATUSES.map(
+                  (status) => {
+                    const isCurrentStatus = selectedTournament.status === status;
+                    const isAvailableTransition = canTransitionTournamentStatus(
+                      selectedTournament.status,
+                      status,
+                    );
+                    const isDisabled = statusLoading || isCurrentStatus || !isAvailableTransition;
+
+                    return (
+                      <button
+                        key={status}
+                        type="button"
+                        className={`button button-soft tournament-status-action${
+                          isCurrentStatus ? ' current' : ''
+                        }`}
+                        disabled={isDisabled}
+                        onClick={() => updateTournamentStatus(status)}
+                        aria-current={isCurrentStatus ? 'step' : undefined}
+                      >
+                        <span>{t(`tournaments.status.${status}`)}</span>
+                        {isCurrentStatus ? (
+                          <small>{t('adminDashboard.tournamentStatusCurrent')}</small>
+                        ) : null}
+                        {!isCurrentStatus && !isAvailableTransition ? (
+                          <small>{t('adminDashboard.tournamentStatusUnavailable')}</small>
+                        ) : null}
+                      </button>
+                    );
+                  },
                 )}
               </div>
+
+              {canRecoverTournamentStatus ? (
+                <div className="status-recovery-panel">
+                  <button
+                    type="button"
+                    className="button button-ghost status-recovery-action"
+                    onClick={openStatusRecovery}
+                    disabled={statusLoading || statusRecoveryLoading}
+                  >
+                    {t('adminDashboard.statusRecovery.open')}
+                  </button>
+                  <p className="inline-hint">{t('adminDashboard.statusRecovery.lead')}</p>
+                </div>
+              ) : null}
 
               <p className="inline-hint">
                 {t('adminDashboard.registrationPeriod')}:{' '}
@@ -1975,6 +2305,9 @@ export default function AdminDashboardPage() {
                 )}
               </span>
             </div>
+            {selectedJuryBelowDefaultMinimum ? (
+              <p className="admin-jury-warning">{selectedJuryMinimumWarning}</p>
+            ) : null}
           </>
         ) : null}
       </article>
@@ -2140,7 +2473,7 @@ export default function AdminDashboardPage() {
                       : t('schedule.noLocation')}
                   </span>
                 </div>
-                <div className="status-actions">
+                <div className="status-actions schedule-item-actions">
                   <button
                     type="button"
                     className="button button-soft"
@@ -2151,7 +2484,7 @@ export default function AdminDashboardPage() {
                   </button>
                   <button
                     type="button"
-                    className="button button-ghost"
+                    className="button button-ghost schedule-delete-action"
                     onClick={() => void deleteScheduleEvent(event.id)}
                     disabled={scheduleOp.loading}
                   >
@@ -2208,6 +2541,21 @@ export default function AdminDashboardPage() {
           <div className="rounds-grid">
             {rounds.map((round) => {
               const op = opsByRoundId[round.id] ?? EMPTY_OP_STATE;
+              const canActivateRound = canTransitionRoundStatus(round.status, 'ACTIVE');
+              const canCloseRoundSubmissions = canTransitionRoundStatus(
+                round.status,
+                'SUBMISSION_CLOSED',
+              );
+              const canFinishEvaluation = canFinishRoundEvaluation(round.status);
+              const canDistributeAssignments = canDistributeRoundAssignments(round.status);
+              const canRecoverRoundEvaluation = isAdmin && round.status === 'EVALUATED';
+              const minReviewersForRound =
+                minReviewersByRoundId[round.id] ??
+                platformDefaults.defaultMinReviewersPerSubmission;
+              const assignedJuryBelowRoundMinimum = assignedJuryIds.length < minReviewersForRound;
+              const distributionMinimumWarning = t(
+                'adminDashboard.jury.distributionMinReviewersWarning',
+              ).replace('{count}', String(minReviewersForRound));
               return (
                 <article key={round.id} className="round-card">
                   <div className="round-card-head">
@@ -2274,7 +2622,7 @@ export default function AdminDashboardPage() {
                     <button
                       type="button"
                       className="button button-soft admin-primary-action"
-                      disabled={op.loading}
+                      disabled={op.loading || !canActivateRound}
                       onClick={() => changeRoundStatus(round.id, 'ACTIVE')}
                     >
                       {t('adminDashboard.activateRound')}
@@ -2282,7 +2630,7 @@ export default function AdminDashboardPage() {
                     <button
                       type="button"
                       className="button button-soft admin-primary-action"
-                      disabled={op.loading}
+                      disabled={op.loading || !canCloseRoundSubmissions}
                       onClick={() => changeRoundStatus(round.id, 'SUBMISSION_CLOSED')}
                     >
                       {t('adminDashboard.closeSubmissions')}
@@ -2293,7 +2641,7 @@ export default function AdminDashboardPage() {
                     <button
                       type="button"
                       className="button button-soft admin-primary-action"
-                      disabled={op.loading}
+                      disabled={op.loading || !canFinishEvaluation}
                       onClick={() => finishEvaluation(round.id, false)}
                     >
                       {t('adminDashboard.finishEvaluation')}
@@ -2301,11 +2649,21 @@ export default function AdminDashboardPage() {
                     <button
                       type="button"
                       className="button button-soft admin-primary-action"
-                      disabled={op.loading}
+                      disabled={op.loading || !canFinishEvaluation}
                       onClick={() => finishEvaluation(round.id, true)}
                     >
                       {t('adminDashboard.finishEvaluationForce')}
                     </button>
+                    {canRecoverRoundEvaluation ? (
+                      <button
+                        type="button"
+                        className="button button-ghost status-recovery-action"
+                        disabled={op.loading || roundRecoveryLoading}
+                        onClick={() => openRoundRecovery(round.id)}
+                      >
+                        {t('adminDashboard.roundRecovery.open')}
+                      </button>
+                    ) : null}
                   </div>
 
                   <div className="distribute-box">
@@ -2316,8 +2674,7 @@ export default function AdminDashboardPage() {
                         type="number"
                         min={1}
                         value={
-                          minReviewersByRoundId[round.id] ??
-                          platformDefaults.defaultMinReviewersPerSubmission
+                          minReviewersForRound
                         }
                         onChange={(event) =>
                           setMinReviewersByRoundId((current) => ({
@@ -2346,11 +2703,14 @@ export default function AdminDashboardPage() {
                     <button
                       type="button"
                       className="button button-primary admin-distribute-action"
-                      disabled={op.loading}
+                      disabled={op.loading || !canDistributeAssignments}
                       onClick={() => distributeAssignments(round.id)}
                     >
                       {t('adminDashboard.distributeAssignments')}
                     </button>
+                    {assignedJuryBelowRoundMinimum ? (
+                      <p className="admin-jury-warning">{distributionMinimumWarning}</p>
+                    ) : null}
                   </div>
 
                   {op.error ? <p className="form-error">{op.error}</p> : null}
@@ -2361,6 +2721,137 @@ export default function AdminDashboardPage() {
           </div>
         ) : null}
       </article>
+
+      <AdminActionModal
+        open={statusRecoveryOpen}
+        title={t('adminDashboard.statusRecovery.title')}
+        closeLabel={t('adminDashboard.modal.close')}
+        onClose={closeStatusRecovery}
+      >
+        {selectedTournament ? (
+          <form className="panel-form" onSubmit={submitStatusRecovery} noValidate>
+            <div className="state-callout subtle status-recovery-warning">
+              <strong>{t('adminDashboard.statusRecovery.warningTitle')}</strong>
+              <p>{t('adminDashboard.statusRecovery.warningLead')}</p>
+            </div>
+
+            <div className="status-row">
+              <span>{t('adminDashboard.statusRecovery.current')}</span>
+              <strong>{t(`tournaments.status.${selectedTournament.status}`)}</strong>
+            </div>
+
+            <label className="field" htmlFor="admin-status-recovery-target">
+              <span>{t('adminDashboard.statusRecovery.target')}</span>
+              <select
+                id="admin-status-recovery-target"
+                className="select-input"
+                value={statusRecoveryTarget}
+                onChange={(event) =>
+                  setStatusRecoveryTarget(event.target.value as TournamentStatus)
+                }
+                required
+              >
+                {recoverableTournamentStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {t(`tournaments.status.${status}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field" htmlFor="admin-status-recovery-reason">
+              <span>{t('adminDashboard.statusRecovery.reason')}</span>
+              <textarea
+                id="admin-status-recovery-reason"
+                className="admin-modal-textarea"
+                value={statusRecoveryReason}
+                onChange={(event) => setStatusRecoveryReason(event.target.value)}
+                placeholder={t('adminDashboard.statusRecovery.reasonPlaceholder')}
+                minLength={3}
+                maxLength={500}
+                required
+              />
+            </label>
+
+            {statusRecoveryError ? (
+              <p className="form-error">{statusRecoveryError}</p>
+            ) : null}
+
+            <button
+              type="submit"
+              className="button button-primary"
+              disabled={
+                statusRecoveryLoading ||
+                !statusRecoveryTarget ||
+                statusRecoveryReason.trim().length < 3
+              }
+            >
+              {statusRecoveryLoading
+                ? t('adminDashboard.statusRecovery.saving')
+                : t('adminDashboard.statusRecovery.submit')}
+            </button>
+          </form>
+        ) : (
+          <p className="form-error">{t('adminDashboard.modal.selectTournamentFirst')}</p>
+        )}
+      </AdminActionModal>
+
+      <AdminActionModal
+        open={roundRecoveryOpen}
+        title={t('adminDashboard.roundRecovery.title')}
+        closeLabel={t('adminDashboard.modal.close')}
+        onClose={closeRoundRecovery}
+      >
+        {recoveryRound ? (
+          <form className="panel-form" onSubmit={submitRoundRecovery} noValidate>
+            <p className="inline-hint">
+              {t('adminDashboard.roundRecovery.roundLabel')}:{' '}
+              <strong>
+                #{recoveryRound.sequence}{' '}
+                {formatDashboardRoundTitle(recoveryRound.title, recoveryRound.sequence, t)}
+              </strong>
+            </p>
+
+            <div className="state-callout subtle status-recovery-warning">
+              <strong>{t('adminDashboard.roundRecovery.warningTitle')}</strong>
+              <p>{t('adminDashboard.roundRecovery.warningLead')}</p>
+            </div>
+
+            <div className="status-row">
+              <span>{t('adminDashboard.roundRecovery.target')}</span>
+              <strong>{t('adminDashboard.roundStatus.SUBMISSION_CLOSED')}</strong>
+            </div>
+
+            <label className="field" htmlFor="admin-round-recovery-reason">
+              <span>{t('adminDashboard.roundRecovery.reason')}</span>
+              <textarea
+                id="admin-round-recovery-reason"
+                className="admin-modal-textarea"
+                value={roundRecoveryReason}
+                onChange={(event) => setRoundRecoveryReason(event.target.value)}
+                placeholder={t('adminDashboard.roundRecovery.reasonPlaceholder')}
+                minLength={3}
+                maxLength={500}
+                required
+              />
+            </label>
+
+            {roundRecoveryError ? <p className="form-error">{roundRecoveryError}</p> : null}
+
+            <button
+              type="submit"
+              className="button button-primary"
+              disabled={roundRecoveryLoading || roundRecoveryReason.trim().length < 3}
+            >
+              {roundRecoveryLoading
+                ? t('adminDashboard.roundRecovery.saving')
+                : t('adminDashboard.roundRecovery.submit')}
+            </button>
+          </form>
+        ) : (
+          <p className="form-error">{t('adminDashboard.roundRecovery.unavailable')}</p>
+        )}
+      </AdminActionModal>
 
       <AdminActionModal
         open={quickModal === 'createTournament'}

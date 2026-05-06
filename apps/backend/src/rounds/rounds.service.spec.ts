@@ -176,6 +176,135 @@ describe('RoundsService', () => {
     expect(result.status).toBe(RoundStatus.SUBMISSION_CLOSED);
   });
 
+  it('allows admins to restore evaluated round to submission closed', async () => {
+    const prisma = createPrismaMock();
+    prisma.round.findUnique.mockResolvedValue({
+      id: 'round-1',
+      tournamentId: 't-1',
+      title: 'Round 1',
+      status: RoundStatus.EVALUATED,
+    });
+    prisma.round.update.mockResolvedValue({
+      id: 'round-1',
+      tournamentId: 't-1',
+      title: 'Round 1',
+      status: RoundStatus.SUBMISSION_CLOSED,
+    });
+    const auditLogsService = { record: vi.fn().mockResolvedValue(undefined) };
+
+    const service = new RoundsService(
+      prisma as never,
+      undefined,
+      auditLogsService as never,
+    );
+
+    const result = await service.overrideStatus(
+      't-1',
+      'round-1',
+      RoundStatus.SUBMISSION_CLOSED,
+      'Evaluation was closed by mistake',
+      { userId: 'admin-1', role: 'ADMIN', email: 'admin@example.com' },
+    );
+
+    expect(prisma.round.update).toHaveBeenCalledWith({
+      where: { id: 'round-1' },
+      data: { status: RoundStatus.SUBMISSION_CLOSED },
+    });
+    expect(auditLogsService.record).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'round.status_override',
+        metadata: {
+          previousStatus: RoundStatus.EVALUATED,
+          nextStatus: RoundStatus.SUBMISSION_CLOSED,
+          reason: 'Evaluation was closed by mistake',
+        },
+      }),
+    );
+    expect(result.status).toBe(RoundStatus.SUBMISSION_CLOSED);
+  });
+
+  it('rejects round status override from non-evaluated status', async () => {
+    const prisma = createPrismaMock();
+    prisma.round.findUnique.mockResolvedValue({
+      id: 'round-1',
+      tournamentId: 't-1',
+      title: 'Round 1',
+      status: RoundStatus.ACTIVE,
+    });
+
+    const service = new RoundsService(prisma as never, undefined, undefined);
+
+    await expect(
+      service.overrideStatus(
+        't-1',
+        'round-1',
+        RoundStatus.SUBMISSION_CLOSED,
+        'Wrong rollback',
+        { userId: 'admin-1', role: 'ADMIN', email: 'admin@example.com' },
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(prisma.round.update).not.toHaveBeenCalled();
+  });
+
+  it('rejects unsupported round status override target', async () => {
+    const prisma = createPrismaMock();
+    prisma.round.findUnique.mockResolvedValue({
+      id: 'round-1',
+      tournamentId: 't-1',
+      title: 'Round 1',
+      status: RoundStatus.EVALUATED,
+    });
+
+    const service = new RoundsService(prisma as never, undefined, undefined);
+
+    await expect(
+      service.overrideStatus(
+        't-1',
+        'round-1',
+        RoundStatus.ACTIVE,
+        'Reopen submissions',
+        { userId: 'admin-1', role: 'ADMIN', email: 'admin@example.com' },
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(prisma.round.update).not.toHaveBeenCalled();
+  });
+
+  it('requires a reason for round status override', async () => {
+    const prisma = createPrismaMock();
+    const service = new RoundsService(prisma as never, undefined, undefined);
+
+    await expect(
+      service.overrideStatus(
+        't-1',
+        'round-1',
+        RoundStatus.SUBMISSION_CLOSED,
+        '   ',
+        { userId: 'admin-1', role: 'ADMIN', email: 'admin@example.com' },
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(prisma.round.findUnique).not.toHaveBeenCalled();
+  });
+
+  it('rejects organizer round status override', async () => {
+    const prisma = createPrismaMock();
+    const service = new RoundsService(prisma as never, undefined, undefined);
+
+    await expect(
+      service.overrideStatus(
+        't-1',
+        'round-1',
+        RoundStatus.SUBMISSION_CLOSED,
+        'Organizer rollback',
+        { userId: 'organizer-1', role: 'ORGANIZER', email: 'organizer@example.com' },
+      ),
+    ).rejects.toThrow('Only admins can override round status');
+
+    expect(prisma.round.findUnique).not.toHaveBeenCalled();
+  });
+
   it('schedules a deadline reminder job for the active round', async () => {
     const prisma = createPrismaMock();
     prisma.tournament.findUnique.mockResolvedValue({ id: 't-1' });
