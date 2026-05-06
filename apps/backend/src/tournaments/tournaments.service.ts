@@ -1,6 +1,7 @@
 import {
   Optional,
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -42,6 +43,13 @@ type ScoresPayload = {
   mustHave?: number;
   stability?: number;
   usability?: number;
+};
+
+const TOURNAMENT_STATUS_ORDER: Record<TournamentStatus, number> = {
+  [TournamentStatus.DRAFT]: 0,
+  [TournamentStatus.REGISTRATION]: 1,
+  [TournamentStatus.RUNNING]: 2,
+  [TournamentStatus.FINISHED]: 3,
 };
 
 @Injectable()
@@ -466,6 +474,61 @@ export class TournamentsService {
     return this.mapTournamentView(tournament, defaults);
   }
 
+  async overrideStatus(
+    id: string,
+    status: TournamentStatus,
+    reason: string,
+    actor: AuthUser,
+  ): Promise<TournamentView> {
+    if (actor.role !== 'ADMIN') {
+      throw new ForbiddenException('Only admins can override tournament status');
+    }
+
+    const normalizedReason = reason.trim();
+    if (!normalizedReason) {
+      throw new BadRequestException('Tournament status override reason is required');
+    }
+
+    const existing = await this.prisma.tournament.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException('Tournament not found');
+    }
+
+    this.assertStatusOverride(existing.status, status);
+
+    if (status === TournamentStatus.REGISTRATION) {
+      this.validateRegistrationWindow(
+        existing.registrationOpenAt,
+        existing.registrationCloseAt,
+      );
+    }
+
+    const tournament = await this.prisma.tournament.update({
+      where: { id },
+      data: { status },
+    });
+
+    await this.auditLogsService?.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'tournament.status_override',
+      entityType: 'tournament',
+      entityId: tournament.id,
+      entityLabel: tournament.title,
+      tournamentId: tournament.id,
+      title: 'Overrode tournament status',
+      description: `${tournament.title} status was restored from ${existing.status} to ${status}.`,
+      metadata: {
+        previousStatus: existing.status,
+        nextStatus: status,
+        reason: normalizedReason,
+      },
+    });
+
+    const defaults = await this.getTournamentDefaults();
+    return this.mapTournamentView(tournament, defaults);
+  }
+
   private assertStatusTransition(
     currentStatus: TournamentStatus,
     nextStatus: TournamentStatus,
@@ -487,6 +550,21 @@ export class TournamentsService {
     if (!allowedTransitions[currentStatus].includes(nextStatus)) {
       throw new BadRequestException(
         `Invalid tournament status transition: ${currentStatus} -> ${nextStatus}`,
+      );
+    }
+  }
+
+  private assertStatusOverride(
+    currentStatus: TournamentStatus,
+    nextStatus: TournamentStatus,
+  ) {
+    if (currentStatus === nextStatus) {
+      throw new BadRequestException('Tournament status override target must differ');
+    }
+
+    if (TOURNAMENT_STATUS_ORDER[nextStatus] >= TOURNAMENT_STATUS_ORDER[currentStatus]) {
+      throw new BadRequestException(
+        `Invalid tournament status override: ${currentStatus} -> ${nextStatus}`,
       );
     }
   }

@@ -1834,6 +1834,19 @@ a {
   background: #ffffff;
 }
 
+.app-page .button-ghost {
+  background: #ffffff;
+  border-color: #ddd6ea;
+  color: #302d44;
+}
+
+.app-page .button-ghost:hover:not(:disabled),
+.app-page .button-ghost:focus-visible {
+  background: #f8f5ff;
+  border-color: #cfc4e4;
+  color: #211f31;
+}
+
 .app-page .button-primary {
   background: #101010;
   color: #fff;
@@ -2936,9 +2949,15 @@ a {
 }
 
 .round-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 8px;
+}
+
+.round-actions .button {
+  width: 100%;
+  justify-content: center;
+  min-height: 42px;
 }
 
 .distribute-box {
@@ -2948,6 +2967,11 @@ a {
   display: grid;
   gap: 8px;
   background: #fbfdfd;
+}
+
+.distribute-box .admin-distribute-action {
+  width: 100%;
+  justify-content: center;
 }
 
 .profile-settings-shell {
@@ -3674,6 +3698,86 @@ a {
   background: #5214cf;
   border-color: #5214cf;
   color: #ffffff;
+}
+
+.app-page .tournament-status-action {
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 128px;
+}
+
+.app-page .tournament-status-action small {
+  color: inherit;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  opacity: 0.74;
+}
+
+.app-page .tournament-status-action.current:disabled {
+  border-color: #7a43f3;
+  background: #ece4ff;
+  color: #4f33a6;
+  opacity: 1;
+}
+
+.app-page .admin-tournament-status-actions,
+.app-page .schedule-item-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  align-items: stretch;
+}
+
+.app-page .admin-tournament-status-actions .button,
+.app-page .schedule-item-actions .button {
+  width: 100%;
+  justify-content: center;
+}
+
+.app-page .schedule-delete-action,
+.app-page .schedule-delete-action:visited {
+  background: #fff7f7;
+  border-color: #f0c2c2;
+  color: #9b1c1c;
+}
+
+.app-page .schedule-delete-action:hover:not(:disabled),
+.app-page .schedule-delete-action:focus-visible {
+  background: #ffeded;
+  border-color: #e89a9a;
+  color: #7f1717;
+}
+
+.status-recovery-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.status-recovery-panel .inline-hint {
+  margin: 0;
+  flex: 1 1 280px;
+}
+
+.app-page .status-recovery-action,
+.app-page .status-recovery-action:visited {
+  background: #fff8ed;
+  border-color: #f2c98f;
+  color: #8d4a00;
+}
+
+.app-page .status-recovery-action:hover:not(:disabled),
+.app-page .status-recovery-action:focus-visible {
+  background: #fff0dc;
+  border-color: #e8ad5a;
+  color: #733b00;
+}
+
+.status-recovery-warning {
+  border-color: rgba(248, 137, 10, 0.24);
+  background: rgba(255, 246, 232, 0.9);
 }
 
 .app-page .admin-primary-action,
@@ -6338,6 +6442,18 @@ a {
   margin-left: 4px;
 }
 
+.admin-jury-warning {
+  margin: -2px 0 0;
+  border: 1px solid rgba(248, 137, 10, 0.24);
+  border-radius: 14px;
+  background: rgba(255, 246, 232, 0.9);
+  color: #8a451f;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.45;
+  padding: 10px 12px;
+}
+
 @media (max-width: 640px) {
   .admin-jury-grid {
     grid-template-columns: 1fr;
@@ -7423,11 +7539,15 @@ a {
 }
 
 .tournament-public-page {
-  gap: 14px;
+  gap: 16px;
 }
 
 .tournament-public-page .tournament-showcase .status-actions {
   align-items: stretch;
+}
+
+.tournament-showcase-actions {
+  width: min(680px, 100%);
 }
 
 .tournament-public-page .tournament-showcase-action {
@@ -7435,21 +7555,112 @@ a {
   justify-content: center;
 }
 
-.tournament-showcase {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
-  gap: 18px;
-  background:
-    radial-gradient(circle at 0% 0%, rgba(122, 67, 243, 0.12) 0%, transparent 28%),
-    radial-gradient(circle at 100% 0%, rgba(28, 174, 155, 0.1) 0%, transparent 26%),
-    linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
+.app-page .tournament-showcase-actions .button-primary,
+.app-page .tournament-showcase-actions .button-primary:visited {
+  background: #ffffff;
+  border-color: rgba(255, 255, 255, 0.92);
+  color: #4f18c9;
+  box-shadow: 0 18px 34px rgba(12, 8, 34, 0.18);
 }
 
-.tournament-showcase-copy,
-.tournament-showcase-side,
-.tournament-showcase-timeline {
+.app-page .tournament-showcase-actions .button-primary:hover:not(:disabled),
+.app-page .tournament-showcase-actions .button-primary:focus-visible {
+  background: #f8f5ff;
+  border-color: #ffffff;
+  color: #3c109c;
+}
+
+.app-page .tournament-showcase-actions .tournaments-card-action--purple,
+.app-page .tournament-showcase-actions .tournaments-card-action--purple:visited {
+  background: #ff7a00;
+  border-color: #ff7a00;
+  color: #ffffff;
+  box-shadow: 0 18px 34px rgba(255, 122, 0, 0.22);
+}
+
+.app-page .tournament-showcase-actions .tournaments-card-action--purple:hover:not(:disabled),
+.app-page .tournament-showcase-actions .tournaments-card-action--purple:focus-visible {
+  background: #eb7000;
+  border-color: #eb7000;
+}
+
+.app-page .tournament-showcase-actions .tournaments-card-action--secondary,
+.app-page .tournament-showcase-actions .tournaments-card-action--secondary:visited {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: #ffffff;
+}
+
+.app-page .tournament-showcase-actions .tournaments-card-action--secondary:hover:not(:disabled),
+.app-page .tournament-showcase-actions .tournaments-card-action--secondary:focus-visible {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.app-page .tournament-showcase {
+  position: relative;
+  overflow: clip;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+  gap: clamp(18px, 3vw, 28px);
+  background:
+    radial-gradient(circle at 12% 12%, rgba(255, 255, 255, 0.3) 0%, transparent 24%),
+    radial-gradient(circle at 88% 8%, rgba(46, 201, 195, 0.42) 0%, transparent 28%),
+    radial-gradient(circle at 42% 110%, rgba(255, 122, 0, 0.22) 0%, transparent 34%),
+    linear-gradient(135deg, #21124f 0%, #5e17eb 48%, #161b3d 100%);
+  color: #ffffff;
+  box-shadow: 0 28px 70px rgba(54, 31, 130, 0.24);
+}
+
+.app-page .tournament-showcase::before {
+  content: '';
+  position: absolute;
+  inset: 18px 18px auto auto;
+  width: min(420px, 45vw);
+  height: min(420px, 45vw);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 34% 66% 48% 52%;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 46%),
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.11) 0,
+      rgba(255, 255, 255, 0.11) 1px,
+      transparent 1px,
+      transparent 14px
+    );
+  opacity: 0.72;
+  transform: rotate(-8deg);
+}
+
+.app-page .tournament-showcase::after {
+  content: '';
+  position: absolute;
+  inset: auto -80px -120px auto;
+  width: 280px;
+  height: 280px;
+  border-radius: 999px;
+  background: rgba(46, 201, 195, 0.22);
+  filter: blur(8px);
+}
+
+.app-page .tournament-showcase-copy,
+.app-page .tournament-showcase-side,
+.app-page .tournament-showcase-timeline {
+  position: relative;
+  z-index: 1;
   display: grid;
   gap: 14px;
+}
+
+.app-page .tournament-showcase-copy {
+  align-content: center;
+}
+
+.app-page .tournament-showcase .eyebrow,
+.app-page .tournament-showcase .lead,
+.app-page .tournament-showcase-support {
+  color: rgba(255, 255, 255, 0.86);
 }
 
 .tournament-showcase-head {
@@ -7464,12 +7675,23 @@ a {
   font-family: 'Chakra Petch', sans-serif;
   font-size: clamp(1.8rem, 3.4vw, 2.7rem);
   line-height: 0.98;
+  text-wrap: balance;
+}
+
+.app-page .tournament-showcase-head .status-pill,
+.app-page .tournament-showcase-timeline .status-pill {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.app-page .tournament-showcase-timeline .tournament-head h2 {
+  color: #ffffff;
 }
 
 .tournament-showcase-support {
   margin: 0;
   max-width: 62ch;
-  color: #4e5670;
   font-size: 0.96rem;
   line-height: 1.7;
 }
@@ -7480,35 +7702,36 @@ a {
   gap: 10px;
 }
 
-.tournament-showcase-card,
-.tournament-showcase-event {
-  border: 1px solid #e9e1f4;
+.app-page .tournament-showcase-card,
+.app-page .tournament-showcase-event {
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 248, 255, 0.98) 100%);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(18px);
   padding: 14px;
-  box-shadow: 0 16px 34px rgba(37, 26, 72, 0.05);
+  box-shadow: 0 16px 34px rgba(11, 8, 30, 0.12);
   display: grid;
   gap: 6px;
 }
 
-.tournament-showcase-card span,
-.tournament-showcase-event span {
-  color: #716a89;
+.app-page .tournament-showcase-card span,
+.app-page .tournament-showcase-event span {
+  color: rgba(255, 255, 255, 0.72);
   font-size: 0.74rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 800;
 }
 
-.tournament-showcase-card strong,
-.tournament-showcase-event strong {
-  color: #171724;
+.app-page .tournament-showcase-card strong,
+.app-page .tournament-showcase-event strong {
+  color: #ffffff;
   font-size: 1rem;
 }
 
-.tournament-showcase-card p {
+.app-page .tournament-showcase-card p {
   margin: 0;
-  color: #57627c;
+  color: rgba(255, 255, 255, 0.78);
   font-size: 0.82rem;
   line-height: 1.5;
 }
@@ -7516,6 +7739,59 @@ a {
 .tournament-showcase-events {
   display: grid;
   gap: 10px;
+}
+
+.tournament-details-duo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 14px;
+  align-items: stretch;
+}
+
+.tournament-announcements-panel,
+.tournament-active-round-card {
+  min-height: 100%;
+}
+
+.tournament-announcement-item {
+  box-shadow: none;
+}
+
+.tournament-active-round-card {
+  position: relative;
+  overflow: clip;
+  align-content: start;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(46, 201, 195, 0.16) 0%, transparent 34%),
+    linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+}
+
+.tournament-active-round-card::after {
+  content: '';
+  position: absolute;
+  inset: auto 18px 18px auto;
+  width: 72px;
+  height: 72px;
+  border-radius: 24px;
+  background: rgba(94, 23, 235, 0.08);
+  transform: rotate(12deg);
+}
+
+.tournament-active-round-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.tournament-active-round-card h2 {
+  margin: 0;
+  color: #243554;
+  font-family: 'Chakra Petch', sans-serif;
+}
+
+.tournament-active-round-card > p:not(.eyebrow) {
+  margin: 0;
+  color: #52637c;
+  line-height: 1.65;
 }
 
 .tournaments-section .tournaments-workspace-card {
@@ -8056,6 +8332,53 @@ body[data-theme='dark'] .app-page .button-soft:hover:not(:disabled) {
   color: #f4f6ff;
 }
 
+body[data-theme='dark'] .app-page .button-ghost {
+  background: rgba(148, 163, 184, 0.08);
+  border-color: rgba(148, 163, 184, 0.18);
+  color: #d7deef;
+  box-shadow: none;
+}
+
+body[data-theme='dark'] .app-page .button-ghost:hover:not(:disabled),
+body[data-theme='dark'] .app-page .button-ghost:focus-visible {
+  background: rgba(148, 163, 184, 0.14);
+  border-color: rgba(148, 163, 184, 0.28);
+  color: #f4f6ff;
+}
+
+body[data-theme='dark'] .app-page .schedule-delete-action,
+body[data-theme='dark'] .app-page .schedule-delete-action:visited {
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.28);
+  color: #fecaca;
+}
+
+body[data-theme='dark'] .app-page .schedule-delete-action:hover:not(:disabled),
+body[data-theme='dark'] .app-page .schedule-delete-action:focus-visible {
+  background: rgba(248, 113, 113, 0.18);
+  border-color: rgba(248, 113, 113, 0.38);
+  color: #fff1f2;
+}
+
+body[data-theme='dark'] .app-page .status-recovery-action,
+body[data-theme='dark'] .app-page .status-recovery-action:visited {
+  background: rgba(251, 146, 60, 0.12);
+  border-color: rgba(251, 146, 60, 0.28);
+  color: #fed7aa;
+}
+
+body[data-theme='dark'] .app-page .status-recovery-action:hover:not(:disabled),
+body[data-theme='dark'] .app-page .status-recovery-action:focus-visible {
+  background: rgba(251, 146, 60, 0.18);
+  border-color: rgba(251, 146, 60, 0.38);
+  color: #fff7ed;
+}
+
+body[data-theme='dark'] .app-page .status-recovery-warning {
+  border-color: rgba(251, 146, 60, 0.22);
+  background: rgba(251, 146, 60, 0.1);
+}
+
 body[data-theme='dark'] .auth-oauth-button {
   border-color: rgba(139, 93, 255, 0.18);
   background:
@@ -8471,6 +8794,63 @@ body[data-theme='dark'] .messages-section-tabs .filter-button.active {
 body[data-theme='dark'] .app-page .status-pill {
   background: rgba(139, 93, 255, 0.16);
   color: #d7c8ff;
+}
+
+body[data-theme='dark'] .app-page .tournament-status-action.current:disabled {
+  border-color: rgba(190, 171, 255, 0.42);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(190, 171, 255, 0.2) 0%, transparent 34%),
+    linear-gradient(180deg, rgba(74, 48, 151, 0.88) 0%, rgba(42, 31, 92, 0.94) 100%);
+  color: #f4f0ff;
+  opacity: 1;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 16px 32px rgba(2, 6, 18, 0.26);
+}
+
+body[data-theme='dark'] .app-page .schedule-item,
+body[data-theme='dark'] .app-page .tournament-active-round-card {
+  border-color: rgba(139, 93, 255, 0.16);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.14) 0%, transparent 30%),
+    linear-gradient(180deg, rgba(17, 22, 35, 0.98) 0%, rgba(10, 14, 24, 0.98) 100%);
+  box-shadow: 0 20px 40px rgba(2, 6, 18, 0.28);
+}
+
+body[data-theme='dark'] .app-page .schedule-item-head strong,
+body[data-theme='dark'] .app-page .tournament-active-round-card h2 {
+  color: #eef2ff;
+}
+
+body[data-theme='dark'] .app-page .schedule-item-head p,
+body[data-theme='dark'] .app-page .tournament-active-round-card > p:not(.eyebrow) {
+  color: #aeb8dc;
+}
+
+body[data-theme='dark'] .app-page .schedule-item-meta span {
+  background: rgba(139, 93, 255, 0.16);
+  color: #d8cbff;
+}
+
+body[data-theme='dark'] .app-page .schedule-type-chip.type-round {
+  background: rgba(139, 93, 255, 0.2);
+  color: #dccfff;
+}
+
+body[data-theme='dark'] .app-page .schedule-type-chip.type-consultation {
+  background: rgba(45, 212, 191, 0.16);
+  color: #99f6e4;
+}
+
+body[data-theme='dark'] .app-page .schedule-type-chip.type-deadline {
+  background: rgba(251, 146, 60, 0.18);
+  color: #fed7aa;
+}
+
+body[data-theme='dark'] .app-page .schedule-type-chip.type-announcement,
+body[data-theme='dark'] .app-page .schedule-type-chip.type-other {
+  background: rgba(148, 163, 184, 0.16);
+  color: #d4dbe8;
 }
 
 body[data-theme='dark'] .admin-jury-card {
@@ -8947,6 +9327,13 @@ body[data-theme='dark'] .app-modal-head h2 {
   color: #eef2ff;
 }
 
+body[data-theme='dark'] .app-page.admin-users-page .admin-users-list-copy h2,
+body[data-theme='dark'] .app-page.admin-users-page .admin-user-card-head strong,
+body[data-theme='dark'] .app-page.admin-users-page .admin-user-card-stat strong,
+body[data-theme='dark'] .app-page.admin-users-page .admin-user-block-history strong {
+  color: #eef2ff !important;
+}
+
 body[data-theme='dark'] .app-page .dashboard-muted-tile span,
 body[data-theme='dark'] .app-page .dashboard-muted-tile p,
 body[data-theme='dark'] .app-page .dashboard-quick-head p,
@@ -8980,6 +9367,33 @@ body[data-theme='dark'] .app-page .monitoring-signal-tile span,
 body[data-theme='dark'] .app-page .monitoring-signal-tile p,
 body[data-theme='dark'] .app-page .monitoring-report-head p {
   color: #98a6cb;
+}
+
+body[data-theme='dark'] .app-page.admin-users-page .admin-users-list-copy p,
+body[data-theme='dark'] .app-page.admin-users-page .admin-user-card-head p,
+body[data-theme='dark'] .app-page.admin-users-page .admin-user-card-meta .inline-hint,
+body[data-theme='dark'] .app-page.admin-users-page .admin-user-block-history p,
+body[data-theme='dark'] .app-page.admin-users-page .admin-users-filters .field span,
+body[data-theme='dark'] .app-page.admin-users-page .admin-user-card-stat span,
+body[data-theme='dark'] .app-page.admin-users-page .admin-user-card-actions .field span,
+body[data-theme='dark'] .app-page.admin-users-page .admin-user-block-history span {
+  color: #98a6cb !important;
+}
+
+body[data-theme='dark'] .app-page.admin-users-page .admin-user-card-actions .select-input,
+body[data-theme='dark'] .app-page.admin-users-page .admin-user-card-actions .select-input:disabled {
+  color: #eef2ff !important;
+  opacity: 1 !important;
+}
+
+body[data-theme='dark'] .app-page.admin-users-page .status-pill:not(.is-blocked) {
+  background: rgba(139, 93, 255, 0.18) !important;
+  color: #d8cbff !important;
+}
+
+body[data-theme='dark'] .app-page.admin-users-page .status-pill.is-blocked {
+  background: rgba(251, 146, 60, 0.16) !important;
+  color: #fed7aa !important;
 }
 
 body[data-theme='dark'] .app-page .profile-settings-tab {
@@ -9221,6 +9635,16 @@ body[data-theme='dark'] .app-page #leaderboard-summary .summary-card {
   background:
     radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.14) 0%, transparent 30%),
     linear-gradient(180deg, rgba(18, 23, 39, 0.98) 0%, rgba(12, 16, 28, 0.98) 100%);
+}
+
+body[data-theme='dark'] .app-page #archive-rounds .leaderboard-metric {
+  border-color: rgba(139, 93, 255, 0.16);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.12) 0%, transparent 30%),
+    linear-gradient(180deg, rgba(18, 23, 39, 0.98) 0%, rgba(12, 16, 28, 0.98) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 14px 30px rgba(2, 6, 18, 0.24);
 }
 
 body[data-theme='dark'] .app-page #archive-summary .summary-card strong,
@@ -9981,6 +10405,19 @@ body[data-theme='dark'] .app-page .monitoring-status-success {
   }
 
   .tournament-showcase-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tournament-showcase-actions {
+    width: 100%;
+  }
+
+  .tournament-public-page .tournament-showcase-action,
+  .tournament-showcase-actions .button {
+    width: 100%;
+  }
+
+  .tournament-details-duo {
     grid-template-columns: 1fr;
   }
 

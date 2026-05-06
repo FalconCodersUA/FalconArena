@@ -15,6 +15,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { AuthUser } from '../common/types/auth-user.type';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { ListTournamentsDto } from './dto/list-tournaments.dto';
+import { OverrideTournamentStatusDto } from './dto/override-tournament-status.dto';
 import { UpdateTournamentJuryDto } from './dto/update-tournament-jury.dto';
 import { UpdateTournamentStatusDto } from './dto/update-tournament-status.dto';
 import { TournamentsService } from './tournaments.service';
@@ -84,5 +85,21 @@ export class TournamentsController {
     @Req() request: { user: AuthUser },
   ) {
     return this.tournamentsService.updateStatus(id, dto.status, request.user);
+  }
+
+  @Patch(':id/status/override')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  overrideStatus(
+    @Param('id') id: string,
+    @Body() dto: OverrideTournamentStatusDto,
+    @Req() request: { user: AuthUser },
+  ) {
+    return this.tournamentsService.overrideStatus(
+      id,
+      dto.status,
+      dto.reason,
+      request.user,
+    );
   }
 }

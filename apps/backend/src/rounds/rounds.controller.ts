@@ -13,6 +13,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { AuthUser } from '../common/types/auth-user.type';
 import { CreateRoundDto } from './dto/create-round.dto';
+import { OverrideRoundStatusDto } from './dto/override-round-status.dto';
 import { UpdateRoundStatusDto } from './dto/update-round-status.dto';
 import { RoundsService } from './rounds.service';
 
@@ -54,6 +55,24 @@ export class RoundsController {
       tournamentId,
       roundId,
       dto.status,
+      request.user,
+    );
+  }
+
+  @Patch(':roundId/status/override')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  overrideStatus(
+    @Param('tournamentId') tournamentId: string,
+    @Param('roundId') roundId: string,
+    @Body() dto: OverrideRoundStatusDto,
+    @Req() request: { user: AuthUser },
+  ) {
+    return this.roundsService.overrideStatus(
+      tournamentId,
+      roundId,
+      dto.status,
+      dto.reason,
       request.user,
     );
   }

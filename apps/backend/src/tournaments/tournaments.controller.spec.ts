@@ -13,4 +13,9 @@ describe('TournamentsController permissions', () => {
     const roles = Reflect.getMetadata(ROLES_KEY, TournamentsController.prototype.updateStatus);
     expect(roles).toEqual(['ADMIN', 'ORGANIZER']);
   });
+
+  it('allows only admin to override tournament status', () => {
+    const roles = Reflect.getMetadata(ROLES_KEY, TournamentsController.prototype.overrideStatus);
+    expect(roles).toEqual(['ADMIN']);
+  });
 });

@@ -352,4 +352,187 @@ describe('TournamentsService', () => {
     });
     expect(result.status).toBe(TournamentStatus.REGISTRATION);
   });
+
+  it('allows admins to override tournament status to an earlier lifecycle status', async () => {
+    const prisma = createPrismaMock();
+    const existing = {
+      id: 't-1',
+      title: 'Falcon Cup',
+      description: null,
+      startsAt: null,
+      registrationOpenAt: new Date('2026-03-10T10:00:00.000Z'),
+      registrationCloseAt: new Date('2026-03-20T14:00:00.000Z'),
+      maxTeams: null,
+      status: TournamentStatus.REGISTRATION,
+      createdById: 'admin-1',
+      createdAt: new Date('2026-03-09T10:00:00.000Z'),
+      updatedAt: new Date('2026-03-09T10:00:00.000Z'),
+    };
+    prisma.tournament.findUnique.mockResolvedValue(existing);
+    prisma.tournament.update.mockResolvedValue({
+      ...existing,
+      status: TournamentStatus.DRAFT,
+    });
+    const auditLogsService = { record: vi.fn().mockResolvedValue(undefined) };
+
+    const service = new TournamentsService(
+      prisma as never,
+      undefined,
+      undefined,
+      undefined,
+      createSystemIntegrationsServiceMock() as never,
+      auditLogsService as never,
+    );
+
+    const result = await service.overrideStatus(
+      't-1',
+      TournamentStatus.DRAFT,
+      'Accidental status change',
+      {
+        userId: 'admin-1',
+        role: 'ADMIN',
+        email: 'admin@example.com',
+      },
+    );
+
+    expect(prisma.tournament.update).toHaveBeenCalledWith({
+      where: { id: 't-1' },
+      data: { status: TournamentStatus.DRAFT },
+    });
+    expect(auditLogsService.record).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'tournament.status_override',
+        metadata: {
+          previousStatus: TournamentStatus.REGISTRATION,
+          nextStatus: TournamentStatus.DRAFT,
+          reason: 'Accidental status change',
+        },
+      }),
+    );
+    expect(result.status).toBe(TournamentStatus.DRAFT);
+  });
+
+  it('allows admins to restore a finished tournament to running', async () => {
+    const prisma = createPrismaMock();
+    const existing = {
+      id: 't-2',
+      title: 'Extended Cup',
+      description: null,
+      startsAt: null,
+      registrationOpenAt: new Date('2026-03-10T10:00:00.000Z'),
+      registrationCloseAt: new Date('2026-03-20T14:00:00.000Z'),
+      maxTeams: null,
+      status: TournamentStatus.FINISHED,
+      createdById: 'admin-1',
+      createdAt: new Date('2026-03-09T10:00:00.000Z'),
+      updatedAt: new Date('2026-03-09T10:00:00.000Z'),
+    };
+    prisma.tournament.findUnique.mockResolvedValue(existing);
+    prisma.tournament.update.mockResolvedValue({
+      ...existing,
+      status: TournamentStatus.RUNNING,
+    });
+
+    const service = new TournamentsService(
+      prisma as never,
+      undefined,
+      undefined,
+      undefined,
+      createSystemIntegrationsServiceMock() as never,
+      { record: vi.fn().mockResolvedValue(undefined) } as never,
+    );
+
+    const result = await service.overrideStatus(
+      't-2',
+      TournamentStatus.RUNNING,
+      'Tournament was extended',
+      {
+        userId: 'admin-1',
+        role: 'ADMIN',
+        email: 'admin@example.com',
+      },
+    );
+
+    expect(result.status).toBe(TournamentStatus.RUNNING);
+  });
+
+  it('rejects forward tournament status override', async () => {
+    const prisma = createPrismaMock();
+    prisma.tournament.findUnique.mockResolvedValue({
+      id: 't-1',
+      title: 'Falcon Cup',
+      description: null,
+      startsAt: null,
+      registrationOpenAt: new Date('2026-03-10T10:00:00.000Z'),
+      registrationCloseAt: new Date('2026-03-20T14:00:00.000Z'),
+      maxTeams: null,
+      status: TournamentStatus.REGISTRATION,
+      createdById: 'admin-1',
+      createdAt: new Date('2026-03-09T10:00:00.000Z'),
+      updatedAt: new Date('2026-03-09T10:00:00.000Z'),
+    });
+
+    const service = new TournamentsService(
+      prisma as never,
+      undefined,
+      undefined,
+      undefined,
+      createSystemIntegrationsServiceMock() as never,
+      undefined,
+    );
+
+    await expect(
+      service.overrideStatus('t-1', TournamentStatus.RUNNING, 'Move forward', {
+        userId: 'admin-1',
+        role: 'ADMIN',
+        email: 'admin@example.com',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(prisma.tournament.update).not.toHaveBeenCalled();
+  });
+
+  it('requires a reason for tournament status override', async () => {
+    const prisma = createPrismaMock();
+    const service = new TournamentsService(
+      prisma as never,
+      undefined,
+      undefined,
+      undefined,
+      createSystemIntegrationsServiceMock() as never,
+      undefined,
+    );
+
+    await expect(
+      service.overrideStatus('t-1', TournamentStatus.DRAFT, '   ', {
+        userId: 'admin-1',
+        role: 'ADMIN',
+        email: 'admin@example.com',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(prisma.tournament.findUnique).not.toHaveBeenCalled();
+  });
+
+  it('rejects organizer tournament status override', async () => {
+    const prisma = createPrismaMock();
+    const service = new TournamentsService(
+      prisma as never,
+      undefined,
+      undefined,
+      undefined,
+      createSystemIntegrationsServiceMock() as never,
+      undefined,
+    );
+
+    await expect(
+      service.overrideStatus('t-1', TournamentStatus.DRAFT, 'Organizer rollback', {
+        userId: 'organizer-1',
+        role: 'ORGANIZER',
+        email: 'organizer@example.com',
+      }),
+    ).rejects.toThrow('Only admins can override tournament status');
+
+    expect(prisma.tournament.findUnique).not.toHaveBeenCalled();
+  });
 });

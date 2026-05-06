@@ -241,7 +241,7 @@ export default function TournamentDetailsPage() {
           <p className="lead">{tournament.description || t('tournamentDetails.noDescription')}</p>
           <p className="tournament-showcase-support">{t('tournamentDetails.showcaseLead')}</p>
 
-          <div className="status-actions">
+          <div className="status-actions tournament-showcase-actions">
             {registrationAction ? (
               <Link to={registrationAction.to} className="button button-primary">
                 {registrationAction.label}
@@ -294,101 +294,68 @@ export default function TournamentDetailsPage() {
         </div>
       </article>
 
-      <article className="card panel-card">
-        <div className="tournament-head">
-          <h2>{t('tournamentDetails.overviewTitle')}</h2>
-          <span className="status-pill">{t('tournamentDetails.overviewLabel')}</span>
-        </div>
-
-        <div className="summary-grid">
-          <div className="summary-card">
-            <span>{t('tournamentDetails.startsAt')}</span>
-            <strong>
-              {tournament.startsAt
-                ? formatDateTime(tournament.startsAt, language)
-                : t('tournamentDetails.notScheduled')}
-            </strong>
-            <p>{t('tournamentDetails.startHint')}</p>
-          </div>
-          <div className="summary-card">
-            <span>{t('tournamentDetails.registrationWindow')}</span>
-            <strong>{formatDateTime(tournament.registrationOpenAt, language)}</strong>
-            <p>{formatDateTime(tournament.registrationCloseAt, language)}</p>
-          </div>
-          <div className="summary-card">
-            <span>{t('tournamentDetails.teamsTitle')}</span>
-            <strong>{showTeams ? teams.length : t('tournamentDetails.hiddenUntilClose')}</strong>
-            <p>
-              {showTeams
-                ? t('tournamentDetails.teamVisibilityOpen')
-                : t('tournamentDetails.teamVisibilityClosed')}
-            </p>
-          </div>
-        </div>
-      </article>
-
-      <article className="section-card">
-        <div className="tournament-head">
-          <div>
-            <h2>{t('tournamentDetails.announcements.title')}</h2>
-            <p className="inline-hint">{t('tournamentDetails.announcements.lead')}</p>
-          </div>
-          <span className="status-pill">{announcements.length}</span>
-        </div>
-        {announcementsError ? <p className="form-error">{announcementsError}</p> : null}
-        {!announcementsError && announcements.length === 0 ? (
-          <p>{t('tournamentDetails.announcements.empty')}</p>
-        ) : null}
-        {announcements.length > 0 ? (
-          <div className="announcements-feed">
-            {announcements.map((item) => (
-              <article key={item.id} className="announcement-item">
-                <div className="announcement-head">
-                  <h3>{item.title}</h3>
-                  <div className="announcement-tags">
-                    {item.isPinned ? (
-                      <span className="status-pill">{t('messagesPage.tags.pinned')}</span>
-                    ) : null}
-                    <span className="status-pill">
-                      {formatDateTime(item.publishedAt, language)}
-                    </span>
-                  </div>
-                </div>
-                <p className="announcement-body">{item.body}</p>
-                {item.linkUrl ? (
-                  <div className="announcement-meta">
-                    <a href={item.linkUrl} target="_blank" rel="noreferrer">
-                      {t('messagesPage.openLink')}
-                    </a>
-                  </div>
-                ) : null}
-              </article>
-            ))}
-          </div>
-        ) : null}
-      </article>
-
-      {activeRound ? (
-        <article className="card panel-card">
-          <h2>{t('tournamentDetails.activeRoundTitle')}</h2>
-          <div className="state-callout subtle">
-            <strong>
-              #{activeRound.sequence} {activeRound.title}
-            </strong>
-            <p>{activeRound.description}</p>
-          </div>
-          <div className="meta-grid">
+      <div className="tournament-details-duo">
+        <article className="section-card tournament-announcements-panel">
+          <div className="tournament-head">
             <div>
-              <dt>{t('adminDashboard.roundStartsAt')}</dt>
-              <dd>{formatDateTime(activeRound.startsAt, language)}</dd>
+              <h2>{t('tournamentDetails.announcements.title')}</h2>
+              <p className="inline-hint">{t('tournamentDetails.announcements.lead')}</p>
             </div>
-            <div>
-              <dt>{t('adminDashboard.roundDeadlineAt')}</dt>
-              <dd>{formatDateTime(activeRound.deadlineAt, language)}</dd>
-            </div>
+            <span className="status-pill">{announcements.length}</span>
           </div>
+          {announcementsError ? <p className="form-error">{announcementsError}</p> : null}
+          {!announcementsError && announcements.length === 0 ? (
+            <p>{t('tournamentDetails.announcements.empty')}</p>
+          ) : null}
+          {announcements.length > 0 ? (
+            <div className="announcements-feed">
+              {announcements.map((item) => (
+                <article key={item.id} className="announcement-item tournament-announcement-item">
+                  <div className="announcement-head">
+                    <h3>{item.title}</h3>
+                    <div className="announcement-tags">
+                      {item.isPinned ? (
+                        <span className="status-pill">{t('messagesPage.tags.pinned')}</span>
+                      ) : null}
+                      <span className="status-pill">
+                        {formatDateTime(item.publishedAt, language)}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="announcement-body">{item.body}</p>
+                  {item.linkUrl ? (
+                    <div className="announcement-meta">
+                      <a href={item.linkUrl} target="_blank" rel="noreferrer">
+                        {t('messagesPage.openLink')}
+                      </a>
+                    </div>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          ) : null}
         </article>
-      ) : null}
+
+        {activeRound ? (
+          <article className="section-card tournament-active-round-card">
+            <p className="eyebrow">{t('tournamentDetails.activeRoundTitle')}</p>
+            <h2>
+              #{activeRound.sequence} {activeRound.title}
+            </h2>
+            <p>{activeRound.description}</p>
+            <div className="meta-grid">
+              <div>
+                <dt>{t('adminDashboard.roundStartsAt')}</dt>
+                <dd>{formatDateTime(activeRound.startsAt, language)}</dd>
+              </div>
+              <div>
+                <dt>{t('adminDashboard.roundDeadlineAt')}</dt>
+                <dd>{formatDateTime(activeRound.deadlineAt, language)}</dd>
+              </div>
+            </div>
+          </article>
+        ) : null}
+      </div>
 
       <TournamentSchedulePanel
         className="section-card"
