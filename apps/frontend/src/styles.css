@@ -1386,6 +1386,252 @@ a {
   margin-top: -2px;
 }
 
+.app-quick-actions {
+  position: fixed;
+  top: 96px;
+  right: 28px;
+  z-index: 49;
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.app-quick-actions-toggle,
+.app-quick-action {
+  position: relative;
+  pointer-events: auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  border: 1px solid rgba(94, 23, 235, 0.2);
+  background:
+    radial-gradient(circle at 30% 0%, rgba(255, 255, 255, 0.92) 0%, transparent 46%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 244, 255, 0.94) 100%);
+  color: #5e17eb;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.84),
+    0 16px 34px rgba(52, 60, 106, 0.14);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.app-quick-actions-toggle:hover,
+.app-quick-actions-toggle:focus-visible,
+.app-quick-actions.open .app-quick-actions-toggle,
+.app-quick-action:hover,
+.app-quick-action:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(94, 23, 235, 0.32);
+  background: #5e17eb;
+  color: #ffffff;
+  box-shadow: 0 20px 38px rgba(94, 23, 235, 0.22);
+}
+
+.app-quick-actions-toggle {
+  background:
+    radial-gradient(circle at 30% 0%, rgba(255, 255, 255, 0.96) 0%, transparent 44%),
+    linear-gradient(180deg, #ffffff 0%, #efe8ff 100%);
+  color: #4f12d3;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 18px 38px rgba(94, 23, 235, 0.2);
+}
+
+.app-quick-actions-toggle svg,
+.app-quick-action svg {
+  width: 19px;
+  height: 19px;
+}
+
+.app-quick-actions-toggle svg {
+  width: 22px;
+  height: 22px;
+}
+
+.app-quick-actions-menu {
+  pointer-events: none;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  max-height: 0;
+  padding: 0 6px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-10px) scale(0.96);
+  transform-origin: top right;
+  transition:
+    max-height 220ms ease,
+    padding 220ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.app-quick-actions.open .app-quick-actions-menu {
+  pointer-events: auto;
+  max-height: 520px;
+  padding: 6px;
+  overflow: visible;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.app-quick-search-row {
+  position: relative;
+  display: inline-flex;
+  justify-content: flex-end;
+}
+
+.app-quick-search-panel {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 10px);
+  width: min(320px, calc(100vw - 92px));
+  border: 1px solid rgba(94, 23, 235, 0.18);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(94, 23, 235, 0.08) 0%, transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 247, 255, 0.98) 100%);
+  box-shadow: 0 22px 48px rgba(52, 60, 106, 0.18);
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(8px) scale(0.98);
+  transform-origin: top right;
+  transition:
+    opacity 160ms ease,
+    visibility 160ms ease,
+    transform 160ms ease;
+}
+
+.app-quick-search-row.open .app-quick-search-panel {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(0) scale(1);
+}
+
+.app-quick-search-panel input {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid rgba(94, 23, 235, 0.16);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #343c6a;
+  font: inherit;
+  font-size: 0.84rem;
+  outline: none;
+  padding: 0 12px;
+}
+
+.app-quick-search-panel input:focus {
+  border-color: rgba(94, 23, 235, 0.3);
+  box-shadow: 0 0 0 4px rgba(94, 23, 235, 0.07);
+}
+
+.app-quick-search-panel input::placeholder {
+  color: #9aa8c6;
+}
+
+.app-quick-search-results {
+  display: grid;
+  gap: 4px;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.app-quick-search-results p {
+  margin: 6px 4px;
+  color: #718ebf;
+  font-size: 0.8rem;
+}
+
+.app-quick-search-results button {
+  min-height: 36px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #343c6a;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 750;
+  text-align: left;
+  padding: 6px 10px;
+  cursor: pointer;
+  display: grid;
+  gap: 2px;
+}
+
+.app-quick-search-results button:hover,
+.app-quick-search-results button:focus-visible {
+  background: rgba(94, 23, 235, 0.08);
+  color: #5e17eb;
+  outline: none;
+}
+
+.app-quick-search-results small {
+  color: #718ebf;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.app-quick-language {
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.app-quick-avatar {
+  overflow: hidden;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.app-quick-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.app-quick-action.has-unread {
+  border-color: rgba(255, 122, 0, 0.28);
+  color: #ff7a00;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.86),
+    0 16px 34px rgba(255, 122, 0, 0.14);
+}
+
+.app-quick-badge {
+  position: absolute;
+  top: -3px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 16px;
+  padding: 0 4px;
+  text-align: center;
+  box-shadow: 0 6px 14px rgba(239, 68, 68, 0.24);
+}
+
 .app-error-page {
   max-width: 760px;
   margin: 0 auto;
@@ -5504,9 +5750,43 @@ a {
 
 .leaderboard-selector-panel {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: end;
   gap: 16px;
+}
+
+.leaderboard-selector-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.leaderboard-selector-status {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-left: auto;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.app-page .leaderboard-selector-head > span:first-child {
+  color: #5e17eb;
+  font-weight: 850;
+}
+
+.app-page .leaderboard-selector-status span {
+  color: #718ebf;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.app-page .leaderboard-selector-status strong {
+  color: #4f33a6;
+  font-size: 0.92rem;
+  font-weight: 850;
 }
 
 .leaderboard-selector-panel .status-row,
@@ -8630,6 +8910,64 @@ body[data-theme='dark'] .app-topbar-nav-btn:hover {
   background: rgba(139, 93, 255, 0.14);
 }
 
+body[data-theme='dark'] .app-quick-actions-toggle,
+body[data-theme='dark'] .app-quick-action {
+  border-color: rgba(190, 171, 255, 0.2);
+  background:
+    radial-gradient(circle at 30% 0%, rgba(190, 171, 255, 0.16) 0%, transparent 44%),
+    linear-gradient(180deg, rgba(17, 22, 35, 0.96) 0%, rgba(10, 14, 24, 0.96) 100%);
+  color: #d8cbff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 18px 36px rgba(2, 6, 18, 0.32);
+}
+
+body[data-theme='dark'] .app-quick-actions-toggle:hover,
+body[data-theme='dark'] .app-quick-actions-toggle:focus-visible,
+body[data-theme='dark'] .app-quick-actions.open .app-quick-actions-toggle,
+body[data-theme='dark'] .app-quick-action:hover,
+body[data-theme='dark'] .app-quick-action:focus-visible {
+  border-color: rgba(190, 171, 255, 0.34);
+  background: #8b5dff;
+  color: #ffffff;
+  box-shadow: 0 20px 40px rgba(2, 6, 18, 0.38);
+}
+
+body[data-theme='dark'] .app-quick-action.has-unread {
+  border-color: rgba(255, 186, 116, 0.36);
+  color: #ffd5a1;
+}
+
+body[data-theme='dark'] .app-quick-search-panel {
+  border-color: rgba(190, 171, 255, 0.2);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(139, 93, 255, 0.16) 0%, transparent 36%),
+    linear-gradient(180deg, rgba(17, 22, 35, 0.98) 0%, rgba(10, 14, 24, 0.98) 100%);
+  box-shadow: 0 22px 48px rgba(2, 6, 18, 0.36);
+}
+
+body[data-theme='dark'] .app-quick-search-panel input {
+  border-color: rgba(190, 171, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: #eef2ff;
+}
+
+body[data-theme='dark'] .app-quick-search-panel input::placeholder,
+body[data-theme='dark'] .app-quick-search-results p,
+body[data-theme='dark'] .app-quick-search-results small {
+  color: #98a6cb;
+}
+
+body[data-theme='dark'] .app-quick-search-results button {
+  color: #eef2ff;
+}
+
+body[data-theme='dark'] .app-quick-search-results button:hover,
+body[data-theme='dark'] .app-quick-search-results button:focus-visible {
+  background: rgba(139, 93, 255, 0.14);
+  color: #ffffff;
+}
+
 body[data-theme='dark'] .app-search:focus-within {
   border-color: rgba(139, 93, 255, 0.28);
   background: rgba(17, 22, 36, 0.94);
@@ -8886,6 +9224,23 @@ body[data-theme='dark'] .app-page .field:has(select[id$='tournament-select']) > 
   color: #d8cbff;
 }
 
+body[data-theme='dark'] .app-page .status-row strong {
+  color: #f4f7ff;
+  -webkit-text-fill-color: #f4f7ff;
+}
+
+body[data-theme='dark'] .app-page .leaderboard-selector-status span {
+  color: #ffffff;
+  text-shadow: 0 1px 10px rgba(8, 12, 24, 0.42);
+}
+
+body[data-theme='dark'] .app-page .leaderboard-selector-head > span:first-child,
+body[data-theme='dark'] .app-page .leaderboard-selector-status strong {
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  text-shadow: 0 1px 10px rgba(8, 12, 24, 0.42);
+}
+
 body[data-theme='dark'] .app-page select[id$='tournament-select'] {
   border-color: rgba(190, 171, 255, 0.28);
   background:
@@ -8917,7 +9272,12 @@ body[data-theme='dark'] .app-page .admin-tournament-picker > span:first-child {
   text-shadow: 0 1px 8px rgba(8, 12, 24, 0.36);
 }
 
-body[data-theme='dark'] .app-page .field.admin-tournament-picker:has(#admin-tournament-select) > span:first-child {
+body[data-theme='dark']
+  .app-page
+  .field.admin-tournament-picker:has(
+    :is(#admin-tournament-select, #teams-page-tournament-select, #leaderboard-tournament-select)
+  )
+  > span:first-child {
   color: #ffffff !important;
   text-shadow: 0 1px 10px rgba(8, 12, 24, 0.45);
 }
@@ -8941,7 +9301,14 @@ body[data-theme='dark'] .app-page .admin-tournament-picker .admin-tournament-pic
   color: #eef2ff;
 }
 
-body[data-theme='dark'] .app-page .admin-tournament-picker #admin-tournament-select.admin-tournament-picker-select {
+body[data-theme='dark']
+  .app-page
+  .admin-tournament-picker
+  :is(
+    #admin-tournament-select,
+    #teams-page-tournament-select,
+    #leaderboard-tournament-select
+  ).admin-tournament-picker-select {
   border-color: rgba(190, 171, 255, 0.42) !important;
   background:
     radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.12) 0%, transparent 34%),
@@ -10247,6 +10614,64 @@ body[data-theme='blue'] .app-topbar-nav-btn:hover {
   background: rgba(255, 255, 255, 0.16);
 }
 
+body[data-theme='blue'] .app-quick-actions-toggle,
+body[data-theme='blue'] .app-quick-action {
+  border-color: rgba(226, 232, 255, 0.22);
+  background:
+    linear-gradient(135deg, rgba(77, 219, 210, 0.12) 0%, rgba(255, 139, 35, 0.08) 100%),
+    linear-gradient(180deg, rgba(86, 75, 173, 0.76) 0%, rgba(54, 71, 155, 0.7) 100%);
+  color: #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 18px 38px rgba(8, 12, 39, 0.28);
+}
+
+body[data-theme='blue'] .app-quick-actions-toggle:hover,
+body[data-theme='blue'] .app-quick-actions-toggle:focus-visible,
+body[data-theme='blue'] .app-quick-actions.open .app-quick-actions-toggle,
+body[data-theme='blue'] .app-quick-action:hover,
+body[data-theme='blue'] .app-quick-action:focus-visible {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: #ff8508;
+  color: #ffffff;
+  box-shadow: 0 22px 42px rgba(255, 122, 0, 0.24);
+}
+
+body[data-theme='blue'] .app-quick-action.has-unread {
+  border-color: rgba(255, 186, 116, 0.38);
+  color: #ffe8ce;
+}
+
+body[data-theme='blue'] .app-quick-search-panel {
+  border-color: rgba(226, 232, 255, 0.22);
+  background:
+    linear-gradient(135deg, rgba(77, 219, 210, 0.12) 0%, rgba(255, 139, 35, 0.08) 100%),
+    linear-gradient(180deg, rgba(43, 38, 126, 0.98) 0%, rgba(23, 28, 84, 0.98) 100%);
+  box-shadow: 0 24px 52px rgba(8, 12, 39, 0.36);
+}
+
+body[data-theme='blue'] .app-quick-search-panel input {
+  border-color: rgba(226, 232, 255, 0.22);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-quick-search-panel input::placeholder,
+body[data-theme='blue'] .app-quick-search-results p,
+body[data-theme='blue'] .app-quick-search-results small {
+  color: #d8ddff;
+}
+
+body[data-theme='blue'] .app-quick-search-results button {
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-quick-search-results button:hover,
+body[data-theme='blue'] .app-quick-search-results button:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
 body[data-theme='blue'] .app-search:focus-within {
   border-color: rgba(77, 219, 210, 0.36);
   background: rgba(255, 255, 255, 0.14);
@@ -10434,6 +10859,23 @@ body[data-theme='blue'] .app-page .field:has(select[id$='tournament-select']) {
 
 body[data-theme='blue'] .app-page .field:has(select[id$='tournament-select']) > span:first-child {
   color: #8ff5ef;
+}
+
+body[data-theme='blue'] .app-page .status-row strong {
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .leaderboard-selector-status span {
+  color: #ffffff;
+  text-shadow: 0 1px 10px rgba(18, 20, 64, 0.34);
+}
+
+body[data-theme='blue'] .app-page .leaderboard-selector-head > span:first-child,
+body[data-theme='blue'] .app-page .leaderboard-selector-status strong {
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  text-shadow: 0 1px 10px rgba(18, 20, 64, 0.34);
 }
 
 body[data-theme='blue'] .app-page select[id$='tournament-select'] {
@@ -10826,6 +11268,24 @@ body[data-theme='blue'] .app-page #leaderboard-summary .summary-card span,
 body[data-theme='blue'] .app-page #leaderboard-summary .summary-card p,
 body[data-theme='blue'] .app-page #archive-rounds .leaderboard-metric span {
   color: #d8ddff;
+}
+
+body[data-theme='blue'] .app-page .leaderboard-row-card h3,
+body[data-theme='blue'] .app-page .leaderboard-row-head strong,
+body[data-theme='blue'] .app-page .leaderboard-metric strong,
+body[data-theme='blue'] .app-page .leaderboard-category-item strong,
+body[data-theme='blue'] .app-page .leaderboard-round-item strong {
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  text-shadow: 0 1px 10px rgba(18, 20, 64, 0.28);
+}
+
+body[data-theme='blue'] .app-page .leaderboard-row-head span,
+body[data-theme='blue'] .app-page .leaderboard-metric span,
+body[data-theme='blue'] .app-page .leaderboard-category-item span,
+body[data-theme='blue'] .app-page .leaderboard-round-item p,
+body[data-theme='blue'] .app-page .leaderboard-row-card .inline-hint {
+  color: #ecf0ff;
 }
 
 body[data-theme='blue'] .app-page .round-card-head span,
@@ -11958,5 +12418,21 @@ body[data-theme='blue'] .app-page.admin-users-page .status-pill:not(.is-blocked)
     bottom: 18px;
     width: 46px;
     height: 46px;
+  }
+
+  .app-quick-actions {
+    top: 84px;
+    right: 18px;
+  }
+
+  .app-quick-actions-toggle,
+  .app-quick-action {
+    width: 42px;
+    height: 42px;
+  }
+
+  .app-quick-search-panel {
+    width: min(280px, calc(100vw - 78px));
+    right: calc(100% + 8px);
   }
 }

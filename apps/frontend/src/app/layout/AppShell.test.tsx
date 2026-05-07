@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { I18nProvider } from '../../i18n/I18nProvider';
@@ -64,6 +64,7 @@ describe('AppShell', () => {
     vi.clearAllMocks();
     localStorage.clear();
     localStorage.setItem('falconarena_language', 'en');
+    Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
     delete document.body.dataset.theme;
     delete document.documentElement.dataset.theme;
   });
@@ -332,6 +333,64 @@ describe('AppShell', () => {
     expect(sidebarBrand).toBeInTheDocument();
     expect(sidebarBrand).toHaveTextContent('FalconArena');
     expect(view.container.querySelector('.app-topbar-brand')).not.toBeInTheDocument();
+  });
+
+  it('opens floating quick actions after scrolling', async () => {
+    seedAuthedUser();
+    Object.defineProperty(window, 'scrollY', { value: 420, configurable: true });
+
+    mockedApiRequest.mockImplementation(async (path: string) => {
+      if (path === '/platform/defaults') {
+        return {
+          defaultProjectTimeZone: 'Europe/Kyiv',
+        };
+      }
+
+      if (path === '/auth/me') {
+        return {
+          id: 'user-1',
+          email: 'user1@example.com',
+          fullName: 'User One',
+          role: 'TEAM',
+        };
+      }
+
+      if (path === '/profile/settings') {
+        return { edit: { avatarUrl: '' } };
+      }
+
+      if (path === '/notifications') {
+        return [];
+      }
+
+      if (path === '/messages/dialogs') {
+        return [];
+      }
+
+      throw new Error(`Unexpected request: ${path}`);
+    });
+
+    const view = renderShell();
+
+    const quickActionsButton = await screen.findByRole('button', { name: 'Quick actions' });
+    fireEvent.click(quickActionsButton);
+
+    const quickActionsMenu = view.container.querySelector('.app-quick-actions-menu');
+    expect(quickActionsMenu).not.toBeNull();
+    const quickSearchButton = within(quickActionsMenu as HTMLElement).getByRole('button', { name: 'Search for something' });
+    expect(quickSearchButton).toBeInTheDocument();
+    fireEvent.click(quickSearchButton);
+
+    const quickSearchPanel = view.container.querySelector('.app-quick-search-panel');
+    expect(quickSearchPanel).not.toBeNull();
+    expect(view.container.querySelector('.app-quick-search-row')).toHaveClass('open');
+    expect(within(quickSearchPanel as HTMLElement).getByPlaceholderText('Search for something')).toBeInTheDocument();
+    const quickThemeButton = within(quickActionsMenu as HTMLElement).getByRole('button', { name: 'Switch to blue theme' });
+    expect(quickThemeButton).toBeInTheDocument();
+    fireEvent.click(quickThemeButton);
+    expect(view.container.querySelector('.app-quick-actions')).toHaveClass('open');
+    expect(quickActionsButton).toHaveAttribute('aria-expanded', 'true');
+    expect(within(quickActionsMenu as HTMLElement).getByRole('button', { name: 'Language switcher' })).toHaveTextContent('UA');
   });
 
   it('uses About as the public home area for guests', () => {
