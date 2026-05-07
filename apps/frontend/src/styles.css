@@ -6752,6 +6752,8 @@ a {
   inset: 0;
   z-index: 1200;
   background: rgba(16, 18, 28, 0.46);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   display: grid;
   place-items: center;
   padding: 20px;
@@ -8770,6 +8772,26 @@ body[data-theme='dark'] .app-page .state-callout.subtle {
     linear-gradient(180deg, rgba(16, 21, 33, 0.96) 0%, rgba(12, 16, 28, 0.98) 100%);
 }
 
+body[data-theme='dark'] .app-page .round-card-head span,
+body[data-theme='dark'] .app-page .must-have-block p strong,
+body[data-theme='dark'] .app-page .must-have-list,
+body[data-theme='dark'] .app-page .must-have-list li {
+  color: #dce4ff;
+}
+
+body[data-theme='dark'] .app-page .must-have-list li::marker {
+  color: #8b5dff;
+}
+
+body[data-theme='dark'] .app-page .must-have-block {
+  border-top-color: rgba(150, 160, 197, 0.24);
+}
+
+body[data-theme='dark'] .app-page .checkbox-inline,
+body[data-theme='dark'] .app-page .checkbox-inline span {
+  color: #dce4ff;
+}
+
 body[data-theme='dark'] .page-skeleton-chip,
 body[data-theme='dark'] .page-skeleton-card,
 body[data-theme='dark'] .page-skeleton-block,
@@ -8870,6 +8892,63 @@ body[data-theme='dark'] .app-page select[id$='tournament-select'] {
     radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.1) 0%, transparent 34%),
     linear-gradient(180deg, rgba(24, 30, 48, 0.98) 0%, rgba(12, 16, 28, 0.98) 100%);
   color: #eef2ff;
+  padding-right: 46px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+body[data-theme='dark'] .app-page .admin-tournament-picker .admin-tournament-picker-select {
+  border-color: rgba(190, 171, 255, 0.34);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.1) 0%, transparent 34%),
+    linear-gradient(180deg, #191d31 0%, #0d1220 100%);
+  color: #f4f7ff;
+  -webkit-text-fill-color: #f4f7ff;
+  font-weight: 800;
+  opacity: 1;
+}
+
+body[data-theme='dark'] .app-page .admin-tournament-picker {
+  position: relative;
+}
+
+body[data-theme='dark'] .app-page .admin-tournament-picker > span:first-child {
+  color: #f4f7ff;
+  text-shadow: 0 1px 8px rgba(8, 12, 24, 0.36);
+}
+
+body[data-theme='dark'] .app-page .field.admin-tournament-picker:has(#admin-tournament-select) > span:first-child {
+  color: #ffffff !important;
+  text-shadow: 0 1px 10px rgba(8, 12, 24, 0.45);
+}
+
+body[data-theme='dark'] .app-page .admin-tournament-picker::after {
+  content: '';
+  position: absolute;
+  right: 30px;
+  bottom: 35px;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid #f4f7ff;
+  border-bottom: 2px solid #f4f7ff;
+  pointer-events: none;
+  transform: rotate(45deg);
+  z-index: 2;
+}
+
+body[data-theme='dark'] .app-page .admin-tournament-picker .admin-tournament-picker-select option {
+  background: #0d121d;
+  color: #eef2ff;
+}
+
+body[data-theme='dark'] .app-page .admin-tournament-picker #admin-tournament-select.admin-tournament-picker-select {
+  border-color: rgba(190, 171, 255, 0.42) !important;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.12) 0%, transparent 34%),
+    linear-gradient(180deg, #191d31 0%, #0d1220 100%) !important;
+  color: #f4f7ff !important;
+  -webkit-text-fill-color: #f4f7ff !important;
+  opacity: 1 !important;
 }
 
 body[data-theme='dark'] .app-page .filter-button,
@@ -9900,6 +9979,21 @@ body[data-theme='blue'] .app-page .button-ghost:focus-visible {
   color: #ffffff;
 }
 
+body[data-theme='blue'] .app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-secondary,
+body[data-theme='blue'] .app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-secondary:visited {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(226, 232, 255, 0.24);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+body[data-theme='blue'] .app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-secondary:hover:not(:disabled),
+body[data-theme='blue'] .app-page .dashboard-onboarding-card .onboarding-card-actions .onboarding-action-secondary:focus-visible {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(226, 232, 255, 0.38);
+  color: #ffffff;
+}
+
 body[data-theme='blue'] .app-page .schedule-delete-action,
 body[data-theme='blue'] .app-page .schedule-delete-action:visited {
   background: rgba(248, 113, 113, 0.14);
@@ -9917,6 +10011,110 @@ body[data-theme='blue'] .app-page .status-recovery-action:visited {
 body[data-theme='blue'] .app-page .status-recovery-warning {
   border-color: rgba(255, 186, 116, 0.26);
   background: rgba(255, 139, 35, 0.12);
+}
+
+body[data-theme='blue'] .app-modal-card {
+  border-color: rgba(226, 232, 255, 0.24);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(77, 219, 210, 0.14) 0%, transparent 30%),
+    radial-gradient(circle at 0% 100%, rgba(141, 92, 255, 0.18) 0%, transparent 34%),
+    linear-gradient(180deg, rgba(43, 43, 125, 0.98) 0%, rgba(25, 31, 91, 0.98) 100%);
+  color: #f5f8ff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 30px 72px rgba(8, 12, 39, 0.42);
+}
+
+body[data-theme='blue'] .app-modal-head h2,
+body[data-theme='blue'] .app-modal-card .field span,
+body[data-theme='blue'] .app-modal-card label,
+body[data-theme='blue'] .app-modal-card strong {
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .app-modal-card .field > span,
+body[data-theme='blue'] .app-page .app-modal-card .field span,
+body[data-theme='blue'] .app-page .app-modal-card label > span {
+  color: #e7ecff !important;
+  -webkit-text-fill-color: #e7ecff !important;
+}
+
+body[data-theme='blue'] .app-modal-card p,
+body[data-theme='blue'] .app-modal-card .inline-hint,
+body[data-theme='blue'] .app-modal-card small {
+  color: #d8ddff;
+}
+
+body[data-theme='blue'] .app-page .app-modal-card p,
+body[data-theme='blue'] .app-page .app-modal-card .inline-hint,
+body[data-theme='blue'] .app-page .app-modal-card small {
+  color: #d8ddff !important;
+  -webkit-text-fill-color: #d8ddff !important;
+}
+
+body[data-theme='blue'] .app-page .app-modal-card :is(input, select, textarea, .select-input, .admin-modal-textarea) {
+  border-color: rgba(226, 232, 255, 0.26);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(77, 219, 210, 0.08) 0%, transparent 34%),
+    linear-gradient(180deg, rgba(29, 37, 105, 0.98) 0%, rgba(21, 27, 82, 0.98) 100%);
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 12px 26px rgba(8, 12, 39, 0.18);
+  color-scheme: dark;
+}
+
+body[data-theme='blue'] .app-page .app-modal-card :is(input, textarea, .admin-modal-textarea)::placeholder {
+  color: rgba(216, 221, 255, 0.72);
+  -webkit-text-fill-color: rgba(216, 221, 255, 0.72);
+}
+
+body[data-theme='blue'] .app-page .app-modal-card select option {
+  background: #1b2160;
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .app-modal-card .app-modal-secondary-action,
+body[data-theme='blue'] .app-page .app-modal-card .app-modal-secondary-action:visited {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(226, 232, 255, 0.26);
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .app-modal-card .app-modal-secondary-action:hover:not(:disabled),
+body[data-theme='blue'] .app-page .app-modal-card .app-modal-secondary-action:focus-visible {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(226, 232, 255, 0.38);
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-modal-card .state-callout,
+body[data-theme='blue'] .app-modal-card .state-callout.subtle {
+  border-color: rgba(77, 219, 210, 0.34);
+  background:
+    linear-gradient(135deg, rgba(77, 219, 210, 0.18) 0%, rgba(255, 255, 255, 0.08) 100%),
+    rgba(255, 255, 255, 0.08);
+}
+
+body[data-theme='blue'] .app-modal-card .state-callout strong {
+  color: #c9fffb;
+}
+
+body[data-theme='blue'] .app-modal-card .state-callout p {
+  color: #eff7ff;
+}
+
+body[data-theme='blue'] .app-page .app-modal-card .state-callout strong,
+body[data-theme='blue'] .app-page .app-modal-card .state-callout.subtle strong {
+  color: #c9fffb !important;
+  -webkit-text-fill-color: #c9fffb !important;
+}
+
+body[data-theme='blue'] .app-page .app-modal-card .state-callout p,
+body[data-theme='blue'] .app-page .app-modal-card .state-callout.subtle p {
+  color: #eff7ff !important;
+  -webkit-text-fill-color: #eff7ff !important;
 }
 
 body[data-theme='blue'] .auth-oauth-button {
@@ -10240,10 +10438,59 @@ body[data-theme='blue'] .app-page .field:has(select[id$='tournament-select']) > 
 
 body[data-theme='blue'] .app-page select[id$='tournament-select'] {
   border-color: rgba(77, 219, 210, 0.34);
-  background:
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5.5 7.5 10 12l4.5-4.5' stroke='%23c9fffb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"),
     radial-gradient(circle at 100% 0%, rgba(77, 219, 210, 0.12) 0%, transparent 34%),
     linear-gradient(180deg, rgba(91, 78, 183, 0.74) 0%, rgba(52, 68, 150, 0.62) 100%);
+  background-position:
+    right 16px center,
+    100% 0%,
+    0 0;
+  background-repeat: no-repeat;
+  background-size:
+    18px 18px,
+    100% 100%,
+    100% 100%;
   color: #ffffff;
+  padding-right: 46px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+body[data-theme='blue'] .app-page .admin-tournament-picker .admin-tournament-picker-select {
+  border-color: rgba(201, 255, 251, 0.34);
+  background-color: #f4f9ff;
+  background-image: linear-gradient(180deg, #ffffff 0%, #edf7ff 100%);
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  color: #20255f;
+  -webkit-text-fill-color: #20255f;
+  font-weight: 800;
+  opacity: 1;
+}
+
+body[data-theme='blue'] .app-page .admin-tournament-picker {
+  position: relative;
+}
+
+body[data-theme='blue'] .app-page .admin-tournament-picker::after {
+  content: '';
+  position: absolute;
+  right: 30px;
+  bottom: 35px;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid #20255f;
+  border-bottom: 2px solid #20255f;
+  pointer-events: none;
+  transform: rotate(45deg);
+  z-index: 2;
+}
+
+body[data-theme='blue'] .app-page .admin-tournament-picker .admin-tournament-picker-select option {
+  background: #ffffff;
+  color: #20255f;
 }
 
 body[data-theme='blue'] .app-page :is(.filter-button, .messages-section-tabs) {
@@ -10260,6 +10507,31 @@ body[data-theme='blue'] .app-page :is(.filter-button.active, .messages-section-t
 body[data-theme='blue'] .app-page .status-pill {
   border-color: rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .schedule-type-chip {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body[data-theme='blue'] .app-page .schedule-type-chip.type-round {
+  background: rgba(141, 92, 255, 0.28);
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .schedule-type-chip.type-consultation {
+  background: rgba(77, 219, 210, 0.22);
+  color: #d7fffb;
+}
+
+body[data-theme='blue'] .app-page .schedule-type-chip.type-deadline {
+  background: rgba(255, 139, 35, 0.24);
+  color: #fff0d8;
+}
+
+body[data-theme='blue'] .app-page .schedule-type-chip.type-announcement,
+body[data-theme='blue'] .app-page .schedule-type-chip.type-other {
+  background: rgba(226, 232, 255, 0.18);
   color: #ffffff;
 }
 
@@ -10556,6 +10828,26 @@ body[data-theme='blue'] .app-page #archive-rounds .leaderboard-metric span {
   color: #d8ddff;
 }
 
+body[data-theme='blue'] .app-page .round-card-head span,
+body[data-theme='blue'] .app-page .must-have-block p strong,
+body[data-theme='blue'] .app-page .must-have-list,
+body[data-theme='blue'] .app-page .must-have-list li {
+  color: #f3f6ff;
+}
+
+body[data-theme='blue'] .app-page .must-have-list li::marker {
+  color: #8ff5ef;
+}
+
+body[data-theme='blue'] .app-page .must-have-block {
+  border-top-color: rgba(226, 232, 255, 0.18);
+}
+
+body[data-theme='blue'] .app-page .checkbox-inline,
+body[data-theme='blue'] .app-page .checkbox-inline span {
+  color: #f3f6ff;
+}
+
 body[data-theme='blue'] .app-page .dashboard-overview-status strong,
 body[data-theme='blue'] .app-page .admin-overview-status strong,
 body[data-theme='blue'] .app-page .dashboard-workspace-status strong,
@@ -10567,6 +10859,10 @@ body[data-theme='blue'] .app-page .archive-workspace-status strong {
 
 body[data-theme='blue'] .app-page .dashboard-pie::before {
   background: rgba(255, 255, 255, 0.94);
+}
+
+body[data-theme='blue'] .app-page .dashboard-pie-center {
+  color: #20255f;
 }
 
 body[data-theme='blue'] .app-page .dashboard-line-svg path {
