@@ -6,6 +6,10 @@ import { useI18n } from '../i18n/I18nProvider';
 import { getAuthRole, isAuthenticated } from '../lib/auth';
 import { apiRequest, buildApiUrl } from '../lib/api';
 import { normalizeApiErrorMessage } from '../lib/errorMessages';
+import {
+  rememberTournamentSelection,
+  resolveStoredTournamentSelection,
+} from '../lib/tournamentSelection';
 
 type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
 
@@ -144,16 +148,10 @@ export default function LeaderboardPage() {
     }
 
     const running = list.find((entry) => entry.status === 'RUNNING');
-    if (running) {
-      return running.id;
-    }
-
     const finished = list.find((entry) => entry.status === 'FINISHED');
-    if (finished) {
-      return finished.id;
-    }
+    const fallbackId = running?.id ?? finished?.id ?? list[0].id;
 
-    return list[0].id;
+    return resolveStoredTournamentSelection(list, fallbackId);
   }
 
   async function loadTournaments() {
@@ -257,6 +255,7 @@ export default function LeaderboardPage() {
     }
 
     setSearchParams({ tournamentId: selectedTournamentId }, { replace: true });
+    rememberTournamentSelection(selectedTournamentId);
     void loadLeaderboard(selectedTournamentId);
   }, [selectedTournamentId, setSearchParams]);
 

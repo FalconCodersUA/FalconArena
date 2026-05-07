@@ -76,13 +76,20 @@ type SearchItem = {
   category: string;
 };
 
-type ThemeMode = 'light' | 'dark';
+type ThemeMode = 'light' | 'blue' | 'dark';
 
 const THEME_STORAGE_KEY = 'falconarena_theme';
 
 function getStoredTheme(): ThemeMode {
   const value = localStorage.getItem(THEME_STORAGE_KEY);
-  return value === 'dark' ? 'dark' : 'light';
+  return value === 'blue' || value === 'dark' ? value : 'light';
+}
+
+const THEME_SEQUENCE: ThemeMode[] = ['light', 'blue', 'dark'];
+
+function getNextThemeMode(themeMode: ThemeMode): ThemeMode {
+  const currentIndex = THEME_SEQUENCE.indexOf(themeMode);
+  return THEME_SEQUENCE[(currentIndex + 1) % THEME_SEQUENCE.length];
 }
 
 function profileAvatarKey(userId: string) {
@@ -278,7 +285,8 @@ export default function AppShell() {
     navigate('/app');
   }
 
-  const dashboardPath = authed ? '/app/dashboard' : '/app/tournaments';
+  const homePath = authed ? '/app/dashboard' : '/app/about';
+  const dashboardPath = '/app/dashboard';
   const isRoleWorkspacePath = /^\/app\/(admin|team|jury)(\/|$)/.test(location.pathname);
   const isDashboardView =
     location.pathname.startsWith('/app/dashboard') || isRoleWorkspacePath;
@@ -290,11 +298,13 @@ export default function AppShell() {
   const searchItems = useMemo(
     () =>
       [
-        {
-          path: dashboardPath,
-          label: t('shell.dashboard'),
-          category: t('shell.searchCategories.sections'),
-        },
+        authed
+          ? {
+              path: dashboardPath,
+              label: t('shell.dashboard'),
+              category: t('shell.searchCategories.sections'),
+            }
+          : null,
         {
           path: '/app/tournaments',
           label: t('shell.tournamentsNav'),
@@ -315,11 +325,13 @@ export default function AppShell() {
           label: t('shell.archive'),
           category: t('shell.searchCategories.sections'),
         },
-        {
-          path: '/app/messages',
-          label: t('shell.messages'),
-          category: t('shell.searchCategories.sections'),
-        },
+        authed
+          ? {
+              path: '/app/messages',
+              label: t('shell.messages'),
+              category: t('shell.searchCategories.sections'),
+            }
+          : null,
         {
           path: '/app/about',
           label: t('shell.about'),
@@ -332,11 +344,13 @@ export default function AppShell() {
               category: t('shell.searchCategories.sections'),
             }
           : null,
-        {
-          path: '/app/profile',
-          label: t('shell.settings'),
-          category: t('shell.searchCategories.sections'),
-        },
+        authed
+          ? {
+              path: '/app/profile',
+              label: t('shell.settings'),
+              category: t('shell.searchCategories.sections'),
+            }
+          : null,
         canManageIntegrations
           ? {
               path: '/app/integrations',
@@ -352,7 +366,7 @@ export default function AppShell() {
             }
           : null,
       ].filter((item): item is SearchItem => !!item),
-    [canManageIntegrations, canManageUsers, canViewMonitoring, dashboardPath, t],
+    [authed, canManageIntegrations, canManageUsers, canViewMonitoring, dashboardPath, t],
   );
   const searchPool = useMemo(() => {
     const deduplicated = new Map<string, SearchItem>();
@@ -394,10 +408,11 @@ export default function AppShell() {
       return t('shell.dashboard');
     }
 
-    if (
-      location.pathname === '/app' ||
-      location.pathname.startsWith('/app/tournaments')
-    ) {
+    if (location.pathname === '/app') {
+      return authed ? t('shell.dashboard') : t('shell.about');
+    }
+
+    if (location.pathname.startsWith('/app/tournaments')) {
       return t('shell.tournamentsNav');
     }
 
@@ -734,8 +749,11 @@ export default function AppShell() {
   }
 
   function toggleTheme() {
-    setThemeMode((current) => (current === 'light' ? 'dark' : 'light'));
+    setThemeMode((current) => getNextThemeMode(current));
   }
+
+  const nextThemeMode = getNextThemeMode(themeMode);
+  const themeToggleLabel = t(`shell.themeTo${nextThemeMode[0].toUpperCase()}${nextThemeMode.slice(1)}`);
 
   if (isAuthRoute) {
     return (
@@ -746,7 +764,7 @@ export default function AppShell() {
               <button type="button" className="auth-nav-link" onClick={goBack}>
                 {t('shell.back')}
               </button>
-              <Link to="/app" className="auth-nav-link">
+              <Link to={homePath} className="auth-nav-link">
                 {t('shell.home')}
               </Link>
             </div>
@@ -776,7 +794,7 @@ export default function AppShell() {
     <div className="page app-page">
       <div className="app-shell-surface">
         <aside className="app-sidebar">
-          <Link to="/app" className="app-brand">
+          <Link to={homePath} className="app-brand">
             <span className="app-brand-mark" aria-hidden>
               <BrandMark />
             </span>
@@ -787,19 +805,21 @@ export default function AppShell() {
           </Link>
 
           <nav className="app-sidebar-nav" aria-label={t('shell.navAria')}>
-            <NavLink
-              to={dashboardPath}
-              className={({ isActive }) =>
-                `app-sidebar-link${isActive || isDashboardView ? ' active' : ''}`
-              }
-            >
-              <span className="app-sidebar-icon" aria-hidden>
-                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3 9.2L10 3L17 9.2V17H3V9.2Z" fill="currentColor" />
-                </svg>
-              </span>
-              <span>{t('shell.dashboard')}</span>
-            </NavLink>
+            {authed ? (
+              <NavLink
+                to={dashboardPath}
+                className={({ isActive }) =>
+                  `app-sidebar-link${isActive || isDashboardView ? ' active' : ''}`
+                }
+              >
+                <span className="app-sidebar-icon" aria-hidden>
+                  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9.2L10 3L17 9.2V17H3V9.2Z" fill="currentColor" />
+                  </svg>
+                </span>
+                <span>{t('shell.dashboard')}</span>
+              </NavLink>
+            ) : null}
 
             <NavLink to="/app/tournaments" className="app-sidebar-link">
               <span className="app-sidebar-icon" aria-hidden>
@@ -861,20 +881,22 @@ export default function AppShell() {
               <span>{t('shell.archive')}</span>
             </NavLink>
 
-            <NavLink to="/app/messages" className="app-sidebar-link">
-              <span className="app-sidebar-icon" aria-hidden>
-                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M5 6.5H15M5 10H12M5 13.5H10"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                  />
-                  <circle cx="14.2" cy="13.4" r="2.2" stroke="currentColor" strokeWidth="1.4" />
-                </svg>
-              </span>
-              <span>{t('shell.messages')}</span>
-            </NavLink>
+            {authed ? (
+              <NavLink to="/app/messages" className="app-sidebar-link">
+                <span className="app-sidebar-icon" aria-hidden>
+                  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M5 6.5H15M5 10H12M5 13.5H10"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
+                    <circle cx="14.2" cy="13.4" r="2.2" stroke="currentColor" strokeWidth="1.4" />
+                  </svg>
+                </span>
+                <span>{t('shell.messages')}</span>
+              </NavLink>
+            ) : null}
 
             <NavLink to="/app/about" className="app-sidebar-link">
               <span className="app-sidebar-icon" aria-hidden>
@@ -918,20 +940,22 @@ export default function AppShell() {
               </NavLink>
             ) : null}
 
-            <NavLink to="/app/profile" className="app-sidebar-link">
-              <span className="app-sidebar-icon" aria-hidden>
-                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M8.7 2.8H11.3L11.7 4.3C12.2 4.4 12.7 4.6 13.1 4.9L14.5 4.2L16.3 6L15.6 7.4C15.9 7.8 16.1 8.3 16.2 8.8L17.7 9.2V11.8L16.2 12.2C16.1 12.7 15.9 13.2 15.6 13.6L16.3 15L14.5 16.8L13.1 16.1C12.7 16.4 12.2 16.6 11.7 16.7L11.3 18.2H8.7L8.3 16.7C7.8 16.6 7.3 16.4 6.9 16.1L5.5 16.8L3.7 15L4.4 13.6C4.1 13.2 3.9 12.7 3.8 12.2L2.3 11.8V9.2L3.8 8.8C3.9 8.3 4.1 7.8 4.4 7.4L3.7 6L5.5 4.2L6.9 4.9C7.3 4.6 7.8 4.4 8.3 4.3L8.7 2.8Z"
-                    stroke="currentColor"
-                    strokeWidth="1.3"
-                    strokeLinejoin="round"
-                  />
-                  <circle cx="10" cy="10" r="2.1" stroke="currentColor" strokeWidth="1.3" />
-                </svg>
-              </span>
-              <span>{t('shell.settings')}</span>
-            </NavLink>
+            {authed ? (
+              <NavLink to="/app/profile" className="app-sidebar-link">
+                <span className="app-sidebar-icon" aria-hidden>
+                  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M8.7 2.8H11.3L11.7 4.3C12.2 4.4 12.7 4.6 13.1 4.9L14.5 4.2L16.3 6L15.6 7.4C15.9 7.8 16.1 8.3 16.2 8.8L17.7 9.2V11.8L16.2 12.2C16.1 12.7 15.9 13.2 15.6 13.6L16.3 15L14.5 16.8L13.1 16.1C12.7 16.4 12.2 16.6 11.7 16.7L11.3 18.2H8.7L8.3 16.7C7.8 16.6 7.3 16.4 6.9 16.1L5.5 16.8L3.7 15L4.4 13.6C4.1 13.2 3.9 12.7 3.8 12.2L2.3 11.8V9.2L3.8 8.8C3.9 8.3 4.1 7.8 4.4 7.4L3.7 6L5.5 4.2L6.9 4.9C7.3 4.6 7.8 4.4 8.3 4.3L8.7 2.8Z"
+                      stroke="currentColor"
+                      strokeWidth="1.3"
+                      strokeLinejoin="round"
+                    />
+                    <circle cx="10" cy="10" r="2.1" stroke="currentColor" strokeWidth="1.3" />
+                  </svg>
+                </span>
+                <span>{t('shell.settings')}</span>
+              </NavLink>
+            ) : null}
 
             {canManageIntegrations ? (
               <NavLink to="/app/integrations" className="app-sidebar-link">
@@ -1051,14 +1075,14 @@ export default function AppShell() {
 
               <button
                 type="button"
-                className={`app-topbar-icon app-theme-toggle${themeMode === 'dark' ? ' active' : ''}`}
-                aria-label={
-                  themeMode === 'dark' ? t('shell.themeToLight') : t('shell.themeToDark')
-                }
-                title={themeMode === 'dark' ? t('shell.themeToLight') : t('shell.themeToDark')}
+                className={`app-topbar-icon app-theme-toggle is-${themeMode}${
+                  themeMode !== 'light' ? ' active' : ''
+                }`}
+                aria-label={themeToggleLabel}
+                title={themeToggleLabel}
                 onClick={toggleTheme}
               >
-                {themeMode === 'dark' ? (
+                {nextThemeMode === 'light' ? (
                   <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="10" cy="10" r="3.9" fill="currentColor" />
                     <path
@@ -1068,13 +1092,27 @@ export default function AppShell() {
                       strokeLinecap="round"
                     />
                   </svg>
-                ) : (
+                ) : nextThemeMode === 'dark' ? (
                   <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <mask id="theme-moon-mask">
                       <rect width="20" height="20" fill="white" />
                       <circle cx="12.8" cy="7.35" r="6.15" fill="black" />
                     </mask>
                     <circle cx="9.45" cy="10.4" r="7.35" fill="currentColor" mask="url(#theme-moon-mask)" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M6.1 14.1H14.2C15.85 14.1 17.2 12.86 17.2 11.32C17.2 9.86 16.02 8.66 14.5 8.55C13.98 6.72 12.28 5.4 10.28 5.4C8.42 5.4 6.82 6.54 6.18 8.16H5.95C4.22 8.16 2.8 9.49 2.8 11.12C2.8 12.78 4.28 14.1 6.1 14.1Z"
+                      fill="currentColor"
+                    />
+                    <path
+                      d="M6.05 14.1H14.2"
+                      stroke="currentColor"
+                      strokeWidth="1.35"
+                      strokeLinecap="round"
+                      opacity="0.42"
+                    />
                   </svg>
                 )}
               </button>

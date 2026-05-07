@@ -66,6 +66,7 @@ export const messages: TranslationMap = {
       open: 'Відкрити',
       openInMessages: 'Відкрити в повідомленнях',
       scrollTop: 'Повернутися вгору',
+      themeToBlue: 'Увімкнути синю тему',
       themeToDark: 'Увімкнути темну тему',
       themeToLight: 'Увімкнути світлу тему',
     },
@@ -190,7 +191,7 @@ export const messages: TranslationMap = {
       },
       cta: {
         eyebrow: 'Почати роботу',
-        title: 'Відкрийте турнірний простір і перевірте платформу в реальному сценарії',
+        title: 'Відкрийте турнірний простір і перевірте себе в реальному сценарії',
         lead: 'Найкраще FalconArena видно в дії: турніри, команди, сабміти, оцінювання та результати працюють як єдиний продукт.',
       },
       reviews: {
@@ -2080,6 +2081,7 @@ export const messages: TranslationMap = {
       open: 'Open',
       openInMessages: 'Open in messages',
       scrollTop: 'Back to top',
+      themeToBlue: 'Switch to blue theme',
       themeToDark: 'Switch to dark theme',
       themeToLight: 'Switch to light theme',
     },

@@ -46,6 +46,7 @@ function renderShell(initialPath = '/app/tournaments') {
           <Route path="/app" element={<AppShell />}>
             <Route path="dashboard" element={<div>Dashboard page</div>} />
             <Route path="tournaments" element={<div>Tournaments page</div>} />
+            <Route path="about" element={<div>About page</div>} />
             <Route path="teams" element={<div>Teams page</div>} />
             <Route path="leaderboard" element={<div>Leaderboard page</div>} />
             <Route path="profile" element={<div>Profile page</div>} />
@@ -233,7 +234,7 @@ describe('AppShell', () => {
     });
   });
 
-  it('toggles and persists theme mode from the topbar', async () => {
+  it('cycles and persists theme mode from the topbar', async () => {
     seedAuthedUser();
 
     mockedApiRequest.mockImplementation(async (path: string) => {
@@ -269,7 +270,14 @@ describe('AppShell', () => {
 
     renderShell();
 
-    const toggle = await screen.findByRole('button', { name: 'Switch to dark theme' });
+    const toggle = await screen.findByRole('button', { name: 'Switch to blue theme' });
+    fireEvent.click(toggle);
+
+    expect(localStorage.getItem('falconarena_theme')).toBe('blue');
+    expect(document.body.dataset.theme).toBe('blue');
+    expect(document.documentElement.dataset.theme).toBe('blue');
+    expect(screen.getByRole('button', { name: 'Switch to dark theme' })).toBeInTheDocument();
+
     fireEvent.click(toggle);
 
     expect(localStorage.getItem('falconarena_theme')).toBe('dark');
@@ -324,6 +332,19 @@ describe('AppShell', () => {
     expect(sidebarBrand).toBeInTheDocument();
     expect(sidebarBrand).toHaveTextContent('FalconArena');
     expect(view.container.querySelector('.app-topbar-brand')).not.toBeInTheDocument();
+  });
+
+  it('uses About as the public home area for guests', () => {
+    const view = renderShell('/app/about');
+
+    expect(screen.getByText('About page')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Dashboard/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Messages/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Settings/i })).not.toBeInTheDocument();
+    expect(view.container.querySelector('.app-sidebar .app-brand')).toHaveAttribute(
+      'href',
+      '/app/about',
+    );
   });
 
   it('renders avatar image in header after repeated sign-in mount', async () => {

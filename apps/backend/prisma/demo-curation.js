@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 const DEMO_DOMAIN = 'demo.falconarena.local';
 const DEFAULT_PASSWORD = 'DemoPass123!';
 const mode = process.argv.includes('--apply') ? 'apply' : 'dry-run';
+const cleanupOnly = process.argv.includes('--cleanup-only');
 
 const curatedTournamentTitles = [
   'Kyiv Web Challenge 2026',
@@ -16,16 +17,23 @@ const curatedTournamentTitles = [
 
 const oldTournamentTitlePatterns = [
   'FalconArena Smoke',
+  'Finish Evaluation',
   'Smoke Tournament',
   'Smoke Test',
   'Demo Tournament',
   'Test Tournament',
+  'E2E',
 ];
 
-const oldUserEmailPatterns = [
+const oldNonAdminUserEmailPatterns = [
   'demo',
+  'e2e',
   'smoke',
   'test',
+];
+
+const oldAdminUserEmailPatterns = [
+  'admin_e2e',
 ];
 
 function addDays(date, days) {
@@ -251,6 +259,19 @@ function buildDemoSpec(now) {
 
 async function collectCleanupCandidates() {
   const curatedUsers = demoUsers.map((user) => user.email);
+  const nonAdminUserFilters = [
+    ...(!cleanupOnly
+      ? [
+          { email: { in: curatedUsers } },
+          { email: { endsWith: `@${DEMO_DOMAIN}`, mode: 'insensitive' } },
+        ]
+      : []),
+    ...oldNonAdminUserEmailPatterns
+      .filter((pattern) => !cleanupOnly || pattern !== 'demo')
+      .map((pattern) => ({
+        email: { contains: pattern, mode: 'insensitive' },
+      })),
+  ];
 
   const oldTournaments = await prisma.tournament.findMany({
     where: {
@@ -261,40 +282,57 @@ async function collectCleanupCandidates() {
     select: { id: true, title: true },
   });
 
-  const curatedTournaments = await prisma.tournament.findMany({
-    where: { title: { in: curatedTournamentTitles } },
-    select: { id: true, title: true },
-  });
+  const curatedTournaments = cleanupOnly
+    ? []
+    : await prisma.tournament.findMany({
+        where: { title: { in: curatedTournamentTitles } },
+        select: { id: true, title: true },
+      });
 
   const oldUsers = await prisma.user.findMany({
     where: {
-      role: { not: 'ADMIN' },
       OR: [
-        { email: { in: curatedUsers } },
-        { email: { endsWith: `@${DEMO_DOMAIN}`, mode: 'insensitive' } },
-        ...oldUserEmailPatterns.map((pattern) => ({
-          email: { contains: pattern, mode: 'insensitive' },
-        })),
+        {
+          role: { not: 'ADMIN' },
+          OR: nonAdminUserFilters,
+        },
+        {
+          role: 'ADMIN',
+          OR: oldAdminUserEmailPatterns.map((pattern) => ({
+            email: { contains: pattern, mode: 'insensitive' },
+          })),
+        },
       ],
     },
     select: { id: true, email: true, role: true },
   });
 
   const userIds = oldUsers.map((user) => user.id);
-  const captainTeams = userIds.length > 0
-    ? await prisma.team.findMany({
-        where: { captainId: { in: userIds } },
-        select: {
-          tournament: {
-            select: { id: true, title: true },
+  const [captainTeams, createdTournaments] = userIds.length > 0
+    ? await Promise.all([
+        prisma.team.findMany({
+          where: { captainId: { in: userIds } },
+          select: {
+            tournament: {
+              select: { id: true, title: true },
+            },
           },
-        },
-      })
-    : [];
+        }),
+        prisma.tournament.findMany({
+          where: { createdById: { in: userIds } },
+          select: { id: true, title: true },
+        }),
+      ])
+    : [[], []];
   const captainTournaments = captainTeams.map((team) => team.tournament);
   const tournamentIds = [
     ...new Set(
-      [...oldTournaments, ...curatedTournaments, ...captainTournaments].map((item) => item.id),
+      [
+        ...oldTournaments,
+        ...curatedTournaments,
+        ...captainTournaments,
+        ...createdTournaments,
+      ].map((item) => item.id),
     ),
   ];
 
@@ -322,6 +360,7 @@ async function collectCleanupCandidates() {
     oldTournaments,
     curatedTournaments,
     captainTournaments,
+    createdTournaments,
     oldUsers,
     tournamentIds,
     userIds,
@@ -336,6 +375,7 @@ async function collectCleanupCandidates() {
       announcements: announcementsCount,
       scheduleEvents: scheduleCount,
       teamMembershipsForUsers: captainTeams.length,
+      createdTournamentsForUsers: createdTournaments.length,
       juryAssignmentsForUsers,
     },
   };
@@ -343,6 +383,7 @@ async function collectCleanupCandidates() {
 
 function printSummary(candidates) {
   console.log(`Mode: ${mode}`);
+  console.log(`Cleanup only: ${cleanupOnly ? 'yes' : 'no'}`);
   console.log('Cleanup candidates:');
   console.table(candidates.counts);
 
@@ -357,6 +398,7 @@ function printSummary(candidates) {
           ...candidates.oldTournaments,
           ...candidates.curatedTournaments,
           ...candidates.captainTournaments,
+          ...candidates.createdTournaments,
         ].map((item) => [item.id, item]),
       ).values(),
     ];
@@ -376,9 +418,11 @@ function printSummary(candidates) {
     })));
   }
 
-  console.log('Curated demo dataset to create:');
-  console.table(curatedTournamentTitles.map((title) => ({ title })));
-  console.log(`Demo user domain: ${DEMO_DOMAIN}`);
+  if (!cleanupOnly) {
+    console.log('Curated demo dataset to create:');
+    console.table(curatedTournamentTitles.map((title) => ({ title })));
+    console.log(`Demo user domain: ${DEMO_DOMAIN}`);
+  }
 }
 
 async function cleanup(candidates) {
@@ -404,7 +448,6 @@ async function cleanup(candidates) {
     await prisma.user.deleteMany({
       where: {
         id: { in: candidates.userIds },
-        role: { not: 'ADMIN' },
       },
     });
   }
@@ -619,6 +662,12 @@ async function main() {
   }
 
   await cleanup(candidates);
+
+  if (cleanupOnly) {
+    console.log('Cleanup complete. Curated demo dataset was left unchanged.');
+    return;
+  }
+
   await createDemoDataset();
 }
 

@@ -8,6 +8,11 @@ import { ApiError, apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
 import { normalizeApiErrorMessage } from '../lib/errorMessages';
 import { TournamentScheduleEvent } from '../lib/tournamentSchedule';
+import {
+  rememberTournamentSelection,
+  resolveStoredTournamentSelection,
+} from '../lib/tournamentSelection';
+import { localizeWeekLabels } from '../lib/weekLabels';
 import { useI18n } from '../i18n/I18nProvider';
 
 type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
@@ -275,6 +280,10 @@ export default function JuryDashboardPage() {
   const pendingAssignments = metrics.summary.pending;
   const draftTotalScore = useMemo(() => getTotalDraftScore(scores), [scores]);
   const weekLabels = metrics.weekly.labels.length > 0 ? metrics.weekly.labels : DEFAULT_WEEK_LABELS;
+  const localizedWeekLabels = useMemo(
+    () => localizeWeekLabels(weekLabels, language),
+    [language, weekLabels],
+  );
   const weeklyReviewRaw = useMemo(
     () => toSizedSeries(metrics.weekly.reviewed, weekLabels.length),
     [metrics.weekly.reviewed, weekLabels.length],
@@ -332,7 +341,9 @@ export default function JuryDashboardPage() {
       setTournaments(tournamentData);
 
       if (tournamentData.length > 0) {
-        setSelectedTournamentId((current) => current || tournamentData[0].id);
+        setSelectedTournamentId((current) =>
+          current || resolveStoredTournamentSelection(tournamentData, tournamentData[0].id),
+        );
       }
     } catch (requestError) {
       setError(
@@ -455,6 +466,7 @@ export default function JuryDashboardPage() {
       return;
     }
 
+    rememberTournamentSelection(selectedTournamentId);
     void loadRounds(selectedTournamentId);
     void loadSchedule(selectedTournamentId);
   }, [selectedTournamentId, roleAllowed]);
@@ -676,7 +688,7 @@ export default function JuryDashboardPage() {
                   ))}
                 </div>
                 <div className="dashboard-bar-labels">
-                  {weekLabels.map((label) => (
+                  {localizedWeekLabels.map((label) => (
                     <span key={`jury-week-${label}`}>{label}</span>
                   ))}
                 </div>

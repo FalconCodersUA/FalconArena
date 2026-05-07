@@ -7,6 +7,10 @@ import { getAuthRole, isAuthenticated } from '../lib/auth';
 import { apiRequest, buildApiUrl } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
 import { normalizeApiErrorMessage } from '../lib/errorMessages';
+import {
+  rememberTournamentSelection,
+  resolveStoredTournamentSelection,
+} from '../lib/tournamentSelection';
 
 type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
 type RoundStatus = 'DRAFT' | 'ACTIVE' | 'SUBMISSION_CLOSED' | 'EVALUATED';
@@ -242,7 +246,7 @@ export default function ArchivePage() {
       return initialTournamentId;
     }
 
-    return list[0]?.id ?? '';
+    return resolveStoredTournamentSelection(list, list[0]?.id ?? '');
   }
 
   async function loadTournaments() {
@@ -328,6 +332,7 @@ export default function ArchivePage() {
     }
 
     setSearchParams({ tournamentId: selectedTournamentId }, { replace: true });
+    rememberTournamentSelection(selectedTournamentId);
     void loadArchive(selectedTournamentId);
     void loadCertificateTemplate(selectedTournamentId);
   }, [selectedTournamentId, setSearchParams]);

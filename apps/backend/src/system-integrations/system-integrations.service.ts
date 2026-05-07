@@ -99,6 +99,11 @@ type UploadedPlatformBannerFile = {
   size?: number;
 };
 
+const LEGACY_CTA_TITLE_UK =
+  'Відкрийте турнірний простір і перевірте платформу в реальному сценарії';
+const CURRENT_CTA_TITLE_UK =
+  'Відкрийте турнірний простір і перевірте себе в реальному сценарії';
+
 export type TournamentDefaultsConfig = {
   minTeamMembers: number;
   maxTeamMembers: number;
@@ -198,7 +203,7 @@ const PLATFORM_CONTENT_FALLBACK = {
       en: 'Start working',
     },
     title: {
-      uk: 'Відкрийте турнірний простір і перевірте платформу в реальному сценарії',
+      uk: 'Відкрийте турнірний простір і перевірте себе в реальному сценарії',
       en: 'Open the tournament workspace and test the platform in a real scenario',
     },
     lead: {
@@ -1104,12 +1109,13 @@ export class SystemIntegrationsService {
   ) {
     const normalized = typeof value === 'string' ? value.trim() : '';
     const result = normalized.length > 0 ? normalized : fallback;
+    const migratedResult = result === LEGACY_CTA_TITLE_UK ? CURRENT_CTA_TITLE_UK : result;
 
-    if (result.length > maxLength) {
+    if (migratedResult.length > maxLength) {
       throw new BadRequestException(`Platform content field exceeds ${maxLength} characters`);
     }
 
-    return result;
+    return migratedResult;
   }
 
   private normalizeOptionalImageUrl(value: unknown) {

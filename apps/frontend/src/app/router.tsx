@@ -60,10 +60,14 @@ function RoleDashboardRedirect() {
   return <Navigate to="/app/tournaments" replace />;
 }
 
+function AppIndexRedirect() {
+  return <Navigate to={isAuthenticated() ? '/app/dashboard' : '/app/about'} replace />;
+}
+
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate to="/app" replace />,
+    element: <Navigate to="/app/about" replace />,
   },
   {
     path: '/app/certificates',
@@ -81,7 +85,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/app/tournaments" replace />,
+        element: <AppIndexRedirect />,
       },
       {
         path: 'dashboard',

@@ -2123,14 +2123,74 @@ a {
   background: #ffffff;
 }
 
+.app-page
+  .field:has(
+    :is(
+        #admin-tournament-select,
+        #team-tournament-select,
+        #jury-tournament-select,
+        #teams-page-tournament-select,
+        #leaderboard-tournament-select,
+        #archive-tournament-select,
+        #announcement-tournament-select
+      )
+  ) {
+  border: 1px solid rgba(94, 23, 235, 0.18);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(94, 23, 235, 0.07) 0%, rgba(29, 172, 214, 0.06) 100%),
+    rgba(255, 255, 255, 0.48);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    0 14px 30px rgba(94, 23, 235, 0.08);
+  padding: 12px;
+}
+
+.app-page
+  .field:has(
+    :is(
+        #admin-tournament-select,
+        #team-tournament-select,
+        #jury-tournament-select,
+        #teams-page-tournament-select,
+        #leaderboard-tournament-select,
+        #archive-tournament-select,
+        #announcement-tournament-select
+      )
+  )
+  > span:first-child {
+  color: #5e17eb;
+}
+
+.app-page
+  :is(
+    #admin-tournament-select,
+    #team-tournament-select,
+    #jury-tournament-select,
+    #teams-page-tournament-select,
+    #leaderboard-tournament-select,
+    #archive-tournament-select,
+    #announcement-tournament-select
+  ) {
+  border-color: rgba(94, 23, 235, 0.28);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(29, 172, 214, 0.08) 0%, transparent 34%),
+    linear-gradient(180deg, #ffffff 0%, #f8f3ff 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.94),
+    0 12px 26px rgba(94, 23, 235, 0.1);
+}
+
 .app-page .admin-tournament-picker > span {
-  color: #343c6a;
+  color: #5e17eb;
 }
 
 .app-page .admin-tournament-picker-select {
-  border-color: rgba(94, 23, 235, 0.14);
-  background: rgba(94, 23, 235, 0.06);
-  color: #5e17eb;
+  border-color: rgba(94, 23, 235, 0.28);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(29, 172, 214, 0.08) 0%, transparent 34%),
+    linear-gradient(180deg, #ffffff 0%, #f8f3ff 100%);
+  color: #343c6a;
 }
 
 .app-page .admin-tournament-picker-select:focus {
@@ -6970,9 +7030,9 @@ a {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     0 18px 36px rgba(37, 26, 72, 0.06);
-  padding: 18px 18px 16px;
+  padding: 14px;
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
 .messages-thread-head {
@@ -7005,12 +7065,14 @@ a {
   background:
     radial-gradient(circle at 0% 100%, rgba(122, 67, 243, 0.05) 0%, transparent 34%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 249, 255, 0.98) 100%);
-  min-height: 280px;
-  max-height: 460px;
+  min-height: 180px;
+  max-height: 360px;
   overflow: auto;
-  padding: 18px;
+  padding: 14px;
   display: grid;
-  gap: 16px;
+  align-content: start;
+  align-items: start;
+  gap: 10px;
 }
 
 .messages-thread-feed > p {
@@ -7019,14 +7081,14 @@ a {
 }
 
 .messages-thread-item {
-  max-width: min(76%, 540px);
+  max-width: min(72%, 520px);
   border: 1px solid rgba(94, 23, 235, 0.08);
-  border-radius: 22px;
-  padding: 14px 18px;
+  border-radius: 18px;
+  padding: 10px 14px;
   background: linear-gradient(180deg, #f6f3ff 0%, #f0edfb 100%);
   box-shadow: 0 10px 22px rgba(37, 26, 72, 0.05);
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .messages-thread-item.mine {
@@ -7039,6 +7101,7 @@ a {
 .messages-thread-item p {
   margin: 0;
   color: #718ebf;
+  line-height: 1.36;
   white-space: pre-wrap;
 }
 
@@ -7050,14 +7113,15 @@ a {
 .messages-thread-item span {
   color: #6a6383;
   font-size: 0.76rem;
+  line-height: 1.25;
 }
 
 .messages-thread-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
-  gap: 12px;
-  padding: 14px;
+  gap: 10px;
+  padding: 10px;
   border: 1px solid #ebe4fb;
   border-radius: 22px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 246, 255, 0.98) 100%);
@@ -7068,18 +7132,28 @@ a {
 }
 
 .messages-composer-field textarea {
-  min-height: 58px;
+  min-height: 46px;
   max-height: 140px;
   border-radius: 18px;
-  padding: 16px 18px;
+  padding: 12px 14px;
   resize: vertical;
 }
 
 .messages-thread-send {
-  min-width: 104px;
-  min-height: 58px;
-  border-radius: 18px;
+  width: 46px;
+  min-width: 46px;
+  min-height: 46px;
+  padding: 0;
+  border-radius: 16px;
   align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.messages-thread-send svg {
+  width: 20px;
+  height: 20px;
 }
 
 .messages-tabs-panel .button-primary,
@@ -8776,6 +8850,28 @@ body[data-theme='dark'] .app-page .panel-form textarea:focus {
     0 14px 28px rgba(2, 6, 18, 0.24);
 }
 
+body[data-theme='dark'] .app-page .field:has(select[id$='tournament-select']) {
+  border-color: rgba(190, 171, 255, 0.22);
+  background:
+    linear-gradient(135deg, rgba(139, 93, 255, 0.13) 0%, rgba(56, 189, 248, 0.08) 100%),
+    rgba(15, 20, 32, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 16px 32px rgba(2, 6, 18, 0.24);
+}
+
+body[data-theme='dark'] .app-page .field:has(select[id$='tournament-select']) > span:first-child {
+  color: #d8cbff;
+}
+
+body[data-theme='dark'] .app-page select[id$='tournament-select'] {
+  border-color: rgba(190, 171, 255, 0.28);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.1) 0%, transparent 34%),
+    linear-gradient(180deg, rgba(24, 30, 48, 0.98) 0%, rgba(12, 16, 28, 0.98) 100%);
+  color: #eef2ff;
+}
+
 body[data-theme='dark'] .app-page .filter-button,
 body[data-theme='dark'] .messages-section-tabs,
 body[data-theme='dark'] .messages-section-tabs .filter-button {
@@ -9386,6 +9482,24 @@ body[data-theme='dark'] .app-page.admin-users-page .admin-user-card-actions .sel
   opacity: 1 !important;
 }
 
+body[data-theme='dark'] .app-page.admin-users-page .admin-users-filters .field input,
+body[data-theme='dark'] .app-page.admin-users-page .admin-users-filters .select-input {
+  color: #eef2ff !important;
+  border-color: rgba(190, 171, 255, 0.24);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.14) 0%, transparent 34%),
+    linear-gradient(180deg, rgba(18, 24, 38, 0.98) 0%, rgba(10, 14, 24, 0.98) 100%);
+}
+
+body[data-theme='dark'] .app-page.admin-users-page .admin-users-filters .field input::placeholder {
+  color: #b8c1e2 !important;
+  opacity: 1;
+}
+
+body[data-theme='dark'] .app-page.admin-users-page .admin-users-filters .field span {
+  color: #cfc5ff !important;
+}
+
 body[data-theme='dark'] .app-page.admin-users-page .status-pill:not(.is-blocked) {
   background: rgba(139, 93, 255, 0.18) !important;
   color: #d8cbff !important;
@@ -9683,6 +9797,847 @@ body[data-theme='dark'] .app-page .monitoring-status-warning {
 body[data-theme='dark'] .app-page .monitoring-status-success {
   background: rgba(52, 211, 153, 0.16);
   color: #bbf7d0;
+}
+
+html[data-theme='blue'] {
+  color-scheme: dark;
+  --scrollbar-track: rgba(16, 21, 56, 0.96);
+  --scrollbar-thumb: rgba(129, 91, 255, 0.56);
+  --scrollbar-thumb-hover: rgba(255, 139, 35, 0.72);
+}
+
+body[data-theme='blue'] {
+  color-scheme: dark;
+  --bg: #111743;
+  --ink: #ffffff;
+  --muted: #d8ddff;
+  --panel: rgba(75, 64, 155, 0.6);
+  --border: rgba(219, 224, 255, 0.2);
+  --brand: #8d5cff;
+  --brand-deep: #ffffff;
+  --brand-soft: rgba(141, 92, 255, 0.2);
+  --signal: #4ddbd2;
+  --signal-soft: rgba(77, 219, 210, 0.16);
+  --surface-0: #151a4b;
+  --surface-1: #28206b;
+  --surface-2: #45358f;
+  --line-soft: rgba(219, 224, 255, 0.18);
+  --shadow-soft: 0 18px 40px rgba(8, 12, 39, 0.34);
+  --shadow-card: 0 30px 70px rgba(8, 12, 39, 0.42);
+  --scrollbar-track: rgba(16, 21, 56, 0.96);
+  --scrollbar-thumb: rgba(129, 91, 255, 0.56);
+  --scrollbar-thumb-hover: rgba(255, 139, 35, 0.72);
+  background:
+    linear-gradient(135deg, rgba(52, 72, 171, 0.46) 0%, transparent 30%),
+    linear-gradient(225deg, rgba(255, 139, 35, 0.12) 0%, transparent 22%),
+    linear-gradient(180deg, #2d2877 0%, #5513d4 42%, #131844 100%);
+  color: var(--ink);
+}
+
+body[data-theme='blue']:has(.auth-page) {
+  background:
+    linear-gradient(135deg, rgba(53, 88, 184, 0.48) 0%, transparent 30%),
+    linear-gradient(225deg, rgba(77, 219, 210, 0.16) 0%, transparent 24%),
+    linear-gradient(180deg, #30267a 0%, #5513d4 42%, #131844 100%);
+}
+
+body[data-theme='blue'] .auth-shell-header,
+body[data-theme='blue'] .shell-header {
+  border-color: rgba(226, 232, 255, 0.18);
+  background: rgba(59, 50, 143, 0.58);
+  box-shadow: 0 22px 48px rgba(10, 12, 42, 0.26);
+  backdrop-filter: blur(22px) saturate(135%);
+}
+
+body[data-theme='blue'] .auth-nav-link,
+body[data-theme='blue'] .nav-link,
+body[data-theme='blue'] .language-switch,
+body[data-theme='blue'] .app-topbar-language {
+  border-color: rgba(226, 232, 255, 0.18);
+  background: rgba(86, 75, 173, 0.5);
+  color: #eef1ff;
+  box-shadow: 0 14px 30px rgba(10, 12, 42, 0.2);
+}
+
+body[data-theme='blue'] .lang-button {
+  color: #d7dcff;
+}
+
+body[data-theme='blue'] .lang-button.active {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .button-primary,
+body[data-theme='blue'] .app-page .button-primary {
+  background: #ff8508;
+  border-color: #ff8508;
+  color: #ffffff;
+  box-shadow: 0 18px 34px rgba(255, 122, 0, 0.26);
+}
+
+body[data-theme='blue'] .button-primary:hover:not(:disabled),
+body[data-theme='blue'] .app-page .button-primary:hover:not(:disabled) {
+  background: #f07300;
+  border-color: #f07300;
+}
+
+body[data-theme='blue'] .button-soft,
+body[data-theme='blue'] .app-page .button-soft,
+body[data-theme='blue'] .app-page .button-ghost {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(226, 232, 255, 0.2);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+body[data-theme='blue'] .button-soft:hover:not(:disabled),
+body[data-theme='blue'] .app-page .button-soft:hover:not(:disabled),
+body[data-theme='blue'] .app-page .button-ghost:hover:not(:disabled),
+body[data-theme='blue'] .app-page .button-ghost:focus-visible {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(226, 232, 255, 0.32);
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .schedule-delete-action,
+body[data-theme='blue'] .app-page .schedule-delete-action:visited {
+  background: rgba(248, 113, 113, 0.14);
+  border-color: rgba(254, 202, 202, 0.34);
+  color: #ffe4e6;
+}
+
+body[data-theme='blue'] .app-page .status-recovery-action,
+body[data-theme='blue'] .app-page .status-recovery-action:visited {
+  background: rgba(255, 139, 35, 0.16);
+  border-color: rgba(255, 186, 116, 0.36);
+  color: #ffe8ce;
+}
+
+body[data-theme='blue'] .app-page .status-recovery-warning {
+  border-color: rgba(255, 186, 116, 0.26);
+  background: rgba(255, 139, 35, 0.12);
+}
+
+body[data-theme='blue'] .auth-oauth-button {
+  border-color: rgba(226, 232, 255, 0.18);
+  background:
+    linear-gradient(135deg, rgba(98, 77, 211, 0.74) 0%, rgba(63, 77, 166, 0.56) 100%);
+  color: #ffffff;
+  box-shadow: 0 18px 38px rgba(10, 12, 42, 0.24);
+}
+
+body[data-theme='blue'] .auth-oauth-button span {
+  background: rgba(255, 255, 255, 0.96);
+  color: #24292f;
+}
+
+body[data-theme='blue'] .app-shell-surface {
+  border-color: rgba(235, 239, 255, 0.18);
+  background:
+    linear-gradient(135deg, rgba(70, 56, 157, 0.78) 0%, rgba(35, 61, 146, 0.54) 45%, rgba(17, 23, 67, 0.94) 100%);
+  box-shadow: 0 34px 86px rgba(8, 12, 39, 0.44);
+}
+
+body[data-theme='blue'] .app-shell-surface::before {
+  background:
+    repeating-linear-gradient(120deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 16px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 24%);
+}
+
+body[data-theme='blue'] .app-sidebar {
+  border-right-color: rgba(235, 239, 255, 0.16);
+  background:
+    linear-gradient(180deg, rgba(68, 53, 151, 0.9) 0%, rgba(44, 47, 132, 0.88) 58%, rgba(21, 25, 72, 0.96) 100%);
+}
+
+body[data-theme='blue'] .app-sidebar::after {
+  opacity: 0.2;
+}
+
+body[data-theme='blue'] .app-brand {
+  border-color: transparent;
+  background: transparent;
+  color: #ffffff;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+body[data-theme='blue'] .app-brand-mark svg {
+  filter: drop-shadow(0 5px 14px rgba(77, 219, 210, 0.22));
+}
+
+body[data-theme='blue'] .app-brand-mark svg path:last-of-type,
+body[data-theme='blue'] .app-brand-wordmark {
+  color: #ffffff;
+  fill: #ffffff;
+}
+
+body[data-theme='blue'] .app-sidebar-link {
+  color: #d8ddff;
+}
+
+body[data-theme='blue'] .app-sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-sidebar-link.active {
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  background:
+    linear-gradient(180deg, rgba(119, 86, 220, 0.78) 0%, rgba(75, 70, 166, 0.64) 100%) padding-box,
+    linear-gradient(135deg, rgba(255, 255, 255, 0.46), rgba(77, 219, 210, 0.34), rgba(255, 139, 35, 0.34)) border-box;
+  box-shadow:
+    0 16px 32px rgba(8, 12, 39, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+body[data-theme='blue'] .app-sidebar-link.active::before {
+  background: linear-gradient(180deg, #ffffff 0%, #4ddbd2 46%, #ff8508 100%);
+  box-shadow:
+    0 0 0 4px rgba(77, 219, 210, 0.12),
+    0 0 20px rgba(77, 219, 210, 0.34);
+}
+
+body[data-theme='blue'] .app-sidebar-link.active::after {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 48%),
+    linear-gradient(225deg, rgba(77, 219, 210, 0.14) 0%, transparent 42%);
+}
+
+body[data-theme='blue'] .app-main {
+  background:
+    linear-gradient(140deg, rgba(90, 19, 216, 0.34) 0%, transparent 32%),
+    linear-gradient(180deg, rgba(55, 49, 139, 0.9) 0%, rgba(34, 43, 118, 0.82) 58%, rgba(18, 23, 65, 0.96) 100%);
+}
+
+body[data-theme='blue'] .app-topbar {
+  border-bottom-color: rgba(235, 239, 255, 0.18);
+  background:
+    linear-gradient(135deg, rgba(100, 73, 210, 0.48) 0%, rgba(42, 65, 148, 0.38) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 18px 42px rgba(8, 12, 39, 0.26);
+}
+
+body[data-theme='blue'] .app-topbar-title {
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-search,
+body[data-theme='blue'] .app-topbar-icon,
+body[data-theme='blue'] .app-topbar-nav-btn {
+  border-color: rgba(226, 232, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: #dce1ff;
+  box-shadow: 0 12px 24px rgba(8, 12, 39, 0.2);
+}
+
+body[data-theme='blue'] .app-theme-toggle.is-blue {
+  background:
+    linear-gradient(135deg, rgba(77, 219, 210, 0.18) 0%, rgba(255, 255, 255, 0.12) 48%, rgba(255, 139, 35, 0.16) 100%);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+body[data-theme='blue'] .app-topbar-icon:hover,
+body[data-theme='blue'] .app-topbar-icon.active,
+body[data-theme='blue'] .app-topbar-nav-btn:hover {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.32);
+  background: rgba(255, 255, 255, 0.16);
+}
+
+body[data-theme='blue'] .app-search:focus-within {
+  border-color: rgba(77, 219, 210, 0.36);
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 0 0 4px rgba(77, 219, 210, 0.08),
+    0 14px 28px rgba(8, 12, 39, 0.28);
+}
+
+body[data-theme='blue'] .app-search input,
+body[data-theme='blue'] .app-search-item,
+body[data-theme='blue'] .app-alerts-head strong,
+body[data-theme='blue'] .app-alert-item strong {
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-search-icon,
+body[data-theme='blue'] .app-search input::placeholder {
+  color: #c2caff;
+}
+
+body[data-theme='blue'] .app-search-dropdown,
+body[data-theme='blue'] .app-alerts-popover {
+  border-color: rgba(226, 232, 255, 0.18);
+  background: rgba(35, 34, 104, 0.96);
+  box-shadow: 0 22px 50px rgba(8, 12, 39, 0.34);
+}
+
+body[data-theme='blue'] .app-search-item:hover,
+body[data-theme='blue'] .app-alert-item {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body[data-theme='blue'] .app-search-item small,
+body[data-theme='blue'] .app-search-empty,
+body[data-theme='blue'] .app-alerts-filter,
+body[data-theme='blue'] .app-alerts-state,
+body[data-theme='blue'] .app-alert-item p,
+body[data-theme='blue'] .app-alert-meta span {
+  color: #d8ddff;
+}
+
+body[data-theme='blue'] .app-avatar {
+  border-color: rgba(255, 255, 255, 0.24);
+  box-shadow: 0 10px 22px rgba(8, 12, 39, 0.2);
+}
+
+body[data-theme='blue'] .card,
+body[data-theme='blue'] .auth-card,
+body[data-theme='blue'] .state-card,
+body[data-theme='blue'] .app-page :is(
+    .card,
+    .section-card,
+    .panel-card,
+    .state-card,
+    .round-card,
+    .assignment-item,
+    .leaderboard-row-card,
+    .leaderboard-metric,
+    .leaderboard-category-item,
+    .leaderboard-round-item,
+    .profile-item,
+    .profile-role-card,
+    .profile-history-card,
+    .quick-team-item,
+    .round-summary,
+    .distribute-box,
+    .status-row,
+    .summary-card,
+    .schedule-item,
+    .tournament-active-round-card,
+    .archive-round-card
+  ),
+body[data-theme='blue'] .app-page .meta-grid div {
+  border-color: rgba(226, 232, 255, 0.18);
+  background:
+    linear-gradient(135deg, rgba(104, 82, 202, 0.62) 0%, rgba(64, 73, 156, 0.5) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 20px 42px rgba(8, 12, 39, 0.24);
+}
+
+body[data-theme='blue'] .app-page :is(.panel-card, .section-card, .state-card)::after {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 24%);
+}
+
+body[data-theme='blue'] .app-page :is(
+    .section-header h1,
+    .section-card h2,
+    .panel-card h2,
+    .panel-card h3,
+    .state-card h1,
+    .summary-card strong,
+    .leaderboard-row-head strong,
+    .leaderboard-category-item strong,
+    .profile-item strong,
+    .profile-role-card strong,
+    .profile-history-card strong,
+    .round-card-head strong,
+    .dashboard-workspace-copy h2,
+    .dashboard-overview-meta h2,
+    .messages-thread-head strong,
+    .messages-dialog-item strong,
+    .announcement-head h3,
+    .schedule-item-head strong,
+    .tournament-active-round-card h2
+  ) {
+  color: #ffffff;
+}
+
+body[data-theme='blue'] :is(.eyebrow, .lead, .inline-hint, .app-error-note),
+body[data-theme='blue'] .app-page :is(
+    .summary-card span,
+    .summary-card p,
+    .profile-role-card p,
+    .profile-history-card p,
+    .leaderboard-row-head span,
+    .leaderboard-category-item span,
+    .field span,
+    dt,
+    dd,
+    .state-callout p,
+    .status-row span,
+    .round-card p,
+    .team-details p,
+    .messages-thread-item p,
+    .messages-thread-item span,
+    .schedule-item-head p,
+    .schedule-item-meta span,
+    .announcement-body,
+    .announcement-meta
+  ) {
+  color: #d8ddff;
+}
+
+body[data-theme='blue'] .app-page :is(
+    .field input,
+    .field select,
+    .member-row input,
+    .textarea-input,
+    .select-input,
+    .panel-form textarea,
+    .auth-field input
+  ) {
+  border-color: rgba(226, 232, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+body[data-theme='blue'] .app-page :is(
+    .field input,
+    .textarea-input,
+    .panel-form textarea,
+    .auth-field input
+  )::placeholder {
+  color: #c2caff;
+}
+
+body[data-theme='blue'] .app-page :is(
+    .field input,
+    .field select,
+    .member-row input,
+    .textarea-input,
+    .select-input,
+    .panel-form textarea
+  ):focus {
+  border-color: rgba(77, 219, 210, 0.38);
+  box-shadow: 0 0 0 4px rgba(77, 219, 210, 0.08);
+}
+
+body[data-theme='blue'] .app-page .select-input option {
+  background: #201c64;
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .field:has(select[id$='tournament-select']) {
+  border-color: rgba(255, 255, 255, 0.24);
+  background:
+    linear-gradient(135deg, rgba(77, 219, 210, 0.12) 0%, rgba(255, 139, 35, 0.08) 100%),
+    rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 16px 34px rgba(8, 12, 39, 0.24);
+}
+
+body[data-theme='blue'] .app-page .field:has(select[id$='tournament-select']) > span:first-child {
+  color: #8ff5ef;
+}
+
+body[data-theme='blue'] .app-page select[id$='tournament-select'] {
+  border-color: rgba(77, 219, 210, 0.34);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(77, 219, 210, 0.12) 0%, transparent 34%),
+    linear-gradient(180deg, rgba(91, 78, 183, 0.74) 0%, rgba(52, 68, 150, 0.62) 100%);
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page :is(.filter-button, .messages-section-tabs) {
+  border-color: rgba(226, 232, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #d8ddff;
+}
+
+body[data-theme='blue'] .app-page :is(.filter-button.active, .messages-section-tabs .filter-button.active) {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .status-pill {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .state-callout,
+body[data-theme='blue'] .app-page .state-callout.subtle {
+  border-color: rgba(77, 219, 210, 0.24);
+  background: rgba(77, 219, 210, 0.1);
+}
+
+body[data-theme='blue'] .app-page :is(.state-callout strong, .profile-links a, .round-summary a, .inline-link) {
+  color: #8ff5ef;
+}
+
+body[data-theme='blue'] .app-page :is(.page-skeleton-chip, .page-skeleton-card, .page-skeleton-block, .state-card-quiet-line, .quiet-inline-loading-line) {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body[data-theme='blue'] .app-page .tournaments-section .tournament-card {
+  border-color: rgba(226, 232, 255, 0.2);
+  background:
+    linear-gradient(135deg, rgba(101, 80, 202, 0.68) 0%, rgba(50, 71, 160, 0.56) 100%);
+  box-shadow: 0 22px 46px rgba(8, 12, 39, 0.26);
+}
+
+body[data-theme='blue'] .app-page .tournaments-view-switch {
+  border-color: rgba(226, 232, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body[data-theme='blue'] .app-page .tournaments-view-button {
+  color: #d8ddff;
+}
+
+body[data-theme='blue'] .app-page .tournaments-view-button:hover,
+body[data-theme='blue'] .app-page .tournaments-view-button.active {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .tournaments-section .tournament-head h3,
+body[data-theme='blue'] .app-page .tournaments-section .tournament-card .meta-grid dd,
+body[data-theme='blue'] .app-page .tournaments-section .tournament-card .register-flag {
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .tournaments-section .tournament-card .meta-grid dt {
+  color: #d8ddff;
+}
+
+body[data-theme='blue'] .app-page .tournaments-section .tournament-card.is-draft .status-pill,
+body[data-theme='blue'] .app-page .profile-role-card--admin.is-draft .status-pill {
+  border-color: rgba(226, 232, 255, 0.24);
+  background: rgba(226, 232, 255, 0.18);
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .tournaments-section .tournament-card.is-registration .status-pill,
+body[data-theme='blue'] .app-page .profile-role-card--admin.is-registration .status-pill {
+  border-color: rgba(77, 219, 210, 0.36);
+  background: rgba(77, 219, 210, 0.2);
+  color: #d7fffb;
+}
+
+body[data-theme='blue'] .app-page .tournaments-section .tournament-card.is-running .status-pill,
+body[data-theme='blue'] .app-page .profile-role-card--admin.is-running .status-pill {
+  border-color: rgba(255, 255, 255, 0.26);
+  background: rgba(141, 92, 255, 0.24);
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .tournaments-section .tournament-card.is-finished .status-pill {
+  border-color: rgba(255, 139, 35, 0.36);
+  background: rgba(255, 139, 35, 0.18);
+  color: #ffe8ce;
+}
+
+body[data-theme='blue'] .app-page .tournaments-card-action--secondary,
+body[data-theme='blue'] .app-page .tournaments-card-action--secondary:visited,
+body[data-theme='blue'] .app-page .tournament-showcase-actions .tournaments-card-action--secondary,
+body[data-theme='blue'] .app-page .tournament-showcase-actions .tournaments-card-action--secondary:visited {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.26);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+body[data-theme='blue'] .app-page .tournaments-card-action--secondary:hover:not(:disabled),
+body[data-theme='blue'] .app-page .tournaments-card-action--secondary:focus-visible,
+body[data-theme='blue'] .app-page .tournament-showcase-actions .tournaments-card-action--secondary:hover:not(:disabled),
+body[data-theme='blue'] .app-page .tournament-showcase-actions .tournaments-card-action--secondary:focus-visible {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.36);
+}
+
+body[data-theme='blue'] .app-page .dashboard-line-wrap {
+  background:
+    linear-gradient(180deg, rgba(41, 46, 128, 0.78) 0%, rgba(71, 62, 158, 0.68) 100%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size:
+    auto,
+    46px 100%,
+    100% 28px;
+}
+
+body[data-theme='blue'] .app-page :is(.onboarding-step, .messages-dialog-avatar, .messages-thread-avatar) {
+  background: rgba(77, 219, 210, 0.18);
+  color: #c9fffb;
+}
+
+body[data-theme='blue'] .app-page .messages-thread-item {
+  border-color: rgba(226, 232, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body[data-theme='blue'] .app-page .messages-thread-item.mine {
+  background: linear-gradient(90deg, #ff8508 0%, #8d5cff 100%);
+  border-color: transparent;
+}
+
+body[data-theme='blue'] .app-page .messages-thread-item.mine p,
+body[data-theme='blue'] .app-page .messages-thread-item.mine span {
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .monitoring-status-danger {
+  background: rgba(248, 113, 113, 0.16);
+  color: #ffe4e6;
+}
+
+body[data-theme='blue'] .app-page .monitoring-status-warning {
+  background: rgba(251, 191, 36, 0.16);
+  color: #fff1b8;
+}
+
+body[data-theme='blue'] .app-page .monitoring-status-success {
+  background: rgba(52, 211, 153, 0.16);
+  color: #d1fae5;
+}
+
+body[data-theme='blue'] .app-page .dashboard-overview-card,
+body[data-theme='blue'] .app-page .dashboard-muted-tile,
+body[data-theme='blue'] .app-page .dashboard-quick-actions,
+body[data-theme='blue'] .app-page .dashboard-workspace-panel,
+body[data-theme='blue'] .app-page .dashboard-chart-card,
+body[data-theme='blue'] .app-page .dashboard-pie-card,
+body[data-theme='blue'] .app-page .dashboard-mini-card,
+body[data-theme='blue'] .app-page .dashboard-empty-note,
+body[data-theme='blue'] .app-page .dashboard-line-wrap,
+body[data-theme='blue'] .app-page .onboarding-card,
+body[data-theme='blue'] .app-page .leaderboard-scoring,
+body[data-theme='blue'] .app-page .messages-summary-panel,
+body[data-theme='blue'] .app-page .messages-tabs-panel,
+body[data-theme='blue'] .app-page .messages-new-dialog-form,
+body[data-theme='blue'] .app-page .messages-dialog-list,
+body[data-theme='blue'] .app-page .messages-dialog-item,
+body[data-theme='blue'] .app-page .messages-dialog-thread,
+body[data-theme='blue'] .app-page .messages-thread-feed,
+body[data-theme='blue'] .app-page .messages-thread-form,
+body[data-theme='blue'] .app-page .announcement-item,
+body[data-theme='blue'] .app-page .messages-status-note,
+body[data-theme='blue'] .app-page .team-list-card,
+body[data-theme='blue'] .app-page .admin-user-card,
+body[data-theme='blue'] .app-page .admin-user-card-stat,
+body[data-theme='blue'] .app-page .admin-user-block-history,
+body[data-theme='blue'] .app-page .monitoring-signal-tile,
+body[data-theme='blue'] .app-page .monitoring-report-card {
+  border-color: rgba(226, 232, 255, 0.18);
+  background:
+    linear-gradient(135deg, rgba(104, 82, 202, 0.6) 0%, rgba(58, 75, 160, 0.48) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 20px 42px rgba(8, 12, 39, 0.24);
+}
+
+body[data-theme='blue'] .app-page .dashboard-overview-status,
+body[data-theme='blue'] .app-page .admin-overview-status,
+body[data-theme='blue'] .app-page .dashboard-workspace-status,
+body[data-theme='blue'] .app-page .monitoring-workspace-status,
+body[data-theme='blue'] .app-page .tournaments-workspace-status,
+body[data-theme='blue'] .app-page .teams-workspace-status,
+body[data-theme='blue'] .app-page .profile-workspace-status,
+body[data-theme='blue'] .app-page .messages-workspace-status,
+body[data-theme='blue'] .app-page .archive-workspace-status,
+body[data-theme='blue'] .app-page .leaderboard-workspace-status,
+body[data-theme='blue'] .app-page #archive-summary .summary-card,
+body[data-theme='blue'] .app-page #leaderboard-summary .summary-card,
+body[data-theme='blue'] .app-page #archive-rounds .leaderboard-metric,
+body[data-theme='blue'] .app-page .messages-summary-panel .summary-card,
+body[data-theme='blue'] .app-page .leaderboard-summary-panel .summary-card {
+  border-color: rgba(226, 232, 255, 0.2);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(77, 219, 210, 0.08) 100%),
+    linear-gradient(180deg, rgba(86, 75, 173, 0.64) 0%, rgba(54, 71, 155, 0.54) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 18px 38px rgba(8, 12, 39, 0.22);
+}
+
+body[data-theme='blue'] .app-page .announcement-item.unread,
+body[data-theme='blue'] .app-page .announcement-item.inactive,
+body[data-theme='blue'] .app-page .messages-dialog-item.active,
+body[data-theme='blue'] .app-page .leaderboard-row-card.leader-card {
+  border-color: rgba(255, 255, 255, 0.28);
+  background:
+    linear-gradient(135deg, rgba(118, 88, 222, 0.74) 0%, rgba(70, 92, 183, 0.58) 100%);
+}
+
+body[data-theme='blue'] .app-page .dashboard-overview-meta h2,
+body[data-theme='blue'] .app-page .dashboard-workspace-copy h2,
+body[data-theme='blue'] .app-page .messages-workspace-copy h2,
+body[data-theme='blue'] .app-page .archive-workspace-copy h2,
+body[data-theme='blue'] .app-page .leaderboard-workspace-copy h2,
+body[data-theme='blue'] .app-page .dashboard-muted-tile strong,
+body[data-theme='blue'] .app-page .dashboard-quick-actions strong,
+body[data-theme='blue'] .app-page .dashboard-workspace-panel-head h3,
+body[data-theme='blue'] .app-page .dashboard-chart-card h3,
+body[data-theme='blue'] .app-page .dashboard-pie-card h3,
+body[data-theme='blue'] .app-page .dashboard-mini-card h3,
+body[data-theme='blue'] .app-page .dashboard-pie-center,
+body[data-theme='blue'] .app-page .dashboard-mini-caption strong,
+body[data-theme='blue'] .app-page .dashboard-mini-item strong,
+body[data-theme='blue'] .app-page .activity-feed-item strong,
+body[data-theme='blue'] .app-page .dashboard-checklist-item strong,
+body[data-theme='blue'] .app-page .onboarding-card strong,
+body[data-theme='blue'] .app-page .leaderboard-scoring strong,
+body[data-theme='blue'] .app-page .team-list-card h3,
+body[data-theme='blue'] .app-page .admin-user-card-head strong,
+body[data-theme='blue'] .app-page .admin-user-card-stat strong,
+body[data-theme='blue'] .app-page .admin-user-block-history strong,
+body[data-theme='blue'] .app-page .monitoring-signal-tile strong,
+body[data-theme='blue'] .app-page .monitoring-report-head strong,
+body[data-theme='blue'] .app-page .messages-dialog-item strong,
+body[data-theme='blue'] .app-page .messages-thread-head strong,
+body[data-theme='blue'] .app-page .announcement-head h3,
+body[data-theme='blue'] .app-page #archive-summary .summary-card strong,
+body[data-theme='blue'] .app-page #leaderboard-summary .summary-card strong,
+body[data-theme='blue'] .app-page #archive-rounds .leaderboard-metric strong {
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .dashboard-overview-meta p,
+body[data-theme='blue'] .app-page .dashboard-workspace-copy p,
+body[data-theme='blue'] .app-page .integrations-workspace-copy p,
+body[data-theme='blue'] .app-page .monitoring-workspace-copy p,
+body[data-theme='blue'] .app-page .tournaments-workspace-copy p,
+body[data-theme='blue'] .app-page .teams-workspace-copy p,
+body[data-theme='blue'] .app-page .profile-workspace-copy p,
+body[data-theme='blue'] .app-page .messages-workspace-copy p,
+body[data-theme='blue'] .app-page .archive-workspace-copy p,
+body[data-theme='blue'] .app-page .leaderboard-workspace-copy p,
+body[data-theme='blue'] .app-page .dashboard-overview-status span,
+body[data-theme='blue'] .app-page .dashboard-overview-status p,
+body[data-theme='blue'] .app-page .admin-overview-status span,
+body[data-theme='blue'] .app-page .admin-overview-status p,
+body[data-theme='blue'] .app-page .dashboard-workspace-status span,
+body[data-theme='blue'] .app-page .dashboard-workspace-status p,
+body[data-theme='blue'] .app-page .monitoring-workspace-status span,
+body[data-theme='blue'] .app-page .monitoring-workspace-status p,
+body[data-theme='blue'] .app-page .messages-workspace-status span,
+body[data-theme='blue'] .app-page .messages-workspace-status p,
+body[data-theme='blue'] .app-page .archive-workspace-status span,
+body[data-theme='blue'] .app-page .archive-workspace-status p,
+body[data-theme='blue'] .app-page .dashboard-muted-tile span,
+body[data-theme='blue'] .app-page .dashboard-muted-tile p,
+body[data-theme='blue'] .app-page .dashboard-quick-head p,
+body[data-theme='blue'] .app-page .dashboard-workspace-panel-head p,
+body[data-theme='blue'] .app-page .dashboard-chart-legend span,
+body[data-theme='blue'] .app-page .dashboard-bar-labels span,
+body[data-theme='blue'] .app-page .dashboard-pie-card p,
+body[data-theme='blue'] .app-page .dashboard-mini-lead,
+body[data-theme='blue'] .app-page .dashboard-mini-caption p,
+body[data-theme='blue'] .app-page .dashboard-mini-item p,
+body[data-theme='blue'] .app-page .dashboard-empty-note,
+body[data-theme='blue'] .app-page .activity-feed-item p,
+body[data-theme='blue'] .app-page .dashboard-checklist-item p,
+body[data-theme='blue'] .app-page .onboarding-card p,
+body[data-theme='blue'] .app-page .leaderboard-scoring p,
+body[data-theme='blue'] .app-page .messages-dialog-list p,
+body[data-theme='blue'] .app-page .messages-dialog-item span,
+body[data-theme='blue'] .app-page .messages-dialog-item p,
+body[data-theme='blue'] .app-page .messages-dialog-time,
+body[data-theme='blue'] .app-page .messages-thread-head-copy span,
+body[data-theme='blue'] .app-page .messages-thread-feed > p,
+body[data-theme='blue'] .app-page .messages-thread-item p,
+body[data-theme='blue'] .app-page .messages-thread-item span,
+body[data-theme='blue'] .app-page .announcement-body,
+body[data-theme='blue'] .app-page .announcement-meta,
+body[data-theme='blue'] .app-page #archive-summary .summary-card span,
+body[data-theme='blue'] .app-page #archive-summary .summary-card p,
+body[data-theme='blue'] .app-page #leaderboard-summary .summary-card span,
+body[data-theme='blue'] .app-page #leaderboard-summary .summary-card p,
+body[data-theme='blue'] .app-page #archive-rounds .leaderboard-metric span {
+  color: #d8ddff;
+}
+
+body[data-theme='blue'] .app-page .dashboard-overview-status strong,
+body[data-theme='blue'] .app-page .admin-overview-status strong,
+body[data-theme='blue'] .app-page .dashboard-workspace-status strong,
+body[data-theme='blue'] .app-page .monitoring-workspace-status strong,
+body[data-theme='blue'] .app-page .messages-workspace-status strong,
+body[data-theme='blue'] .app-page .archive-workspace-status strong {
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .dashboard-pie::before {
+  background: rgba(255, 255, 255, 0.94);
+}
+
+body[data-theme='blue'] .app-page .dashboard-line-svg path {
+  stroke: #8d5cff;
+}
+
+body[data-theme='blue'] .app-page .messages-new-dialog-form .field input,
+body[data-theme='blue'] .app-page .messages-composer-field textarea {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(226, 232, 255, 0.22);
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .team-list-card .inline-hint,
+body[data-theme='blue'] .app-page .team-list-card .leaderboard-metric span,
+body[data-theme='blue'] .app-page .team-list-card .leaderboard-metric strong {
+  color: #f3f5ff;
+}
+
+body[data-theme='blue'] .app-page .team-list-card .leaderboard-metric span {
+  color: #dce2ff;
+}
+
+body[data-theme='blue'] .app-page .team-list-card .status-pill {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page.admin-users-page .section-header h1,
+body[data-theme='blue'] .app-page.admin-users-page .admin-users-list-copy h2,
+body[data-theme='blue'] .app-page.admin-users-page .admin-user-card-head strong,
+body[data-theme='blue'] .app-page.admin-users-page .admin-user-card-stat strong,
+body[data-theme='blue'] .app-page.admin-users-page .admin-user-block-history strong {
+  color: #ffffff !important;
+}
+
+body[data-theme='blue'] .app-page.admin-users-page .lead,
+body[data-theme='blue'] .app-page.admin-users-page .admin-users-list-copy p,
+body[data-theme='blue'] .app-page.admin-users-page .admin-user-card-head p,
+body[data-theme='blue'] .app-page.admin-users-page .admin-user-card-meta .inline-hint,
+body[data-theme='blue'] .app-page.admin-users-page .admin-user-block-history p {
+  color: #dfe4ff !important;
+}
+
+body[data-theme='blue'] .app-page.admin-users-page .admin-users-filters .field span,
+body[data-theme='blue'] .app-page.admin-users-page .admin-user-card-stat span,
+body[data-theme='blue'] .app-page.admin-users-page .admin-user-card-actions .field span,
+body[data-theme='blue'] .app-page.admin-users-page .admin-user-block-history span {
+  color: #c9fffb !important;
+}
+
+body[data-theme='blue'] .app-page.admin-users-page .admin-users-filters .field input,
+body[data-theme='blue'] .app-page.admin-users-page .admin-users-filters .select-input,
+body[data-theme='blue'] .app-page.admin-users-page .admin-user-card-actions .select-input,
+body[data-theme='blue'] .app-page.admin-users-page .admin-user-card-actions .select-input:disabled {
+  color: #ffffff !important;
+  border-color: rgba(226, 232, 255, 0.24);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(77, 219, 210, 0.1) 0%, transparent 34%),
+    linear-gradient(180deg, rgba(91, 78, 183, 0.74) 0%, rgba(52, 68, 150, 0.62) 100%);
+  opacity: 1 !important;
+}
+
+body[data-theme='blue'] .app-page.admin-users-page .admin-users-filters .field input::placeholder {
+  color: #dce2ff !important;
+  opacity: 1;
+}
+
+body[data-theme='blue'] .app-page.admin-users-page .status-pill:not(.is-blocked) {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
 }
 
 @media (max-width: 1240px) {
