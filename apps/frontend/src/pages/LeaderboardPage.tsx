@@ -426,11 +426,19 @@ export default function LeaderboardPage() {
       ) : null}
 
       <article className="card panel-card leaderboard-selector-panel">
-        <label className="field" htmlFor="leaderboard-tournament-select">
-          <span>{t('leaderboard.tournamentLabel')}</span>
+        <label className="field admin-tournament-picker" htmlFor="leaderboard-tournament-select">
+          <span className="leaderboard-selector-head">
+            <span>{t('leaderboard.tournamentLabel')}</span>
+            <span className="leaderboard-selector-status">
+              <span>{t('leaderboard.tournamentStatus')}</span>
+              <strong>
+                {selectedTournament ? t(`tournaments.status.${selectedTournament.status}`) : '-'}
+              </strong>
+            </span>
+          </span>
           <select
             id="leaderboard-tournament-select"
-            className="select-input"
+            className="select-input admin-tournament-picker-select"
             value={selectedTournamentId}
             onChange={(event) => setSelectedTournamentId(event.target.value)}
           >
@@ -441,13 +449,6 @@ export default function LeaderboardPage() {
             ))}
           </select>
         </label>
-
-        <div className="status-row">
-          <span>{t('leaderboard.tournamentStatus')}</span>
-          <strong>
-            {selectedTournament ? t(`tournaments.status.${selectedTournament.status}`) : '-'}
-          </strong>
-        </div>
       </article>
 
       <article id="leaderboard-results" className="card panel-card leaderboard-results-panel">

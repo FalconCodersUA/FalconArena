@@ -172,6 +172,8 @@ export default function AppShell() {
   const [mobileSearchExpanded, setMobileSearchExpanded] = useState(false);
   const [searchCatalogItems, setSearchCatalogItems] = useState<SearchItem[]>([]);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [quickActionsOpen, setQuickActionsOpen] = useState(false);
+  const [quickSearchOpen, setQuickSearchOpen] = useState(false);
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [alertsLoading, setAlertsLoading] = useState(false);
   const [alertsError, setAlertsError] = useState('');
@@ -182,7 +184,9 @@ export default function AppShell() {
   const [showOnlyUnreadAlerts, setShowOnlyUnreadAlerts] = useState(false);
   const searchRef = useRef<HTMLDivElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const quickSearchInputRef = useRef<HTMLInputElement | null>(null);
   const alertsRef = useRef<HTMLDivElement | null>(null);
+  const quickActionsRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLElement | null>(null);
   const isAuthRoute = location.pathname === '/app/login' || location.pathname === '/app/register';
   const routeLocationKey = `${location.pathname}${location.search}${location.hash}`;
@@ -467,6 +471,10 @@ export default function AppShell() {
       if (alertsRef.current && !alertsRef.current.contains(target)) {
         setAlertsOpen(false);
       }
+
+      if (quickActionsRef.current && !quickActionsRef.current.contains(target)) {
+        setQuickSearchOpen(false);
+      }
     }
 
     function handleGlobalKeydown(event: KeyboardEvent) {
@@ -474,6 +482,8 @@ export default function AppShell() {
         setSearchOpen(false);
         setMobileSearchExpanded(false);
         setAlertsOpen(false);
+        setQuickActionsOpen(false);
+        setQuickSearchOpen(false);
       }
     }
 
@@ -497,6 +507,17 @@ export default function AppShell() {
       window.removeEventListener('scroll', handleWindowScroll);
     };
   }, []);
+
+  useEffect(() => {
+    if (!showScrollTop) {
+      setQuickActionsOpen(false);
+      setQuickSearchOpen(false);
+    }
+  }, [showScrollTop]);
+
+  useEffect(() => {
+    setQuickSearchOpen(false);
+  }, [routeLocationKey]);
 
   useEffect(() => {
     function handleProfileUpdated(event: Event) {
@@ -734,6 +755,7 @@ export default function AppShell() {
     setSearchOpen(false);
     setSearchQuery('');
     setMobileSearchExpanded(false);
+    setQuickSearchOpen(false);
     navigate(target.path);
   }
 
@@ -741,11 +763,28 @@ export default function AppShell() {
     setSearchOpen(false);
     setSearchQuery('');
     setMobileSearchExpanded(false);
+    setQuickSearchOpen(false);
     navigate(path);
   }
 
   function handleScrollTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function openQuickSearch() {
+    setQuickActionsOpen(true);
+    setSearchOpen(false);
+    setMobileSearchExpanded(false);
+    setQuickSearchOpen((current) => !current);
+    window.setTimeout(() => quickSearchInputRef.current?.focus(), 0);
+  }
+
+  function openQuickAlerts() {
+    void toggleAlerts();
+  }
+
+  function switchQuickLanguage() {
+    setLanguage(language === 'uk' ? 'en' : 'uk');
   }
 
   function toggleTheme() {
@@ -754,6 +793,7 @@ export default function AppShell() {
 
   const nextThemeMode = getNextThemeMode(themeMode);
   const themeToggleLabel = t(`shell.themeTo${nextThemeMode[0].toUpperCase()}${nextThemeMode.slice(1)}`);
+  const nextLanguageLabel = languageToggleLabel(language === 'uk' ? 'en' : 'uk');
 
   if (isAuthRoute) {
     return (
@@ -1317,6 +1357,265 @@ export default function AppShell() {
               <Outlet />
             </div>
           </section>
+          {showScrollTop ? (
+            <div
+              ref={quickActionsRef}
+              className={`app-quick-actions${quickActionsOpen ? ' open' : ''}`}
+            >
+              <button
+                type="button"
+                className="app-quick-actions-toggle"
+                aria-label={t('shell.quickActions')}
+                aria-expanded={quickActionsOpen}
+                onClick={() => setQuickActionsOpen((current) => !current)}
+              >
+                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                  <circle cx="6" cy="6" r="2.15" fill="currentColor" />
+                  <circle cx="14" cy="6" r="2.15" fill="currentColor" />
+                  <circle cx="6" cy="14" r="2.15" fill="currentColor" />
+                  <circle cx="14" cy="14" r="2.15" fill="currentColor" />
+                </svg>
+              </button>
+
+              <div className="app-quick-actions-menu" aria-hidden={!quickActionsOpen}>
+                <div className={`app-quick-search-row${quickSearchOpen ? ' open' : ''}`}>
+                  <button
+                    type="button"
+                    className="app-quick-action"
+                    aria-label={t('shell.searchPlaceholder')}
+                    title={t('shell.searchPlaceholder')}
+                    tabIndex={quickActionsOpen ? 0 : -1}
+                    onClick={openQuickSearch}
+                  >
+                    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                      <circle cx="9" cy="9" r="5" stroke="currentColor" strokeWidth="1.6" />
+                      <path d="M12.8 12.8L16 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                    </svg>
+                  </button>
+
+                  <form
+                    className="app-quick-search-panel"
+                    aria-hidden={!quickSearchOpen}
+                    aria-label={t('shell.searchPlaceholder')}
+                    onSubmit={onSearchSubmit}
+                  >
+                    <input
+                      ref={quickSearchInputRef}
+                      type="text"
+                      placeholder={t('shell.searchPlaceholder')}
+                      value={searchQuery}
+                      tabIndex={quickActionsOpen && quickSearchOpen ? 0 : -1}
+                      onChange={(event) => setSearchQuery(event.target.value)}
+                    />
+                    <div className="app-quick-search-results">
+                      {filteredSearchItems.length === 0 ? (
+                        <p>{t('shell.searchNoResults')}</p>
+                      ) : (
+                        filteredSearchItems.slice(0, 6).map((item) => (
+                          <button
+                            key={`quick-search-item-${item.path}-${item.label}-${item.category}`}
+                            type="button"
+                            tabIndex={quickActionsOpen && quickSearchOpen ? 0 : -1}
+                            onClick={() => goToSearchItem(item.path)}
+                          >
+                            <span>{item.label}</span>
+                            {item.meta || item.category ? (
+                              <small>{[item.category, item.meta].filter(Boolean).join(' · ')}</small>
+                            ) : null}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </form>
+                </div>
+
+                <button
+                  type="button"
+                  className={`app-quick-action app-quick-theme is-${themeMode}`}
+                  aria-label={themeToggleLabel}
+                  title={themeToggleLabel}
+                  tabIndex={quickActionsOpen ? 0 : -1}
+                  onClick={() => {
+                    toggleTheme();
+                  }}
+                >
+                  {nextThemeMode === 'light' ? (
+                    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                      <circle cx="10" cy="10" r="3.9" fill="currentColor" />
+                      <path
+                        d="M10 1.9V3.8M10 16.2V18.1M18.1 10H16.2M3.8 10H1.9M15.75 4.25L14.42 5.58M5.58 14.42L4.25 15.75M15.75 15.75L14.42 14.42M5.58 5.58L4.25 4.25"
+                        stroke="currentColor"
+                        strokeWidth="1.65"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  ) : nextThemeMode === 'dark' ? (
+                    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                      <mask id="quick-theme-moon-mask">
+                        <rect width="20" height="20" fill="white" />
+                        <circle cx="12.8" cy="7.35" r="6.15" fill="black" />
+                      </mask>
+                      <circle cx="9.45" cy="10.4" r="7.35" fill="currentColor" mask="url(#quick-theme-moon-mask)" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                      <path
+                        d="M6.1 14.1H14.2C15.85 14.1 17.2 12.86 17.2 11.32C17.2 9.86 16.02 8.66 14.5 8.55C13.98 6.72 12.28 5.4 10.28 5.4C8.42 5.4 6.82 6.54 6.18 8.16H5.95C4.22 8.16 2.8 9.49 2.8 11.12C2.8 12.78 4.28 14.1 6.1 14.1Z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  className="app-quick-action app-quick-language"
+                  aria-label={t('shell.languageAria')}
+                  title={t('shell.languageAria')}
+                  tabIndex={quickActionsOpen ? 0 : -1}
+                  onClick={switchQuickLanguage}
+                >
+                  {nextLanguageLabel}
+                </button>
+
+                {authed ? (
+                  <Link
+                    to="/app/profile"
+                    className="app-quick-action"
+                    aria-label={t('shell.profile')}
+                    title={t('shell.profile')}
+                    tabIndex={quickActionsOpen ? 0 : -1}
+                  >
+                    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                      <path
+                        d="M8.7 2.8H11.3L11.7 4.3C12.2 4.4 12.7 4.6 13.1 4.9L14.5 4.2L16.3 6L15.6 7.4C15.9 7.8 16.1 8.3 16.2 8.8L17.7 9.2V11.8L16.2 12.2C16.1 12.7 15.9 13.2 15.6 13.6L16.3 15L14.5 16.8L13.1 16.1C12.7 16.4 12.2 16.6 11.7 16.7L11.3 18.2H8.7L8.3 16.7C7.8 16.6 7.3 16.4 6.9 16.1L5.5 16.8L3.7 15L4.4 13.6C4.1 13.2 3.9 12.7 3.8 12.2L2.3 11.8V9.2L3.8 8.8C3.9 8.3 4.1 7.8 4.4 7.4L3.7 6L5.5 4.2L6.9 4.9C7.3 4.6 7.8 4.4 8.3 4.3L8.7 2.8Z"
+                        stroke="currentColor"
+                        strokeWidth="1.3"
+                        strokeLinejoin="round"
+                      />
+                      <circle cx="10" cy="10" r="2.1" stroke="currentColor" strokeWidth="1.3" />
+                    </svg>
+                  </Link>
+                ) : null}
+
+                <button
+                  type="button"
+                  className={`app-quick-action${unreadDialogsCount > 0 ? ' has-unread' : ''}`}
+                  aria-label={t('shell.messagesInboxAria')}
+                  title={t('shell.messagesInboxAria')}
+                  tabIndex={quickActionsOpen ? 0 : -1}
+                  onClick={() => {
+                    openDialogsInbox();
+                  }}
+                >
+                  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                    <path
+                      d="M4.2 5.4H15.8C16.35 5.4 16.8 5.85 16.8 6.4V13.6C16.8 14.15 16.35 14.6 15.8 14.6H4.2C3.65 14.6 3.2 14.15 3.2 13.6V6.4C3.2 5.85 3.65 5.4 4.2 5.4Z"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M4 6L10 10.4L16 6"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  {unreadDialogsCount > 0 ? <span className="app-quick-badge" aria-hidden>{unreadDialogsCount > 99 ? '99+' : unreadDialogsCount}</span> : null}
+                </button>
+
+                <button
+                  type="button"
+                  className={`app-quick-action${unreadAlertsCount > 0 ? ' has-unread' : ''}`}
+                  aria-label={t('shell.alertsAria')}
+                  title={t('shell.alertsAria')}
+                  tabIndex={quickActionsOpen ? 0 : -1}
+                  onClick={openQuickAlerts}
+                >
+                  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                    <path
+                      d="M10 4.3C8 4.3 6.3 6 6.3 8V10.1C6.3 11 6 11.8 5.4 12.5L4.7 13.4H15.3L14.6 12.5C14 11.8 13.7 11 13.7 10.1V8C13.7 6 12 4.3 10 4.3Z"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinejoin="round"
+                    />
+                    <circle cx="10" cy="15.5" r="1.3" fill="currentColor" />
+                  </svg>
+                  {unreadAlertsCount > 0 ? <span className="app-quick-badge" aria-hidden>{unreadAlertsCount > 99 ? '99+' : unreadAlertsCount}</span> : null}
+                </button>
+
+                {authed ? (
+                  <button
+                    type="button"
+                    className="app-quick-action"
+                    aria-label={t('shell.logout')}
+                    title={t('shell.logout')}
+                    tabIndex={quickActionsOpen ? 0 : -1}
+                    onClick={() => {
+                      logout();
+                    }}
+                  >
+                    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                      <path
+                        d="M8.5 5.2C8.97 5.02 9.47 4.93 10 4.93C12.25 4.93 14.07 6.75 14.07 9C14.07 11.25 12.25 13.07 10 13.07C9.47 13.07 8.97 12.98 8.5 12.8"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M10.2 9H4.8M4.8 9L6.7 7.1M4.8 9L6.7 10.9"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                ) : (
+                  <Link
+                    to="/app/login"
+                    className="app-quick-action"
+                    aria-label={t('shell.login')}
+                    title={t('shell.login')}
+                    tabIndex={quickActionsOpen ? 0 : -1}
+                  >
+                    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                      <path
+                        d="M11.5 5.2C11.03 5.02 10.53 4.93 10 4.93C7.75 4.93 5.93 6.75 5.93 9C5.93 11.25 7.75 13.07 10 13.07C10.53 13.07 11.03 12.98 11.5 12.8"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M9.8 9H15.2M15.2 9L13.3 7.1M15.2 9L13.3 10.9"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </Link>
+                )}
+
+                {authed ? (
+                  <Link
+                    to="/app/profile"
+                    className="app-quick-action app-quick-avatar"
+                    aria-label={t('shell.profile')}
+                    title={t('shell.profile')}
+                    tabIndex={quickActionsOpen ? 0 : -1}
+                  >
+                    {profileAvatarUrl ? (
+                      <img src={resolveApiAssetUrl(profileAvatarUrl)} alt={t('shell.profile')} />
+                    ) : (
+                      initialsFromName(fullName)
+                    )}
+                  </Link>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
           {showScrollTop ? (
             <button
               type="button"

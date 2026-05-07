@@ -228,11 +228,11 @@ export default function TeamsPage() {
       </article>
 
       <article className="card panel-card">
-        <label className="field" htmlFor="teams-page-tournament-select">
+        <label className="field admin-tournament-picker" htmlFor="teams-page-tournament-select">
           <span>{t('teamsPage.tournamentLabel')}</span>
           <select
             id="teams-page-tournament-select"
-            className="select-input"
+            className="select-input admin-tournament-picker-select"
             value={selectedTournamentId}
             onChange={(event) => setSelectedTournamentId(event.target.value)}
           >
