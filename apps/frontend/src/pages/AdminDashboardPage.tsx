@@ -10,6 +10,11 @@ import {
   TournamentScheduleEvent,
   TournamentScheduleEventType,
 } from '../lib/tournamentSchedule';
+import {
+  rememberTournamentSelection,
+  resolveStoredTournamentSelection,
+} from '../lib/tournamentSelection';
+import { localizeWeekLabels } from '../lib/weekLabels';
 import { useI18n } from '../i18n/I18nProvider';
 
 type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
@@ -564,6 +569,10 @@ export default function AdminDashboardPage() {
   const closedRounds = metrics.summary.closedRounds;
   const evaluatedRounds = metrics.summary.evaluatedRounds;
   const weekLabels = metrics.weekly.labels.length > 0 ? metrics.weekly.labels : DEFAULT_WEEK_LABELS;
+  const localizedWeekLabels = useMemo(
+    () => localizeWeekLabels(weekLabels, language),
+    [language, weekLabels],
+  );
   const weeklyReviewedRaw = useMemo(
     () => toSizedSeries(metrics.weekly.reviewed, weekLabels.length),
     [metrics.weekly.reviewed, weekLabels.length],
@@ -813,7 +822,9 @@ export default function AdminDashboardPage() {
     const list = await apiRequest<Tournament[]>('/tournaments');
     setTournaments(list);
     if (list.length > 0) {
-      setSelectedTournamentId((current) => current || list[0].id);
+      setSelectedTournamentId((current) =>
+        current || resolveStoredTournamentSelection(list, list[0].id),
+      );
     } else {
       setSelectedTournamentId('');
     }
@@ -960,6 +971,7 @@ export default function AdminDashboardPage() {
 
     setScheduleOp(EMPTY_SCHEDULE_OP_STATE);
     resetScheduleForm();
+    rememberTournamentSelection(selectedTournamentId);
     void loadRounds(selectedTournamentId);
     void loadScheduleEvents(selectedTournamentId);
     void loadTournamentJury(selectedTournamentId);
@@ -1832,7 +1844,7 @@ export default function AdminDashboardPage() {
                   ))}
                 </div>
                 <div className="dashboard-bar-labels">
-                  {weekLabels.map((label) => (
+                  {localizedWeekLabels.map((label) => (
                     <span key={`admin-week-${label}`}>{label}</span>
                   ))}
                 </div>

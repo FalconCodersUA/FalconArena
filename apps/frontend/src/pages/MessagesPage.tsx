@@ -1425,7 +1425,7 @@ export default function MessagesPage() {
                           }`}
                         >
                           <p>{item.body}</p>
-                        <span>{formatDateTime(item.createdAt, language)}</span>
+                          <span>{formatDateTime(item.createdAt, language)}</span>
                         </article>
                       ))
                     )}
@@ -1445,9 +1445,20 @@ export default function MessagesPage() {
                   <button
                     type="submit"
                     className="button button-primary messages-thread-send"
+                    aria-label={t('messagesPage.dialogs.send')}
+                    title={t('messagesPage.dialogs.send')}
                     disabled={dialogActionLoading || !selectedDialogId}
                   >
-                    {t('messagesPage.dialogs.send')}
+                    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                      <path
+                        d="M3.4 10.2L16.2 4.4L13.6 16.1L9.3 12.2M3.4 10.2L9.3 12.2M3.4 10.2L16.2 4.4L9.3 12.2"
+                        stroke="currentColor"
+                        strokeWidth="1.7"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span className="visually-hidden">{t('messagesPage.dialogs.send')}</span>
                   </button>
                 </form>
               </>

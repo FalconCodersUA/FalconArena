@@ -150,6 +150,11 @@ type PlatformReviewResponse = {
   updatedAt: string;
 };
 
+const LEGACY_CTA_TITLE_UK =
+  'Відкрийте турнірний простір і перевірте платформу в реальному сценарії';
+const CURRENT_CTA_TITLE_UK =
+  'Відкрийте турнірний простір і перевірте себе в реальному сценарії';
+
 function createPlatformContentPayload(platformContent: PlatformContentResponse) {
   return {
     hero: platformContent.hero,
@@ -221,7 +226,7 @@ function createDefaultPlatformContent(): PlatformContentResponse {
     cta: {
       eyebrow: localized('Почати роботу', 'Start working'),
       title: localized(
-        'Відкрийте турнірний простір і перевірте платформу в реальному сценарії',
+        'Відкрийте турнірний простір і перевірте себе в реальному сценарії',
         'Open the tournament workspace and test the platform in a real scenario',
       ),
       lead: localized(
@@ -277,9 +282,12 @@ function mergeLocalized(value: unknown, fallback: LocalizedText): LocalizedText 
     return fallback;
   }
 
+  const uk = typeof value.uk === 'string' && value.uk.trim() ? value.uk.trim() : fallback.uk;
+  const en = typeof value.en === 'string' && value.en.trim() ? value.en.trim() : fallback.en;
+
   return {
-    uk: typeof value.uk === 'string' && value.uk.trim() ? value.uk : fallback.uk,
-    en: typeof value.en === 'string' && value.en.trim() ? value.en : fallback.en,
+    uk: uk === LEGACY_CTA_TITLE_UK ? CURRENT_CTA_TITLE_UK : uk,
+    en,
   };
 }
 

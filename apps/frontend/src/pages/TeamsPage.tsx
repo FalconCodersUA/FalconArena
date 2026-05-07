@@ -6,6 +6,10 @@ import { useI18n } from '../i18n/I18nProvider';
 import { apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
 import { normalizeApiErrorMessage } from '../lib/errorMessages';
+import {
+  rememberTournamentSelection,
+  resolveStoredTournamentSelection,
+} from '../lib/tournamentSelection';
 
 const ALL_TOURNAMENTS_VALUE = 'all';
 
@@ -68,9 +72,10 @@ export default function TeamsPage() {
           : (initialTournamentId && data.some((item) => item.id === initialTournamentId)
           ? initialTournamentId
           : null) ??
-        running?.id ??
-        registration?.id ??
-        data[0].id;
+        resolveStoredTournamentSelection(
+          data,
+          running?.id ?? registration?.id ?? data[0].id,
+        );
       setSelectedTournamentId((current) => current || defaultId);
     } catch (requestError) {
       setError(normalizeApiErrorMessage(requestError, t, t('teamsPage.loadFailed')));
@@ -116,6 +121,9 @@ export default function TeamsPage() {
       },
       { replace: true },
     );
+    if (selectedTournamentId !== ALL_TOURNAMENTS_VALUE) {
+      rememberTournamentSelection(selectedTournamentId);
+    }
     void loadTeams(selectedTournamentId);
   }, [selectedTournamentId, setSearchParams]);
 
