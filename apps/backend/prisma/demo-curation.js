@@ -452,6 +452,14 @@ function legacyJuryName(index) {
   return legacyJuryNames[index] ?? `Запрошений експерт ${index + 1}`;
 }
 
+function requireDataCurationApproval() {
+  if (process.env.ALLOW_DATA_CURATION === '1') {
+    return;
+  }
+
+  throw new Error('Set ALLOW_DATA_CURATION=1 to run apply mode for data curation.');
+}
+
 function legacyJuryEmailFilters() {
   return [
     {
@@ -867,6 +875,10 @@ async function main() {
 
   if (isDryRun && isApply) {
     throw new Error('Use only one mode: dry-run or apply.');
+  }
+
+  if (mode === 'apply') {
+    requireDataCurationApproval();
   }
 
   if (juryCuration) {
