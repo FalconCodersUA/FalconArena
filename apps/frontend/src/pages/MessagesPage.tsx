@@ -242,6 +242,37 @@ export default function MessagesPage() {
     activeSection === 'all' || activeSection === 'announcements';
   const showDialogs = activeSection === 'all' || activeSection === 'dialogs';
 
+  function getSectionTargetId(section: MessagesSection) {
+    if (section === 'notifications') {
+      return 'messages-notifications';
+    }
+
+    if (section === 'announcements') {
+      return 'messages-announcements-feed';
+    }
+
+    if (section === 'dialogs') {
+      return 'messages-dialogs';
+    }
+
+    return 'messages-sections';
+  }
+
+  function selectMessagesSection(section: MessagesSection, shouldScroll = true) {
+    setActiveSection(section);
+
+    if (!shouldScroll) {
+      return;
+    }
+
+    window.setTimeout(() => {
+      document.getElementById(getSectionTargetId(section))?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }, 0);
+  }
+
   async function markNotificationsRead(items: NotificationItem[]) {
     const unreadIds = items.filter((item) => item.isUnread).map((item) => item.id);
     if (unreadIds.length === 0) {
@@ -858,7 +889,7 @@ export default function MessagesPage() {
           <button
             type="button"
             className="dashboard-tool-card dashboard-tool-card--teal dashboard-tool-button"
-            onClick={() => setActiveSection('notifications')}
+            onClick={() => selectMessagesSection('notifications')}
           >
             <span>{t('messagesPage.sections.notifications')}</span>
             <strong>{t('messagesPage.workspaceCards.notificationsTitle')}</strong>
@@ -870,7 +901,7 @@ export default function MessagesPage() {
           <button
             type="button"
             className="dashboard-tool-card dashboard-tool-card--purple dashboard-tool-button"
-            onClick={() => setActiveSection('announcements')}
+            onClick={() => selectMessagesSection('announcements')}
           >
             <span>{t('messagesPage.sections.announcements')}</span>
             <strong>{t('messagesPage.workspaceCards.announcementsTitle')}</strong>
@@ -882,7 +913,7 @@ export default function MessagesPage() {
           <button
             type="button"
             className="dashboard-tool-card dashboard-tool-card--orange dashboard-tool-button"
-            onClick={() => setActiveSection('dialogs')}
+            onClick={() => selectMessagesSection('dialogs')}
           >
             <span>{t('messagesPage.sections.dialogs')}</span>
             <strong>{t('messagesPage.workspaceCards.dialogsTitle')}</strong>
@@ -948,14 +979,14 @@ export default function MessagesPage() {
         </div>
       </article>
 
-      <article className="card panel-card messages-tabs-panel">
+      <article id="messages-sections" className="card panel-card messages-tabs-panel">
         <div className="filters-row messages-section-tabs">
           {(['all', 'notifications', 'announcements', 'dialogs'] as MessagesSection[]).map((section) => (
             <button
               key={section}
               type="button"
               className={`filter-button${activeSection === section ? ' active' : ''}`}
-              onClick={() => setActiveSection(section)}
+              onClick={() => selectMessagesSection(section)}
             >
               {t(`messagesPage.sections.${section}`)}
             </button>
