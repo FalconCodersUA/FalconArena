@@ -5,8 +5,14 @@ const prisma = new PrismaClient();
 
 const DEMO_DOMAIN = 'demo.falconarena.local';
 const DEFAULT_PASSWORD = 'DemoPass123!';
-const mode = process.argv.includes('--apply') ? 'apply' : 'dry-run';
+const isDryRun = process.argv.includes('--dry-run') || process.argv.includes('--jury-dry-run');
+const isApply = process.argv.includes('--apply') || process.argv.includes('--jury-apply');
+const mode = isApply ? 'apply' : 'dry-run';
 const cleanupOnly = process.argv.includes('--cleanup-only');
+const juryCuration =
+  process.argv.includes('--jury-curation') ||
+  process.argv.includes('--jury-dry-run') ||
+  process.argv.includes('--jury-apply');
 
 const curatedTournamentTitles = [
   'Kyiv Web Challenge 2026',
@@ -34,6 +40,19 @@ const oldNonAdminUserEmailPatterns = [
 
 const oldAdminUserEmailPatterns = [
   'admin_e2e',
+];
+
+const legacyJuryNames = [
+  'Назар Кравченко',
+  'Леся Бойко',
+  'Тарас Сидоренко',
+  'Оксана Литвин',
+  'Павло Мороз',
+  'Віра Шевченко',
+  'Юрій Савченко',
+  'Марина Дорошенко',
+  'Степан Гончар',
+  'Алла Коваленко',
 ];
 
 function addDays(date, days) {
@@ -425,6 +444,199 @@ function printSummary(candidates) {
   }
 }
 
+function legacyJuryEmail(user, index) {
+  return `legacy.jury.${index + 1}.${user.id.slice(-6)}@${DEMO_DOMAIN}`;
+}
+
+function legacyJuryName(index) {
+  return legacyJuryNames[index] ?? `Запрошений експерт ${index + 1}`;
+}
+
+function legacyJuryEmailFilters() {
+  return [
+    {
+      AND: [
+        { email: { startsWith: 'jury_', mode: 'insensitive' } },
+        { email: { endsWith: '@falconarena.live', mode: 'insensitive' } },
+      ],
+    },
+    {
+      AND: [
+        { email: { startsWith: 'jury_e2e_', mode: 'insensitive' } },
+        { email: { endsWith: '@falconarena.live', mode: 'insensitive' } },
+      ],
+    },
+    {
+      AND: [
+        { email: { startsWith: 'jury_flow_', mode: 'insensitive' } },
+        { email: { endsWith: '@falconarena.live', mode: 'insensitive' } },
+      ],
+    },
+    {
+      AND: [
+        { email: { startsWith: 'archive_jury_', mode: 'insensitive' } },
+        { email: { endsWith: '@falconarena.live', mode: 'insensitive' } },
+      ],
+    },
+  ];
+}
+
+function legacyJuryUserWhere() {
+  const emailFilters = legacyJuryEmailFilters();
+
+  return {
+    role: 'JURY',
+    OR: [
+      ...emailFilters,
+      {
+        AND: [
+          { fullName: { equals: 'Jury User', mode: 'insensitive' } },
+          { OR: emailFilters },
+        ],
+      },
+    ],
+  };
+}
+
+async function collectLegacyJuryUsage(userId) {
+  const [
+    tournamentJury,
+    evaluationAssignments,
+    evaluations,
+    notifications,
+    notificationReadStates,
+    directConversationParticipants,
+    directMessages,
+    createdDirectConversations,
+    platformReviews,
+    moderatedPlatformReviews,
+    oauthAccounts,
+  ] = await Promise.all([
+    prisma.tournamentJury.count({ where: { userId } }),
+    prisma.evaluationAssignment.count({ where: { juryId: userId } }),
+    prisma.evaluation.count({ where: { juryId: userId } }),
+    prisma.notification.count({ where: { userId } }),
+    prisma.notificationReadState.count({ where: { userId } }),
+    prisma.directConversationParticipant.count({ where: { userId } }),
+    prisma.directMessage.count({ where: { senderId: userId } }),
+    prisma.directConversation.count({ where: { createdById: userId } }),
+    prisma.platformReview.count({ where: { authorId: userId } }),
+    prisma.platformReview.count({ where: { moderatorId: userId } }),
+    prisma.userOAuthAccount.count({ where: { userId } }),
+  ]);
+
+  return {
+    tournamentJury,
+    evaluationAssignments,
+    evaluations,
+    notifications,
+    notificationReadStates,
+    directConversationParticipants,
+    directMessages,
+    createdDirectConversations,
+    platformReviews,
+    moderatedPlatformReviews,
+    oauthAccounts,
+  };
+}
+
+async function collectLegacyJuryCandidates() {
+  const users = await prisma.user.findMany({
+    where: legacyJuryUserWhere(),
+    orderBy: { createdAt: 'asc' },
+    select: {
+      id: true,
+      email: true,
+      fullName: true,
+      createdAt: true,
+    },
+  });
+
+  const candidates = [];
+  let renameIndex = 0;
+
+  for (const user of users) {
+    const usage = await collectLegacyJuryUsage(user.id);
+    const usageTotal = Object.values(usage).reduce((sum, count) => sum + count, 0);
+    const action = usageTotal > 0 ? 'rename' : 'delete';
+    const targetIndex = action === 'rename' ? renameIndex++ : -1;
+
+    candidates.push({
+      ...user,
+      action,
+      usage,
+      usageTotal,
+      targetFullName: action === 'rename' ? legacyJuryName(targetIndex) : null,
+      targetEmail: action === 'rename' ? legacyJuryEmail(user, targetIndex) : null,
+    });
+  }
+
+  return candidates;
+}
+
+function printLegacyJurySummary(candidates) {
+  const renameCount = candidates.filter((candidate) => candidate.action === 'rename').length;
+  const deleteCount = candidates.filter((candidate) => candidate.action === 'delete').length;
+
+  console.log(`Mode: ${mode}`);
+  console.log('Legacy jury curation:');
+  console.table({
+    candidates: candidates.length,
+    rename: renameCount,
+    delete: deleteCount,
+  });
+
+  if (candidates.length === 0) {
+    console.log('No legacy jury users were found.');
+    return;
+  }
+
+  console.log('Legacy jury candidates:');
+  console.table(
+    candidates.map((candidate) => ({
+      id: candidate.id,
+      email: candidate.email,
+      fullName: candidate.fullName,
+      action: candidate.action,
+      targetFullName: candidate.targetFullName,
+      targetEmail: candidate.targetEmail,
+      tournamentJury: candidate.usage.tournamentJury,
+      assignments: candidate.usage.evaluationAssignments,
+      evaluations: candidate.usage.evaluations,
+      messages:
+        candidate.usage.directConversationParticipants +
+        candidate.usage.directMessages +
+        candidate.usage.createdDirectConversations,
+      notifications: candidate.usage.notifications + candidate.usage.notificationReadStates,
+      reviews: candidate.usage.platformReviews + candidate.usage.moderatedPlatformReviews,
+      oauthAccounts: candidate.usage.oauthAccounts,
+    })),
+  );
+}
+
+async function applyLegacyJuryCuration(candidates) {
+  for (const candidate of candidates.filter((item) => item.action === 'rename')) {
+    await prisma.user.update({
+      where: { id: candidate.id },
+      data: {
+        fullName: candidate.targetFullName,
+        email: candidate.targetEmail,
+        isBlocked: false,
+        blockedReason: null,
+        blockedAt: null,
+        blockedByUserId: null,
+      },
+    });
+  }
+
+  const deleteIds = candidates.filter((candidate) => candidate.action === 'delete').map((candidate) => candidate.id);
+  if (deleteIds.length > 0) {
+    await prisma.user.deleteMany({
+      where: { id: { in: deleteIds } },
+    });
+  }
+}
+
 async function cleanup(candidates) {
   if (candidates.tournamentIds.length > 0) {
     await prisma.tournament.deleteMany({
@@ -649,8 +861,26 @@ async function createDemoDataset() {
 }
 
 async function main() {
-  if (!process.argv.includes('--dry-run') && !process.argv.includes('--apply')) {
-    throw new Error('Use --dry-run or --apply.');
+  if (!isDryRun && !isApply) {
+    throw new Error('Use --dry-run, --apply, --jury-dry-run, or --jury-apply.');
+  }
+
+  if (isDryRun && isApply) {
+    throw new Error('Use only one mode: dry-run or apply.');
+  }
+
+  if (juryCuration) {
+    const candidates = await collectLegacyJuryCandidates();
+    printLegacyJurySummary(candidates);
+
+    if (mode === 'dry-run') {
+      console.log('Dry-run complete. No database changes were made.');
+      return;
+    }
+
+    await applyLegacyJuryCuration(candidates);
+    console.log('Legacy jury curation complete.');
+    return;
   }
 
   const candidates = await collectCleanupCandidates();
