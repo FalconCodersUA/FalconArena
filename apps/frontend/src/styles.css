@@ -56,6 +56,7 @@ html,
 body,
 #root {
   width: 100%;
+  inline-size: 100%;
   max-width: 100%;
   min-width: 0;
   overflow-x: hidden;
@@ -73,6 +74,7 @@ body,
 body {
   margin: 0;
   min-height: 100vh;
+  position: relative;
   font-family: 'Manrope', sans-serif;
   color: var(--ink);
   overflow-y: scroll;
@@ -745,10 +747,14 @@ a {
   padding: 10px;
   margin: 0 auto;
   min-width: 0;
+  overflow-x: clip;
 }
 
 .app-shell-surface {
   min-height: calc(100vh - 20px);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   display: grid;
   grid-template-columns: 178px minmax(0, 1fr);
   border-radius: 28px;
@@ -1035,7 +1041,10 @@ a {
 .app-main {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
+  overflow-x: clip;
   background:
     radial-gradient(circle at 58% 112%, rgba(151, 71, 255, 0.12) 0%, transparent 34%),
     radial-gradient(circle at 100% 0%, rgba(94, 23, 235, 0.05) 0%, transparent 20%),
@@ -1521,6 +1530,7 @@ a {
   top: 0;
   right: calc(100% + 10px);
   width: min(320px, calc(100vw - 92px));
+  max-width: calc(100dvw - 92px);
   border: 1px solid rgba(94, 23, 235, 0.18);
   border-radius: 20px;
   background:
@@ -1846,6 +1856,8 @@ a {
   overflow: auto;
   overflow-x: hidden;
   min-width: 0;
+  max-width: 100%;
+  overscroll-behavior-x: none;
   scrollbar-gutter: stable both-edges;
   position: relative;
   background:
@@ -1854,7 +1866,10 @@ a {
 }
 
 .app-route-stage {
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
+  overflow-x: clip;
 }
 
 .page-skeleton {
@@ -9300,7 +9315,7 @@ body[data-theme='dark'] .app-page .admin-tournament-picker > span:first-child {
 body[data-theme='dark']
   .app-page
   .field.admin-tournament-picker:has(
-    :is(#admin-tournament-select, #teams-page-tournament-select, #leaderboard-tournament-select)
+    :is(#admin-tournament-select, #teams-page-tournament-select, #leaderboard-tournament-select, #archive-tournament-select)
   )
   > span:first-child {
   color: #ffffff !important;
@@ -9332,7 +9347,8 @@ body[data-theme='dark']
   :is(
     #admin-tournament-select,
     #teams-page-tournament-select,
-    #leaderboard-tournament-select
+    #leaderboard-tournament-select,
+    #archive-tournament-select
   ).admin-tournament-picker-select {
   border-color: rgba(190, 171, 255, 0.42) !important;
   background:
@@ -11990,6 +12006,7 @@ body[data-theme='blue'] .app-page.admin-users-page .status-pill:not(.is-blocked)
 
   .app-content.page-section {
     padding: 8px 4px;
+    scrollbar-gutter: auto;
   }
 
   .profile-edit-layout {
@@ -12465,6 +12482,7 @@ body[data-theme='blue'] .app-page.admin-users-page .status-pill:not(.is-blocked)
 
   .app-quick-search-panel {
     width: min(280px, calc(100vw - 78px));
+    max-width: calc(100dvw - 78px);
     right: calc(100% + 8px);
   }
 }

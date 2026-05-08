@@ -501,11 +501,11 @@ export default function ArchivePage() {
       </article>
 
       <article className="card panel-card">
-        <label className="field" htmlFor="archive-tournament-select">
+        <label className="field admin-tournament-picker" htmlFor="archive-tournament-select">
           <span>{t('archivePage.tournamentLabel')}</span>
           <select
             id="archive-tournament-select"
-            className="select-input"
+            className="select-input admin-tournament-picker-select"
             value={selectedTournamentId}
             onChange={(event) => setSelectedTournamentId(event.target.value)}
           >
