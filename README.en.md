@@ -19,9 +19,9 @@ FalconArena is designed as a product platform for tournaments, where the core co
 - submissions through GitHub, demo, and live demo links;
 - tournament-level jury assignment, round evaluation distribution, and leaderboard generation;
 - archive views and certificates for completed tournaments;
-- announcements, direct dialogs, and system notifications;
+- announcements, direct dialogs with message management, and system notifications;
 - public `About` page with platform copy, a banner, role blocks, CTA, contact channels, and user reviews;
-- a modern interface with light and dark themes.
+- a modern interface with light, blue, and dark themes.
 
 ## Who FalconArena is for
 
@@ -47,7 +47,7 @@ FalconArena is designed as a product platform for tournaments, where the core co
 ### Communication and delivery
 
 - role-based announcements
-- personal dialogs
+- personal dialogs with support for deleting individual messages or the full dialog
 - system notifications
 - unread indicators in the UI
 - email delivery through `console` or `resend`
@@ -55,7 +55,7 @@ FalconArena is designed as a product platform for tournaments, where the core co
 
 ### UX and personalization
 
-- light and dark themes with the selected mode saved in the browser
+- light, blue, and dark themes with the selected mode saved in the browser
 - a unified `app shell` across roles
 - quiet loading states without extra text noise
 - responsive workspaces for desktop and mobile
@@ -268,6 +268,8 @@ Ukrainian docs:
   - `POST /messages/dialogs` (create/open dialog by recipient email)
   - `GET /messages/dialogs/:id`
   - `POST /messages/dialogs/:id` (send message)
+  - `DELETE /messages/dialogs/:id` (delete full dialog for the current user)
+  - `DELETE /messages/dialogs/:id/messages/:messageId` (delete one message)
 - Notification endpoints:
   - `GET /notifications`
   - `PATCH /notifications/read-state`

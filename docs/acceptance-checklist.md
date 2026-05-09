@@ -13,7 +13,7 @@ Status: implemented.
 
 ## 2. Tournaments
 
-- Public tournament list: `/app`
+- Public tournament list: `/app/tournaments`
 - Statuses: `Draft`, `Registration`, `Running`, `Finished`
 - Tournament creation through UI: `Admin panel`
 - Registration window, description, and team limit are supported
@@ -107,7 +107,7 @@ Status: implemented.
 
 Implemented as full strengths on top of the base specification:
 
-- announcements, system notifications, and direct dialogs
+- announcements, system notifications, and direct dialogs with message or dialog deletion
 - email delivery for system events
 - auto-refresh for leaderboard, messages, and notifications
 - CSV export
