@@ -85,6 +85,11 @@ body {
     linear-gradient(180deg, #f8f7fb 0%, #f4f0ff 100%);
 }
 
+html:has(.app-modal-overlay),
+body:has(.app-modal-overlay) {
+  overflow: hidden;
+}
+
 body:has(.auth-page) {
   background: #f5f3f7;
 }
@@ -7117,12 +7122,14 @@ a {
   display: grid;
   place-items: center;
   padding: 20px;
+  overscroll-behavior: contain;
 }
 
 .app-modal-card {
   width: min(640px, 100%);
   max-height: min(90vh, 760px);
   overflow: auto;
+  overscroll-behavior: contain;
   border: 1px solid #e7dff8;
   border-radius: 24px;
   background:
