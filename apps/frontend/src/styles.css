@@ -1378,8 +1378,8 @@ a {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 54px;
-  height: 54px;
+  width: 46px;
+  height: 46px;
   border: 1px solid #5e17eb;
   border-radius: 999px;
   background: #5e17eb;
@@ -1387,11 +1387,28 @@ a {
   box-shadow: 0 18px 40px rgba(94, 23, 235, 0.24);
   cursor: pointer;
   gap: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(16px, 18px, 0) scale(0.84) rotate(8deg);
+  transform-origin: center;
   transition:
-    transform 180ms ease,
+    opacity 260ms ease,
+    transform 360ms cubic-bezier(0.2, 1.2, 0.32, 1),
     box-shadow 180ms ease,
     background-color 180ms ease,
     border-color 180ms ease;
+}
+
+.app-scroll-top.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+}
+
+.app-scroll-top.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(16px, 18px, 0) scale(0.84) rotate(8deg);
 }
 
 .app-scroll-top:hover {
@@ -1407,12 +1424,12 @@ a {
 }
 
 .app-scroll-top svg {
-  width: 22px;
-  height: 22px;
+  width: 19px;
+  height: 19px;
 }
 
 .app-scroll-top-label {
-  font-size: 0.4rem;
+  font-size: 0.36rem;
   line-height: 1;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -1428,6 +1445,28 @@ a {
   display: grid;
   justify-items: center;
   gap: 8px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate3d(18px, -12px, 0) scale(0.86);
+  transform-origin: top right;
+  transition:
+    opacity 260ms ease,
+    transform 380ms cubic-bezier(0.2, 1.2, 0.32, 1);
+}
+
+.app-quick-actions.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.app-quick-actions.is-hidden {
+  opacity: 0;
+  transform: translate3d(18px, -12px, 0) scale(0.86);
+}
+
+.app-quick-actions.is-hidden .app-quick-actions-toggle,
+.app-quick-actions.is-hidden .app-quick-action,
+.app-quick-actions.is-hidden .app-quick-search-panel {
   pointer-events: none;
 }
 
@@ -1479,6 +1518,7 @@ a {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     0 18px 38px rgba(94, 23, 235, 0.2);
+  overflow: visible;
 }
 
 .app-quick-actions-toggle svg,
@@ -6539,7 +6579,7 @@ a {
 
 .archive-empty-note {
   margin: 0;
-  color: #5a7288;
+  color: var(--muted);
   font-size: 0.84rem;
 }
 
@@ -7381,6 +7421,47 @@ a {
   font-size: 0.82rem;
 }
 
+.messages-thread-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.messages-danger-action,
+.messages-thread-delete {
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  border-radius: 999px;
+  background: rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1;
+  padding: 7px 10px;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.messages-danger-action:hover:not(:disabled),
+.messages-danger-action:focus-visible,
+.messages-thread-delete:hover:not(:disabled),
+.messages-thread-delete:focus-visible {
+  background: rgba(220, 38, 38, 0.12);
+  border-color: rgba(220, 38, 38, 0.28);
+  color: #991b1b;
+}
+
+.messages-danger-action:disabled,
+.messages-thread-delete:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
 .messages-thread-feed {
   border: 1px solid #ebe4f3;
   border-radius: 24px;
@@ -7432,10 +7513,31 @@ a {
   color: #ffffff;
 }
 
+.messages-thread-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .messages-thread-item span {
   color: #6a6383;
   font-size: 0.76rem;
   line-height: 1.25;
+}
+
+.messages-thread-item.mine .messages-thread-delete {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.messages-thread-item.mine .messages-thread-delete:hover:not(:disabled),
+.messages-thread-item.mine .messages-thread-delete:focus-visible {
+  border-color: rgba(255, 255, 255, 0.44);
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
 }
 
 .messages-thread-form {
@@ -10133,6 +10235,22 @@ body[data-theme='dark'] .app-page .messages-thread-item.mine {
   border-color: transparent;
 }
 
+body[data-theme='dark'] .app-page .messages-danger-action,
+body[data-theme='dark'] .app-page .messages-thread-delete {
+  border-color: rgba(248, 113, 113, 0.34);
+  background: rgba(248, 113, 113, 0.14);
+  color: #fecaca;
+}
+
+body[data-theme='dark'] .app-page .messages-danger-action:hover:not(:disabled),
+body[data-theme='dark'] .app-page .messages-danger-action:focus-visible,
+body[data-theme='dark'] .app-page .messages-thread-delete:hover:not(:disabled),
+body[data-theme='dark'] .app-page .messages-thread-delete:focus-visible {
+  border-color: rgba(248, 113, 113, 0.5);
+  background: rgba(248, 113, 113, 0.22);
+  color: #ffffff;
+}
+
 body[data-theme='dark'] .app-page .messages-thread-item.mine p,
 body[data-theme='dark'] .app-page .messages-thread-item.mine span {
   color: #ffffff;
@@ -10833,6 +10951,7 @@ body[data-theme='blue'] :is(.eyebrow, .lead, .inline-hint, .app-error-note),
 body[data-theme='blue'] .app-page :is(
     .summary-card span,
     .summary-card p,
+    .profile-item span,
     .profile-role-card p,
     .profile-history-card p,
     .leaderboard-row-head span,
@@ -11142,6 +11261,22 @@ body[data-theme='blue'] .app-page .messages-thread-item.mine {
   border-color: transparent;
 }
 
+body[data-theme='blue'] .app-page .messages-danger-action,
+body[data-theme='blue'] .app-page .messages-thread-delete {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(248, 113, 113, 0.18);
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .messages-danger-action:hover:not(:disabled),
+body[data-theme='blue'] .app-page .messages-danger-action:focus-visible,
+body[data-theme='blue'] .app-page .messages-thread-delete:hover:not(:disabled),
+body[data-theme='blue'] .app-page .messages-thread-delete:focus-visible {
+  border-color: rgba(255, 255, 255, 0.44);
+  background: rgba(248, 113, 113, 0.28);
+  color: #ffffff;
+}
+
 body[data-theme='blue'] .app-page .messages-thread-item.mine p,
 body[data-theme='blue'] .app-page .messages-thread-item.mine span {
   color: #ffffff;
@@ -11160,6 +11295,18 @@ body[data-theme='blue'] .app-page .monitoring-status-warning {
 body[data-theme='blue'] .app-page .monitoring-status-success {
   background: rgba(52, 211, 153, 0.16);
   color: #d1fae5;
+}
+
+body[data-theme='blue'] .app-page .monitoring-signal-card .inline-hint,
+body[data-theme='blue'] .app-page .monitoring-signal-tile span,
+body[data-theme='blue'] .app-page .monitoring-signal-tile p {
+  color: #eef3ff;
+}
+
+body[data-theme='blue'] .app-page .monitoring-signal-tile strong {
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  text-shadow: 0 1px 8px rgba(8, 12, 39, 0.3);
 }
 
 body[data-theme='blue'] .app-page .dashboard-overview-card,
@@ -11183,6 +11330,9 @@ body[data-theme='blue'] .app-page .messages-thread-feed,
 body[data-theme='blue'] .app-page .messages-thread-form,
 body[data-theme='blue'] .app-page .announcement-item,
 body[data-theme='blue'] .app-page .messages-status-note,
+body[data-theme='blue'] .app-page .profile-settings-shell,
+body[data-theme='blue'] .app-page .profile-settings-tabs,
+body[data-theme='blue'] .app-page .profile-preferences-block,
 body[data-theme='blue'] .app-page .team-list-card,
 body[data-theme='blue'] .app-page .admin-user-card,
 body[data-theme='blue'] .app-page .admin-user-card-stat,
@@ -11257,6 +11407,8 @@ body[data-theme='blue'] .app-page .monitoring-report-head strong,
 body[data-theme='blue'] .app-page .messages-dialog-item strong,
 body[data-theme='blue'] .app-page .messages-thread-head strong,
 body[data-theme='blue'] .app-page .announcement-head h3,
+body[data-theme='blue'] .app-page .profile-settings-shell h2,
+body[data-theme='blue'] .app-page .profile-settings-security h3,
 body[data-theme='blue'] .app-page #archive-summary .summary-card strong,
 body[data-theme='blue'] .app-page #leaderboard-summary .summary-card strong,
 body[data-theme='blue'] .app-page #archive-rounds .leaderboard-metric strong {
@@ -11310,6 +11462,8 @@ body[data-theme='blue'] .app-page .messages-thread-item p,
 body[data-theme='blue'] .app-page .messages-thread-item span,
 body[data-theme='blue'] .app-page .announcement-body,
 body[data-theme='blue'] .app-page .announcement-meta,
+body[data-theme='blue'] .app-page .announcement-meta span,
+body[data-theme='blue'] .app-page .profile-toggle-row span,
 body[data-theme='blue'] .app-page #archive-summary .summary-card span,
 body[data-theme='blue'] .app-page #archive-summary .summary-card p,
 body[data-theme='blue'] .app-page #leaderboard-summary .summary-card span,
@@ -11334,6 +11488,16 @@ body[data-theme='blue'] .app-page .leaderboard-category-item span,
 body[data-theme='blue'] .app-page .leaderboard-round-item p,
 body[data-theme='blue'] .app-page .leaderboard-row-card .inline-hint {
   color: #ecf0ff;
+}
+
+body[data-theme='blue'] .app-page #archive-rounds .archive-empty-note {
+  color: #eef3ff;
+}
+
+body[data-theme='blue'] .app-page #archive-rounds .leaderboard-row-card .archive-submission-date {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
+  text-shadow: 0 1px 8px rgba(8, 12, 39, 0.3);
 }
 
 body[data-theme='blue'] .app-page .round-card-head span,
@@ -11397,6 +11561,179 @@ body[data-theme='blue'] .app-page .team-list-card .leaderboard-metric span {
 body[data-theme='blue'] .app-page .team-list-card .status-pill {
   background: rgba(255, 255, 255, 0.16);
   color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .profile-settings-tabs {
+  border-color: rgba(226, 232, 255, 0.18);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(77, 219, 210, 0.07) 100%),
+    linear-gradient(180deg, rgba(48, 55, 142, 0.72) 0%, rgba(36, 44, 118, 0.7) 100%);
+}
+
+body[data-theme='blue'] .app-page .profile-settings-tab {
+  border-color: rgba(226, 232, 255, 0.18);
+  color: #d8ddff;
+}
+
+body[data-theme='blue'] .app-page .profile-settings-tab:hover,
+body[data-theme='blue'] .app-page .profile-settings-tab.active {
+  border-color: rgba(255, 139, 35, 0.68);
+  background: #ff8508;
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .platform-content-section {
+  border-color: rgba(226, 232, 255, 0.2);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(141, 92, 255, 0.22) 0%, transparent 34%),
+    linear-gradient(135deg, rgba(75, 64, 155, 0.7) 0%, rgba(41, 46, 128, 0.66) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 24px 52px rgba(8, 12, 39, 0.24);
+}
+
+body[data-theme='blue'] .app-page .platform-content-localized-field,
+body[data-theme='blue'] .app-page .platform-review-admin-card {
+  border-color: rgba(226, 232, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body[data-theme='blue'] .app-page .platform-review-admin-meta div {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+body[data-theme='blue'] .app-page .platform-content-section h3,
+body[data-theme='blue'] .app-page .platform-content-localized-field strong,
+body[data-theme='blue'] .app-page .platform-review-admin-head strong,
+body[data-theme='blue'] .app-page .platform-review-admin-meta dd {
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .platform-content-banner-field > span,
+body[data-theme='blue'] .app-page .platform-content-localized-field .field span,
+body[data-theme='blue'] .app-page .platform-content-upload-hint,
+body[data-theme='blue'] .app-page .platform-review-admin-head span:not(.status-pill),
+body[data-theme='blue'] .app-page .platform-review-admin-card > p,
+body[data-theme='blue'] .app-page .platform-review-admin-meta dt {
+  color: #d8ddff;
+}
+
+body[data-theme='blue'] .app-page .platform-content-file-state {
+  background: rgba(255, 255, 255, 0.14);
+  color: #eef3ff;
+}
+
+body[data-theme='blue'] .app-page .platform-content-upload-button,
+body[data-theme='blue'] .app-page .platform-content-upload-button:visited {
+  border-color: rgba(226, 232, 255, 0.22);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .platform-content-upload-button:hover:not(:disabled),
+body[data-theme='blue'] .app-page .platform-content-upload-button:focus-visible {
+  border-color: rgba(77, 219, 210, 0.36);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+body[data-theme='blue'] .app-page .about-text-panel {
+  border-color: rgba(226, 232, 255, 0.22);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(141, 92, 255, 0.34) 0%, transparent 30%),
+    radial-gradient(circle at 10% 100%, rgba(77, 219, 210, 0.18) 0%, transparent 30%),
+    linear-gradient(135deg, rgba(75, 64, 155, 0.78) 0%, rgba(41, 46, 128, 0.78) 56%, rgba(25, 32, 86, 0.82) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 28px 60px rgba(8, 12, 39, 0.28);
+}
+
+body[data-theme='blue'] .app-page .about-text-panel::after {
+  background: rgba(141, 92, 255, 0.2);
+}
+
+body[data-theme='blue'] .app-page .about-text-copy h1,
+body[data-theme='blue'] .app-page .about-product-copy h2,
+body[data-theme='blue'] .app-page .about-role-card h3,
+body[data-theme='blue'] .app-page .about-contacts-copy h2,
+body[data-theme='blue'] .app-page .about-contact-card strong,
+body[data-theme='blue'] .app-page .about-reviews-head h2,
+body[data-theme='blue'] .app-page .about-review-card strong,
+body[data-theme='blue'] .app-page .about-review-empty strong {
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+}
+
+body[data-theme='blue'] .app-page .about-text-copy p:not(.eyebrow),
+body[data-theme='blue'] .app-page .about-product-copy p:not(.eyebrow),
+body[data-theme='blue'] .app-page .about-role-card p,
+body[data-theme='blue'] .app-page .about-contacts-copy p:not(.eyebrow),
+body[data-theme='blue'] .app-page .about-reviews-head p:not(.eyebrow),
+body[data-theme='blue'] .app-page .about-review-card p,
+body[data-theme='blue'] .app-page .about-review-empty p,
+body[data-theme='blue'] .app-page .about-review-auth-note p,
+body[data-theme='blue'] .app-page .about-review-form-footer p {
+  color: #dfe4ff;
+}
+
+body[data-theme='blue'] .app-page .about-hero-banner {
+  border-color: rgba(226, 232, 255, 0.22);
+  background: rgba(20, 26, 74, 0.52);
+  box-shadow: 0 24px 48px rgba(8, 12, 39, 0.26);
+}
+
+body[data-theme='blue'] .app-page .about-product-card,
+body[data-theme='blue'] .app-page .about-role-card,
+body[data-theme='blue'] .app-page .about-contacts-panel,
+body[data-theme='blue'] .app-page .about-reviews-panel {
+  border-color: rgba(226, 232, 255, 0.2);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(141, 92, 255, 0.22) 0%, transparent 34%),
+    linear-gradient(135deg, rgba(75, 64, 155, 0.7) 0%, rgba(41, 46, 128, 0.66) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 24px 52px rgba(8, 12, 39, 0.24);
+}
+
+body[data-theme='blue'] .app-page .about-role-card span {
+  background: rgba(77, 219, 210, 0.16);
+  color: #c9fffb;
+}
+
+body[data-theme='blue'] .app-page .about-role-card::after,
+body[data-theme='blue'] .app-page .about-contacts-panel::after {
+  opacity: 0.72;
+}
+
+body[data-theme='blue'] .app-page .about-contact-card,
+body[data-theme='blue'] .app-page .about-review-card,
+body[data-theme='blue'] .app-page .about-review-empty,
+body[data-theme='blue'] .app-page .about-review-form,
+body[data-theme='blue'] .app-page .about-review-auth-note {
+  border-color: rgba(226, 232, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body[data-theme='blue'] .app-page .about-contact-card:hover,
+body[data-theme='blue'] .app-page .about-contact-card:focus-visible {
+  border-color: rgba(77, 219, 210, 0.34);
+  box-shadow: 0 18px 34px rgba(8, 12, 39, 0.22);
+}
+
+body[data-theme='blue'] .app-page .about-contact-card span,
+body[data-theme='blue'] .app-page .about-review-card span {
+  color: #c9d1ff;
+}
+
+body[data-theme='blue'] .app-page .about-cta-panel {
+  border-color: rgba(226, 232, 255, 0.26);
+  background:
+    radial-gradient(circle at 8% 15%, rgba(255, 255, 255, 0.14) 0%, transparent 28%),
+    linear-gradient(135deg, rgba(255, 133, 8, 0.88) 0%, rgba(141, 92, 255, 0.92) 58%, rgba(77, 219, 210, 0.46) 100%);
+  box-shadow: 0 26px 54px rgba(8, 12, 39, 0.26);
+}
+
+body[data-theme='blue'] .app-page .about-cta-panel p:not(.eyebrow) {
+  color: rgba(255, 255, 255, 0.86);
 }
 
 body[data-theme='blue'] .app-page.admin-users-page .section-header h1,
@@ -11480,6 +11817,85 @@ body[data-theme='blue'] .app-page.admin-users-page .status-pill:not(.is-blocked)
   background: #e06a00;
   border-color: #e06a00;
   color: #ffffff;
+}
+
+body[data-theme='dark'] .app-page.admin-users-page .admin-user-action--save,
+body[data-theme='dark'] .app-page.admin-users-page .admin-user-action--save:visited {
+  border-color: rgba(190, 171, 255, 0.34);
+  background: rgba(139, 93, 255, 0.18);
+  color: #eef2ff !important;
+}
+
+body[data-theme='dark'] .app-page.admin-users-page .admin-user-action--save:hover:not(:disabled),
+body[data-theme='dark'] .app-page.admin-users-page .admin-user-action--save:focus-visible {
+  border-color: rgba(190, 171, 255, 0.5);
+  background: rgba(139, 93, 255, 0.28);
+  color: #ffffff !important;
+}
+
+body[data-theme='dark'] .app-page.admin-users-page .admin-user-action--save:disabled {
+  border-color: rgba(190, 171, 255, 0.22);
+  background: rgba(190, 171, 255, 0.12);
+  color: #cfd8ff !important;
+  opacity: 1 !important;
+}
+
+body[data-theme='blue'] .app-page.admin-users-page .admin-user-action--save,
+body[data-theme='blue'] .app-page.admin-users-page .admin-user-action--save:visited {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff !important;
+}
+
+body[data-theme='blue'] .app-page.admin-users-page .admin-user-action--save:hover:not(:disabled),
+body[data-theme='blue'] .app-page.admin-users-page .admin-user-action--save:focus-visible {
+  border-color: rgba(77, 219, 210, 0.42);
+  background: rgba(77, 219, 210, 0.18);
+  color: #ffffff !important;
+}
+
+body[data-theme='blue'] .app-page.admin-users-page .admin-user-action--save:disabled {
+  border-color: rgba(226, 232, 255, 0.24);
+  background: rgba(226, 232, 255, 0.14);
+  color: #dfe4ff !important;
+  opacity: 1 !important;
+}
+
+.app-page.admin-users-page .admin-users-summary-grid .dashboard-tool-card--teal {
+  border-color: transparent;
+  background: linear-gradient(180deg, #16dbcc 0%, #13cabd 100%);
+  box-shadow: 0 18px 36px rgba(22, 219, 204, 0.18);
+}
+
+.app-page.admin-users-page .admin-users-summary-grid .dashboard-tool-card--purple {
+  border-color: transparent;
+  background: linear-gradient(180deg, #6d2dff 0%, #5420cf 100%);
+  box-shadow: 0 18px 36px rgba(94, 23, 235, 0.18);
+}
+
+.app-page.admin-users-page .admin-users-summary-grid .dashboard-tool-card--orange {
+  border-color: transparent;
+  background: linear-gradient(180deg, #ff7a00 0%, #eb7000 100%);
+  box-shadow: 0 18px 36px rgba(255, 122, 0, 0.18);
+}
+
+.app-page.admin-users-page .admin-users-summary-grid .dashboard-tool-card--berry {
+  border-color: transparent;
+  background: linear-gradient(180deg, #1dacd6 0%, #1999bd 100%);
+  box-shadow: 0 18px 36px rgba(29, 172, 214, 0.18);
+}
+
+.app-page.admin-users-page .admin-users-summary-grid .dashboard-tool-card span,
+.app-page.admin-users-page .admin-users-summary-grid .dashboard-tool-card strong,
+.app-page.admin-users-page .admin-users-summary-grid .dashboard-tool-card p,
+.app-page.admin-users-page .admin-users-summary-grid .dashboard-tool-card em {
+  color: #ffffff !important;
+}
+
+.app-page.admin-users-page .admin-users-summary-grid .dashboard-tool-card span,
+.app-page.admin-users-page .admin-users-summary-grid .dashboard-tool-card p,
+.app-page.admin-users-page .admin-users-summary-grid .dashboard-tool-card em {
+  color: rgba(255, 255, 255, 0.88) !important;
 }
 
 .register-flag {
@@ -11681,8 +12097,11 @@ body[data-theme='blue'] .app-page.admin-users-page .status-pill:not(.is-blocked)
   .state-card-quiet-line::after,
   .quiet-inline-loading-line::after,
   .app-sidebar-link.active::before,
-  .app-sidebar-link.active::after {
+  .app-sidebar-link.active::after,
+  .app-scroll-top,
+  .app-quick-actions {
     animation: none;
+    transition-duration: 1ms;
   }
 }
 
@@ -12465,8 +12884,8 @@ body[data-theme='blue'] .app-page.admin-users-page .status-pill:not(.is-blocked)
   .app-scroll-top {
     right: 18px;
     bottom: 18px;
-    width: 46px;
-    height: 46px;
+    width: 42px;
+    height: 42px;
   }
 
   .app-quick-actions {

@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from './prisma/prisma.service';
 
 const userPreviewSelect = {
@@ -203,6 +208,60 @@ export class DirectMessagesService {
     ]);
 
     return message;
+  }
+
+  async deleteDialog(userId: string, dialogId: string) {
+    const dialog = await this.prisma.directConversation.findFirst({
+      where: {
+        id: dialogId,
+        participants: {
+          some: { userId },
+        },
+      },
+      select: { id: true },
+    });
+
+    if (!dialog) {
+      throw new NotFoundException('Dialog not found');
+    }
+
+    await this.prisma.directConversation.delete({
+      where: { id: dialogId },
+    });
+
+    return { deleted: true };
+  }
+
+  async deleteMessage(userId: string, dialogId: string, messageId: string) {
+    const message = await this.prisma.directMessage.findFirst({
+      where: {
+        id: messageId,
+        conversationId: dialogId,
+        conversation: {
+          participants: {
+            some: { userId },
+          },
+        },
+      },
+      select: {
+        id: true,
+        senderId: true,
+      },
+    });
+
+    if (!message) {
+      throw new NotFoundException('Message not found');
+    }
+
+    if (message.senderId !== userId) {
+      throw new ForbiddenException('Only the sender can delete this message');
+    }
+
+    await this.prisma.directMessage.delete({
+      where: { id: messageId },
+    });
+
+    return { deleted: true };
   }
 
   private mapDialogSummary(

@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 import { DirectMessagesService } from './direct-messages.service';
 
@@ -12,13 +12,16 @@ function createPrismaMock() {
       findFirst: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      delete: vi.fn(),
     },
     directConversationParticipant: {
       update: vi.fn(),
     },
     directMessage: {
       findMany: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
+      delete: vi.fn(),
     },
     $transaction: vi.fn(),
   };
@@ -179,5 +182,49 @@ describe('DirectMessagesService', () => {
 
     expect(prisma.directConversationParticipant.update).toHaveBeenCalled();
     expect(result.dialog.isUnread).toBe(false);
+  });
+
+  it('deletes a dialog when the user is a participant', async () => {
+    const prisma = createPrismaMock();
+    prisma.directConversation.findFirst.mockResolvedValue({ id: 'dialog-1' });
+    prisma.directConversation.delete.mockResolvedValue({ id: 'dialog-1' });
+    const service = new DirectMessagesService(prisma as never);
+
+    await expect(service.deleteDialog('user-1', 'dialog-1')).resolves.toEqual({
+      deleted: true,
+    });
+    expect(prisma.directConversation.delete).toHaveBeenCalledWith({
+      where: { id: 'dialog-1' },
+    });
+  });
+
+  it('allows deleting only own direct message', async () => {
+    const prisma = createPrismaMock();
+    prisma.directMessage.findFirst.mockResolvedValue({
+      id: 'message-1',
+      senderId: 'user-1',
+    });
+    prisma.directMessage.delete.mockResolvedValue({ id: 'message-1' });
+    const service = new DirectMessagesService(prisma as never);
+
+    await expect(
+      service.deleteMessage('user-1', 'dialog-1', 'message-1'),
+    ).resolves.toEqual({ deleted: true });
+    expect(prisma.directMessage.delete).toHaveBeenCalledWith({
+      where: { id: 'message-1' },
+    });
+  });
+
+  it('rejects deleting another user direct message', async () => {
+    const prisma = createPrismaMock();
+    prisma.directMessage.findFirst.mockResolvedValue({
+      id: 'message-1',
+      senderId: 'user-2',
+    });
+    const service = new DirectMessagesService(prisma as never);
+
+    await expect(
+      service.deleteMessage('user-1', 'dialog-1', 'message-1'),
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 });

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { AuthUser } from './common/types/auth-user.type';
 import {
@@ -49,6 +49,27 @@ export class DirectMessagesController {
       request.user.userId,
       id,
       dto.body,
+    );
+  }
+
+  @Delete('dialogs/:id')
+  deleteDialog(
+    @Req() request: { user: AuthUser },
+    @Param('id') id: string,
+  ) {
+    return this.directMessagesService.deleteDialog(request.user.userId, id);
+  }
+
+  @Delete('dialogs/:id/messages/:messageId')
+  deleteMessage(
+    @Req() request: { user: AuthUser },
+    @Param('id') id: string,
+    @Param('messageId') messageId: string,
+  ) {
+    return this.directMessagesService.deleteMessage(
+      request.user.userId,
+      id,
+      messageId,
     );
   }
 }

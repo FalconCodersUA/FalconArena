@@ -949,7 +949,7 @@ export default function ArchivePage() {
                             ) : null}
                           </div>
 
-                          <p className="archive-empty-note">
+                          <p className="archive-empty-note archive-submission-date">
                             {t('archivePage.submittedAt')}:{' '}
                             {submission.submittedAt
                               ? formatDateTime(submission.submittedAt, language)
