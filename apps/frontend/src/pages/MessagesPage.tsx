@@ -170,6 +170,8 @@ export default function MessagesPage() {
   const [dialogMessagesError, setDialogMessagesError] = useState('');
   const [dialogNotice, setDialogNotice] = useState('');
   const [dialogActionLoading, setDialogActionLoading] = useState(false);
+  const [pendingDialogDeleteId, setPendingDialogDeleteId] = useState('');
+  const [pendingMessageDeleteId, setPendingMessageDeleteId] = useState('');
   const [newDialogEmail, setNewDialogEmail] = useState('');
   const [newMessageBody, setNewMessageBody] = useState('');
   const [focusedNotificationId, setFocusedNotificationId] = useState('');
@@ -846,6 +848,84 @@ export default function MessagesPage() {
     }
   }
 
+  async function handleDeleteDialog(dialogId: string) {
+    if (!dialogId) {
+      return;
+    }
+
+    if (!window.confirm(t('messagesPage.dialogs.confirmDeleteDialog'))) {
+      return;
+    }
+
+    setPendingDialogDeleteId(dialogId);
+    setDialogMessagesError('');
+    setDialogNotice('');
+
+    try {
+      await apiRequest<{ deleted: boolean }>(`/messages/dialogs/${dialogId}`, {
+        method: 'DELETE',
+      });
+
+      setDialogs((current) => current.filter((dialog) => dialog.id !== dialogId));
+      if (selectedDialogId === dialogId) {
+        setSelectedDialogId('');
+        setDialogMessages([]);
+      }
+      setDialogNotice(t('messagesPage.dialogs.deleted'));
+    } catch (requestError) {
+      setDialogMessagesError(
+        normalizeApiErrorMessage(requestError, t, t('messagesPage.dialogs.deleteFailed')),
+      );
+    } finally {
+      setPendingDialogDeleteId('');
+    }
+  }
+
+  async function handleDeleteMessage(messageId: string) {
+    if (!selectedDialogId || !messageId) {
+      return;
+    }
+
+    if (!window.confirm(t('messagesPage.dialogs.confirmDeleteMessage'))) {
+      return;
+    }
+
+    setPendingMessageDeleteId(messageId);
+    setDialogMessagesError('');
+    setDialogNotice('');
+
+    try {
+      await apiRequest<{ deleted: boolean }>(
+        `/messages/dialogs/${selectedDialogId}/messages/${messageId}`,
+        {
+          method: 'DELETE',
+        },
+      );
+
+      const nextMessages = dialogMessages.filter((item) => item.id !== messageId);
+      const latestMessage = nextMessages[nextMessages.length - 1] ?? null;
+      setDialogMessages(nextMessages);
+      setDialogs((current) =>
+        current.map((dialog) =>
+          dialog.id === selectedDialogId
+            ? {
+                ...dialog,
+                lastMessage: latestMessage,
+                updatedAt: latestMessage?.createdAt ?? dialog.createdAt,
+              }
+            : dialog,
+        ),
+      );
+      setDialogNotice(t('messagesPage.dialogs.messageDeleted'));
+    } catch (requestError) {
+      setDialogMessagesError(
+        normalizeApiErrorMessage(requestError, t, t('messagesPage.dialogs.messageDeleteFailed')),
+      );
+    } finally {
+      setPendingMessageDeleteId('');
+    }
+  }
+
   if (loading) {
     return <QuietLoadingCard label={t('messagesPage.loading')} />;
   }
@@ -1433,9 +1513,21 @@ export default function MessagesPage() {
                     <strong>{selectedDialog.otherUser.fullName}</strong>
                     <span>{selectedDialog.otherUser.email}</span>
                   </div>
-                  <span className="messages-dialog-role">
-                    {t(`profile.role.${selectedDialog.otherUser.role}`)}
-                  </span>
+                  <div className="messages-thread-actions">
+                    <span className="messages-dialog-role">
+                      {t(`profile.role.${selectedDialog.otherUser.role}`)}
+                    </span>
+                    <button
+                      type="button"
+                      className="messages-danger-action"
+                      onClick={() => void handleDeleteDialog(selectedDialog.id)}
+                      disabled={pendingDialogDeleteId === selectedDialog.id}
+                    >
+                      {pendingDialogDeleteId === selectedDialog.id
+                        ? t('messagesPage.dialogs.deleting')
+                        : t('messagesPage.dialogs.deleteDialog')}
+                    </button>
+                  </div>
                 </header>
 
                 {dialogMessagesLoading ? (
@@ -1456,7 +1548,21 @@ export default function MessagesPage() {
                           }`}
                         >
                           <p>{item.body}</p>
-                          <span>{formatDateTime(item.createdAt, language)}</span>
+                          <div className="messages-thread-meta">
+                            <span>{formatDateTime(item.createdAt, language)}</span>
+                            {item.senderId === me?.id ? (
+                              <button
+                                type="button"
+                                className="messages-thread-delete"
+                                onClick={() => void handleDeleteMessage(item.id)}
+                                disabled={pendingMessageDeleteId === item.id}
+                              >
+                                {pendingMessageDeleteId === item.id
+                                  ? t('messagesPage.dialogs.deleting')
+                                  : t('messagesPage.dialogs.deleteMessage')}
+                              </button>
+                            ) : null}
+                          </div>
                         </article>
                       ))
                     )}

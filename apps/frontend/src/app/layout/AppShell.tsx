@@ -516,6 +516,13 @@ export default function AppShell() {
   }, [showScrollTop]);
 
   useEffect(() => {
+    if (!showScrollTop) {
+      setQuickActionsOpen(false);
+      setQuickSearchOpen(false);
+    }
+  }, [showScrollTop]);
+
+  useEffect(() => {
     setQuickSearchOpen(false);
   }, [routeLocationKey]);
 
@@ -1357,16 +1364,19 @@ export default function AppShell() {
               <Outlet />
             </div>
           </section>
-          {showScrollTop ? (
-            <div
-              ref={quickActionsRef}
-              className={`app-quick-actions${quickActionsOpen ? ' open' : ''}`}
-            >
+          <div
+            ref={quickActionsRef}
+            className={`app-quick-actions${quickActionsOpen ? ' open' : ''}${
+              showScrollTop ? ' is-visible' : ' is-hidden'
+            }`}
+            aria-hidden={!showScrollTop}
+          >
               <button
                 type="button"
                 className="app-quick-actions-toggle"
                 aria-label={t('shell.quickActions')}
                 aria-expanded={quickActionsOpen}
+                tabIndex={showScrollTop ? 0 : -1}
                 onClick={() => setQuickActionsOpen((current) => !current)}
               >
                 <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
@@ -1384,7 +1394,7 @@ export default function AppShell() {
                     className="app-quick-action"
                     aria-label={t('shell.searchPlaceholder')}
                     title={t('shell.searchPlaceholder')}
-                    tabIndex={quickActionsOpen ? 0 : -1}
+                    tabIndex={showScrollTop && quickActionsOpen ? 0 : -1}
                     onClick={openQuickSearch}
                   >
                     <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
@@ -1404,7 +1414,7 @@ export default function AppShell() {
                       type="text"
                       placeholder={t('shell.searchPlaceholder')}
                       value={searchQuery}
-                      tabIndex={quickActionsOpen && quickSearchOpen ? 0 : -1}
+                      tabIndex={showScrollTop && quickActionsOpen && quickSearchOpen ? 0 : -1}
                       onChange={(event) => setSearchQuery(event.target.value)}
                     />
                     <div className="app-quick-search-results">
@@ -1415,7 +1425,7 @@ export default function AppShell() {
                           <button
                             key={`quick-search-item-${item.path}-${item.label}-${item.category}`}
                             type="button"
-                            tabIndex={quickActionsOpen && quickSearchOpen ? 0 : -1}
+                            tabIndex={showScrollTop && quickActionsOpen && quickSearchOpen ? 0 : -1}
                             onClick={() => goToSearchItem(item.path)}
                           >
                             <span>{item.label}</span>
@@ -1434,7 +1444,7 @@ export default function AppShell() {
                   className={`app-quick-action app-quick-theme is-${themeMode}`}
                   aria-label={themeToggleLabel}
                   title={themeToggleLabel}
-                  tabIndex={quickActionsOpen ? 0 : -1}
+                  tabIndex={showScrollTop && quickActionsOpen ? 0 : -1}
                   onClick={() => {
                     toggleTheme();
                   }}
@@ -1472,7 +1482,7 @@ export default function AppShell() {
                   className="app-quick-action app-quick-language"
                   aria-label={t('shell.languageAria')}
                   title={t('shell.languageAria')}
-                  tabIndex={quickActionsOpen ? 0 : -1}
+                  tabIndex={showScrollTop && quickActionsOpen ? 0 : -1}
                   onClick={switchQuickLanguage}
                 >
                   {nextLanguageLabel}
@@ -1484,7 +1494,7 @@ export default function AppShell() {
                     className="app-quick-action"
                     aria-label={t('shell.profile')}
                     title={t('shell.profile')}
-                    tabIndex={quickActionsOpen ? 0 : -1}
+                    tabIndex={showScrollTop && quickActionsOpen ? 0 : -1}
                   >
                     <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                       <path
@@ -1503,7 +1513,7 @@ export default function AppShell() {
                   className={`app-quick-action${unreadDialogsCount > 0 ? ' has-unread' : ''}`}
                   aria-label={t('shell.messagesInboxAria')}
                   title={t('shell.messagesInboxAria')}
-                  tabIndex={quickActionsOpen ? 0 : -1}
+                  tabIndex={showScrollTop && quickActionsOpen ? 0 : -1}
                   onClick={() => {
                     openDialogsInbox();
                   }}
@@ -1530,7 +1540,7 @@ export default function AppShell() {
                   className={`app-quick-action${unreadAlertsCount > 0 ? ' has-unread' : ''}`}
                   aria-label={t('shell.alertsAria')}
                   title={t('shell.alertsAria')}
-                  tabIndex={quickActionsOpen ? 0 : -1}
+                  tabIndex={showScrollTop && quickActionsOpen ? 0 : -1}
                   onClick={openQuickAlerts}
                 >
                   <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
@@ -1551,7 +1561,7 @@ export default function AppShell() {
                     className="app-quick-action"
                     aria-label={t('shell.logout')}
                     title={t('shell.logout')}
-                    tabIndex={quickActionsOpen ? 0 : -1}
+                    tabIndex={showScrollTop && quickActionsOpen ? 0 : -1}
                     onClick={() => {
                       logout();
                     }}
@@ -1578,7 +1588,7 @@ export default function AppShell() {
                     className="app-quick-action"
                     aria-label={t('shell.login')}
                     title={t('shell.login')}
-                    tabIndex={quickActionsOpen ? 0 : -1}
+                    tabIndex={showScrollTop && quickActionsOpen ? 0 : -1}
                   >
                     <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                       <path
@@ -1604,10 +1614,10 @@ export default function AppShell() {
                     className="app-quick-action app-quick-avatar"
                     aria-label={t('shell.profile')}
                     title={t('shell.profile')}
-                    tabIndex={quickActionsOpen ? 0 : -1}
+                    tabIndex={showScrollTop && quickActionsOpen ? 0 : -1}
                   >
                     {profileAvatarUrl ? (
-                      <img src={resolveApiAssetUrl(profileAvatarUrl)} alt={t('shell.profile')} />
+                      <img src={resolveApiAssetUrl(profileAvatarUrl)} alt="" />
                     ) : (
                       initialsFromName(fullName)
                     )}
@@ -1615,26 +1625,25 @@ export default function AppShell() {
                 ) : null}
               </div>
             </div>
-          ) : null}
-          {showScrollTop ? (
-            <button
-              type="button"
-              className="app-scroll-top"
-              aria-label={t('shell.scrollTop')}
-              onClick={handleScrollTop}
-            >
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M7.5 14.5L12 10L16.5 14.5"
-                  stroke="currentColor"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span className="app-scroll-top-label">ARENA</span>
-            </button>
-          ) : null}
+          <button
+            type="button"
+            className={`app-scroll-top${showScrollTop ? ' is-visible' : ' is-hidden'}`}
+            aria-label={t('shell.scrollTop')}
+            aria-hidden={!showScrollTop}
+            tabIndex={showScrollTop ? 0 : -1}
+            onClick={handleScrollTop}
+          >
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M7.5 14.5L12 10L16.5 14.5"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span className="app-scroll-top-label">ARENA</span>
+          </button>
         </main>
       </div>
     </div>
