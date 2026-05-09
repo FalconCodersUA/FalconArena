@@ -159,7 +159,7 @@ export const messages: TranslationMap = {
       lead: 'Система зіткнулася з неочікуваною помилкою. Відкрийте робочий простір ще раз або поверніться до турнірів.',
       primaryAction: 'До турнірів',
       secondaryAction: 'До дашборду',
-      note: 'FalconArena показує дружній екран помилки замість сирого трасування стека, щоб не втрачати контекст під час демо або реальної роботи.',
+      note: 'FalconArena показує дружній екран помилки замість технічних деталей, щоб не втрачати контекст під час демо або реальної роботи.',
     },
     aboutPage: {
       eyebrow: 'Про платформу',
@@ -1148,7 +1148,7 @@ export const messages: TranslationMap = {
       },
       workspaceToolsTitle: 'Інструменти адміністратора',
       workspaceToolsLead:
-        'Ключові operational screens для інтеграцій, комунікації та фінального контролю.',
+        'Ключові робочі розділи для інтеграцій, комунікації та фінального контролю.',
       onboarding: {
         title: 'Швидкий старт для адміністратора',
         lead: 'Рухайтесь у цьому порядку: спочатку турнір, потім раунд, а далі оцінювання і фінальний контроль.',
@@ -1176,7 +1176,7 @@ export const messages: TranslationMap = {
         usersLead: 'Список зареєстрованих користувачів',
         integrationsTitle: 'Системні інтеграції',
         integrationsLead:
-          'Google Sheets, email delivery, правила сповіщень і дефолтні налаштування турнірів.',
+          'Google Sheets, доставка email, правила сповіщень і стандартні налаштування турнірів.',
         leaderboardTitle: 'Лідерборд',
         leaderboardLead: 'Швидка перевірка підсумкових балів, експорту та стану результатів.',
         archiveTitle: 'Архів турнірів',
@@ -1200,7 +1200,7 @@ export const messages: TranslationMap = {
         refresh: 'Оновити список',
         listTitle: 'Зареєстровані користувачі',
         listLead:
-          'Швидко знаходьте акаунти, звіряйте ролі та керуйте доступом без ручних змін у базі даних.',
+          'Швидко знаходьте акаунти, звіряйте ролі та керуйте доступом без зайвих технічних дій.',
         emptyTitle: 'Користувачів не знайдено',
         emptyLead: 'Спробуйте змінити пошук або скинути фільтри, щоб побачити всі акаунти.',
         selfLabel: 'Ваш акаунт',
@@ -1432,15 +1432,15 @@ export const messages: TranslationMap = {
       },
       formHints: {
         tournamentDefaults:
-          'Новий турнір стартує з системних значень: ліміту команд, вікна реєстрації та часового поясу.',
+          'Новий турнір автоматично отримує стандартні налаштування: ліміт команд, період реєстрації та часовий пояс, які можна змінити під час створення або редагування.',
         tournamentDescription: 'Коротко поясніть правила, формат і очікування для команд.',
         registrationWindow: 'Реєстрація стане доступною саме з цього моменту.',
         maxTeams: 'Ліміт команд можна лишити порожнім, якщо обмеження не потрібне.',
         roundDefaults:
-          'Раунд також підтягує системні значення: тривалість, часовий пояс і базовий опис.',
+          'Новий раунд автоматично отримує стандартні налаштування: тривалість, часовий пояс і базовий опис, які можна змінити під час створення або редагування.',
         roundDescription: 'Опишіть, що саме команда має реалізувати у цьому раунді.',
         mustHave: 'Додавайте кожен обовʼязковий критерій з нового рядка.',
-        technologyRequirements: 'Тут зручно вказати стек, деплой, БД або архітектурні обмеження.',
+        technologyRequirements: 'Тут зручно вказати стек, деплой, базу даних або архітектурні обмеження.',
         additionalMaterials:
           'Додайте посилання на документи, макети, приклади або допоміжні файли.',
       },
@@ -1688,7 +1688,7 @@ export const messages: TranslationMap = {
     monitoring: {
       eyebrow: 'Системний контроль',
       title: 'Моніторинг',
-      lead: 'Останні серверні інциденти та базовий операційний стан інтеграцій в одному місці.',
+      lead: 'Останні технічні збої та стан важливих інтеграцій в одному місці.',
       loading: 'Завантаження моніторингу...',
       loadFailed: 'Не вдалося завантажити дані моніторингу',
       retry: 'Спробувати знову',
@@ -1697,22 +1697,22 @@ export const messages: TranslationMap = {
       workspaceEyebrow: 'Огляд системи',
       workspaceTitle: 'Огляд системи',
       workspaceLead:
-        'Відстежуйте помилки серверної частини, останні статуси інтеграцій і маршрути, що напряму впливають на користувачів, без окремого доступу до логів.',
+        'Відстежуйте технічні збої, стан інтеграцій і розділи платформи, які могли вплинути на користувачів.',
       workspaceStatusLabel: 'Останніх інцидентів',
-      workspaceStatusLead: 'Кількість збережених 5xx-інцидентів у поточному зрізі моніторингу.',
+      workspaceStatusLead: 'Кількість технічних інцидентів у поточному зрізі моніторингу.',
       workspaceCards: {
         failuresLabel: 'Інциденти',
-        failuresLead: 'Останній зафіксований серверний інцидент у базі звітів.',
+        failuresLead: 'Останній збій, який зафіксувала платформа.',
         googleLabel: 'Google Sheets',
         googleConfigured: 'Експорт готовий',
         googlePending: 'Експорт не готовий',
-        googleLead: 'Поточний стан webhook-конфігурації та останнього експортного виклику.',
+        googleLead: 'Поточний стан підключення Google Sheets і останнього експорту.',
         emailLabel: 'Доставка email',
         emailActive: 'Доставка активна',
         emailPending: 'Доставка потребує уваги',
         emailLead: 'Остання перевірка стану доставки email і тестових відправок.',
-        surfaceLabel: 'Користувацькі маршрути',
-        surfaceLead: 'Маршрути, де інциденти потенційно впливали на користувачів напряму.',
+        surfaceLabel: 'Користувацькі розділи',
+        surfaceLead: 'Розділи, де інциденти могли напряму вплинути на користувачів.',
         surfaceStatus: 'Auth, tournaments, rounds, messages',
       },
       operationalStatusTitle: 'Статус системи',
@@ -1726,11 +1726,11 @@ export const messages: TranslationMap = {
       lastEmailCheck: 'Остання перевірка email',
       errorReportsTitle: 'Останні звіти про помилки',
       errorReportsLead:
-        'Тут зберігаються помилки серверної частини рівня 5xx з ідентифікатором запиту, користувачем і трасуванням стека для швидкого розбору.',
+        'Тут зібрані серйозні помилки сервера з деталями запиту, користувачем і технічним описом для швидкого розбору.',
       errorCountSuffix: 'інцидентів',
       noErrors: 'Інцидентів немає',
       noErrorsLead:
-        'Список помилок порожній. Це означає, що серверна частина не зберігала нових 5xx-подій у поточному зрізі.',
+        'Список помилок порожній. Це означає, що в поточному зрізі немає нових серйозних подій сервера.',
       signalBoardTitle: 'Сигнали системи',
       signalBoardLead:
         'Швидкий зріз по інцидентах, критичних зонах і маршрутах, які зараз варто перевірити першими.',
@@ -1752,7 +1752,7 @@ export const messages: TranslationMap = {
       createdAt: 'Створено',
       user: 'Користувач',
       role: 'Роль',
-      stackTrace: 'Трасування стека',
+      stackTrace: 'Технічні деталі',
       anonymous: 'Анонімний користувач',
       unknown: 'Невідомо',
       notAvailable: 'Недоступно',
@@ -1761,11 +1761,11 @@ export const messages: TranslationMap = {
     systemIntegrations: {
       eyebrow: 'Системні інтеграції',
       title: 'Інтеграції',
-      lead: 'Налаштування зовнішніх інтеграцій без редагування коду або серверного .env.',
+      lead: 'Керуйте зовнішніми підключеннями та правилами платформи з одного екрана.',
       workspaceEyebrow: 'Системні налаштування',
       workspaceTitle: 'Єдиний простір системних налаштувань',
       workspaceLead:
-        'Звідси зручно керувати інтеграціями, правилами сповіщень і дефолтами проєкту без правок у коді чи .env.',
+        'Звідси зручно керувати інтеграціями, правилами сповіщень і стандартними налаштуваннями проєкту.',
       workspaceStatusLabel: 'Стан інструментів',
       workspaceStatusLead:
         'Ключові системні блоки готові до роботи або чекають на базове налаштування.',
@@ -1778,14 +1778,14 @@ export const messages: TranslationMap = {
         emailTitle: 'Доставка email',
         emailReady: 'Канал email-сповіщень активний і готовий до використання.',
         emailPending: 'Канал email вимкнений або потребує завершення налаштування.',
-        defaultsTitle: 'Базові налаштування',
+        defaultsTitle: 'Стандартні налаштування',
         defaultsLead: 'Базові правила для нових турнірів, команд і раундів уже під рукою.',
         rulesTitle: 'Правила сповіщень',
         rulesLead: 'активних правил сповіщень',
       },
       onboarding: {
         title: 'Рекомендований порядок налаштування',
-        lead: 'Спочатку перевірте експорт, потім доставку email, а вже після цього зафіксуйте дефолти та правила сповіщень.',
+        lead: 'Спочатку перевірте експорт, потім доставку email, а вже після цього задайте стандартні налаштування та правила сповіщень.',
         steps: {
           google: {
             title: 'Налаштуйте Google Sheets',
@@ -1796,8 +1796,8 @@ export const messages: TranslationMap = {
             lead: 'Оберіть провайдера, заповніть email відправника та надішліть тестовий лист, щоб одразу побачити реальний статус доставки.',
           },
           defaults: {
-            title: 'Завершіть дефолти та правила сповіщень',
-            lead: 'Після інтеграцій задайте ліміти команд, часовий пояс проєкту та визначте, які події взагалі мають створювати сповіщення.',
+            title: 'Задайте стандартні налаштування та правила сповіщень',
+            lead: 'Після інтеграцій задайте ліміти команд, часовий пояс проєкту та оберіть події, для яких потрібні сповіщення.',
           },
         },
       },
@@ -1828,14 +1828,14 @@ export const messages: TranslationMap = {
         testConnection: 'Тест підключення',
         testing: 'Тестуємо...',
         sources: {
-          database: 'База даних',
-          env: 'Резерв із ENV',
+          database: 'Збережено в платформі',
+          env: 'Резервні налаштування',
           none: 'Не задано',
         },
         sourceHints: {
           database:
-            'Активні значення збережені в базі даних і можуть змінюватися через цю сторінку.',
-          env: 'Зараз використовується резерв із server .env. Збережіть форму, щоб перенести налаштування в базу даних.',
+            'Активні значення вже збережені та можуть змінюватися на цій сторінці.',
+          env: 'Зараз використовується резервне налаштування сервера. Збережіть форму, щоб керувати ним тут.',
           none: 'Webhook ще не налаштований. Заповніть поля нижче, щоб увімкнути експорт у Google Sheets.',
         },
         form: {
@@ -1846,7 +1846,7 @@ export const messages: TranslationMap = {
       },
       email: {
         title: 'Доставка email',
-        lead: 'Керуйте відправкою email-сповіщень без зміни server env або нового деплою.',
+        lead: 'Керуйте відправкою email-сповіщень без додаткового розгортання.',
         source: 'Джерело конфігурації',
         provider: 'Провайдер',
         deliveryStatus: 'Стан доставки',
@@ -1861,15 +1861,15 @@ export const messages: TranslationMap = {
         incompleteTitle: 'Налаштування не завершене',
         incompleteLead: 'Для провайдера Resend потрібно вказати email відправника та ключ API.',
         sources: {
-          database: 'База даних',
-          env: 'Резерв із ENV',
-          default: 'Системне значення',
+          database: 'Збережено в платформі',
+          env: 'Резервні налаштування',
+          default: 'Базові значення',
         },
         sourceHints: {
-          database: 'Email-конфіг збережений у базі даних і застосовується без редагування .env.',
-          env: 'Зараз використовується резерв із server .env. Збережіть форму, щоб перенести параметри в базу даних.',
+          database: 'Налаштування email вже збережені та застосовуються автоматично.',
+          env: 'Зараз використовується резервне налаштування сервера. Збережіть форму, щоб керувати ним тут.',
           default:
-            'Системні значення ще не налаштовані. Заповніть форму нижче, якщо хочете ввімкнути доставку email.',
+            'Email ще не налаштований. Заповніть форму нижче, щоб увімкнути доставку.',
         },
         providers: {
           console: 'Консоль (dev/demo)',
@@ -1893,7 +1893,7 @@ export const messages: TranslationMap = {
         title: 'Контент платформи для сторінки "Про нас"',
         lead: 'Керуйте текстом, який показується на публічній сторінці “Про нас”.',
         unavailable:
-          'Endpoint контенту платформи ще недоступний. Показано системний fallback, збереження запрацює після запуску оновленого backend.',
+          'Редагування контенту ще не підключене. Поки показано базовий текст, а збереження запрацює після оновлення сервера.',
         bannerUploading: 'Банер завантажується...',
         bannerUploaded:
           'Банер завантажено та збережено. Він уже застосований на сторінці “Про нас”.',
@@ -1901,20 +1901,20 @@ export const messages: TranslationMap = {
         bannerUploadHint:
           'Підтримуються PNG, JPG або WebP до 5 MB. Банер зберігається автоматично після вибору файлу.',
         sources: {
-          database: 'База даних',
-          default: 'Системне значення',
+          database: 'Збережено в платформі',
+          default: 'Базовий текст',
         },
         sourceHints: {
-          database: 'Цей текст збережений у базі даних і вже показується на сторінці “Про нас”.',
+          database: 'Цей текст уже збережений і показується на сторінці “Про нас”.',
           default:
-            'Зараз сторінка використовує системний fallback. Збережіть форму, щоб задати власний текст.',
+            'Зараз сторінка використовує базовий текст. Збережіть форму, щоб задати власний варіант.',
         },
         sections: {
           hero: 'Головний опис',
           heroMedia: 'Банер верхнього блоку',
           product: 'Картка робочого процесу',
           roles: 'Рольові блоки',
-          cta: 'Нижній CTA-блок',
+          cta: 'Нижній заклик до дії',
           contacts: 'Блок контактів',
           contactChannels: 'Канали звʼязку',
         },
@@ -1923,9 +1923,9 @@ export const messages: TranslationMap = {
           en: 'English version',
         },
         form: {
-          heroEyebrow: 'Надзаголовок hero',
-          heroTitle: 'Заголовок hero',
-          heroDescription: 'Опис hero',
+          heroEyebrow: 'Коротка мітка головного блоку',
+          heroTitle: 'Заголовок головного блоку',
+          heroDescription: 'Опис головного блоку',
           heroBannerImageUrl: 'URL банера',
           heroBannerPlaceholder: 'https://example.com/about-banner.jpg',
           heroBannerUpload: 'Завантажити з ПК',
@@ -1935,16 +1935,16 @@ export const messages: TranslationMap = {
           productEyebrow: 'Надзаголовок картки',
           productTitle: 'Заголовок картки',
           productLead: 'Опис картки',
-          rolesLabel: 'ARIA-назва блоку ролей',
+          rolesLabel: 'Назва блоку ролей для доступності',
           organizersTitle: 'Заголовок “Організатори”',
           organizersLead: 'Опис “Організатори”',
           teamsTitle: 'Заголовок “Команди”',
           teamsLead: 'Опис “Команди”',
           juryTitle: 'Заголовок “Журі”',
           juryLead: 'Опис “Журі”',
-          ctaEyebrow: 'Надзаголовок CTA',
-          ctaTitle: 'Заголовок CTA',
-          ctaLead: 'Опис CTA',
+          ctaEyebrow: 'Коротка мітка нижнього блоку',
+          ctaTitle: 'Заголовок нижнього блоку',
+          ctaLead: 'Опис нижнього блоку',
           registerLabel: 'Текст кнопки для гостя',
           workspaceLabel: 'Текст кнопки для користувача',
           contactsEyebrow: 'Надзаголовок контактів',
@@ -1968,7 +1968,7 @@ export const messages: TranslationMap = {
         saved: 'Статус відгуку оновлено.',
         saveFailed: 'Не вдалося оновити статус відгуку.',
         unavailable:
-          'Endpoint відгуків ще недоступний. Модерація запрацює після запуску оновленого backend.',
+          'Модерація відгуків ще не підключена. Вона запрацює після оновлення сервера.',
         updatedAt: 'Оновлено',
         moderator: 'Модератор',
         notReviewed: 'Ще не перевірено',
@@ -1988,14 +1988,14 @@ export const messages: TranslationMap = {
       },
       notificationRules: {
         title: 'Правила сповіщень',
-        lead: 'Глобально визначайте, які системні події взагалі створюють сповіщення в платформі.',
+        lead: 'Оберіть, які події платформи мають створювати сповіщення.',
         sources: {
-          database: 'База даних',
-          default: 'Системне значення',
+          database: 'Збережено в платформі',
+          default: 'Базові правила',
         },
         sourceHints: {
-          database: 'Ці правила вже збережені в базі даних і застосовуються до всіх нових подій.',
-          default: 'Зараз працює дефолтна поведінка: усі ключові події створюють сповіщення.',
+          database: 'Ці правила вже збережені та застосовуються до нових подій.',
+          default: 'Зараз працюють базові правила: усі ключові події створюють сповіщення.',
         },
         items: {
           registrationStarted: 'Старт реєстрації',
@@ -2006,18 +2006,18 @@ export const messages: TranslationMap = {
         },
       },
       tournamentDefaults: {
-        title: 'Дефолтні налаштування турнірів',
-        roundDefaultsTitle: 'Дефолти для нових раундів',
+        title: 'Стандартні налаштування турнірів',
+        roundDefaultsTitle: 'Стандартні налаштування нових раундів',
         lead: 'Керуйте типовими обмеженнями команд, часовим поясом та стартовими значеннями для нових турнірів і раундів.',
         sources: {
-          database: 'База даних',
-          default: 'Системне значення',
+          database: 'Збережено в платформі',
+          default: 'Базові значення',
         },
         sourceHints: {
           database:
-            'Ці значення збережені в базі даних і одразу впливають на нові форми та перевірки.',
+            'Ці значення вже збережені й одразу застосовуються в нових формах та перевірках.',
           default:
-            'Працюють базові системні значення. Збережіть форму, щоб задати власні правила для вашого проєкту.',
+            'Зараз працюють базові значення. Збережіть форму, щоб задати правила для вашого проєкту.',
         },
         form: {
           minTeamMembers: 'Мінімум учасників у команді',
@@ -2028,8 +2028,8 @@ export const messages: TranslationMap = {
           defaultTournamentMaxTeams: 'Ліміт команд за замовчуванням',
           defaultRegistrationWindowHours: 'Тривалість вікна реєстрації (години)',
           defaultRoundDurationHours: 'Тривалість нового раунду (години)',
-          defaultTournamentDescription: 'Дефолтний опис турніру',
-          defaultRoundDescription: 'Дефолтний опис раунду',
+          defaultTournamentDescription: 'Стандартний опис турніру',
+          defaultRoundDescription: 'Стандартний опис раунду',
         },
       },
     },
@@ -3174,7 +3174,7 @@ export const messages: TranslationMap = {
       },
       workspaceToolsTitle: 'Admin toolset',
       workspaceToolsLead:
-        'Key operational screens for integrations, communication, and final control.',
+        'Key work areas for integrations, communication, and final control.',
       onboarding: {
         title: 'Quick start for the administrator',
         lead: 'Follow this order: first the tournament, then the round, and only after that evaluation and final control.',
@@ -3218,7 +3218,7 @@ export const messages: TranslationMap = {
         workspaceEyebrow: 'User operations',
         workspaceTitle: 'User management',
         workspaceLead:
-          'Use this screen to locate accounts quickly, adjust roles, and block access without touching the database directly.',
+          'Use this screen to locate accounts quickly, adjust roles, and block access without extra technical steps.',
         workspaceStatusLabel: 'Total accounts',
         workspaceStatusLead: 'Registered users currently stored in the platform.',
         loading: 'Loading users...',
@@ -3458,13 +3458,13 @@ export const messages: TranslationMap = {
       },
       formHints: {
         tournamentDefaults:
-          'New tournaments start from shared system defaults: team cap, registration window, and time zone.',
+          'New tournaments automatically receive standard settings: team cap, registration period, and time zone, which can be changed during creation or editing.',
         tournamentDescription:
           'Briefly explain the rules, format, and expectations for participating teams.',
         registrationWindow: 'Registration becomes available exactly from this moment.',
         maxTeams: 'Leave this empty when the tournament should not have a hard team cap.',
         roundDefaults:
-          'Rounds also reuse system defaults for duration, time zone, and the base description.',
+          'New rounds automatically receive standard settings: duration, time zone, and base description, which can be changed during creation or editing.',
         roundDescription: 'Describe what the team should build or deliver in this round.',
         mustHave: 'Add each mandatory criterion on a separate line.',
         technologyRequirements:
@@ -3717,7 +3717,7 @@ export const messages: TranslationMap = {
     monitoring: {
       eyebrow: 'System control',
       title: 'Monitoring',
-      lead: 'Recent backend incidents and core integration health in one admin view.',
+      lead: 'Recent technical issues and key integration status in one admin view.',
       loading: 'Loading monitoring data...',
       loadFailed: 'Could not load monitoring data',
       retry: 'Try again',
@@ -3726,22 +3726,22 @@ export const messages: TranslationMap = {
       workspaceEyebrow: 'System visibility',
       workspaceTitle: 'System monitoring snapshot',
       workspaceLead:
-        'Track backend incidents, integration health, and user-facing problem areas without jumping into raw logs first.',
+        'Track technical issues, integration status, and product areas that may have affected users.',
       workspaceStatusLabel: 'Recent incidents',
-      workspaceStatusLead: 'Persisted 5xx incidents currently visible in the monitoring snapshot.',
+      workspaceStatusLead: 'Technical incidents currently visible in the monitoring snapshot.',
       workspaceCards: {
         failuresLabel: 'Incidents',
-        failuresLead: 'The most recent server-side incident stored in the reporting log.',
+        failuresLead: 'The latest issue recorded by the platform.',
         googleLabel: 'Google Sheets',
         googleConfigured: 'Export ready',
         googlePending: 'Export pending',
-        googleLead: 'Current webhook readiness and the latest export result.',
+        googleLead: 'Current Google Sheets connection status and the latest export result.',
         emailLabel: 'Email delivery',
         emailActive: 'Email active',
         emailPending: 'Email needs attention',
         emailLead: 'Latest delivery check for email notifications and test sends.',
-        surfaceLabel: 'User-facing surface',
-        surfaceLead: 'Routes where incidents likely had direct user impact.',
+        surfaceLabel: 'User-facing areas',
+        surfaceLead: 'Product areas where incidents may have directly affected users.',
         surfaceStatus: 'Auth, tournaments, rounds, messages',
       },
       operationalStatusTitle: 'System status',
@@ -3755,11 +3755,11 @@ export const messages: TranslationMap = {
       lastEmailCheck: 'Last email check',
       errorReportsTitle: 'Recent error reports',
       errorReportsLead:
-        'This list stores backend 5xx incidents with request id, user context, and stack trace for faster triage.',
+        'This list collects serious server errors with request details, user context, and technical notes for faster review.',
       errorCountSuffix: 'incidents',
       noErrors: 'No incidents',
       noErrorsLead:
-        'The error log is empty, which means no new 5xx backend events were persisted in the current monitoring view.',
+        'The error log is empty, which means no new serious server events were recorded in the current monitoring view.',
       signalBoardTitle: 'System signal board',
       signalBoardLead:
         'A fast snapshot of incidents, critical zones, and routes that deserve first attention.',
@@ -3773,7 +3773,7 @@ export const messages: TranslationMap = {
       signals: {
         errors: 'Total incidents',
         critical: 'Critical 5xx',
-        criticalLead: 'Highest-severity backend errors in the current sample.',
+        criticalLead: 'Highest-severity server errors in the current sample.',
         route: 'Noisiest route',
         surface: 'User-facing zones',
       },
@@ -3781,7 +3781,7 @@ export const messages: TranslationMap = {
       createdAt: 'Created at',
       user: 'User',
       role: 'Role',
-      stackTrace: 'Stack trace',
+      stackTrace: 'Technical details',
       anonymous: 'Anonymous user',
       unknown: 'Unknown',
       notAvailable: 'Not available',
@@ -3790,11 +3790,11 @@ export const messages: TranslationMap = {
     systemIntegrations: {
       eyebrow: 'System integrations',
       title: 'Integrations',
-      lead: 'Configure external integrations without editing code or the server .env file.',
+      lead: 'Manage external connections and platform rules from one screen.',
       workspaceEyebrow: 'System setup',
       workspaceTitle: 'One place for system configuration',
       workspaceLead:
-        'Use this screen as an admin toolset for integrations, notification policy, and project-wide defaults without touching code or .env.',
+        'Use this screen to manage integrations, notification policy, and project-wide standard settings.',
       workspaceStatusLabel: 'Toolset status',
       workspaceStatusLead:
         'Core operational systems are either ready for use or waiting for minimal setup.',
@@ -3807,14 +3807,14 @@ export const messages: TranslationMap = {
         emailTitle: 'Email delivery',
         emailReady: 'The email notification channel is active and ready to send updates.',
         emailPending: 'The email channel is disabled or still needs setup.',
-        defaultsTitle: 'Project defaults',
-        defaultsLead: 'Default rules for new tournaments, teams, and rounds are managed here.',
+        defaultsTitle: 'Standard settings',
+        defaultsLead: 'Standard rules for new tournaments, teams, and rounds are managed here.',
         rulesTitle: 'Notification policy',
         rulesLead: 'active notification rules',
       },
       onboarding: {
         title: 'Recommended setup order',
-        lead: 'To make this screen genuinely useful, verify export first, then email delivery, and only after that finalize defaults and rules.',
+        lead: 'Verify export first, then email delivery, and only after that finalize standard settings and notification rules.',
         steps: {
           google: {
             title: 'Configure Google Sheets',
@@ -3825,8 +3825,8 @@ export const messages: TranslationMap = {
             lead: 'Choose the provider, fill sender settings, and send a test email so you immediately see the real delivery status.',
           },
           defaults: {
-            title: 'Finish defaults and notification rules',
-            lead: 'After integrations, lock in team limits, project time zone, and decide which platform events should create notifications at all.',
+            title: 'Set standard settings and notification rules',
+            lead: 'After integrations, set team limits, project time zone, and choose which platform events should create notifications.',
           },
         },
       },
@@ -3857,14 +3857,14 @@ export const messages: TranslationMap = {
         testConnection: 'Test connection',
         testing: 'Testing...',
         sources: {
-          database: 'Database',
-          env: 'ENV fallback',
+          database: 'Saved in platform',
+          env: 'Backup settings',
           none: 'Not set',
         },
         sourceHints: {
           database:
-            'The active values are stored in the database and can be updated from this page.',
-          env: 'The app is currently using the server .env fallback. Save this form to move the settings into the database.',
+            'The active values are already saved and can be updated from this page.',
+          env: 'The app is currently using backup server settings. Save this form to manage them here.',
           none: 'The webhook is not configured yet. Fill in the fields below to enable Google Sheets export.',
         },
         form: {
@@ -3875,7 +3875,7 @@ export const messages: TranslationMap = {
       },
       email: {
         title: 'Email delivery',
-        lead: 'Manage email notifications without editing the server env or shipping another deploy.',
+        lead: 'Manage email notifications without another deployment.',
         source: 'Config source',
         provider: 'Provider',
         deliveryStatus: 'Delivery status',
@@ -3891,16 +3891,16 @@ export const messages: TranslationMap = {
         incompleteLead:
           'Resend requires both the sender email and an API key before delivery can work.',
         sources: {
-          database: 'Database',
-          env: 'ENV fallback',
-          default: 'System default',
+          database: 'Saved in platform',
+          env: 'Backup settings',
+          default: 'Base values',
         },
         sourceHints: {
           database:
-            'The email configuration is stored in the database and is applied without editing .env.',
-          env: 'The app is currently using the server .env fallback. Save this form to move the settings into the database.',
+            'The email settings are already saved and applied automatically.',
+          env: 'The app is currently using backup server settings. Save this form to manage them here.',
           default:
-            'System email settings are not configured yet. Fill the form below if you want to enable delivery.',
+            'Email is not configured yet. Fill the form below to enable delivery.',
         },
         providers: {
           console: 'Console (dev/demo)',
@@ -3924,26 +3924,26 @@ export const messages: TranslationMap = {
         title: 'Platform content for the About page',
         lead: 'Manage the text shown on the public About page.',
         unavailable:
-          'The platform content endpoint is not available yet. The system fallback is shown; saving will work after the updated backend is running.',
+          'Content editing is not connected yet. The base text is shown for now, and saving will work after the server is updated.',
         bannerUploading: 'Uploading banner...',
         bannerUploaded: 'Banner uploaded and saved. It is already applied on the About page.',
         bannerUploadFailed: 'Could not upload the banner.',
         bannerUploadHint:
           'PNG, JPG, or WebP up to 5 MB are supported. The banner is saved automatically after choosing a file.',
         sources: {
-          database: 'Database',
-          default: 'System default',
+          database: 'Saved in platform',
+          default: 'Base text',
         },
         sourceHints: {
-          database: 'This text is stored in the database and already shown on the About page.',
-          default: 'The page is using the built-in fallback. Save this form to define custom text.',
+          database: 'This text is already saved and shown on the About page.',
+          default: 'The page is using base text. Save this form to define your own version.',
         },
         sections: {
           hero: 'Main description',
           heroMedia: 'Hero banner',
           product: 'Workflow card',
           roles: 'Role blocks',
-          cta: 'Bottom CTA block',
+          cta: 'Bottom call-to-action section',
           contacts: 'Contacts block',
           contactChannels: 'Contact channels',
         },
@@ -3952,9 +3952,9 @@ export const messages: TranslationMap = {
           en: 'English version',
         },
         form: {
-          heroEyebrow: 'Hero eyebrow',
-          heroTitle: 'Hero title',
-          heroDescription: 'Hero description',
+          heroEyebrow: 'Main section label',
+          heroTitle: 'Main section title',
+          heroDescription: 'Main section description',
           heroBannerImageUrl: 'Banner URL',
           heroBannerPlaceholder: 'https://example.com/about-banner.jpg',
           heroBannerUpload: 'Upload from computer',
@@ -3964,16 +3964,16 @@ export const messages: TranslationMap = {
           productEyebrow: 'Card eyebrow',
           productTitle: 'Card title',
           productLead: 'Card description',
-          rolesLabel: 'Roles block ARIA label',
+          rolesLabel: 'Accessible roles block name',
           organizersTitle: 'Organizers title',
           organizersLead: 'Organizers description',
           teamsTitle: 'Teams title',
           teamsLead: 'Teams description',
           juryTitle: 'Jury title',
           juryLead: 'Jury description',
-          ctaEyebrow: 'CTA eyebrow',
-          ctaTitle: 'CTA title',
-          ctaLead: 'CTA description',
+          ctaEyebrow: 'Bottom section label',
+          ctaTitle: 'Bottom section title',
+          ctaLead: 'Bottom section description',
           registerLabel: 'Guest button text',
           workspaceLabel: 'User button text',
           contactsEyebrow: 'Contacts eyebrow',
@@ -3997,7 +3997,7 @@ export const messages: TranslationMap = {
         saved: 'Review status was updated.',
         saveFailed: 'Could not update review status.',
         unavailable:
-          'The reviews endpoint is not available yet. Moderation will work after the updated backend is running.',
+          'Review moderation is not connected yet. It will work after the server is updated.',
         updatedAt: 'Updated at',
         moderator: 'Moderator',
         notReviewed: 'Not reviewed yet',
@@ -4017,15 +4017,15 @@ export const messages: TranslationMap = {
       },
       notificationRules: {
         title: 'Notification rules',
-        lead: 'Globally define which system events create notifications in the platform at all.',
+        lead: 'Choose which platform events should create notifications.',
         sources: {
-          database: 'Database',
-          default: 'System default',
+          database: 'Saved in platform',
+          default: 'Base rules',
         },
         sourceHints: {
-          database: 'These rules are already stored in the database and applied to all new events.',
+          database: 'These rules are already saved and applied to new events.',
           default:
-            'The default behavior is currently active: all major events create notifications.',
+            'Base rules are currently active: all major events create notifications.',
         },
         items: {
           registrationStarted: 'Registration started',
@@ -4036,18 +4036,18 @@ export const messages: TranslationMap = {
         },
       },
       tournamentDefaults: {
-        title: 'Tournament defaults',
-        roundDefaultsTitle: 'Defaults for new rounds',
-        lead: 'Manage default team limits, project time zone, and starter values for new tournaments and rounds.',
+        title: 'Standard tournament settings',
+        roundDefaultsTitle: 'Standard settings for new rounds',
+        lead: 'Manage standard team limits, project time zone, and starter values for new tournaments and rounds.',
         sources: {
-          database: 'Database',
-          default: 'System default',
+          database: 'Saved in platform',
+          default: 'Base values',
         },
         sourceHints: {
           database:
-            'These values are stored in the database and immediately affect new forms and validations.',
+            'These values are already saved and immediately apply to new forms and validations.',
           default:
-            'The app is still using the built-in defaults. Save this form to define project-specific rules.',
+            'The app is still using base values. Save this form to define rules for your project.',
         },
         form: {
           minTeamMembers: 'Minimum team members',
@@ -4058,8 +4058,8 @@ export const messages: TranslationMap = {
           defaultTournamentMaxTeams: 'Default team limit',
           defaultRegistrationWindowHours: 'Registration window duration (hours)',
           defaultRoundDurationHours: 'New round duration (hours)',
-          defaultTournamentDescription: 'Default tournament description',
-          defaultRoundDescription: 'Default round description',
+          defaultTournamentDescription: 'Standard tournament description',
+          defaultRoundDescription: 'Standard round description',
         },
       },
     },
