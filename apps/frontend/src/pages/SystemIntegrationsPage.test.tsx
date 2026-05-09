@@ -462,7 +462,7 @@ describe('SystemIntegrationsPage', () => {
     expect(screen.getAllByText('Approved').length).toBeGreaterThan(0);
   });
 
-  it('keeps integrations available when platform content endpoint is missing', async () => {
+  it('keeps integrations available when platform content editing is not connected', async () => {
     mockedApiRequest.mockImplementation(createSettingsMock({ platformContentError: true }));
 
     renderPage();
@@ -473,7 +473,7 @@ describe('SystemIntegrationsPage', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        'The platform content endpoint is not available yet. The system fallback is shown; saving will work after the updated backend is running.',
+        'Content editing is not connected yet. The base text is shown for now, and saving will work after the server is updated.',
       ),
     ).toBeInTheDocument();
   });
