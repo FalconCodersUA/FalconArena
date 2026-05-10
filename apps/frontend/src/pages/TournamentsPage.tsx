@@ -204,7 +204,7 @@ export default function TournamentsPage() {
 
   const filteredItems = useMemo(() => {
     if (filter === 'registrationOpen') {
-      return items.filter((item) => item.canTeamRegister);
+      return items.filter((item) => item.status === 'REGISTRATION');
     }
 
     if (filter === 'running') {
@@ -222,8 +222,12 @@ export default function TournamentsPage() {
     () => filteredItems.filter((item) => item.status === 'RUNNING'),
     [filteredItems],
   );
+  const allActiveItems = useMemo(
+    () => items.filter((item) => item.status === 'RUNNING'),
+    [items],
+  );
   const registrationOpenItems = useMemo(
-    () => items.filter((item) => item.canTeamRegister),
+    () => items.filter((item) => item.status === 'REGISTRATION'),
     [items],
   );
   const upcomingItems = useMemo(
@@ -233,9 +237,17 @@ export default function TournamentsPage() {
       ),
     [filteredItems],
   );
+  const allUpcomingItems = useMemo(
+    () => items.filter((item) => item.status === 'DRAFT' || item.status === 'REGISTRATION'),
+    [items],
+  );
   const finishedItems = useMemo(
     () => filteredItems.filter((item) => item.status === 'FINISHED'),
     [filteredItems],
+  );
+  const allFinishedItems = useMemo(
+    () => items.filter((item) => item.status === 'FINISHED'),
+    [items],
   );
 
   if (loading) {
@@ -321,7 +333,7 @@ export default function TournamentsPage() {
             <span>{t('tournaments.filters.finished')}</span>
             <strong>{t('tournaments.workspaceCards.archiveTitle')}</strong>
             <p>{t('tournaments.workspaceCards.archiveLead')}</p>
-            <em>{finishedItems.length} {t('tournaments.workspaceCards.archiveSuffix')}</em>
+            <em>{allFinishedItems.length} {t('tournaments.workspaceCards.archiveSuffix')}</em>
           </button>
           <Link to="/app/teams" className="dashboard-tool-card dashboard-tool-card--berry">
             <span>{t('shell.teams')}</span>
@@ -338,17 +350,17 @@ export default function TournamentsPage() {
           <div className="summary-card">
             <span>{t('tournaments.totalLabel')}</span>
             <strong>{items.length}</strong>
-            <p>{t('tournaments.sections.active')}: {activeItems.length}</p>
+            <p>{t('tournaments.sections.active')}: {allActiveItems.length}</p>
           </div>
           <div className="summary-card">
             <span>{t('tournaments.filters.registrationOpen')}</span>
-            <strong>{items.filter((item) => item.canTeamRegister).length}</strong>
-            <p>{t('tournaments.sections.upcoming')}: {upcomingItems.length}</p>
+            <strong>{registrationOpenItems.length}</strong>
+            <p>{t('tournaments.sections.upcoming')}: {allUpcomingItems.length}</p>
           </div>
           <div className="summary-card">
             <span>{t('tournaments.filters.running')}</span>
-            <strong>{activeItems.length}</strong>
-            <p>{t('tournaments.filters.finished')}: {finishedItems.length}</p>
+            <strong>{allActiveItems.length}</strong>
+            <p>{t('tournaments.filters.finished')}: {allFinishedItems.length}</p>
           </div>
         </div>
       </article>
@@ -365,7 +377,7 @@ export default function TournamentsPage() {
               <p className="form-error">{quickError}</p>
               <button
                 type="button"
-                className="button button-soft"
+                className="button tournaments-card-action tournaments-card-action--secondary"
                 onClick={() => void loadQuickTeamBlock(items)}
               >
                 {t('tournaments.retry')}
@@ -433,12 +445,12 @@ export default function TournamentsPage() {
               </div>
 
               <div className="status-actions">
-                <Link to="/app/team" className="button button-primary">
+                <Link to="/app/team" className="button tournaments-card-action tournaments-card-action--purple">
                   {t('tournaments.quickBlock.goToTeam')}
                 </Link>
                 <Link
                   to={`/app/leaderboard?tournamentId=${quickData.tournament.id}`}
-                  className="button button-soft"
+                  className="button tournaments-card-action tournaments-card-action--secondary"
                 >
                   {t('tournaments.quickBlock.goToLeaderboard')}
                 </Link>

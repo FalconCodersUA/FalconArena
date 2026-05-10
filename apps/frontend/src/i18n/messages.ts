@@ -308,9 +308,9 @@ export const messages: TranslationMap = {
       workspaceStatusLabel: 'Турніри за фільтром',
       workspaceStatusLead: 'Показано турніри, які відповідають вибраному фільтру.',
       workspaceCards: {
-        registrationTitle: 'Реєстрація відкрита',
+        registrationTitle: 'Статус: реєстрація',
         registrationLead:
-          'Перейдіть до турнірів, де команди ще можуть зареєструватися, і швидко перевірте доступні місця та дедлайни.',
+          'Перейдіть до турнірів, які зараз перебувають на етапі реєстрації, і перевірте строки та доступність запису.',
         registrationSuffix: 'турнірів',
         runningTitle: 'Активні події',
         runningLead:
@@ -2333,9 +2333,9 @@ export const messages: TranslationMap = {
       workspaceStatusLead:
         'The number of tournaments currently included in the selected working context.',
       workspaceCards: {
-        registrationTitle: 'Registration open',
+        registrationTitle: 'Registration status',
         registrationLead:
-          'Jump to tournaments where teams can still register and quickly check available slots and deadlines.',
+          'Jump to tournaments that are currently in the registration stage and check timing and signup availability.',
         registrationSuffix: 'tournaments',
         allTitle: 'All tournaments',
         allLead:
@@ -2370,7 +2370,7 @@ export const messages: TranslationMap = {
       hideFinished: 'Hide finished',
       filters: {
         all: 'All',
-        registrationOpen: 'Registration open',
+        registrationOpen: 'Registration',
         running: 'Running',
         finished: 'Finished',
       },
