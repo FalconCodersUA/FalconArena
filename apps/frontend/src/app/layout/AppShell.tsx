@@ -341,6 +341,11 @@ export default function AppShell() {
           label: t('shell.about'),
           category: t('shell.searchCategories.sections'),
         },
+        {
+          path: '/app/presentation',
+          label: t('shell.presentation'),
+          category: t('shell.searchCategories.sections'),
+        },
         canManageUsers
           ? {
               path: '/app/users',
@@ -422,6 +427,10 @@ export default function AppShell() {
 
     if (location.pathname.startsWith('/app/about')) {
       return t('shell.about');
+    }
+
+    if (location.pathname.startsWith('/app/presentation')) {
+      return t('shell.presentation');
     }
 
     if (location.pathname.startsWith('/app/teams')) {

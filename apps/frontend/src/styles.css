@@ -1805,6 +1805,7 @@ a {
 }
 
 .app-alert-item {
+  min-width: 0;
   border: 1px solid #ede7f8;
   border-radius: 10px;
   background: #fcfaff;
@@ -1816,6 +1817,7 @@ a {
 .app-alert-item strong {
   color: #303157;
   font-size: 0.8rem;
+  overflow-wrap: anywhere;
 }
 
 .app-alert-item p {
@@ -1823,6 +1825,7 @@ a {
   color: #556181;
   font-size: 0.78rem;
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .app-alert-meta {
@@ -1853,6 +1856,7 @@ a {
   font-weight: 700;
   padding: 0;
   cursor: pointer;
+  text-align: left;
 }
 
 .app-avatar {
@@ -4556,6 +4560,154 @@ a {
   width: 58%;
   margin-left: 12%;
   background: linear-gradient(90deg, rgba(255, 183, 77, 0.18) 0%, rgba(255, 183, 77, 0.74) 100%);
+}
+
+.about-presentation-panel,
+.presentation-hero {
+  position: relative;
+  overflow: clip;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border: 1px solid #e8defa;
+  border-radius: 28px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 251, 255, 0.96) 100%);
+  box-shadow: 0 22px 46px rgba(52, 60, 106, 0.08);
+  padding: 28px;
+}
+
+.about-presentation-copy,
+.presentation-hero-copy {
+  display: grid;
+  gap: 12px;
+  max-width: 820px;
+}
+
+.about-presentation-copy h2,
+.presentation-hero-copy h1 {
+  margin: 0;
+  color: #343c6a;
+  font-family: 'Chakra Petch', sans-serif;
+  letter-spacing: 0;
+  line-height: 1.05;
+}
+
+.about-presentation-copy h2 {
+  font-size: 2rem;
+}
+
+.presentation-hero-copy h1 {
+  font-size: 3rem;
+}
+
+.about-presentation-copy p:not(.eyebrow),
+.presentation-hero-copy p:not(.eyebrow) {
+  margin: 0;
+  color: #65709a;
+  line-height: 1.68;
+}
+
+.about-presentation-panel .button,
+.presentation-hero-actions .button {
+  flex: 0 0 auto;
+}
+
+.app-page .about-presentation-panel .button-primary,
+.app-page .about-presentation-panel .button-primary:visited {
+  background: #5e17eb;
+  border-color: #5e17eb;
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(94, 23, 235, 0.16);
+}
+
+.app-page .about-presentation-panel .button-primary:hover:not(:disabled),
+.app-page .about-presentation-panel .button-primary:focus-visible {
+  background: #5214cf;
+  border-color: #5214cf;
+  color: #ffffff;
+}
+
+.presentation-page {
+  display: grid;
+  gap: 18px;
+}
+
+.presentation-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.presentation-player-panel {
+  overflow: clip;
+  border: 1px solid #e8defa;
+  border-radius: 30px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 243, 255, 0.96) 100%);
+  box-shadow: 0 26px 54px rgba(52, 60, 106, 0.12);
+  padding: clamp(12px, 2vw, 18px);
+}
+
+.presentation-player-frame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  border-radius: 22px;
+  background: #121728;
+}
+
+.presentation-player-frame iframe {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.presentation-context-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.presentation-context-grid article {
+  min-height: 180px;
+  border: 1px solid #e8defa;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 20px 42px rgba(52, 60, 106, 0.08);
+  padding: 22px;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.presentation-context-grid span {
+  width: fit-content;
+  border-radius: 999px;
+  background: #edf8ff;
+  color: #2563eb;
+  padding: 7px 11px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.presentation-context-grid strong {
+  color: #343c6a;
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 1.12rem;
+}
+
+.presentation-context-grid p {
+  margin: 0;
+  color: #65709a;
+  line-height: 1.62;
 }
 
 .about-role-grid {
@@ -9808,7 +9960,11 @@ body[data-theme='dark'] .app-page .about-hero-banner {
 }
 
 body[data-theme='dark'] .app-page .about-product-card,
-body[data-theme='dark'] .app-page .about-role-card {
+body[data-theme='dark'] .app-page .about-role-card,
+body[data-theme='dark'] .app-page .about-presentation-panel,
+body[data-theme='dark'] .app-page .presentation-hero,
+body[data-theme='dark'] .app-page .presentation-player-panel,
+body[data-theme='dark'] .app-page .presentation-context-grid article {
   border-color: rgba(139, 93, 255, 0.18);
   background:
     radial-gradient(circle at 100% 0%, rgba(139, 93, 255, 0.16) 0%, transparent 34%),
@@ -9817,16 +9973,23 @@ body[data-theme='dark'] .app-page .about-role-card {
 }
 
 body[data-theme='dark'] .app-page .about-product-copy h2,
-body[data-theme='dark'] .app-page .about-role-card h3 {
+body[data-theme='dark'] .app-page .about-role-card h3,
+body[data-theme='dark'] .app-page .about-presentation-copy h2,
+body[data-theme='dark'] .app-page .presentation-hero-copy h1,
+body[data-theme='dark'] .app-page .presentation-context-grid strong {
   color: #eff2ff;
 }
 
 body[data-theme='dark'] .app-page .about-product-copy p:not(.eyebrow),
-body[data-theme='dark'] .app-page .about-role-card p {
+body[data-theme='dark'] .app-page .about-role-card p,
+body[data-theme='dark'] .app-page .about-presentation-copy p:not(.eyebrow),
+body[data-theme='dark'] .app-page .presentation-hero-copy p:not(.eyebrow),
+body[data-theme='dark'] .app-page .presentation-context-grid p {
   color: #aeb8dc;
 }
 
-body[data-theme='dark'] .app-page .about-role-card span {
+body[data-theme='dark'] .app-page .about-role-card span,
+body[data-theme='dark'] .app-page .presentation-context-grid span {
   background: rgba(139, 93, 255, 0.18);
   color: #d9ccff;
 }
@@ -11699,7 +11862,10 @@ body[data-theme='blue'] .app-page .about-contacts-copy h2,
 body[data-theme='blue'] .app-page .about-contact-card strong,
 body[data-theme='blue'] .app-page .about-reviews-head h2,
 body[data-theme='blue'] .app-page .about-review-card strong,
-body[data-theme='blue'] .app-page .about-review-empty strong {
+body[data-theme='blue'] .app-page .about-review-empty strong,
+body[data-theme='blue'] .app-page .about-presentation-copy h2,
+body[data-theme='blue'] .app-page .presentation-hero-copy h1,
+body[data-theme='blue'] .app-page .presentation-context-grid strong {
   color: #ffffff;
   -webkit-text-fill-color: #ffffff;
 }
@@ -11712,7 +11878,10 @@ body[data-theme='blue'] .app-page .about-reviews-head p:not(.eyebrow),
 body[data-theme='blue'] .app-page .about-review-card p,
 body[data-theme='blue'] .app-page .about-review-empty p,
 body[data-theme='blue'] .app-page .about-review-auth-note p,
-body[data-theme='blue'] .app-page .about-review-form-footer p {
+body[data-theme='blue'] .app-page .about-review-form-footer p,
+body[data-theme='blue'] .app-page .about-presentation-copy p:not(.eyebrow),
+body[data-theme='blue'] .app-page .presentation-hero-copy p:not(.eyebrow),
+body[data-theme='blue'] .app-page .presentation-context-grid p {
   color: #dfe4ff;
 }
 
@@ -11725,7 +11894,11 @@ body[data-theme='blue'] .app-page .about-hero-banner {
 body[data-theme='blue'] .app-page .about-product-card,
 body[data-theme='blue'] .app-page .about-role-card,
 body[data-theme='blue'] .app-page .about-contacts-panel,
-body[data-theme='blue'] .app-page .about-reviews-panel {
+body[data-theme='blue'] .app-page .about-reviews-panel,
+body[data-theme='blue'] .app-page .about-presentation-panel,
+body[data-theme='blue'] .app-page .presentation-hero,
+body[data-theme='blue'] .app-page .presentation-player-panel,
+body[data-theme='blue'] .app-page .presentation-context-grid article {
   border-color: rgba(226, 232, 255, 0.2);
   background:
     radial-gradient(circle at 100% 0%, rgba(141, 92, 255, 0.22) 0%, transparent 34%),
@@ -11736,6 +11909,11 @@ body[data-theme='blue'] .app-page .about-reviews-panel {
 }
 
 body[data-theme='blue'] .app-page .about-role-card span {
+  background: rgba(77, 219, 210, 0.16);
+  color: #c9fffb;
+}
+
+body[data-theme='blue'] .app-page .presentation-context-grid span {
   background: rgba(77, 219, 210, 0.16);
   color: #c9fffb;
 }
@@ -12258,6 +12436,7 @@ body[data-theme='blue'] .app-page.admin-users-page .admin-user-action--save:disa
 
   .about-product-card,
   .about-role-grid,
+  .presentation-context-grid,
   .about-reviews-grid,
   .platform-review-admin-meta,
   .about-contacts-panel,
@@ -12267,6 +12446,9 @@ body[data-theme='blue'] .app-page.admin-users-page .admin-user-action--save:disa
 
   .about-reviews-head,
   .about-reviews-actions,
+  .about-presentation-panel,
+  .presentation-hero,
+  .presentation-hero-actions,
   .about-review-form-footer,
   .about-review-auth-note,
   .platform-review-admin-head {
@@ -12297,6 +12479,12 @@ body[data-theme='blue'] .app-page.admin-users-page .admin-user-action--save:disa
   }
 
   .about-cta-panel .button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .about-presentation-panel .button,
+  .presentation-hero-actions .button {
     width: 100%;
     justify-content: center;
   }
@@ -12449,9 +12637,9 @@ body[data-theme='blue'] .app-page.admin-users-page .admin-user-action--save:disa
   }
 
   .app-alerts-popover {
-    right: auto;
-    left: 0;
-    width: min(94vw, 380px);
+    right: 0;
+    left: auto;
+    width: min(calc(100vw - 32px), 380px);
   }
 
   .app-topbar-language {

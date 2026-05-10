@@ -15,6 +15,7 @@ import MessagesPage from '../pages/MessagesPage';
 import MonitoringPage from '../pages/MonitoringPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import OAuthCallbackPage from '../pages/OAuthCallbackPage';
+import PresentationPage from '../pages/PresentationPage';
 import ProfilePage from '../pages/ProfilePage';
 import RegisterPage from '../pages/RegisterPage';
 import SystemIntegrationsPage from '../pages/SystemIntegrationsPage';
@@ -102,6 +103,10 @@ export const router = createBrowserRouter([
       {
         path: 'about',
         element: <AboutPage />,
+      },
+      {
+        path: 'presentation',
+        element: <PresentationPage />,
       },
       {
         path: 'archive',

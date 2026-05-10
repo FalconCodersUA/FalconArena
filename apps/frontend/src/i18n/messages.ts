@@ -21,6 +21,7 @@ export const messages: TranslationMap = {
       teams: 'Команди',
       tournamentsNav: 'Турніри',
       about: 'Про нас',
+      presentation: 'Презентація',
       archive: 'Архів',
       messages: 'Повідомлення',
       users: 'Користувачі',
@@ -174,6 +175,12 @@ export const messages: TranslationMap = {
         title: 'Один маршрут для турніру від реєстрації до фінального лідерборда',
         lead: 'Адміністратор задає правила, команди працюють із завданнями, журі оцінює сабміти, а результати збираються в архіві без ручних таблиць.',
       },
+      presentation: {
+        eyebrow: 'Відеоогляд',
+        title: 'Подивіться FalconArena в дії',
+        lead: 'Коротка презентація показує ключові ролі, сторінки та робочий сценарій платформи для журі й гостей проєкту.',
+        action: 'Дивитися презентацію',
+      },
       roles: {
         label: 'Ролі платформи',
         organizers: {
@@ -216,6 +223,24 @@ export const messages: TranslationMap = {
         validation: {
           tooShort: 'Відгук має містити щонайменше 10 символів.',
         },
+      },
+    },
+    presentationPage: {
+      eyebrow: 'Відеопрезентація',
+      title: 'Презентація FalconArena',
+      lead: 'Пʼятихвилинний огляд платформи: від створення турніру й роботи команди до оцінювання журі, повідомлень, лідерборда та архіву результатів.',
+      openYoutube: 'Відкрити на YouTube',
+      backToAbout: 'До сторінки Про нас',
+      playerLabel: 'Вбудований відеоплеєр презентації',
+      videoTitle: 'Відеопрезентація FalconArena',
+      highlightsLabel: 'Ключові акценти презентації',
+      highlights: {
+        flowTitle: 'Повний сценарій турніру',
+        flowLead: 'Показано шлях від налаштувань і реєстрації до фінального результату.',
+        rolesTitle: 'Ролі в одному просторі',
+        rolesLead: 'Адмін, команда й журі працюють у власних кабінетах без зайвих перемикань.',
+        resultTitle: 'Готовність до демонстрації',
+        resultLead: 'Журі бачить не лише функції, а й цілісний продукт з архівом, повідомленнями та експортом.',
       },
     },
     language: {
@@ -2055,6 +2080,7 @@ export const messages: TranslationMap = {
       teams: 'Teams',
       tournamentsNav: 'Tournaments',
       about: 'About',
+      presentation: 'Presentation',
       archive: 'Archive',
       messages: 'Messages',
       users: 'Users',
@@ -2208,6 +2234,12 @@ export const messages: TranslationMap = {
         title: 'One tournament route from registration to the final leaderboard',
         lead: 'Admins define rules, teams work with tasks, jury members review submissions, and results move into the archive without manual spreadsheets.',
       },
+      presentation: {
+        eyebrow: 'Video walkthrough',
+        title: 'Watch FalconArena in action',
+        lead: 'A concise presentation shows the key roles, pages, and platform workflow for judges and project guests.',
+        action: 'Watch presentation',
+      },
       roles: {
         label: 'Platform roles',
         organizers: {
@@ -2250,6 +2282,24 @@ export const messages: TranslationMap = {
         validation: {
           tooShort: 'The review must contain at least 10 characters.',
         },
+      },
+    },
+    presentationPage: {
+      eyebrow: 'Video presentation',
+      title: 'FalconArena Presentation',
+      lead: 'A five-minute platform walkthrough: from tournament setup and team workflow to jury evaluation, messages, leaderboard, and result archive.',
+      openYoutube: 'Open on YouTube',
+      backToAbout: 'Back to About',
+      playerLabel: 'Embedded presentation video player',
+      videoTitle: 'FalconArena video presentation',
+      highlightsLabel: 'Presentation highlights',
+      highlights: {
+        flowTitle: 'Complete tournament scenario',
+        flowLead: 'The video shows the path from setup and registration to the final result.',
+        rolesTitle: 'Roles in one workspace',
+        rolesLead: 'Admin, team, and jury workflows stay connected without extra switching.',
+        resultTitle: 'Ready for judging',
+        resultLead: 'Judges see a complete product with archive, messages, leaderboard, and export.',
       },
     },
     language: {

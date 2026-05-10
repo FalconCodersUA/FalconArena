@@ -491,6 +491,17 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <section className="about-presentation-panel" aria-labelledby="about-presentation-title">
+        <div className="about-presentation-copy">
+          <p className="eyebrow">{t('aboutPage.presentation.eyebrow')}</p>
+          <h2 id="about-presentation-title">{t('aboutPage.presentation.title')}</h2>
+          <p>{t('aboutPage.presentation.lead')}</p>
+        </div>
+        <Link to="/app/presentation" className="button button-primary">
+          {t('aboutPage.presentation.action')}
+        </Link>
+      </section>
+
       <section className="about-role-grid" aria-label={content.roles.label[language]}>
         <article className="about-role-card about-role-card--organizers">
           <span>01</span>
