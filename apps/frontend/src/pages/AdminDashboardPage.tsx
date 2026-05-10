@@ -450,6 +450,7 @@ function AdminActionModal({
 export default function AdminDashboardPage() {
   const { language, t } = useI18n();
   const dateTimeInputLang = language === 'uk' ? 'uk-UA' : 'en-US';
+  const contentInputLang = language === 'uk' ? 'uk-UA' : 'en-US';
   const { notifyError, notifySuccess } = useNotifications();
 
   const [me, setMe] = useState<AuthMe | null>(null);
@@ -2366,6 +2367,8 @@ export default function AdminDashboardPage() {
             <span>{t('schedule.form.description')}</span>
             <textarea
               id="admin-schedule-description"
+              lang={contentInputLang}
+              spellCheck
               value={scheduleDescription}
               onChange={(event) => setScheduleDescription(event.target.value)}
               maxLength={4000}
@@ -2900,6 +2903,8 @@ export default function AdminDashboardPage() {
             </small>
             <textarea
               id="admin-tournament-description"
+              lang={contentInputLang}
+              spellCheck
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               maxLength={4000}
@@ -3107,6 +3112,8 @@ export default function AdminDashboardPage() {
             </small>
             <textarea
               id="admin-round-description"
+              lang={contentInputLang}
+              spellCheck
               value={roundDescription}
               onChange={(event) => setRoundDescription(event.target.value)}
               required
@@ -3122,6 +3129,8 @@ export default function AdminDashboardPage() {
             </small>
             <textarea
               id="admin-round-must-have"
+              lang={contentInputLang}
+              spellCheck
               value={mustHaveRaw}
               onChange={(event) => setMustHaveRaw(event.target.value)}
             />
@@ -3134,6 +3143,8 @@ export default function AdminDashboardPage() {
             </small>
             <textarea
               id="admin-round-tech-req"
+              lang={contentInputLang}
+              spellCheck
               value={technologyRequirementsRaw}
               onChange={(event) => setTechnologyRequirementsRaw(event.target.value)}
             />
@@ -3146,6 +3157,8 @@ export default function AdminDashboardPage() {
             </small>
             <textarea
               id="admin-round-materials"
+              lang={contentInputLang}
+              spellCheck
               value={additionalMaterialsRaw}
               onChange={(event) => setAdditionalMaterialsRaw(event.target.value)}
             />

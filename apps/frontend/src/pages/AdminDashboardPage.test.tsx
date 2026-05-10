@@ -94,6 +94,63 @@ function renderAdminPage() {
   );
 }
 
+function mockAdminDashboardContentRequests() {
+  mockedApiRequest.mockImplementation(async (path: string) => {
+    if (path === '/platform/defaults') {
+      return platformDefaults;
+    }
+
+    if (path === '/auth/me') {
+      return {
+        id: 'admin-1',
+        email: 'admin@example.com',
+        role: 'ADMIN',
+      };
+    }
+
+    if (path === '/tournaments') {
+      return [tournament];
+    }
+
+    if (path.startsWith('/dashboard/admin/metrics')) {
+      return emptyMetrics;
+    }
+
+    if (path.startsWith('/activity/admin')) {
+      return [];
+    }
+
+    if (path === '/tournaments/t-1/rounds') {
+      return [];
+    }
+
+    if (path === '/tournaments/t-1/schedule') {
+      return [];
+    }
+
+    if (path === '/tournaments/t-1/jury') {
+      return tournamentJury;
+    }
+
+    throw new Error(`Unexpected request: ${path}`);
+  });
+}
+
+async function openCreateRoundDialog(buttonName: string, dialogName: string) {
+  let createRoundButton: HTMLButtonElement | undefined;
+
+  await waitFor(() => {
+    createRoundButton = screen
+      .getAllByRole('button', { name: buttonName })
+      .find((button) => !(button as HTMLButtonElement).disabled) as HTMLButtonElement | undefined;
+    expect(createRoundButton).toBeDefined();
+  });
+
+  fireEvent.click(createRoundButton!);
+
+  return screen.findByRole('dialog', { name: dialogName });
+}
+
 describe('AdminDashboardPage user creation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -217,6 +274,43 @@ describe('AdminDashboardPage user creation', () => {
     const options = Array.from(roleSelect.options).map((option) => option.value);
 
     expect(options).toEqual(['JURY', 'ORGANIZER', 'TEAM']);
+  });
+});
+
+describe('AdminDashboardPage content field spellcheck language', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
+
+  it('uses Ukrainian spellcheck hints for round content fields when the UI language is Ukrainian', async () => {
+    localStorage.setItem('falconarena_language', 'uk');
+    mockAdminDashboardContentRequests();
+
+    renderAdminPage();
+
+    const dialog = await openCreateRoundDialog('Створити раунд', 'Створення раунду');
+    const roundDescription = dialog.querySelector(
+      '#admin-round-description',
+    ) as HTMLTextAreaElement;
+
+    expect(roundDescription).toHaveAttribute('lang', 'uk-UA');
+    expect(roundDescription).toHaveAttribute('spellcheck', 'true');
+  });
+
+  it('uses English spellcheck hints for round content fields when the UI language is English', async () => {
+    localStorage.setItem('falconarena_language', 'en');
+    mockAdminDashboardContentRequests();
+
+    renderAdminPage();
+
+    const dialog = await openCreateRoundDialog('Create round', 'Create round');
+    const roundDescription = dialog.querySelector(
+      '#admin-round-description',
+    ) as HTMLTextAreaElement;
+
+    expect(roundDescription).toHaveAttribute('lang', 'en-US');
+    expect(roundDescription).toHaveAttribute('spellcheck', 'true');
   });
 });
 
