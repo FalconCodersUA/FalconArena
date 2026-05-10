@@ -64,10 +64,15 @@ export default function AdminUsersPage() {
   const [blockUserTarget, setBlockUserTarget] = useState<ManagedUser | null>(null);
   const [blockReason, setBlockReason] = useState('');
   const [blockReasonError, setBlockReasonError] = useState('');
+  const [resetPasswordTarget, setResetPasswordTarget] = useState<ManagedUser | null>(null);
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetPasswordError, setResetPasswordError] = useState('');
+  const [resettingPasswordUserId, setResettingPasswordUserId] = useState('');
 
   const currentUser = getAuthUser();
   const currentUserId = currentUser?.id ?? '';
   const currentUserEmail = currentUser?.email.trim().toLowerCase() ?? '';
+  const canResetPasswords = currentUser?.role === 'ADMIN';
   const creatableRoles =
     currentUser?.role === 'ADMIN'
       ? MANAGEABLE_ROLES
@@ -86,6 +91,12 @@ export default function AdminUsersPage() {
     setBlockUserTarget(null);
     setBlockReason('');
     setBlockReasonError('');
+  }
+
+  function closeResetPasswordModal() {
+    setResetPasswordTarget(null);
+    setResetPassword('');
+    setResetPasswordError('');
   }
 
   const loadUsers = useCallback(async (showLoading = true) => {
@@ -386,6 +397,49 @@ export default function AdminUsersPage() {
     }
   }
 
+  async function submitPasswordReset(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!resetPasswordTarget) {
+      return;
+    }
+
+    if (resetPassword.length < 8 || resetPassword.length > 128) {
+      setResetPasswordError(t('adminDashboard.validation.userPassword'));
+      return;
+    }
+
+    setResetPasswordError('');
+    setResettingPasswordUserId(resetPasswordTarget.id);
+    setError('');
+    setNotice('');
+
+    try {
+      const updated = await apiRequest<ManagedUser>(
+        `/admin/users/${resetPasswordTarget.id}/password`,
+        {
+          method: 'PATCH',
+          body: { password: resetPassword },
+        },
+      );
+
+      setUsers((current) =>
+        current.map((entry) => (entry.id === resetPasswordTarget.id ? updated : entry)),
+      );
+      setDraftRoles((current) => ({ ...current, [updated.id]: updated.role }));
+      setNotice(
+        t('adminDashboard.adminUsers.passwordReset').replace('{name}', updated.fullName),
+      );
+      closeResetPasswordModal();
+    } catch (requestError) {
+      setResetPasswordError(
+        normalizeApiErrorMessage(requestError, t, t('adminDashboard.adminUsers.passwordResetFailed')),
+      );
+    } finally {
+      setResettingPasswordUserId('');
+    }
+  }
+
   if (loading) {
     return <QuietLoadingCard label={t('adminDashboard.adminUsers.loading')} />;
   }
@@ -606,6 +660,23 @@ export default function AdminUsersPage() {
                       {savingRoleUserId === user.id ? t('adminDashboard.adminUsers.saving') : t('adminDashboard.adminUsers.saveRole')}
                     </button>
 
+                    {canResetPasswords ? (
+                      <button
+                        type="button"
+                        className="button button-soft admin-user-action admin-user-action--save"
+                        disabled={isSelf || resettingPasswordUserId === user.id}
+                        onClick={() => {
+                          setResetPassword('');
+                          setResetPasswordError('');
+                          setResetPasswordTarget(user);
+                        }}
+                      >
+                        {resettingPasswordUserId === user.id
+                          ? t('adminDashboard.adminUsers.updating')
+                          : t('adminDashboard.adminUsers.resetPasswordAction')}
+                      </button>
+                    ) : null}
+
                     <button
                       type="button"
                       className={`button admin-user-action ${
@@ -784,6 +855,76 @@ export default function AdminUsersPage() {
                     : t('adminDashboard.adminUsers.blockModal.confirm')}
                 </button>
               </div>
+            </div>
+          </article>
+        </div>
+      ) : null}
+
+      {resetPasswordTarget ? (
+        <div
+          className="app-modal-overlay"
+          role="presentation"
+          onClick={closeResetPasswordModal}
+        >
+          <article
+            className="app-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('adminDashboard.adminUsers.passwordResetModal.title')}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="app-modal-head">
+              <h2>{t('adminDashboard.adminUsers.passwordResetModal.title')}</h2>
+              <button
+                type="button"
+                className="button button-soft app-modal-close app-modal-secondary-action"
+                onClick={closeResetPasswordModal}
+              >
+                {t('adminDashboard.modal.close')}
+              </button>
+            </header>
+            <div className="app-modal-body">
+              <p className="inline-hint">
+                {t('adminDashboard.adminUsers.passwordResetModal.lead')
+                  .replace('{name}', resetPasswordTarget.fullName)
+                  .replace('{email}', resetPasswordTarget.email)}
+              </p>
+              {resetPasswordError ? <p className="form-error">{resetPasswordError}</p> : null}
+
+              <form className="panel-form" onSubmit={submitPasswordReset} noValidate>
+                <label className="field" htmlFor="admin-users-reset-password">
+                  <span>{t('adminDashboard.adminUsers.passwordResetModal.password')}</span>
+                  <input
+                    id="admin-users-reset-password"
+                    type="password"
+                    value={resetPassword}
+                    onChange={(event) => setResetPassword(event.target.value)}
+                    required
+                    minLength={8}
+                    maxLength={128}
+                    autoComplete="new-password"
+                  />
+                </label>
+
+                <div className="admin-users-block-actions">
+                  <button
+                    type="button"
+                    className="button button-soft app-modal-secondary-action"
+                    onClick={closeResetPasswordModal}
+                  >
+                    {t('adminDashboard.adminUsers.passwordResetModal.cancel')}
+                  </button>
+                  <button
+                    type="submit"
+                    className="button button-primary"
+                    disabled={resettingPasswordUserId === resetPasswordTarget.id}
+                  >
+                    {resettingPasswordUserId === resetPasswordTarget.id
+                      ? t('adminDashboard.adminUsers.updating')
+                      : t('adminDashboard.adminUsers.passwordResetModal.confirm')}
+                  </button>
+                </div>
+              </form>
             </div>
           </article>
         </div>

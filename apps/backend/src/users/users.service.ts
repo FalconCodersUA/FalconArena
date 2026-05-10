@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 import { AuditLogsService } from '../audit-logs.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Role } from '../common/constants/roles';
@@ -13,6 +14,7 @@ import {
   ListManagedUsersDto,
   type ManagedUserStatusFilter,
 } from './dto/list-managed-users.dto';
+import { ResetManagedUserPasswordDto } from './dto/reset-managed-user-password.dto';
 import { UpdateManagedUserDto } from './dto/update-managed-user.dto';
 
 type CreateUserInput = {
@@ -258,6 +260,67 @@ export class UsersService {
         nextBlockedAt: updated.blockedAt?.toISOString() ?? null,
         previousBlockedByUserId: existing.blockedBy?.id ?? null,
         nextBlockedByUserId: updated.blockedBy?.id ?? null,
+      },
+    });
+
+    return {
+      ...toManagedUserDto(updated),
+    };
+  }
+
+  async resetManagedUserPassword(
+    userId: string,
+    dto: ResetManagedUserPasswordDto,
+    actor: AuthUser,
+  ) {
+    if (userId === actor.userId) {
+      throw new ForbiddenException('You cannot reset your own password from user management');
+    }
+
+    const existing = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        isBlocked: true,
+        blockedReason: true,
+        blockedAt: true,
+        blockedBy: {
+          select: {
+            id: true,
+            fullName: true,
+          },
+        },
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('User not found');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, 10);
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+      select: managedUserSelect,
+    });
+
+    await this.auditLogsService.record({
+      actorId: actor.userId,
+      actorRole: actor.role,
+      action: 'user.password_reset',
+      entityType: 'user',
+      entityId: updated.id,
+      entityLabel: updated.fullName,
+      title: 'Reset platform user password',
+      description: `${updated.fullName} (${updated.email}) password was reset by an administrator.`,
+      metadata: {
+        role: updated.role,
+        isBlocked: updated.isBlocked,
       },
     });
 

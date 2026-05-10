@@ -1210,9 +1210,12 @@ export const messages: TranslationMap = {
         exportingCsv: 'Експортуємо...',
         exportFailed: 'Не вдалося експортувати список користувачів',
         saveRole: 'Зберегти роль',
+        resetPasswordAction: 'Скинути пароль',
         blockAction: 'Заблокувати',
         unblockAction: 'Розблокувати',
         roleUpdated: 'Роль користувача {name} оновлено.',
+        passwordReset: 'Пароль користувача {name} оновлено.',
+        passwordResetFailed: 'Не вдалося скинути пароль користувача',
         blocked: 'Користувача {name} заблоковано.',
         unblocked: 'Користувача {name} розблоковано.',
         blockHistory: {
@@ -1226,6 +1229,13 @@ export const messages: TranslationMap = {
           reason: 'Причина блокування',
           cancel: 'Скасувати',
           confirm: 'Підтвердити блокування',
+        },
+        passwordResetModal: {
+          title: 'Скинути пароль',
+          lead: 'Задайте новий тимчасовий пароль для {name} ({email}). Після цього користувач зможе увійти з новим паролем.',
+          password: 'Новий тимчасовий пароль',
+          cancel: 'Скасувати',
+          confirm: 'Оновити пароль',
         },
         status: {
           active: 'Активний',
@@ -3236,9 +3246,12 @@ export const messages: TranslationMap = {
         exportingCsv: 'Exporting...',
         exportFailed: 'Could not export the user list',
         saveRole: 'Save role',
+        resetPasswordAction: 'Reset password',
         blockAction: 'Block user',
         unblockAction: 'Unblock user',
         roleUpdated: 'Updated the role for {name}.',
+        passwordReset: 'Updated the password for {name}.',
+        passwordResetFailed: 'Could not reset the user password',
         blocked: 'Blocked {name}.',
         unblocked: 'Unblocked {name}.',
         blockHistory: {
@@ -3252,6 +3265,13 @@ export const messages: TranslationMap = {
           reason: 'Blocking reason',
           cancel: 'Cancel',
           confirm: 'Confirm block',
+        },
+        passwordResetModal: {
+          title: 'Reset password',
+          lead: 'Set a new temporary password for {name} ({email}). The user can sign in with this password afterwards.',
+          password: 'New temporary password',
+          cancel: 'Cancel',
+          confirm: 'Update password',
         },
         status: {
           active: 'Active',

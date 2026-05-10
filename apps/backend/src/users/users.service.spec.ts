@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { describe, expect, it, vi } from 'vitest';
 import { UsersService } from './users.service';
 
@@ -131,6 +132,86 @@ describe('UsersService', () => {
         { userId: 'admin-1', email: 'admin@example.com', role: 'ADMIN' },
       ),
     ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('prevents resetting your own password from user management', async () => {
+    const prisma = createPrismaMock();
+    const auditLogs = createAuditLogsMock();
+    const service = new UsersService(prisma as never, auditLogs as never);
+
+    await expect(
+      service.resetManagedUserPassword(
+        'admin-1',
+        { password: 'StrongPass123!' },
+        { userId: 'admin-1', email: 'admin@example.com', role: 'ADMIN' },
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+    expect(prisma.user.update).not.toHaveBeenCalled();
+  });
+
+  it('resets a managed user password and records an audit log', async () => {
+    const prisma = createPrismaMock();
+    const auditLogs = createAuditLogsMock();
+    const createdAt = new Date('2026-04-07T08:00:00.000Z');
+    const updatedAt = new Date('2026-04-07T09:15:00.000Z');
+    prisma.user.findUnique.mockResolvedValue({
+      id: 'team-1',
+      email: 'team@example.com',
+      fullName: 'Team Captain',
+      role: 'TEAM',
+      isBlocked: false,
+      blockedReason: null,
+      blockedAt: null,
+      blockedBy: null,
+      createdAt,
+      updatedAt: createdAt,
+    });
+    prisma.user.update.mockImplementation(async (args) => ({
+      id: 'team-1',
+      email: 'team@example.com',
+      fullName: 'Team Captain',
+      role: 'TEAM',
+      isBlocked: false,
+      blockedReason: null,
+      blockedAt: null,
+      blockedBy: null,
+      createdAt,
+      updatedAt,
+    }));
+
+    const service = new UsersService(prisma as never, auditLogs as never);
+
+    await expect(
+      service.resetManagedUserPassword(
+        'team-1',
+        { password: 'StrongPass123!' },
+        { userId: 'admin-1', email: 'admin@example.com', role: 'ADMIN' },
+      ),
+    ).resolves.toEqual({
+      id: 'team-1',
+      email: 'team@example.com',
+      fullName: 'Team Captain',
+      role: 'TEAM',
+      isBlocked: false,
+      blockedReason: null,
+      blockedAt: null,
+      blockedByUserId: null,
+      blockedByUserName: null,
+      createdAt: createdAt.toISOString(),
+      updatedAt: updatedAt.toISOString(),
+    });
+
+    const updateCall = prisma.user.update.mock.calls[0]?.[0];
+    expect(updateCall.where).toEqual({ id: 'team-1' });
+    await expect(
+      bcrypt.compare('StrongPass123!', updateCall.data.passwordHash),
+    ).resolves.toBe(true);
+    expect(auditLogs.record).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'user.password_reset',
+        entityId: 'team-1',
+      }),
+    );
   });
 
   it('requires a blocking reason when blocking a user', async () => {

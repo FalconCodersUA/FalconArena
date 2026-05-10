@@ -190,6 +190,64 @@ describe('AdminUsersPage', () => {
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:users-export');
   });
 
+  it('resets a managed user password from the users page', async () => {
+    mockedApiRequest.mockImplementation(async (path: string, options?: { method?: string; body?: unknown }) => {
+      if (path === '/admin/users') {
+        return MANAGED_USERS;
+      }
+
+      if (path === '/admin/users/user-2/password' && options?.method === 'PATCH') {
+        return {
+          ...MANAGED_USERS[1],
+          updatedAt: '2026-04-07T10:00:00.000Z',
+        };
+      }
+
+      throw new Error(`Unexpected request: ${path}`);
+    });
+
+    renderPage();
+
+    await screen.findByText('Platform users');
+    const juryCard = screen.getByText('Jury User').closest('.admin-user-card');
+    expect(juryCard).not.toBeNull();
+
+    fireEvent.click(within(juryCard as HTMLElement).getByRole('button', { name: 'Reset password' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Reset password' });
+    fireEvent.change(within(dialog).getByLabelText('New temporary password'), {
+      target: { value: 'StrongPass123!' },
+    });
+    fireEvent.submit(within(dialog).getByRole('button', { name: 'Update password' }).closest('form')!);
+
+    await waitFor(() => {
+      expect(mockedApiRequest).toHaveBeenCalledWith('/admin/users/user-2/password', {
+        method: 'PATCH',
+        body: { password: 'StrongPass123!' },
+      });
+    });
+
+    await screen.findByText('Updated the password for Jury User.');
+  });
+
+  it('shows password reset only for admin users', async () => {
+    localStorage.setItem(
+      'falconarena_auth_user',
+      JSON.stringify({
+        id: 'user-3',
+        email: 'organizer@example.com',
+        fullName: 'Organizer User',
+        role: 'ORGANIZER',
+      }),
+    );
+    mockedApiRequest.mockResolvedValue(MANAGED_USERS);
+
+    renderPage();
+
+    await screen.findByText('Platform users');
+    expect(screen.queryByRole('button', { name: 'Reset password' })).not.toBeInTheDocument();
+  });
+
   it('creates a new user without leaving the users page', async () => {
     mockedApiRequest.mockImplementation(
       async (path: string, options?: { method?: string; body?: unknown }) => {
