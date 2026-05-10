@@ -5,6 +5,7 @@ import { TeamsService } from './teams.service';
 function createPrismaMock() {
   return {
     tournament: {
+      findMany: vi.fn(),
       findUnique: vi.fn(),
     },
     team: {
@@ -48,6 +49,10 @@ describe('TeamsService', () => {
     const prisma = createPrismaMock();
     const systemIntegrationsService = createSystemIntegrationsServiceMock(true);
 
+    prisma.tournament.findMany.mockResolvedValue([
+      { id: 't-running' },
+      { id: 't-finished' },
+    ]);
     prisma.team.findMany.mockResolvedValue([
       {
         id: 'team-1',
@@ -58,6 +63,7 @@ describe('TeamsService', () => {
           id: 't-running',
           title: 'Spring Cup',
           status: TournamentStatus.RUNNING,
+          createdAt: new Date('2026-04-10T10:00:00.000Z'),
         },
         _count: { members: 3 },
       },
@@ -70,6 +76,7 @@ describe('TeamsService', () => {
           id: 't-finished',
           title: 'Final Cup',
           status: TournamentStatus.FINISHED,
+          createdAt: new Date('2026-04-11T10:00:00.000Z'),
         },
         _count: { members: 2 },
       },
@@ -81,27 +88,27 @@ describe('TeamsService', () => {
     );
     const result = await service.listAllVisible();
 
+    expect(prisma.tournament.findMany).toHaveBeenCalledWith({
+      where: {
+        OR: [
+          { status: { in: [TournamentStatus.RUNNING, TournamentStatus.FINISHED] } },
+          { registrationCloseAt: { lt: new Date('2026-04-14T10:00:00.000Z') } },
+        ],
+      },
+      select: { id: true },
+    });
     expect(prisma.team.findMany).toHaveBeenCalledWith({
       where: {
-        tournament: {
-          is: {
-            OR: [
-              { status: { in: [TournamentStatus.RUNNING, TournamentStatus.FINISHED] } },
-              { registrationCloseAt: { lt: new Date('2026-04-14T10:00:00.000Z') } },
-            ],
-          },
-        },
+        tournamentId: { in: ['t-running', 't-finished'] },
       },
-      orderBy: [
-        { tournament: { createdAt: 'desc' } },
-        { createdAt: 'asc' },
-      ],
+      orderBy: { createdAt: 'asc' },
       include: {
         tournament: {
           select: {
             id: true,
             title: true,
             status: true,
+            createdAt: true,
           },
         },
         _count: {
@@ -111,16 +118,6 @@ describe('TeamsService', () => {
     });
     expect(result).toEqual([
       {
-        id: 'team-1',
-        tournamentId: 't-running',
-        tournamentTitle: 'Spring Cup',
-        tournamentStatus: TournamentStatus.RUNNING,
-        name: 'Falcons',
-        organization: 'Falcon School',
-        createdAt: new Date('2026-04-12T10:00:00.000Z'),
-        membersCount: 3,
-      },
-      {
         id: 'team-2',
         tournamentId: 't-finished',
         tournamentTitle: 'Final Cup',
@@ -129,6 +126,16 @@ describe('TeamsService', () => {
         organization: null,
         createdAt: new Date('2026-04-13T10:00:00.000Z'),
         membersCount: 2,
+      },
+      {
+        id: 'team-1',
+        tournamentId: 't-running',
+        tournamentTitle: 'Spring Cup',
+        tournamentStatus: TournamentStatus.RUNNING,
+        name: 'Falcons',
+        organization: 'Falcon School',
+        createdAt: new Date('2026-04-12T10:00:00.000Z'),
+        membersCount: 3,
       },
     ]);
   });
@@ -145,6 +152,7 @@ describe('TeamsService', () => {
 
     await service.listAllVisible();
 
+    expect(prisma.tournament.findMany).not.toHaveBeenCalled();
     expect(prisma.team.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {},
