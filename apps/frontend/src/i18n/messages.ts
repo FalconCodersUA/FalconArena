@@ -179,7 +179,7 @@ export const messages: TranslationMap = {
       presentation: {
         eyebrow: 'Відеоогляд',
         title: 'FalconArena в дії',
-        lead: 'Коротка презентація показує ключові ролі, сторінки та робочий сценарій платформи для журі й гостей проєкту.',
+        lead: 'Коротка презентація показує ключові ролі, сторінки та робочий сценарій платформи.',
         action: 'Дивитися презентацію',
       },
       roles: {
@@ -898,6 +898,7 @@ export const messages: TranslationMap = {
           REGISTRATION_STARTED: 'Старт реєстрації',
           ROUND_STARTED: 'Старт раунду',
           SUBMISSION_RECEIVED: 'Сабміт збережено',
+          DEADLINE_REMINDER: 'Нагадування про дедлайн',
           SUBMISSION_CLOSED: 'Сабміти закрито',
           GENERAL: 'Системне сповіщення',
         },
@@ -2247,7 +2248,7 @@ export const messages: TranslationMap = {
       presentation: {
         eyebrow: 'Video walkthrough',
         title: 'FalconArena in action',
-        lead: 'A concise presentation shows the key roles, pages, and platform workflow for judges and project guests.',
+        lead: 'A concise presentation shows the key roles, pages, and platform workflow.',
         action: 'Watch presentation',
       },
       roles: {
@@ -2963,6 +2964,7 @@ export const messages: TranslationMap = {
           REGISTRATION_STARTED: 'Registration started',
           ROUND_STARTED: 'Round started',
           SUBMISSION_RECEIVED: 'Submission saved',
+          DEADLINE_REMINDER: 'Deadline reminder',
           SUBMISSION_CLOSED: 'Submissions closed',
           GENERAL: 'System notification',
         },

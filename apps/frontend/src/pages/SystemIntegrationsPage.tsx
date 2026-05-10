@@ -4,6 +4,7 @@ import { useI18n } from '../i18n/I18nProvider';
 import { getAuthUser } from '../lib/auth';
 import { apiRequest, uploadApiFile } from '../lib/api';
 import { normalizeApiErrorMessage } from '../lib/errorMessages';
+import { useAutoDismissMessage } from '../lib/useAutoDismissMessage';
 
 type GoogleSheetsSettingsResponse = {
   webhookUrl: string;
@@ -476,6 +477,13 @@ export default function SystemIntegrationsPage() {
   const [platformReviewsSavingId, setPlatformReviewsSavingId] = useState('');
   const [platformReviewsError, setPlatformReviewsError] = useState('');
   const [platformReviewsNotice, setPlatformReviewsNotice] = useState('');
+
+  useAutoDismissMessage(googleNotice, setGoogleNotice);
+  useAutoDismissMessage(emailNotice, setEmailNotice);
+  useAutoDismissMessage(rulesNotice, setRulesNotice);
+  useAutoDismissMessage(defaultsNotice, setDefaultsNotice);
+  useAutoDismissMessage(platformContentNotice, setPlatformContentNotice);
+  useAutoDismissMessage(platformReviewsNotice, setPlatformReviewsNotice);
 
   function getPlatformContentField(path: PlatformContentPath, locale: 'uk' | 'en') {
     let current: unknown = platformContent;

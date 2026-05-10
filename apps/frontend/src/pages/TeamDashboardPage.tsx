@@ -8,6 +8,7 @@ import { ApiError, apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
 import { normalizeApiErrorMessage } from '../lib/errorMessages';
 import { TournamentScheduleEvent } from '../lib/tournamentSchedule';
+import { useAutoDismissMessage } from '../lib/useAutoDismissMessage';
 import {
   rememberTournamentSelection,
   resolveStoredTournamentSelection,
@@ -323,6 +324,9 @@ export default function TeamDashboardPage() {
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const [scheduleLoading, setScheduleLoading] = useState(false);
   const [scheduleError, setScheduleError] = useState('');
+
+  useAutoDismissMessage(teamNotice, setTeamNotice);
+  useAutoDismissMessage(submissionNotice, setSubmissionNotice);
   const [savingSubmission, setSavingSubmission] = useState(false);
 
   const [repoUrl, setRepoUrl] = useState('');

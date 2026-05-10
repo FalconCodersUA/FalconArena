@@ -7,6 +7,10 @@ import { apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
 import { normalizeApiErrorMessage } from '../lib/errorMessages';
 import {
+  AUTO_DISMISS_NOTICE_MS,
+  useAutoDismissMessage,
+} from '../lib/useAutoDismissMessage';
+import {
   TournamentScheduleEvent,
   TournamentScheduleEventType,
 } from '../lib/tournamentSchedule';
@@ -507,6 +511,62 @@ export default function AdminDashboardPage() {
   const [scheduleOp, setScheduleOp] = useState<ScheduleOperationState>(EMPTY_SCHEDULE_OP_STATE);
 
   const now = new Date();
+  const roundOperationNoticeSignature = useMemo(
+    () =>
+      Object.entries(opsByRoundId)
+        .filter(([, operation]) => operation.notice)
+        .map(([roundId, operation]) => `${roundId}:${operation.notice}`)
+        .join('\n'),
+    [opsByRoundId],
+  );
+
+  useAutoDismissMessage(statusNotice, setStatusNotice);
+  useAutoDismissMessage(juryNotice, setJuryNotice);
+  useAutoDismissMessage(createTournamentNotice, setCreateTournamentNotice);
+  useAutoDismissMessage(createRoundNotice, setCreateRoundNotice);
+  useAutoDismissMessage(createUserNotice, setCreateUserNotice);
+
+  useEffect(() => {
+    if (!scheduleOp.notice) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setScheduleOp((current) => ({ ...current, notice: '' }));
+    }, AUTO_DISMISS_NOTICE_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [scheduleOp.notice]);
+
+  useEffect(() => {
+    if (!roundOperationNoticeSignature) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setOpsByRoundId((current) => {
+        let changed = false;
+        const next = Object.fromEntries(
+          Object.entries(current).map(([roundId, operation]) => {
+            if (!operation.notice) {
+              return [roundId, operation];
+            }
+
+            changed = true;
+            return [roundId, { ...operation, notice: '' }];
+          }),
+        );
+
+        return changed ? next : current;
+      });
+    }, AUTO_DISMISS_NOTICE_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [roundOperationNoticeSignature]);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');

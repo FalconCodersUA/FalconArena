@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { apiRequest } from '../lib/api';
@@ -29,6 +29,10 @@ describe('MessagesPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.setItem('falconarena_language', 'en');
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('renders announcements for TEAM role without manager controls', async () => {
@@ -341,18 +345,30 @@ describe('MessagesPage', () => {
     fireEvent.change(screen.getByLabelText('Message'), {
       target: { value: 'Hello jury!' },
     });
+    vi.useFakeTimers();
     fireEvent.click(screen.getByRole('button', { name: 'Send' }));
 
-    await waitFor(() => {
-      expect(mockedApiRequest).toHaveBeenCalledWith('/messages/dialogs/dialog-1', {
-        method: 'POST',
-        body: {
-          body: 'Hello jury!',
-        },
-      });
+    await act(async () => {
+      await Promise.resolve();
     });
 
+    expect(mockedApiRequest).toHaveBeenCalledWith('/messages/dialogs/dialog-1', {
+      method: 'POST',
+      body: {
+        body: 'Hello jury!',
+      },
+    });
     expect(screen.getByText('Message sent.')).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(3999);
+    });
+    expect(screen.getByText('Message sent.')).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(screen.queryByText('Message sent.')).not.toBeInTheDocument();
   });
 
   it('confirms direct message deletion with an in-app modal', async () => {
@@ -445,18 +461,26 @@ describe('MessagesPage', () => {
     expect(within(dialog).getByText('Delete this message? This cannot be undone.')).toBeInTheDocument();
     expect(confirmSpy).not.toHaveBeenCalled();
 
+    vi.useFakeTimers();
     fireEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
 
-    await waitFor(() => {
-      expect(mockedApiRequest).toHaveBeenCalledWith(
-        '/messages/dialogs/dialog-1/messages/message-1',
-        {
-          method: 'DELETE',
-        },
-      );
+    await act(async () => {
+      await Promise.resolve();
     });
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      '/messages/dialogs/dialog-1/messages/message-1',
+      {
+        method: 'DELETE',
+      },
+    );
     expect(screen.getByText('Message deleted.')).toBeInTheDocument();
     expect(screen.queryByRole('dialog', { name: 'Delete message?' })).not.toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(4000);
+    });
+    expect(screen.queryByText('Message deleted.')).not.toBeInTheDocument();
 
     confirmSpy.mockRestore();
   });

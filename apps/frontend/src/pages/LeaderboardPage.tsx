@@ -6,6 +6,7 @@ import { useI18n } from '../i18n/I18nProvider';
 import { getAuthRole, isAuthenticated } from '../lib/auth';
 import { apiRequest, buildApiUrl } from '../lib/api';
 import { normalizeApiErrorMessage } from '../lib/errorMessages';
+import { useAutoDismissMessage } from '../lib/useAutoDismissMessage';
 import {
   rememberTournamentSelection,
   resolveStoredTournamentSelection,
@@ -125,6 +126,8 @@ export default function LeaderboardPage() {
   const [isExportingGoogleSheets, setIsExportingGoogleSheets] = useState(false);
   const [googleSheetsNotice, setGoogleSheetsNotice] = useState('');
   const [googleSheetsError, setGoogleSheetsError] = useState('');
+
+  useAutoDismissMessage(googleSheetsNotice, setGoogleSheetsNotice);
 
   function resolveSheetsUrl(response: GoogleSheetsExportResponse['response']) {
     if (!response || typeof response === 'string') {

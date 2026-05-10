@@ -5,6 +5,7 @@ import QuietLoadingInline from '../components/QuietLoadingInline';
 import { apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
 import { normalizeApiErrorMessage } from '../lib/errorMessages';
+import { useAutoDismissMessage } from '../lib/useAutoDismissMessage';
 import { resolveHtmlLanguage, useI18n } from '../i18n/I18nProvider';
 
 type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
@@ -14,6 +15,7 @@ type NotificationType =
   | 'REGISTRATION_STARTED'
   | 'ROUND_STARTED'
   | 'SUBMISSION_RECEIVED'
+  | 'DEADLINE_REMINDER'
   | 'SUBMISSION_CLOSED'
   | 'GENERAL';
 type MessagesSection = 'all' | 'notifications' | 'announcements' | 'dialogs';
@@ -254,6 +256,10 @@ export default function MessagesPage() {
     }
     return 'all';
   }, [location.search, requestedAnnouncementId, requestedDialogId, requestedNotificationId]);
+
+  useAutoDismissMessage(notice, setNotice);
+  useAutoDismissMessage(dialogNotice, setDialogNotice);
+
   const showNotifications =
     activeSection === 'all' || activeSection === 'notifications';
   const showAnnouncements =
