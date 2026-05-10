@@ -7,6 +7,7 @@ import { getAuthRole, isAuthenticated } from '../lib/auth';
 import { apiRequest, buildApiUrl } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
 import { normalizeApiErrorMessage } from '../lib/errorMessages';
+import { useAutoDismissMessage } from '../lib/useAutoDismissMessage';
 import {
   rememberTournamentSelection,
   resolveStoredTournamentSelection,
@@ -226,6 +227,9 @@ export default function ArchivePage() {
   const [exportingGoogleSheets, setExportingGoogleSheets] = useState(false);
   const [googleSheetsNotice, setGoogleSheetsNotice] = useState('');
   const [googleSheetsError, setGoogleSheetsError] = useState('');
+
+  useAutoDismissMessage(templateNotice, setTemplateNotice);
+  useAutoDismissMessage(googleSheetsNotice, setGoogleSheetsNotice);
 
   const leader = archive?.leaderboard?.rows[0] ?? null;
   const selectedTournament = useMemo(

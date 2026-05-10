@@ -8,6 +8,7 @@ import { ApiError, apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
 import { normalizeApiErrorMessage } from '../lib/errorMessages';
 import { TournamentScheduleEvent } from '../lib/tournamentSchedule';
+import { useAutoDismissMessage } from '../lib/useAutoDismissMessage';
 import {
   rememberTournamentSelection,
   resolveStoredTournamentSelection,
@@ -260,6 +261,8 @@ export default function JuryDashboardPage() {
   const [assignmentsLoading, setAssignmentsLoading] = useState(false);
   const [assignmentsError, setAssignmentsError] = useState('');
   const [saveNotice, setSaveNotice] = useState('');
+
+  useAutoDismissMessage(saveNotice, setSaveNotice);
   const [saving, setSaving] = useState(false);
 
   const [scores, setScores] = useState<ScoreDraft>(EMPTY_SCORES);

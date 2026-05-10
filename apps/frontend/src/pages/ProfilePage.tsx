@@ -5,6 +5,7 @@ import QuietLoadingCard from '../components/QuietLoadingCard';
 import { ApiError, apiRequest, resolveApiAssetUrl } from '../lib/api';
 import { formatDateTime, setPreferredTimeZone } from '../lib/dateTime';
 import { normalizeApiErrorMessage } from '../lib/errorMessages';
+import { useAutoDismissMessage } from '../lib/useAutoDismissMessage';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/messages';
 
@@ -303,6 +304,8 @@ export default function ProfilePage() {
   const [editEmail, setEditEmail] = useState('');
   const [editAvatarUrl, setEditAvatarUrl] = useState('');
   const [avatarUploadError, setAvatarUploadError] = useState('');
+
+  useAutoDismissMessage(settingsNotice, setSettingsNotice);
   const [editDateOfBirth, setEditDateOfBirth] = useState('1990-01-25');
   const [editPresentAddress, setEditPresentAddress] = useState('San Jose, California, USA');
   const [editPermanentAddress, setEditPermanentAddress] = useState('San Jose, California, USA');

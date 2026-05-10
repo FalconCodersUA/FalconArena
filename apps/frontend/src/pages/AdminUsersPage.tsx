@@ -4,6 +4,7 @@ import { apiRequest, buildApiUrl } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
 import { normalizeApiErrorMessage } from '../lib/errorMessages';
 import { getAuthUser, getToken, type AuthRole } from '../lib/auth';
+import { useAutoDismissMessage } from '../lib/useAutoDismissMessage';
 import { useI18n } from '../i18n/I18nProvider';
 
 type ManagedUser = {
@@ -67,6 +68,8 @@ export default function AdminUsersPage() {
   const [resetPasswordTarget, setResetPasswordTarget] = useState<ManagedUser | null>(null);
   const [resetPassword, setResetPassword] = useState('');
   const [resetPasswordError, setResetPasswordError] = useState('');
+
+  useAutoDismissMessage(notice, setNotice);
   const [resettingPasswordUserId, setResettingPasswordUserId] = useState('');
 
   const currentUser = getAuthUser();
