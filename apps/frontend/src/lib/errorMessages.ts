@@ -29,6 +29,7 @@ const ERROR_TRANSLATION_RULES: Array<[RegExp, string]> = [
   [/^Evaluation is incomplete:/i, 'common.errors.evaluationIncomplete'],
   [/^Cannot submit evaluation for draft round$/i, 'common.errors.evaluateDraftRound'],
   [/^Cannot submit evaluation for evaluated round$/i, 'common.errors.evaluateEvaluatedRound'],
+  [/^Cannot submit evaluation for finished tournament$/i, 'common.errors.evaluateFinishedTournament'],
   [/^Evaluation assignment not found for this round$/i, 'common.errors.evaluationAssignmentNotFound'],
   [/^Assignment belongs to a different jury member$/i, 'common.errors.assignmentWrongJury'],
   [/^Use finish evaluation endpoint to mark round as evaluated$/i, 'common.errors.useFinishEvaluationEndpoint'],

@@ -932,6 +932,12 @@ export default function JuryDashboardPage() {
                     <p>{t('juryDashboard.summary.savedScore')}: {selectedAssignment.evaluation.totalScore}</p>
                   </div>
                 ) : null}
+                {selectedRound?.status === 'ACTIVE' ? (
+                  <div className="state-callout subtle">
+                    <strong>{t('juryDashboard.activeRoundWarningTitle')}</strong>
+                    <p>{t('juryDashboard.activeRoundWarningLead')}</p>
+                  </div>
+                ) : null}
               </div>
 
               <div className="scores-grid">

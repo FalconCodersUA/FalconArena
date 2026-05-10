@@ -7373,6 +7373,43 @@ a {
   color: #5e17eb;
 }
 
+.app-page .app-modal-card .app-modal-danger-action,
+.app-page .app-modal-card .app-modal-danger-action:visited {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(220, 38, 38, 0.16);
+}
+
+.app-page .app-modal-card .app-modal-danger-action:hover:not(:disabled),
+.app-page .app-modal-card .app-modal-danger-action:focus-visible {
+  background: #b91c1c;
+  border-color: #b91c1c;
+  color: #ffffff;
+}
+
+.messages-confirm-modal {
+  width: min(520px, 100%);
+}
+
+.messages-confirm-summary {
+  overflow: hidden;
+}
+
+.messages-confirm-summary p {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+
+.messages-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .admin-modal-textarea {
   width: 100%;
   min-height: 120px;
@@ -10804,6 +10841,25 @@ body[data-theme='blue'] .app-page .app-modal-card .app-modal-secondary-action:ho
 body[data-theme='blue'] .app-page .app-modal-card .app-modal-secondary-action:focus-visible {
   background: rgba(255, 255, 255, 0.18);
   border-color: rgba(226, 232, 255, 0.38);
+  color: #ffffff;
+}
+
+body[data-theme='dark'] .app-page .app-modal-card .app-modal-danger-action,
+body[data-theme='dark'] .app-page .app-modal-card .app-modal-danger-action:visited,
+body[data-theme='blue'] .app-page .app-modal-card .app-modal-danger-action,
+body[data-theme='blue'] .app-page .app-modal-card .app-modal-danger-action:visited {
+  background: #ef4444;
+  border-color: rgba(255, 134, 134, 0.72);
+  color: #ffffff;
+  box-shadow: 0 16px 34px rgba(239, 68, 68, 0.24);
+}
+
+body[data-theme='dark'] .app-page .app-modal-card .app-modal-danger-action:hover:not(:disabled),
+body[data-theme='dark'] .app-page .app-modal-card .app-modal-danger-action:focus-visible,
+body[data-theme='blue'] .app-page .app-modal-card .app-modal-danger-action:hover:not(:disabled),
+body[data-theme='blue'] .app-page .app-modal-card .app-modal-danger-action:focus-visible {
+  background: #dc2626;
+  border-color: rgba(255, 134, 134, 0.88);
   color: #ffffff;
 }
 

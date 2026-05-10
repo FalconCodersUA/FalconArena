@@ -283,7 +283,15 @@ export class EvaluationService {
     const assignment = await this.prisma.evaluationAssignment.findUnique({
       where: { id: assignmentId },
       include: {
-        round: true,
+        round: {
+          include: {
+            tournament: {
+              select: {
+                status: true,
+              },
+            },
+          },
+        },
         submission: {
           select: {
             id: true,
@@ -312,6 +320,10 @@ export class EvaluationService {
 
     if (assignment.round.status === RoundStatus.EVALUATED) {
       throw new BadRequestException('Cannot submit evaluation for evaluated round');
+    }
+
+    if (assignment.round.tournament.status === TournamentStatus.FINISHED) {
+      throw new BadRequestException('Cannot submit evaluation for finished tournament');
     }
 
     const totalScore = this.calculateTotalScore(dto.scores);
