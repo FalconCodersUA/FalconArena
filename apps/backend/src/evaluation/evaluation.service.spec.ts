@@ -17,6 +17,7 @@ function createPrismaMock() {
     evaluationAssignment: {
       count: vi.fn(),
       deleteMany: vi.fn(),
+      findUnique: vi.fn(),
       findMany: vi.fn(),
       createMany: vi.fn(),
     },
@@ -61,6 +62,149 @@ function createAuditLogsServiceMock() {
 }
 
 describe('EvaluationService', () => {
+  it('allows jury to save and update evaluation while round is active', async () => {
+    const prisma = createPrismaMock();
+    const auditLogsService = createAuditLogsServiceMock();
+    prisma.evaluationAssignment.findUnique.mockResolvedValue({
+      id: 'assignment-1',
+      roundId: 'round-1',
+      juryId: 'jury-1',
+      round: {
+        id: 'round-1',
+        title: 'Round 1',
+        status: RoundStatus.ACTIVE,
+        tournamentId: 'tournament-1',
+        tournament: {
+          status: TournamentStatus.RUNNING,
+        },
+      },
+      submission: {
+        id: 'submission-1',
+        team: {
+          id: 'team-1',
+          name: 'Team One',
+        },
+      },
+    });
+    prisma.evaluation.upsert.mockResolvedValue({
+      id: 'evaluation-1',
+      assignmentId: 'assignment-1',
+      juryId: 'jury-1',
+      scores: {},
+      totalScore: 90,
+      comment: 'Looks good',
+    });
+
+    const service = new EvaluationService(
+      prisma as never,
+      createSystemIntegrationsServiceMock() as never,
+      auditLogsService as never,
+    );
+
+    const result = await service.submitEvaluation(
+      'round-1',
+      'assignment-1',
+      'jury-1',
+      {
+        scores: {
+          technicalBackend: 90,
+          technicalDatabase: 90,
+          technicalFrontend: 90,
+          mustHave: 90,
+          stability: 90,
+          usability: 90,
+        },
+        comment: 'Looks good',
+      },
+    );
+
+    expect(prisma.evaluation.upsert).toHaveBeenCalledWith({
+      where: {
+        assignmentId: 'assignment-1',
+      },
+      update: {
+        scores: {
+          technicalBackend: 90,
+          technicalDatabase: 90,
+          technicalFrontend: 90,
+          mustHave: 90,
+          stability: 90,
+          usability: 90,
+        },
+        totalScore: 90,
+        comment: 'Looks good',
+      },
+      create: {
+        assignmentId: 'assignment-1',
+        juryId: 'jury-1',
+        scores: {
+          technicalBackend: 90,
+          technicalDatabase: 90,
+          technicalFrontend: 90,
+          mustHave: 90,
+          stability: 90,
+          usability: 90,
+        },
+        totalScore: 90,
+        comment: 'Looks good',
+      },
+    });
+    expect(result.totalScore).toBe(90);
+    expect(auditLogsService.record).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'evaluation.submitted',
+        actorId: 'jury-1',
+        tournamentId: 'tournament-1',
+      }),
+    );
+  });
+
+  it('blocks jury evaluation changes for finished tournament', async () => {
+    const prisma = createPrismaMock();
+    prisma.evaluationAssignment.findUnique.mockResolvedValue({
+      id: 'assignment-1',
+      roundId: 'round-1',
+      juryId: 'jury-1',
+      round: {
+        id: 'round-1',
+        title: 'Round 1',
+        status: RoundStatus.SUBMISSION_CLOSED,
+        tournamentId: 'tournament-1',
+        tournament: {
+          status: TournamentStatus.FINISHED,
+        },
+      },
+      submission: {
+        id: 'submission-1',
+        team: {
+          id: 'team-1',
+          name: 'Team One',
+        },
+      },
+    });
+
+    const service = new EvaluationService(
+      prisma as never,
+      createSystemIntegrationsServiceMock() as never,
+      createAuditLogsServiceMock() as never,
+    );
+
+    await expect(
+      service.submitEvaluation('round-1', 'assignment-1', 'jury-1', {
+        scores: {
+          technicalBackend: 90,
+          technicalDatabase: 90,
+          technicalFrontend: 90,
+          mustHave: 90,
+          stability: 90,
+          usability: 90,
+        },
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(prisma.evaluation.upsert).not.toHaveBeenCalled();
+  });
+
   it('blocks finish when round is active and not forced before deadline', async () => {
     const prisma = createPrismaMock();
     prisma.round.findUnique.mockResolvedValue({

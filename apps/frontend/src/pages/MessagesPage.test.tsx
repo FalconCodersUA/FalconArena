@@ -355,6 +355,112 @@ describe('MessagesPage', () => {
     expect(screen.getByText('Message sent.')).toBeInTheDocument();
   });
 
+  it('confirms direct message deletion with an in-app modal', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm');
+
+    mockedApiRequest.mockImplementation(async (path: string, options?: { method?: string }) => {
+      if (path === '/auth/me') {
+        return {
+          id: 'team-1',
+          email: 'team@example.com',
+          fullName: 'Team User',
+          role: 'TEAM',
+        };
+      }
+
+      if (path === '/announcements') {
+        return [];
+      }
+
+      if (path === '/notifications') {
+        return [];
+      }
+
+      if (path === '/messages/dialogs') {
+        return [
+          {
+            id: 'dialog-1',
+            createdAt: '2026-03-22T10:00:00.000Z',
+            updatedAt: '2026-03-22T11:00:00.000Z',
+            otherUser: {
+              id: 'jury-1',
+              email: 'jury@example.com',
+              fullName: 'Jury User',
+              role: 'JURY',
+            },
+            lastMessage: {
+              id: 'message-1',
+              conversationId: 'dialog-1',
+              senderId: 'team-1',
+              body: 'Hello jury!',
+              createdAt: '2026-03-22T11:00:00.000Z',
+              updatedAt: '2026-03-22T11:00:00.000Z',
+            },
+            isUnread: false,
+          },
+        ];
+      }
+
+      if (path === '/messages/dialogs/dialog-1/messages/message-1' && options?.method === 'DELETE') {
+        return { deleted: true };
+      }
+
+      if (path === '/messages/dialogs/dialog-1') {
+        return {
+          dialog: {
+            id: 'dialog-1',
+            createdAt: '2026-03-22T10:00:00.000Z',
+            updatedAt: '2026-03-22T11:00:00.000Z',
+            otherUser: {
+              id: 'jury-1',
+              email: 'jury@example.com',
+              fullName: 'Jury User',
+              role: 'JURY',
+            },
+            lastMessage: null,
+            isUnread: false,
+          },
+          messages: [
+            {
+              id: 'message-1',
+              conversationId: 'dialog-1',
+              senderId: 'team-1',
+              body: 'Hello jury!',
+              createdAt: '2026-03-22T11:00:00.000Z',
+              updatedAt: '2026-03-22T11:00:00.000Z',
+            },
+          ],
+        };
+      }
+
+      throw new Error(`Unexpected request: ${path}`);
+    });
+
+    renderMessagesPage();
+
+    expect((await screen.findAllByText('Hello jury!')).length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Delete message?' });
+    expect(within(dialog).getByText('Delete this message? This cannot be undone.')).toBeInTheDocument();
+    expect(confirmSpy).not.toHaveBeenCalled();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
+
+    await waitFor(() => {
+      expect(mockedApiRequest).toHaveBeenCalledWith(
+        '/messages/dialogs/dialog-1/messages/message-1',
+        {
+          method: 'DELETE',
+        },
+      );
+    });
+    expect(screen.getByText('Message deleted.')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'Delete message?' })).not.toBeInTheDocument();
+
+    confirmSpy.mockRestore();
+  });
+
   it('shows unread dialogs count for unopened conversations', async () => {
     mockedApiRequest.mockImplementation(async (path: string) => {
       if (path === '/auth/me') {

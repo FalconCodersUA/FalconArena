@@ -106,6 +106,7 @@ export const messages: TranslationMap = {
         evaluationIncomplete: 'Оцінювання ще не завершене: частина призначень очікує ревʼю.',
         evaluateDraftRound: 'Неможливо оцінити роботу в раунді-чернетці.',
         evaluateEvaluatedRound: 'Оцінювання цього раунду вже завершено.',
+        evaluateFinishedTournament: 'Турнір уже завершено, тому оцінки змінювати не можна.',
         evaluationAssignmentNotFound: 'Призначення для оцінювання в цьому раунді не знайдено.',
         assignmentWrongJury: 'Це призначення належить іншому користувачу Jury.',
         useFinishEvaluationEndpoint: 'Щоб завершити раунд, використайте дію завершення оцінювання.',
@@ -177,7 +178,7 @@ export const messages: TranslationMap = {
       },
       presentation: {
         eyebrow: 'Відеоогляд',
-        title: 'Подивіться FalconArena в дії',
+        title: 'FalconArena в дії',
         lead: 'Коротка презентація показує ключові ролі, сторінки та робочий сценарій платформи для журі й гостей проєкту.',
         action: 'Дивитися презентацію',
       },
@@ -919,6 +920,11 @@ export const messages: TranslationMap = {
         deleteDialog: 'Видалити діалог',
         deleteMessage: 'Видалити',
         deleting: 'Видалення...',
+        deleteDialogTitle: 'Видалити діалог?',
+        deleteMessageTitle: 'Видалити повідомлення?',
+        deleteMessagePreview: 'Повідомлення',
+        cancelDelete: 'Скасувати',
+        confirmDelete: 'Видалити',
         confirmDeleteDialog: 'Видалити весь діалог? Цю дію не можна скасувати.',
         confirmDeleteMessage: 'Видалити це повідомлення? Цю дію не можна скасувати.',
         loadFailed: 'Не вдалося завантажити діалоги',
@@ -1076,6 +1082,9 @@ export const messages: TranslationMap = {
       saved: 'Оцінку успішно збережено.',
       saveFailed: 'Не вдалося зберегти оцінку',
       comment: 'Коментар',
+      activeRoundWarningTitle: 'Раунд ще активний',
+      activeRoundWarningLead:
+        'Сабміти можуть змінюватися до закриття прийому робіт. Оцінку можна зберегти зараз, але перед фінальним завершенням її варто перевірити ще раз.',
       nextStepTitle: 'Що робити далі',
       nextStep: {
         evaluateSelected:
@@ -2165,6 +2174,7 @@ export const messages: TranslationMap = {
         evaluationIncomplete: 'Evaluation is not complete yet: some assignments still need review.',
         evaluateDraftRound: 'A submission cannot be evaluated in a draft round.',
         evaluateEvaluatedRound: 'Evaluation for this round is already finished.',
+        evaluateFinishedTournament: 'The tournament is already finished, so evaluations cannot be changed.',
         evaluationAssignmentNotFound: 'The evaluation assignment was not found for this round.',
         assignmentWrongJury: 'This assignment belongs to another Jury user.',
         useFinishEvaluationEndpoint: 'Use the finish evaluation action to complete the round.',
@@ -2236,7 +2246,7 @@ export const messages: TranslationMap = {
       },
       presentation: {
         eyebrow: 'Video walkthrough',
-        title: 'Watch FalconArena in action',
+        title: 'FalconArena in action',
         lead: 'A concise presentation shows the key roles, pages, and platform workflow for judges and project guests.',
         action: 'Watch presentation',
       },
@@ -2975,6 +2985,11 @@ export const messages: TranslationMap = {
         deleteDialog: 'Delete dialog',
         deleteMessage: 'Delete',
         deleting: 'Deleting...',
+        deleteDialogTitle: 'Delete dialog?',
+        deleteMessageTitle: 'Delete message?',
+        deleteMessagePreview: 'Message',
+        cancelDelete: 'Cancel',
+        confirmDelete: 'Delete',
         confirmDeleteDialog: 'Delete the whole dialog? This cannot be undone.',
         confirmDeleteMessage: 'Delete this message? This cannot be undone.',
         loadFailed: 'Could not load dialogs',
@@ -3134,6 +3149,9 @@ export const messages: TranslationMap = {
       saved: 'Evaluation saved successfully.',
       saveFailed: 'Could not save evaluation',
       comment: 'Comment',
+      activeRoundWarningTitle: 'Round is still active',
+      activeRoundWarningLead:
+        'Submissions may still change until submission intake is closed. You can save an evaluation now, but it should be reviewed again before final completion.',
       nextStepTitle: 'What to do next',
       nextStep: {
         evaluateSelected:

@@ -85,6 +85,19 @@ type DialogDetailsResponse = {
   messages: DialogMessage[];
 };
 
+type DeleteConfirmationTarget =
+  | {
+      type: 'dialog';
+      dialogId: string;
+      title: string;
+      detail: string;
+    }
+  | {
+      type: 'message';
+      messageId: string;
+      body: string;
+    };
+
 const ANNOUNCEMENT_AUDIENCES: AnnouncementAudience[] = [
   'ALL',
   'TEAM',
@@ -173,6 +186,8 @@ export default function MessagesPage() {
   const [dialogActionLoading, setDialogActionLoading] = useState(false);
   const [pendingDialogDeleteId, setPendingDialogDeleteId] = useState('');
   const [pendingMessageDeleteId, setPendingMessageDeleteId] = useState('');
+  const [deleteConfirmationTarget, setDeleteConfirmationTarget] =
+    useState<DeleteConfirmationTarget | null>(null);
   const [newDialogEmail, setNewDialogEmail] = useState('');
   const [newMessageBody, setNewMessageBody] = useState('');
   const [focusedNotificationId, setFocusedNotificationId] = useState('');
@@ -849,12 +864,37 @@ export default function MessagesPage() {
     }
   }
 
-  async function handleDeleteDialog(dialogId: string) {
-    if (!dialogId) {
+  function openDeleteDialogConfirmation(dialog: DialogListItem) {
+    setDialogMessagesError('');
+    setDialogNotice('');
+    setDeleteConfirmationTarget({
+      type: 'dialog',
+      dialogId: dialog.id,
+      title: dialog.otherUser.fullName,
+      detail: dialog.otherUser.email,
+    });
+  }
+
+  function openDeleteMessageConfirmation(message: DialogMessage) {
+    setDialogMessagesError('');
+    setDialogNotice('');
+    setDeleteConfirmationTarget({
+      type: 'message',
+      messageId: message.id,
+      body: message.body,
+    });
+  }
+
+  function closeDeleteConfirmation() {
+    if (pendingDialogDeleteId || pendingMessageDeleteId) {
       return;
     }
 
-    if (!window.confirm(t('messagesPage.dialogs.confirmDeleteDialog'))) {
+    setDeleteConfirmationTarget(null);
+  }
+
+  async function handleDeleteDialog(dialogId: string) {
+    if (!dialogId) {
       return;
     }
 
@@ -872,8 +912,10 @@ export default function MessagesPage() {
         setSelectedDialogId('');
         setDialogMessages([]);
       }
+      setDeleteConfirmationTarget(null);
       setDialogNotice(t('messagesPage.dialogs.deleted'));
     } catch (requestError) {
+      setDeleteConfirmationTarget(null);
       setDialogMessagesError(
         normalizeApiErrorMessage(requestError, t, t('messagesPage.dialogs.deleteFailed')),
       );
@@ -884,10 +926,6 @@ export default function MessagesPage() {
 
   async function handleDeleteMessage(messageId: string) {
     if (!selectedDialogId || !messageId) {
-      return;
-    }
-
-    if (!window.confirm(t('messagesPage.dialogs.confirmDeleteMessage'))) {
       return;
     }
 
@@ -917,8 +955,10 @@ export default function MessagesPage() {
             : dialog,
         ),
       );
+      setDeleteConfirmationTarget(null);
       setDialogNotice(t('messagesPage.dialogs.messageDeleted'));
     } catch (requestError) {
+      setDeleteConfirmationTarget(null);
       setDialogMessagesError(
         normalizeApiErrorMessage(requestError, t, t('messagesPage.dialogs.messageDeleteFailed')),
       );
@@ -1525,7 +1565,7 @@ export default function MessagesPage() {
                     <button
                       type="button"
                       className="messages-danger-action"
-                      onClick={() => void handleDeleteDialog(selectedDialog.id)}
+                      onClick={() => openDeleteDialogConfirmation(selectedDialog)}
                       disabled={pendingDialogDeleteId === selectedDialog.id}
                     >
                       {pendingDialogDeleteId === selectedDialog.id
@@ -1559,7 +1599,7 @@ export default function MessagesPage() {
                               <button
                                 type="button"
                                 className="messages-thread-delete"
-                                onClick={() => void handleDeleteMessage(item.id)}
+                                onClick={() => openDeleteMessageConfirmation(item)}
                                 disabled={pendingMessageDeleteId === item.id}
                               >
                                 {pendingMessageDeleteId === item.id
@@ -1610,6 +1650,76 @@ export default function MessagesPage() {
           </div>
         </div>
         </article>
+      ) : null}
+      {deleteConfirmationTarget ? (
+        <div className="app-modal-overlay" role="presentation" onClick={closeDeleteConfirmation}>
+          <article
+            className="app-modal-card messages-confirm-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="messages-delete-confirm-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="app-modal-head">
+              <h2 id="messages-delete-confirm-title">
+                {deleteConfirmationTarget.type === 'dialog'
+                  ? t('messagesPage.dialogs.deleteDialogTitle')
+                  : t('messagesPage.dialogs.deleteMessageTitle')}
+              </h2>
+              <button
+                type="button"
+                className="button button-soft app-modal-close app-modal-secondary-action"
+                onClick={closeDeleteConfirmation}
+                disabled={Boolean(pendingDialogDeleteId || pendingMessageDeleteId)}
+              >
+                {t('adminDashboard.modal.close')}
+              </button>
+            </header>
+            <div className="app-modal-body">
+              <div className="state-callout subtle messages-confirm-summary">
+                <strong>
+                  {deleteConfirmationTarget.type === 'dialog'
+                    ? deleteConfirmationTarget.title
+                    : t('messagesPage.dialogs.deleteMessagePreview')}
+                </strong>
+                <p>
+                  {deleteConfirmationTarget.type === 'dialog'
+                    ? deleteConfirmationTarget.detail
+                    : deleteConfirmationTarget.body}
+                </p>
+              </div>
+              <p className="inline-hint">
+                {deleteConfirmationTarget.type === 'dialog'
+                  ? t('messagesPage.dialogs.confirmDeleteDialog')
+                  : t('messagesPage.dialogs.confirmDeleteMessage')}
+              </p>
+              <div className="messages-confirm-actions">
+                <button
+                  type="button"
+                  className="button button-soft app-modal-secondary-action"
+                  onClick={closeDeleteConfirmation}
+                  disabled={Boolean(pendingDialogDeleteId || pendingMessageDeleteId)}
+                >
+                  {t('messagesPage.dialogs.cancelDelete')}
+                </button>
+                <button
+                  type="button"
+                  className="button button-primary app-modal-danger-action"
+                  onClick={() =>
+                    deleteConfirmationTarget.type === 'dialog'
+                      ? void handleDeleteDialog(deleteConfirmationTarget.dialogId)
+                      : void handleDeleteMessage(deleteConfirmationTarget.messageId)
+                  }
+                  disabled={Boolean(pendingDialogDeleteId || pendingMessageDeleteId)}
+                >
+                  {pendingDialogDeleteId || pendingMessageDeleteId
+                    ? t('messagesPage.dialogs.deleting')
+                    : t('messagesPage.dialogs.confirmDelete')}
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
       ) : null}
     </section>
   );
