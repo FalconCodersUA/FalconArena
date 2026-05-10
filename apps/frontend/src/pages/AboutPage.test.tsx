@@ -119,6 +119,10 @@ describe('AboutPage', () => {
     expect(
       screen.getByRole('heading', { name: 'Керований турнірний маршрут' }),
     ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Дивитися презентацію' })).toHaveAttribute(
+      'href',
+      '/app/presentation',
+    );
     expect(screen.getByRole('img', { name: 'Про FalconArena' })).toHaveAttribute(
       'src',
       'https://falconarena.live/uploads/about/banner.png',
