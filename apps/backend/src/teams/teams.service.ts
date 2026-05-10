@@ -222,31 +222,39 @@ export class TeamsService {
 
   async listAllVisible(): Promise<TeamDirectoryView[]> {
     const defaults = await this.systemIntegrationsService.getTournamentDefaultsConfig();
-    const where: Prisma.TeamWhereInput = defaults.hideTeamsUntilRegistrationClose
-      ? {
-          tournament: {
-            is: {
-              OR: [
-                { status: { in: [TournamentStatus.RUNNING, TournamentStatus.FINISHED] } },
-                { registrationCloseAt: { lt: new Date() } },
-              ],
-            },
-          },
-        }
-      : {};
+    let where: Prisma.TeamWhereInput = {};
+
+    if (defaults.hideTeamsUntilRegistrationClose) {
+      const visibleTournaments = await this.prisma.tournament.findMany({
+        where: {
+          OR: [
+            { status: { in: [TournamentStatus.RUNNING, TournamentStatus.FINISHED] } },
+            { registrationCloseAt: { lt: new Date() } },
+          ],
+        },
+        select: { id: true },
+      });
+      const visibleTournamentIds = visibleTournaments.map((tournament) => tournament.id);
+
+      if (visibleTournamentIds.length === 0) {
+        return [];
+      }
+
+      where = {
+        tournamentId: { in: visibleTournamentIds },
+      };
+    }
 
     const teams = await this.prisma.team.findMany({
       where,
-      orderBy: [
-        { tournament: { createdAt: 'desc' } },
-        { createdAt: 'asc' },
-      ],
+      orderBy: { createdAt: 'asc' },
       include: {
         tournament: {
           select: {
             id: true,
             title: true,
             status: true,
+            createdAt: true,
           },
         },
         _count: {
@@ -255,16 +263,27 @@ export class TeamsService {
       },
     });
 
-    return teams.map((team) => ({
-      id: team.id,
-      tournamentId: team.tournament.id,
-      tournamentTitle: team.tournament.title,
-      tournamentStatus: team.tournament.status,
-      name: team.name,
-      organization: team.organization,
-      createdAt: team.createdAt,
-      membersCount: team._count.members,
-    }));
+    return teams
+      .sort((left, right) => {
+        const tournamentOrder =
+          right.tournament.createdAt.getTime() - left.tournament.createdAt.getTime();
+
+        if (tournamentOrder !== 0) {
+          return tournamentOrder;
+        }
+
+        return left.createdAt.getTime() - right.createdAt.getTime();
+      })
+      .map((team) => ({
+        id: team.id,
+        tournamentId: team.tournament.id,
+        tournamentTitle: team.tournament.title,
+        tournamentStatus: team.tournament.status,
+        name: team.name,
+        organization: team.organization,
+        createdAt: team.createdAt,
+        membersCount: team._count.members,
+      }));
   }
 
   async getMyTeam(
