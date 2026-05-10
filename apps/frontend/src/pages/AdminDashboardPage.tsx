@@ -15,7 +15,7 @@ import {
   resolveStoredTournamentSelection,
 } from '../lib/tournamentSelection';
 import { localizeWeekLabels } from '../lib/weekLabels';
-import { useI18n } from '../i18n/I18nProvider';
+import { resolveHtmlLanguage, useI18n } from '../i18n/I18nProvider';
 
 type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
 type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
@@ -449,8 +449,8 @@ function AdminActionModal({
 
 export default function AdminDashboardPage() {
   const { language, t } = useI18n();
-  const dateTimeInputLang = language === 'uk' ? 'uk-UA' : 'en-US';
-  const contentInputLang = language === 'uk' ? 'uk-UA' : 'en-US';
+  const dateTimeInputLang = resolveHtmlLanguage(language);
+  const contentInputLang = dateTimeInputLang;
   const { notifyError, notifySuccess } = useNotifications();
 
   const [me, setMe] = useState<AuthMe | null>(null);
@@ -2888,6 +2888,8 @@ export default function AdminDashboardPage() {
             <input
               id="admin-tournament-title"
               type="text"
+              lang={contentInputLang}
+              spellCheck
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               required
@@ -3097,6 +3099,8 @@ export default function AdminDashboardPage() {
             <input
               id="admin-round-title"
               type="text"
+              lang={contentInputLang}
+              spellCheck
               value={roundTitle}
               onChange={(event) => setRoundTitle(event.target.value)}
               required

@@ -163,6 +163,91 @@ describe('MessagesPage', () => {
     expect(screen.getByText('Announcement created.')).toBeInTheDocument();
   });
 
+  it('uses Ukrainian spellcheck hints for message and announcement text fields', async () => {
+    localStorage.setItem('falconarena_language', 'uk');
+    mockedApiRequest.mockImplementation(async (path: string) => {
+      if (path === '/auth/me') {
+        return {
+          id: 'admin-1',
+          email: 'admin@example.com',
+          fullName: 'Admin User',
+          role: 'ADMIN',
+        };
+      }
+
+      if (path === '/announcements') {
+        return [];
+      }
+
+      if (path === '/tournaments') {
+        return [];
+      }
+
+      if (path === '/notifications') {
+        return [];
+      }
+
+      if (path === '/messages/dialogs') {
+        return [
+          {
+            id: 'dialog-1',
+            createdAt: '2026-03-22T10:00:00.000Z',
+            updatedAt: '2026-03-22T10:00:00.000Z',
+            otherUser: {
+              id: 'team-1',
+              email: 'team@example.com',
+              fullName: 'Team User',
+              role: 'TEAM',
+            },
+            lastMessage: null,
+            isUnread: false,
+          },
+        ];
+      }
+
+      if (path === '/messages/dialogs/dialog-1') {
+        return {
+          dialog: {
+            id: 'dialog-1',
+            createdAt: '2026-03-22T10:00:00.000Z',
+            updatedAt: '2026-03-22T10:00:00.000Z',
+            otherUser: {
+              id: 'team-1',
+              email: 'team@example.com',
+              fullName: 'Team User',
+              role: 'TEAM',
+            },
+            lastMessage: null,
+            isUnread: false,
+          },
+          messages: [],
+        };
+      }
+
+      throw new Error(`Unexpected request: ${path}`);
+    });
+
+    renderMessagesPage();
+
+    await screen.findByText('Керування оголошеннями');
+
+    const announcementForm = document.getElementById('messages-announcements-manage');
+    const announcementTitle = announcementForm?.querySelector(
+      'input[maxlength="140"]',
+    ) as HTMLInputElement;
+    const announcementBody = announcementForm?.querySelector('textarea') as HTMLTextAreaElement;
+
+    expect(document.documentElement).toHaveAttribute('lang', 'uk-UA');
+    expect(announcementTitle).toHaveAttribute('lang', 'uk-UA');
+    expect(announcementTitle).toHaveAttribute('spellcheck', 'true');
+    expect(announcementBody).toHaveAttribute('lang', 'uk-UA');
+    expect(announcementBody).toHaveAttribute('spellcheck', 'true');
+
+    const messageComposer = await screen.findByPlaceholderText('Повідомлення');
+    expect(messageComposer).toHaveAttribute('lang', 'uk-UA');
+    expect(messageComposer).toHaveAttribute('spellcheck', 'true');
+  });
+
   it('allows sending a direct message in selected dialog', async () => {
     mockedApiRequest.mockImplementation(async (path: string, options?: { method?: string; body?: unknown }) => {
       if (path === '/auth/me') {

@@ -11,6 +11,10 @@ const LANG_STORAGE_KEY = 'falconarena_language';
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
+export function resolveHtmlLanguage(language: Language) {
+  return language === 'uk' ? 'uk-UA' : 'en-US';
+}
+
 function resolveMessage(language: Language, key: string): string {
   const parts = key.split('.');
   let current: unknown = messages[language];
@@ -40,7 +44,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     localStorage.setItem(LANG_STORAGE_KEY, language);
-    document.documentElement.lang = language;
+    document.documentElement.lang = resolveHtmlLanguage(language);
+    document.documentElement.spellcheck = true;
   }, [language]);
 
   const value = useMemo<I18nContextValue>(

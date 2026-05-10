@@ -5,7 +5,7 @@ import QuietLoadingInline from '../components/QuietLoadingInline';
 import { apiRequest } from '../lib/api';
 import { formatDateTime } from '../lib/dateTime';
 import { normalizeApiErrorMessage } from '../lib/errorMessages';
-import { useI18n } from '../i18n/I18nProvider';
+import { resolveHtmlLanguage, useI18n } from '../i18n/I18nProvider';
 
 type UserRole = 'ADMIN' | 'TEAM' | 'JURY' | 'ORGANIZER';
 type AnnouncementAudience = 'ALL' | 'TEAM' | 'JURY' | 'ADMIN' | 'ORGANIZER';
@@ -138,6 +138,7 @@ function initialsFromName(fullName: string) {
 
 export default function MessagesPage() {
   const { language, t } = useI18n();
+  const contentInputLang = resolveHtmlLanguage(language);
   const location = useLocation();
 
   const [me, setMe] = useState<AuthMe | null>(null);
@@ -1187,6 +1188,8 @@ export default function MessagesPage() {
                 <label className="field">
                   <span>{t('messagesPage.form.title')}</span>
                   <input
+                    lang={contentInputLang}
+                    spellCheck
                     value={title}
                     onChange={(event) => setTitle(event.target.value)}
                     maxLength={140}
@@ -1196,6 +1199,8 @@ export default function MessagesPage() {
                 <label className="field">
                   <span>{t('messagesPage.form.body')}</span>
                   <textarea
+                    lang={contentInputLang}
+                    spellCheck
                     value={body}
                     onChange={(event) => setBody(event.target.value)}
                     maxLength={5000}
@@ -1573,6 +1578,8 @@ export default function MessagesPage() {
                   <label className="field messages-composer-field">
                     <span className="visually-hidden">{t('messagesPage.dialogs.message')}</span>
                     <textarea
+                      lang={contentInputLang}
+                      spellCheck
                       value={newMessageBody}
                       onChange={(event) => setNewMessageBody(event.target.value)}
                       maxLength={2000}
