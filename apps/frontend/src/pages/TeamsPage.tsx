@@ -12,6 +12,7 @@ import {
 } from '../lib/tournamentSelection';
 
 const ALL_TOURNAMENTS_VALUE = 'all';
+const ALL_TEAMS_ENDPOINT = '/tournaments/all/teams';
 
 type TournamentStatus = 'DRAFT' | 'REGISTRATION' | 'RUNNING' | 'FINISHED';
 
@@ -93,7 +94,9 @@ export default function TeamsPage() {
 
     try {
       const endpoint =
-        tournamentId === ALL_TOURNAMENTS_VALUE ? '/teams' : `/tournaments/${tournamentId}/teams`;
+        tournamentId === ALL_TOURNAMENTS_VALUE
+          ? ALL_TEAMS_ENDPOINT
+          : `/tournaments/${tournamentId}/teams`;
       const data = await apiRequest<TeamRow[]>(endpoint);
       setTeams(data);
     } catch (requestError) {

@@ -31,6 +31,10 @@ export class TeamsController {
 
   @Get()
   list(@Param('tournamentId') tournamentId: string) {
+    if (tournamentId === 'all') {
+      return this.teamsService.listAllVisible();
+    }
+
     return this.teamsService.listByTournament(tournamentId);
   }
 

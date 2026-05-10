@@ -14,6 +14,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { AuthUser } from '../common/types/auth-user.type';
 import { ListManagedUsersDto } from './dto/list-managed-users.dto';
+import { ResetManagedUserPasswordDto } from './dto/reset-managed-user-password.dto';
 import { UpdateManagedUserDto } from './dto/update-managed-user.dto';
 import { UsersService } from './users.service';
 
@@ -54,5 +55,14 @@ export class UsersController {
     @Req() request: { user: AuthUser },
   ) {
     return this.usersService.updateManagedUser(userId, dto, request.user);
+  }
+
+  @Patch(':userId/password')
+  resetManagedUserPassword(
+    @Param('userId') userId: string,
+    @Body() dto: ResetManagedUserPasswordDto,
+    @Req() request: { user: AuthUser },
+  ) {
+    return this.usersService.resetManagedUserPassword(userId, dto, request.user);
   }
 }

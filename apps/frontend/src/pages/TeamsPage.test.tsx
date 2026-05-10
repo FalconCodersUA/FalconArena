@@ -49,7 +49,7 @@ describe('TeamsPage', () => {
         ];
       }
 
-      if (path === '/teams') {
+      if (path === '/tournaments/all/teams') {
         return [
           {
             id: 'team-1',
@@ -94,7 +94,7 @@ describe('TeamsPage', () => {
     await screen.findByText('Falcons');
     expect(screen.getByText('Owls')).toBeInTheDocument();
     expect(screen.getByText(/Tournament:\s+Spring Cup/)).toBeInTheDocument();
-    expect(mockedApiRequest).toHaveBeenCalledWith('/teams');
+    expect(mockedApiRequest).toHaveBeenCalledWith('/tournaments/all/teams');
 
     fireEvent.change(screen.getByLabelText('Select tournament'), {
       target: { value: 't-running' },
