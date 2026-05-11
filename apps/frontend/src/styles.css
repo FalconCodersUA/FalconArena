@@ -12720,9 +12720,17 @@ body[data-theme='blue'] .app-page.admin-users-page .admin-user-action--save:disa
   }
 
   .app-alerts-popover {
-    right: 0;
-    left: auto;
-    width: min(calc(100vw - 32px), 380px);
+    position: fixed;
+    top: max(12px, calc(env(safe-area-inset-top) + 12px));
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-height: min(74dvh, 560px);
+    z-index: 1300;
+  }
+
+  .app-alerts-list {
+    max-height: min(54dvh, 400px);
   }
 
   .app-topbar-language {
@@ -12769,6 +12777,12 @@ body[data-theme='blue'] .app-page.admin-users-page .admin-user-action--save:disa
 
   .dashboard-toolset-grid {
     grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+  }
+
+  .dashboard-toolset-grid .dashboard-tool-card {
+    height: auto;
+    min-height: 0;
   }
 
   .about-text-panel {
@@ -12923,6 +12937,27 @@ body[data-theme='blue'] .app-page.admin-users-page .admin-user-action--save:disa
   .summary-grid,
   .compact-summary-grid {
     grid-template-columns: 1fr;
+  }
+
+  .messages-summary-panel .summary-grid,
+  .leaderboard-summary-panel .summary-grid,
+  #archive-summary .summary-grid,
+  #leaderboard-summary .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-card,
+  .messages-summary-panel .summary-card,
+  .leaderboard-summary-panel .summary-card,
+  #archive-summary .summary-card,
+  #leaderboard-summary .summary-card {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .summary-card strong,
+  .summary-card p {
+    overflow-wrap: anywhere;
   }
 
   .team-grid {
