@@ -2,6 +2,7 @@
 
 :root {
   color-scheme: light;
+  --app-root-inset: 1px;
   --bg: #f8f5ff;
   --ink: #162032;
   --muted: #5a6675;
@@ -72,8 +73,11 @@ body,
 }
 
 body {
-  margin: 0;
-  min-height: 100vh;
+  width: auto;
+  inline-size: auto;
+  max-width: none;
+  margin: var(--app-root-inset);
+  min-height: calc(100vh - (var(--app-root-inset) * 2));
   position: relative;
   font-family: 'Manrope', sans-serif;
   color: var(--ink);
@@ -756,7 +760,7 @@ a {
 }
 
 .app-shell-surface {
-  min-height: calc(100vh - 20px);
+  min-height: calc(100vh - 20px - (var(--app-root-inset) * 2));
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -12592,7 +12596,7 @@ body[data-theme='blue'] .app-page.admin-users-page .admin-user-action--save:disa
   .app-shell-surface {
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(0, 1fr);
-    min-height: calc(100vh - 12px);
+    min-height: calc(100vh - 12px - (var(--app-root-inset) * 2));
   }
 
   .app-sidebar {
