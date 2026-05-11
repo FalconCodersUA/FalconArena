@@ -1516,7 +1516,11 @@ export default function MessagesPage() {
                   className={`messages-dialog-item${
                     dialog.id === selectedDialogId ? ' active' : ''
                   }`}
-                  onClick={() => setSelectedDialogId(dialog.id)}
+                  onClick={() => {
+                    if (dialog.id !== selectedDialogId) {
+                      setSelectedDialogId(dialog.id);
+                    }
+                  }}
                 >
                   <span className="messages-dialog-avatar" aria-hidden>
                     {initialsFromName(dialog.otherUser.fullName)}
@@ -1581,44 +1585,42 @@ export default function MessagesPage() {
                   </div>
                 </header>
 
-                {dialogMessagesLoading ? (
-                  <QuietLoadingInline label={t('messagesPage.dialogs.loadingMessages')} compact />
-                ) : (
-                  <div className="messages-thread-feed">
-                    {dialogMessages.length === 0 ? (
-                      <div className="state-callout subtle">
-                        <strong>{t('messagesPage.dialogs.title')}</strong>
-                        <p>{t('messagesPage.dialogs.noMessages')}</p>
-                      </div>
-                    ) : (
-                      dialogMessages.map((item) => (
-                        <article
-                          key={item.id}
-                          className={`messages-thread-item${
-                            item.senderId === me?.id ? ' mine' : ''
-                          }`}
-                        >
-                          <p>{item.body}</p>
-                          <div className="messages-thread-meta">
-                            <span>{formatDateTime(item.createdAt, language)}</span>
-                            {item.senderId === me?.id ? (
-                              <button
-                                type="button"
-                                className="messages-thread-delete"
-                                onClick={() => openDeleteMessageConfirmation(item)}
-                                disabled={pendingMessageDeleteId === item.id}
-                              >
-                                {pendingMessageDeleteId === item.id
-                                  ? t('messagesPage.dialogs.deleting')
-                                  : t('messagesPage.dialogs.deleteMessage')}
-                              </button>
-                            ) : null}
-                          </div>
-                        </article>
-                      ))
-                    )}
-                  </div>
-                )}
+                <div className={`messages-thread-feed${dialogMessagesLoading ? ' is-loading' : ''}`}>
+                  {dialogMessagesLoading ? (
+                    <QuietLoadingInline label={t('messagesPage.dialogs.loadingMessages')} compact />
+                  ) : dialogMessages.length === 0 ? (
+                    <div className="state-callout subtle">
+                      <strong>{t('messagesPage.dialogs.title')}</strong>
+                      <p>{t('messagesPage.dialogs.noMessages')}</p>
+                    </div>
+                  ) : (
+                    dialogMessages.map((item) => (
+                      <article
+                        key={item.id}
+                        className={`messages-thread-item${
+                          item.senderId === me?.id ? ' mine' : ''
+                        }`}
+                      >
+                        <p>{item.body}</p>
+                        <div className="messages-thread-meta">
+                          <span>{formatDateTime(item.createdAt, language)}</span>
+                          {item.senderId === me?.id ? (
+                            <button
+                              type="button"
+                              className="messages-thread-delete"
+                              onClick={() => openDeleteMessageConfirmation(item)}
+                              disabled={pendingMessageDeleteId === item.id}
+                            >
+                              {pendingMessageDeleteId === item.id
+                                ? t('messagesPage.dialogs.deleting')
+                                : t('messagesPage.dialogs.deleteMessage')}
+                            </button>
+                          ) : null}
+                        </div>
+                      </article>
+                    ))
+                  )}
+                </div>
 
                 <form className="panel-form messages-thread-form" onSubmit={handleSendMessage}>
                   <label className="field messages-composer-field">
