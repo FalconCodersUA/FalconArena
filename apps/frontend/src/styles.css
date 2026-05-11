@@ -2747,6 +2747,33 @@ a {
   padding: 10px 12px;
   font-weight: 700;
   font-size: 0.86rem;
+  animation: form-success-autodismiss 4s ease forwards;
+  will-change: opacity, transform;
+}
+
+@keyframes form-success-autodismiss {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  10%,
+  82% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-success {
+    animation: none;
+    will-change: auto;
+  }
 }
 
 .state-card {
