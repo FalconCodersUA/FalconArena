@@ -7706,6 +7706,11 @@ a {
   gap: 10px;
 }
 
+.messages-thread-feed.is-loading {
+  align-content: center;
+  justify-items: center;
+}
+
 .messages-thread-feed > p {
   margin: 2px;
   color: #5d6472;
