@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useI18n } from '../i18n/I18nProvider';
 
 const PRESENTATION_EMBED_URL =
-  'https://www.youtube-nocookie.com/embed/tVMOHUrgPZ4?rel=0&modestbranding=1';
+  'https://www.youtube-nocookie.com/embed/WUs2zc7T8qk?rel=0&modestbranding=1';
 
 export default function PresentationPage() {
   const { t } = useI18n();

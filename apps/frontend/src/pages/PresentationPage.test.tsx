@@ -30,7 +30,7 @@ describe('PresentationPage', () => {
     const iframe = screen.getByTitle('Відеопрезентація FalconArena');
     expect(iframe).toHaveAttribute(
       'src',
-      'https://www.youtube-nocookie.com/embed/tVMOHUrgPZ4?rel=0&modestbranding=1',
+      'https://www.youtube-nocookie.com/embed/WUs2zc7T8qk?rel=0&modestbranding=1',
     );
 
     expect(screen.queryByRole('link', { name: 'Відкрити на YouTube' })).not.toBeInTheDocument();

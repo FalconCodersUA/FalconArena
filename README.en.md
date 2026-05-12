@@ -1,6 +1,6 @@
 # FalconArena
 
-FalconArena is a standalone tournament platform for team-based programming competitions. Organizers create tournaments and rounds, teams register and submit work, jury members evaluate submissions, and the system provides leaderboard results, archive views, communication flows, certificates, integrations, and operational tooling around the full tournament lifecycle.
+FalconArena is a web platform for running team-based programming tournaments. It brings the full tournament lifecycle into one product: tournament setup, team registration, rounds, submissions, jury evaluation, leaderboard results, archive, certificates, communication, integrations, and operational control.
 
 Live site: `https://falconarena.live/`
 
@@ -11,77 +11,74 @@ Language versions:
 
 ## Platform Overview
 
-FalconArena is designed as a product platform for tournaments, where the core competition flows live in one system:
+FalconArena is built as a product platform for programming tournaments, where every key workflow is connected in one workspace:
 
-- tournament setup and status management;
+- tournament creation and status management;
 - team registration and participant management;
-- rounds with tasks, deadlines, and supporting materials;
-- submissions through GitHub, demo, and live demo links;
+- rounds with tasks, requirements, deadlines, and materials;
+- submissions through GitHub, demo, live demo, and a short project summary;
 - tournament-level jury assignment, round evaluation distribution, and leaderboard generation;
-- archive views and certificates for completed tournaments;
+- archive views, printable certificates, CSV export, and Google Sheets export;
 - announcements, direct dialogs with message management, and system notifications;
-- public `About` page with platform copy, a banner, role blocks, CTA, contact channels, and user reviews;
-- a modern interface with light, blue, and dark themes.
+- public `About` and `Presentation` pages for reviewers, guests, and project stakeholders;
+- a polished responsive interface with light, blue, and dark themes.
 
-## Who FalconArena is for
+## Who FalconArena Is For
 
-- `ADMIN` and `ORGANIZER` manage tournaments, rounds, users, integrations, and platform settings.
-- `TEAM` registers a team, follows the active round, and submits work.
-- `JURY` reviews assigned submissions, scores projects, and works with final results.
+- `ADMIN` and `ORGANIZER` manage tournaments, rounds, users, integrations, content, and operational settings.
+- `TEAM` registers a team, follows the active round, submits work, and tracks results.
+- `JURY` receives assigned submissions, scores them by criteria, and works with final results.
 
 ## Product Capabilities
 
-### Tournament flow
+### Tournament Flow
 
-- role-based flow for `ADMIN`, `ORGANIZER`, `TEAM`, and `JURY`
-- email/password authentication and OAuth sign-in through Google or GitHub
+- role-based platform for `ADMIN`, `ORGANIZER`, `TEAM`, and `JURY`
+- email/password authentication plus Google OAuth and GitHub OAuth
 - public tournament pages
-- rounds with descriptions, requirements, deadlines, and materials
+- registration windows, team limits, tournament schedule, and tournament statuses
+- rounds with descriptions, must-have requirements, technical requirements, deadlines, and materials
 - submissions with GitHub, demo, live demo, and structured summaries
-- automatic submission locking after the deadline
+- automatic submission locking after deadline or round closure
 - managed jury pool for each tournament
 - submission distribution only across jury members assigned to the selected tournament
-- category-based evaluation
-- leaderboard, archive, and export flows
+- category-based evaluation on a `0-100` scale
+- leaderboard, archive, certificate, CSV, and Google Sheets export flows
 
-### Communication and delivery
+### Communication and Notifications
 
-- role-based announcements
-- personal dialogs with support for deleting individual messages or the full dialog
-- system notifications
-- unread indicators in the UI
+- role-aware announcements
+- direct dialogs with support for deleting individual messages or a full dialog
+- system notifications for tournament events, deadlines, submissions, and operational updates
+- unread indicators in the shell and messages workspace
 - email delivery through `console` or `resend`
 - background processing for tournament events and reminders
 
-### UX and personalization
+### UX and Personalization
 
-- light, blue, and dark themes with the selected mode saved in the browser
-- a unified `app shell` across roles
-- quiet loading states without extra text noise
-- responsive workspaces for desktop and mobile
-- user profile with avatar, language, and time zone settings
+- light, blue, and dark themes with the selected theme saved in the browser
+- Ukrainian and English UI with the selected language saved in the browser
+- unified `app shell` across roles
+- stable responsive layouts for desktop and mobile
+- profile settings with avatar, language, timezone, and password update
+- product-style public pages for `About` and project presentation video
 
-### Administrative and operating layer
+### Administrative and Operational Layer
 
-- user, role, access-block management, and CSV export
+- user management with role updates, account blocking, CSV export, and admin-only password reset
 - tournament-level jury assignment from the Dashboard
-- compact administrator guidance block with a launch checklist
-- tournament schedule
-- profile settings
-- `About` page with managed platform copy, banner, contact channels, and user reviews
-- participant and winner certificates
-- Google Sheets export via webhook
-- `Integrations / System settings` admin screen
-- About page content management from `Integrations`: hero copy, banner, workflow copy, role blocks, CTA, contacts, and review moderation
-- monitoring, activity history, automated checks, and deployment documentation
+- compact administrator guidance and launch checklist blocks
+- integration settings for Google Sheets, email delivery, notification rules, tournament defaults, and public content
+- managed `About` page content: hero copy, banner, workflow text, role blocks, CTA, contacts, and moderated reviews
+- monitoring workspace, activity history, error reports, audit trail, automated checks, and deployment documentation
 
 ## Tech Stack
 
 - Frontend: React + TypeScript + Vite
 - Backend: NestJS + TypeScript
 - Database: PostgreSQL + Prisma
-- Cache/queue-ready layer: Redis
-- Infrastructure: Docker Compose
+- Cache / queue-ready layer: Redis
+- Infrastructure: Docker Compose + Caddy
 - CI/CD: GitHub Actions
 
 ## Monorepo Layout
@@ -90,27 +87,66 @@ FalconArena is designed as a product platform for tournaments, where the core co
 apps/
   frontend/
   backend/
+docs/
 infra/
   docker-compose/
 .github/
   workflows/
 ```
 
-## Git Flow
+## Main Screens
 
-- Protected branch: `main`
-- Feature development: `feature/*`
-- Integration path: Pull Request into `main` only
-- No direct pushes to `main`
+- `/` - public entry point
+- `/app/login` - sign in
+- `/app/register` - team account registration
+- `/app/about` - public platform page with product copy, banner, contacts, and reviews
+- `/app/presentation` - public video presentation page
+- `/app/tournaments` - tournament catalog
+- `/app/tournaments/:id` - public tournament details page
+- `/app/teams` - teams list with tournament filtering
+- `/app/team` - team workspace
+- `/app/jury` - jury workspace
+- `/app/admin` - admin dashboard
+- `/app/users` - admin-only user, role, blocking, password reset, and CSV export management
+- `/app/leaderboard` - leaderboard
+- `/app/archive` - completed tournament archive
+- `/app/messages` - announcements, system notifications, and direct dialogs
+- `/app/profile` - profile and settings
+- `/app/integrations` - admin-only integrations and system settings
+- `/app/monitoring` - admin-only monitoring, system signals, and reports
+- `/app/certificates` - printable certificate preview
 
-### Small team mode (self-merge)
+## Role Model
 
-Recommended settings for a 1-2 developer team:
+- `TEAM`
+  - registers through the public site
+  - creates or registers a team in a tournament
+  - sees the active tournament and active round
+  - submits work before the deadline
+  - reads announcements, notifications, and direct dialogs
+- `JURY`
+  - sees assigned submissions
+  - reviews repository and demo links
+  - submits category-based scores and comments
+  - reads messages and schedule context
+- `ADMIN`
+  - creates tournaments and rounds
+  - updates tournament and round statuses
+  - creates and manages users
+  - assigns jury members to tournaments
+  - distributes submissions for evaluation
+  - manages announcements, archive, certificates, integrations, public content, monitoring, and users
+- `ORGANIZER`
+  - handles most tournament operations without full admin scope
 
-- Require pull request before merge: enabled
-- Required approvals: `0` (self-review with checklist in PR template)
-- Require status checks before merge: enabled (`CI / checks`)
-- Auto-deploy after merge to `main`: enabled via `deploy.yml`
+## Product Flow
+
+1. `TEAM`: creates an account through `/app/register`, opens tournaments, registers a team, and submits work.
+2. `ADMIN`: creates a tournament, opens registration, starts a round, and creates `JURY` or `ORGANIZER` users if needed.
+3. `JURY`: works in the jury workspace, opens assigned submissions, and submits scores.
+4. `ADMIN`: assigns jury members to the tournament, distributes evaluation across that jury pool, closes submissions or finishes evaluation, then reviews `Leaderboard`, `Archive`, and certificates.
+5. Any role: uses `Messages` for announcements, system notifications, and direct dialogs.
+6. Signed-in users can leave a review on the `About` page; `ADMIN` moderates reviews from `Integrations`.
 
 ## Local Start
 
@@ -120,184 +156,326 @@ Recommended settings for a 1-2 developer team:
 npm install
 ```
 
-2. Run local bootstrap:
+2. Run the local bootstrap:
 
 ```bash
 npm run bootstrap:local
 ```
 
-What bootstrap does:
+Bootstrap:
 
-- verifies `Node.js >= 20`
+- checks `Node.js >= 20`
 - creates `infra/docker-compose/.env` from `.env.example` if needed
-- generates Prisma Client for backend automatically
+- generates the Prisma Client for the backend
 
-3. Start local infrastructure and apps:
+3. Start local infrastructure:
 
 ```bash
 docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docker-compose/.env up -d --build
 ```
 
-4. Open apps:
+4. Open:
 
-- App entrypoint (Caddy): `http://localhost`
-- Backend health via proxy: `http://localhost/health`
+- `http://localhost` - frontend through Caddy
+- `http://localhost/health` - backend health through the proxy
 
-## CI / CD
+## Environment Variables
 
-- PR to `main`: lint + test + build
-- Push/merge to `main`: deploy workflow connects to Ubuntu over SSH and runs Docker Compose update
-- `Production Smoke Check` runs scheduled and on-demand backend smoke automation against the deployed platform
+Core:
 
-Required repository secrets for deploy:
-
-- `SSH_HOST`
-- `SSH_USER`
-- `SSH_PRIVATE_KEY`
-- `SSH_PORT` (optional, defaults to `22`)
-- `DEPLOY_PATH`
-- `GH_PULL_USERNAME`
-- `GH_PULL_TOKEN` (fine-grained token with repo read access)
 - `POSTGRES_DB`
 - `POSTGRES_USER`
 - `POSTGRES_PASSWORD`
 - `JWT_SECRET`
-- `VITE_API_URL` (optional, fallback supported)
-- `EMAIL_NOTIFICATIONS_ENABLED` (optional, `true/false`)
-- `EMAIL_PROVIDER` (optional, `console` or `resend`)
-- `EMAIL_FROM` (required for real email sending)
-- `EMAIL_REPLY_TO` (optional)
-- `RESEND_API_KEY` (required only for `EMAIL_PROVIDER=resend`)
-- `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` for Google OAuth
-- `GH_OAUTH_CLIENT_ID` and `GH_OAUTH_CLIENT_SECRET` for GitHub OAuth
-- `GOOGLE_CALLBACK_URL` and `GITHUB_CALLBACK_URL` when production callbacks differ from defaults
-- `FRONTEND_OAUTH_SUCCESS_URL` and `FRONTEND_OAUTH_FAILURE_URL`
+- `VITE_API_URL`
+- `APP_DOMAIN`
+- `PRISMA_SYNC_MODE`
 
-GitHub OAuth uses `GH_OAUTH_CLIENT_ID` in repository secrets because the `GITHUB_` prefix is reserved by GitHub.
+Email notifications:
 
-Required repository secrets for manual smoke check:
+- `EMAIL_NOTIFICATIONS_ENABLED`
+- `EMAIL_PROVIDER` - `console` or `resend`
+- `EMAIL_FROM`
+- `EMAIL_REPLY_TO`
+- `RESEND_API_KEY`
 
-- `SMOKE_ADMIN_EMAIL`
-- `SMOKE_ADMIN_PASSWORD`
-- `SMOKE_TEST_USER_PASSWORD` (optional, fallback supported)
+Google Sheets export:
 
-Optional repository variable for manual smoke check:
+- `GOOGLE_SHEETS_WEBHOOK_URL`
+- `GOOGLE_SHEETS_WEBHOOK_SECRET`
+- `GOOGLE_SHEETS_DEFAULT_SHEET_NAME`
 
-- `SMOKE_BASE_URL` (defaults to `https://falconarena.live`, can also be overridden in manual workflow dispatch input)
+OAuth sign-in:
 
-Production routing is handled by Caddy (`80/443`). Database and Redis are internal-only in Docker network.
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_CALLBACK_URL`
+- `GITHUB_CLIENT_ID`
+- `GITHUB_CLIENT_SECRET`
+- `GITHUB_CALLBACK_URL`
+- `FRONTEND_OAUTH_SUCCESS_URL`
+- `FRONTEND_OAUTH_FAILURE_URL`
 
-Quick setup for GitHub + Ubuntu + `falconarena.live` is in `docs/deploy-quickstart.md`.
-API smoke scenario is in `docs/mvp-smoke-api.md`.
-UI smoke scenario is in `docs/ui-smoke-runbook.md`.
-Acceptance review checklist is in `docs/acceptance-checklist.md`.
+Storage:
 
-Ukrainian docs:
+- `STORAGE_PROVIDER` - `local` or `s3`
+- `STORAGE_LOCAL_DIR`
+- `STORAGE_LOCAL_PUBLIC_PREFIX`
+- `STORAGE_S3_ENDPOINT`
+- `STORAGE_S3_REGION`
+- `STORAGE_S3_BUCKET`
+- `STORAGE_S3_ACCESS_KEY_ID`
+- `STORAGE_S3_SECRET_ACCESS_KEY`
+- `STORAGE_S3_PUBLIC_BASE_URL`
+- `STORAGE_S3_KEY_PREFIX`
+- `STORAGE_S3_FORCE_PATH_STYLE`
 
-- `docs/deploy-quickstart.uk.md`
-- `docs/mvp-smoke-api.uk.md`
-- `docs/ui-smoke-runbook.uk.md`
-- `docs/project-decisions.uk.md`
-- `docs/acceptance-checklist.uk.md`
+Additional setting:
 
-## Role Onboarding
+- `MAX_TEAM_MEMBERS` - default: `8`
 
-- `TEAM`: open `https://falconarena.live/`, go to `Register`, create an account, then open `My team` and register a team in a tournament.
-- `ADMIN`: create the initial admin with the seed command, sign in, open `Admin panel`, and create a tournament and round.
-- `ORGANIZER` / `JURY`: sign in as `ADMIN`, open the user creation block in `Admin panel`, and create the required roles through the UI.
+Integration values can be provided through env as bootstrap/fallback values. Google Sheets, email delivery, notification rules, tournament defaults, and public About-page content can also be managed from `/app/integrations`.
 
-## Product Flow
+## Seed and Migrations
 
-1. `TEAM`: creates an account through `/app/register`, opens tournaments, registers a team, and submits work for the active round.
-2. `ADMIN`: creates a tournament, switches it to `Registration`, starts a round, and creates `JURY` and `ORGANIZER` users if needed.
-3. `JURY`: works in the jury workspace, opens assigned submissions, and scores them.
-4. `ADMIN`: assigns jury members to the tournament, distributes evaluation across that jury pool, closes submissions or finishes evaluation, then reviews `Leaderboard`, `Archive`, and certificates.
-5. Any role: uses `Messages` (`/app/messages`) for announcements, system notifications, and personal dialogs.
-
-## Backend API and Platform Capabilities
-
-- Auth + RBAC are implemented in NestJS (`JWT`, `register`, `login`, `me`, role guard).
-- Auth endpoints:
-  - `POST /auth/register` (public, always creates `TEAM` user)
-  - `POST /auth/admin/users` (roles: `ADMIN`, `ORGANIZER`)
-  - `POST /auth/login`
-  - `GET /auth/google`
-  - `GET /auth/google/callback`
-  - `GET /auth/github`
-  - `GET /auth/github/callback`
-  - `GET /auth/me` (Bearer token)
-  - `GET /auth/admin/ping` (roles: `ADMIN`, `ORGANIZER`)
-- Health endpoints:
-  - `GET /health`
-  - `GET /admin/health` (roles: `ADMIN`, `ORGANIZER`)
-- Tournament endpoints:
-  - `GET /tournaments`
-  - `GET /tournaments/:id`
-  - `POST /tournaments` (roles: `ADMIN`, `ORGANIZER`)
-  - `PATCH /tournaments/:id/status` (roles: `ADMIN`, `ORGANIZER`)
-  - `GET /tournaments/:id/jury` (roles: `ADMIN`, `ORGANIZER`)
-  - `PATCH /tournaments/:id/jury` (roles: `ADMIN`, `ORGANIZER`)
-- Team registration endpoints:
-  - `GET /teams`
-  - `POST /tournaments/:tournamentId/teams/register` (roles: `TEAM`, `ADMIN`, `ORGANIZER`)
-  - `GET /tournaments/:tournamentId/teams`
-  - `GET /tournaments/:tournamentId/teams/me` (roles: `TEAM`, `ADMIN`, `ORGANIZER`)
-- Round/task endpoints:
-  - `POST /tournaments/:tournamentId/rounds` (roles: `ADMIN`, `ORGANIZER`)
-  - `GET /tournaments/:tournamentId/rounds`
-  - `GET /tournaments/:tournamentId/rounds/active`
-  - `PATCH /tournaments/:tournamentId/rounds/:roundId/status` (roles: `ADMIN`, `ORGANIZER`)
-- Submission endpoints:
-  - `POST /rounds/:roundId/submissions` (role: `TEAM`)
-  - `GET /rounds/:roundId/submissions/me` (role: `TEAM`)
-  - `GET /rounds/:roundId/submissions` (roles: `ADMIN`, `ORGANIZER`, `JURY`)
-- Evaluation endpoints:
-  - `POST /rounds/:roundId/assignments/distribute` (roles: `ADMIN`, `ORGANIZER`)
-  - `GET /rounds/:roundId/assignments` (roles: `ADMIN`, `ORGANIZER`)
-  - `GET /rounds/:roundId/assignments/me` (role: `JURY`)
-  - `POST /rounds/:roundId/assignments/:assignmentId/evaluation` (role: `JURY`, scale `0-100`)
-  - `POST /rounds/:roundId/finish-evaluation` (roles: `ADMIN`, `ORGANIZER`, supports optional `{ "force": true }`)
-- Leaderboard endpoint:
-  - `GET /tournaments/:tournamentId/leaderboard`
-- Announcement endpoints:
-  - `GET /announcements` (authenticated users, role-aware feed)
-  - `POST /announcements` (roles: `ADMIN`, `ORGANIZER`)
-  - `PATCH /announcements/:id` (roles: `ADMIN`, `ORGANIZER`)
-- Personal dialog endpoints:
-  - `GET /messages/dialogs`
-  - `POST /messages/dialogs` (create/open dialog by recipient email)
-  - `GET /messages/dialogs/:id`
-  - `POST /messages/dialogs/:id` (send message)
-  - `DELETE /messages/dialogs/:id` (delete full dialog for the current user)
-  - `DELETE /messages/dialogs/:id/messages/:messageId` (delete one message)
-- Notification endpoints:
-  - `GET /notifications`
-  - `PATCH /notifications/read-state`
-- Email delivery:
-  - system notifications can also be delivered by email
-  - supported providers: `console`, `resend`
-
-Additional env setting:
-
-- `MAX_TEAM_MEMBERS` (default: `8`)
-
-Optional admin seed command:
+Seed admin:
 
 ```bash
 SEED_ADMIN_EMAIL=admin@falconarena.live SEED_ADMIN_PASSWORD=change_me npm run prisma:seed -w @falconarena/backend
 ```
 
-Database migrations:
+Useful Prisma commands:
 
-- Versioned Prisma migration files are stored in `apps/backend/prisma/migrations`.
-- Generate Prisma client: `npm run prisma:generate -w @falconarena/backend`
-- Apply tracked migrations: `npm run prisma:migrate:deploy -w @falconarena/backend`
-- For already-running databases created with `db push`, baseline once: `npm run prisma:migrate:resolve:init -w @falconarena/backend`
-- Runtime DB sync mode is controlled by `PRISMA_SYNC_MODE`; production deploy uses `migrate` by default and applies tracked migrations during backend startup.
-- Current message-related migrations: `0003_announcements`, `0004_direct_dialogs`.
+- `npm run prisma:generate -w @falconarena/backend`
+- `npm run prisma:migrate:deploy -w @falconarena/backend`
+- `npm run prisma:migrate:dev -w @falconarena/backend`
+- `npm run prisma:migrate:resolve:init -w @falconarena/backend`
 
-Backend API automation scripts:
+Production deploy uses `PRISMA_SYNC_MODE=migrate` by default and applies tracked Prisma migrations during backend container startup.
+
+## Backend API
+
+### Auth
+
+- `POST /auth/register`
+- `POST /auth/login`
+- `POST /auth/admin/users`
+- `GET /auth/google`
+- `GET /auth/google/callback`
+- `GET /auth/github`
+- `GET /auth/github/callback`
+- `GET /auth/me`
+- `GET /auth/admin/ping`
+
+### Users and profile
+
+- `GET /admin/users`
+- `GET /admin/users/export.csv`
+- `PATCH /admin/users/:userId`
+- `PATCH /admin/users/:userId/password`
+- `GET /profile/settings`
+- `PATCH /profile/settings`
+
+### Dashboard and activity
+
+- `GET /dashboard/admin/metrics`
+- `GET /dashboard/jury/metrics`
+- `GET /dashboard/team/metrics`
+- `GET /activity/mine`
+- `GET /activity/admin`
+
+### Tournaments
+
+- `GET /tournaments`
+- `GET /tournaments/:id`
+- `GET /tournaments/:id/archive`
+- `GET /tournaments/:id/announcements`
+- `GET /tournaments/:id/jury`
+- `PATCH /tournaments/:id/jury`
+- `POST /tournaments`
+- `PATCH /tournaments/:id/status`
+- `PATCH /tournaments/:id/status/override`
+- `GET /tournaments/:tournamentId/schedule`
+- `POST /tournaments/:tournamentId/schedule`
+- `PATCH /tournaments/:tournamentId/schedule/:eventId`
+- `DELETE /tournaments/:tournamentId/schedule/:eventId`
+- `GET /tournaments/:tournamentId/certificate-template`
+- `PATCH /tournaments/:tournamentId/certificate-template`
+- `GET /tournaments/:tournamentId/certificates/teams/:teamId`
+
+### Teams
+
+- `GET /teams`
+- `POST /tournaments/:tournamentId/teams/register`
+- `GET /tournaments/:tournamentId/teams`
+- `GET /tournaments/:tournamentId/teams/me`
+
+### Rounds
+
+- `POST /tournaments/:tournamentId/rounds`
+- `GET /tournaments/:tournamentId/rounds`
+- `GET /tournaments/:tournamentId/rounds/active`
+- `PATCH /tournaments/:tournamentId/rounds/:roundId/status`
+- `PATCH /tournaments/:tournamentId/rounds/:roundId/status/override`
+- `POST /rounds/:roundId/finish-evaluation`
+
+### Submissions
+
+- `POST /rounds/:roundId/submissions`
+- `GET /rounds/:roundId/submissions/me`
+- `GET /rounds/:roundId/submissions`
+
+### Evaluation
+
+- `POST /rounds/:roundId/assignments/distribute`
+- `GET /rounds/:roundId/assignments`
+- `GET /rounds/:roundId/assignments/me`
+- `POST /rounds/:roundId/assignments/:assignmentId/evaluation`
+
+### Leaderboard
+
+- `GET /tournaments/:tournamentId/leaderboard`
+- `GET /tournaments/:tournamentId/leaderboard/export.csv`
+- `POST /tournaments/:tournamentId/leaderboard/export.google-sheets`
+
+### Announcements, messages, notifications
+
+- `GET /announcements`
+- `POST /announcements`
+- `PATCH /announcements/:id`
+- `PATCH /announcements/read-state`
+- `GET /messages/dialogs`
+- `POST /messages/dialogs`
+- `GET /messages/dialogs/:id`
+- `POST /messages/dialogs/:id`
+- `DELETE /messages/dialogs/:id`
+- `DELETE /messages/dialogs/:id/messages/:messageId`
+- `GET /notifications`
+- `PATCH /notifications/read-state`
+
+### System integrations and public content
+
+- `GET /admin/system-integrations/google-sheets`
+- `PATCH /admin/system-integrations/google-sheets`
+- `POST /admin/system-integrations/google-sheets/test`
+- `GET /admin/system-integrations/email`
+- `PATCH /admin/system-integrations/email`
+- `POST /admin/system-integrations/email/test`
+- `GET /admin/system-integrations/notification-rules`
+- `PATCH /admin/system-integrations/notification-rules`
+- `GET /admin/system-integrations/platform-content`
+- `PATCH /admin/system-integrations/platform-content`
+- `POST /admin/system-integrations/platform-content/banner`
+- `GET /admin/system-integrations/platform-reviews`
+- `PATCH /admin/system-integrations/platform-reviews/:reviewId`
+- `GET /admin/system-integrations/tournament-defaults`
+- `PATCH /admin/system-integrations/tournament-defaults`
+- `GET /platform/about`
+- `GET /platform/about/reviews`
+- `POST /platform/about/reviews`
+- `GET /platform/defaults`
+
+### Observability
+
+- `GET /health`
+- `GET /admin/health`
+- `GET /admin/error-reports`
+
+## Automated Checks
+
+Backend:
 
 - `BASE_URL=http://localhost:4000 ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run smoke:mvp -w @falconarena/backend`
+- `BASE_URL=http://localhost:4000 ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run test:e2e:admin-team-jury-leaderboard -w @falconarena/backend`
+- `BASE_URL=http://localhost:4000 ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run test:e2e:archive-certificate-export -w @falconarena/backend`
 - `BASE_URL=http://localhost:4000 ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run test:e2e:finish-evaluation -w @falconarena/backend`
 - `BASE_URL=http://localhost:4000 ADMIN_EMAIL=admin@falconarena.live ADMIN_PASSWORD=change_me npm run test:e2e:profile-avatar -w @falconarena/backend`
+
+Typical local checks:
+
+- `npm run lint -w @falconarena/frontend`
+- `npm run lint -w @falconarena/backend`
+- `npm test -w @falconarena/frontend`
+- `npm test -w @falconarena/backend`
+
+## CI / CD
+
+- Pull Request to `main`: lint + test + build
+- Merge to `main`: GitHub Actions runs deploy
+- Production runs through Docker Compose and Caddy
+- PostgreSQL and Redis are internal-only in the Docker network
+- Backend uploads/storage supports:
+  - `local` provider through a persistent Docker volume
+  - `s3` provider for S3-compatible storage (`R2 / MinIO / S3`)
+
+Key GitHub secrets for deploy:
+
+- `SSH_HOST`
+- `SSH_USER`
+- `SSH_PRIVATE_KEY`
+- `SSH_PORT`
+- `DEPLOY_PATH`
+- `GH_PULL_USERNAME`
+- `GH_PULL_TOKEN`
+- `POSTGRES_DB`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `JWT_SECRET`
+- `VITE_API_URL`
+- email secrets when needed
+
+## Documentation
+
+- `docs/implementation-plan.uk.md` - implementation summary and current product state
+- `docs/deploy-quickstart.md` - deployment quickstart
+- `docs/deploy-quickstart.uk.md` - Ukrainian deployment quickstart
+- `docs/ops-runbook.uk.md` - deploy, rollback, backup, and logs runbook
+- `docs/backup-restore-drill.uk.md` - database and uploads backup / restore drill
+- `docs/release-checklist.uk.md` - short checklist before merge / deploy
+- `docs/admin-runbook.uk.md` - daily ADMIN workflow
+- `docs/support-troubleshooting.uk.md` - common support cases
+- `docs/mvp-smoke-api.md` - API smoke scenario
+- `docs/mvp-smoke-api.uk.md` - Ukrainian API smoke scenario
+- `docs/ui-smoke-runbook.md` - UI smoke scenario
+- `docs/ui-smoke-runbook.uk.md` - Ukrainian UI smoke scenario
+- `docs/project-decisions.md` - architecture decisions
+- `docs/project-decisions.uk.md` - Ukrainian architecture decisions
+- `docs/acceptance-checklist.md` - review checklist
+- `docs/acceptance-checklist.uk.md` - Ukrainian review checklist
+- `docs/product-overview.uk.md` - concise product overview
+- `docs/defense-demo-script.uk.md` - recommended product presentation script
+
+## Google Sheets Export
+
+The current implementation uses a pragmatic webhook-based export:
+
+1. Create a Google Apps Script or another compatible endpoint that accepts `POST` JSON.
+2. Add `GOOGLE_SHEETS_*` env values as bootstrap/fallback values, or open `/app/integrations` as `ADMIN` and save the webhook in the database.
+3. Click `Export to Google Sheets` from `Leaderboard` or `Archive`.
+
+Backend sends:
+
+- tournament metadata
+- scoring model
+- headers
+- rows
+- row objects
+- generation timestamp
+- exporting user
+
+## Backup / Restore
+
+Basic server-side commands:
+
+```bash
+cd /opt/falconarena-deploy
+sh infra/scripts/backup-all.sh
+sh infra/scripts/verify-backup.sh <timestamp>
+```
+
+Available separately:
+
+- `sh infra/scripts/backup-db.sh`
+- `sh infra/scripts/backup-storage.sh`
+- `sh infra/scripts/restore-db.sh backups/<backup-file>.sql`
+- `sh infra/scripts/restore-storage.sh backups/<storage-archive>.tar.gz`
