@@ -310,7 +310,7 @@ export default function JuryDashboardPage() {
     subtitle: entry.subtitle,
     initials: toInitials(entry.name),
   }));
-  const quickTeamsPreview = quickTeams.slice(0, 3);
+  const quickTeamsPreview = quickTeams.slice(0, 5);
   const activityCurve = toSizedSeries(metrics.activity, 8);
   const activityPath = buildSparkPath(activityCurve);
   const hasWeeklyMetrics = weeklyReviewRaw.some((value) => value > 0) || weeklyAssignedRaw.some((value) => value > 0);
@@ -742,18 +742,14 @@ export default function JuryDashboardPage() {
               <p className="inline-hint">{t('juryDashboard.noAssignments')}</p>
             ) : (
               <>
-                <div className="dashboard-mini-avatars">
+                <div className="dashboard-mini-team-list">
                   {quickTeamsPreview.map((entry) => (
-                    <span key={`jury-avatar-${entry.id}`} className="dashboard-mini-avatar">
-                      {entry.initials}
-                    </span>
-                  ))}
-                </div>
-                <div className="dashboard-mini-caption-row">
-                  {quickTeamsPreview.map((entry) => (
-                    <div key={`jury-caption-${entry.id}`} className="dashboard-mini-caption">
-                      <strong>{entry.name}</strong>
-                      <p>{entry.subtitle}</p>
+                    <div key={`jury-team-${entry.id}`} className="dashboard-mini-team-item">
+                      <span className="dashboard-mini-avatar">{entry.initials}</span>
+                      <div className="dashboard-mini-caption">
+                        <strong>{entry.name}</strong>
+                        <p>{entry.subtitle}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
