@@ -2359,7 +2359,7 @@ export default function AdminDashboardPage() {
             <div className="form-actions admin-jury-actions">
               <button
                 type="button"
-                className="button button-primary"
+                className="button button-primary admin-dashboard-form-action"
                 disabled={jurySaving || !selectedTournamentId}
                 onClick={() => void saveTournamentJury()}
               >
@@ -2490,7 +2490,7 @@ export default function AdminDashboardPage() {
           <div className="schedule-form-actions">
             <button
               type="submit"
-              className="button button-primary admin-primary-action"
+              className="button button-primary admin-primary-action admin-dashboard-form-action"
               disabled={scheduleOp.loading || !selectedTournamentId}
             >
               {scheduleOp.loading
