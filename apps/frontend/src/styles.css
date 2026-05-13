@@ -4003,14 +4003,14 @@ a {
 .dashboard-toolset-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-auto-rows: 168px;
+  grid-auto-rows: minmax(184px, auto);
   gap: 10px;
   align-items: stretch;
 }
 
 .dashboard-toolset-grid .dashboard-tool-card {
-  height: 168px;
-  min-height: 168px;
+  height: auto;
+  min-height: 184px;
 }
 
 .dashboard-onboarding-card {
@@ -4253,13 +4253,13 @@ a {
     radial-gradient(circle at 100% 0%, rgba(122, 67, 243, 0.06) 0%, transparent 32%),
     linear-gradient(180deg, #ffffff 0%, #fbf9ff 100%);
   box-shadow: 0 12px 24px rgba(33, 24, 58, 0.05);
-  padding: 15px;
+  padding: 18px;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   align-content: stretch;
   align-items: start;
   min-height: 140px;
-  gap: 7px;
+  gap: 8px;
   text-decoration: none;
   transition:
     transform 160ms ease,
@@ -4309,13 +4309,13 @@ a {
   color: #6a6383;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-size: 0.67rem;
+  font-size: 0.74rem;
   font-weight: 800;
 }
 
 .dashboard-tool-card strong {
   color: #343c6a;
-  font-size: 0.98rem;
+  font-size: 1.08rem;
   line-height: 1.32;
 }
 
@@ -4324,8 +4324,8 @@ a {
   margin: 0;
   font-style: normal;
   color: #5d6472;
-  font-size: 0.78rem;
-  line-height: 1.45;
+  font-size: 0.88rem;
+  line-height: 1.48;
 }
 
 .dashboard-tool-card--teal span,
@@ -5135,6 +5135,7 @@ a {
 }
 
 .about-review-card {
+  position: relative;
   display: grid;
   gap: 18px;
   align-content: space-between;
@@ -5165,6 +5166,52 @@ a {
   font-size: 0.82rem;
   font-weight: 800;
   text-transform: uppercase;
+}
+
+body:not([data-theme='dark']):not([data-theme='blue']) .app-page .about-review-card {
+  border-color: rgba(94, 23, 235, 0.18);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(22, 219, 204, 0.12) 0%, transparent 34%),
+    linear-gradient(180deg, #ffffff 0%, #f7f3ff 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 18px 36px rgba(52, 60, 106, 0.1);
+}
+
+body:not([data-theme='dark']):not([data-theme='blue']) .app-page .about-review-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 18px;
+  right: 18px;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #5e17eb 0%, #16dbcc 100%);
+}
+
+body:not([data-theme='dark']):not([data-theme='blue']) .app-page .about-review-card::after {
+  content: '“';
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  color: rgba(94, 23, 235, 0.12);
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 3.2rem;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+}
+
+body:not([data-theme='dark']):not([data-theme='blue']) .app-page .about-review-card p {
+  color: #4f5d88;
+}
+
+body:not([data-theme='dark']):not([data-theme='blue']) .app-page .about-review-card strong {
+  color: #252b55;
+}
+
+body:not([data-theme='dark']):not([data-theme='blue']) .app-page .about-review-card span {
+  color: #5b79ad;
 }
 
 .about-review-form {
