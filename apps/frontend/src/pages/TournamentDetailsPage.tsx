@@ -299,7 +299,6 @@ export default function TournamentDetailsPage() {
           <div className="tournament-head">
             <div>
               <h2>{t('tournamentDetails.announcements.title')}</h2>
-              <p className="inline-hint">{t('tournamentDetails.announcements.lead')}</p>
             </div>
             <span className="status-pill">{announcements.length}</span>
           </div>
@@ -376,7 +375,6 @@ export default function TournamentDetailsPage() {
             }
           })();
         }}
-        lead={t('tournamentDetails.scheduleLead')}
       />
 
       <article className="section-card">
