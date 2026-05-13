@@ -661,7 +661,7 @@ export default function AdminDashboardPage() {
     subtitle: entry.subtitle,
     initials: toInitials(entry.name),
   }));
-  const quickTeamsPreview = quickTeams.slice(0, 3);
+  const quickTeamsPreview = quickTeams.slice(0, 5);
   const activityCurve = toSizedSeries(metrics.activity, 8);
   const activityPath = buildSparkPath(activityCurve);
   const hasWeeklyMetrics =
@@ -1955,18 +1955,14 @@ export default function AdminDashboardPage() {
               <p className="inline-hint">{t('adminDashboard.noTournaments')}</p>
             ) : (
               <>
-                <div className="dashboard-mini-avatars">
+                <div className="dashboard-mini-team-list">
                   {quickTeamsPreview.map((entry) => (
-                    <span key={`admin-avatar-${entry.id}`} className="dashboard-mini-avatar">
-                      {entry.initials}
-                    </span>
-                  ))}
-                </div>
-                <div className="dashboard-mini-caption-row">
-                  {quickTeamsPreview.map((entry) => (
-                    <div key={`admin-caption-${entry.id}`} className="dashboard-mini-caption">
-                      <strong>{entry.name}</strong>
-                      <p>{entry.subtitle}</p>
+                    <div key={`admin-team-${entry.id}`} className="dashboard-mini-team-item">
+                      <span className="dashboard-mini-avatar">{entry.initials}</span>
+                      <div className="dashboard-mini-caption">
+                        <strong>{entry.name}</strong>
+                        <p>{entry.subtitle}</p>
+                      </div>
                     </div>
                   ))}
                 </div>

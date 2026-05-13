@@ -5456,6 +5456,10 @@ a {
   width: 100%;
 }
 
+.dashboard-quick-actions .dashboard-action {
+  font-size: 0.92rem;
+}
+
 .dashboard-action {
   border: 1px solid transparent;
   min-height: 44px;
@@ -5743,6 +5747,7 @@ a {
 }
 
 .dashboard-mini-card.is-teams {
+  align-self: start;
   align-content: start;
   border-color: #16dbcc;
   background: linear-gradient(180deg, #16dbcc 0%, #13cabd 100%);
@@ -5777,6 +5782,65 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+}
+
+.dashboard-mini-team-list {
+  display: grid;
+  gap: 10px;
+}
+
+.dashboard-mini-team-item {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.dashboard-mini-card.is-teams .dashboard-mini-avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 0.76rem;
+}
+
+.dashboard-mini-card.is-teams .dashboard-mini-caption strong {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  line-height: 1.22;
+  font-size: 0.82rem;
+}
+
+.dashboard-mini-card.is-teams .dashboard-mini-caption p {
+  line-height: 1.35;
+}
+
+.dashboard-mini-card.is-teams .dashboard-mini-links {
+  margin-top: 2px;
+}
+
+body:not([data-theme='dark']):not([data-theme='blue']) .app-page .dashboard-mini-card.is-teams h3,
+body:not([data-theme='dark']):not([data-theme='blue']) .app-page .dashboard-mini-card.is-teams .dashboard-mini-caption strong,
+body:not([data-theme='dark']):not([data-theme='blue']) .app-page .dashboard-mini-card.is-teams .dashboard-mini-caption p {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(9, 105, 112, 0.32);
+}
+
+body:not([data-theme='dark']):not([data-theme='blue']) .app-page .dashboard-mini-card.is-teams .dashboard-mini-caption p {
+  color: rgba(255, 255, 255, 0.96);
+}
+
+body:not([data-theme='dark']):not([data-theme='blue']) .app-page .dashboard-mini-card.is-teams .dashboard-mini-team-item {
+  border-color: rgba(255, 255, 255, 0.32);
+  background: rgba(4, 121, 127, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 12px 28px rgba(4, 121, 127, 0.12);
 }
 
 .dashboard-mini-item {

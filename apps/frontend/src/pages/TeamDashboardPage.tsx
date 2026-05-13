@@ -394,7 +394,7 @@ export default function TeamDashboardPage() {
     subtitle: entry.subtitle,
     initials: toInitials(entry.name),
   }));
-  const quickMembersPreview = quickMembers.slice(0, 3);
+  const quickMembersPreview = quickMembers.slice(0, 5);
   const activityCurve = toSizedSeries(metrics.activity, 8);
   const activityPath = buildSparkPath(activityCurve);
   const hasWeeklyMetrics = weeklyReviewRaw.some((value) => value > 0) || weeklySubmissionRaw.some((value) => value > 0);
@@ -1003,18 +1003,14 @@ export default function TeamDashboardPage() {
               <p className="inline-hint">{t('teamDashboard.needTeamFirst')}</p>
             ) : (
               <>
-                <div className="dashboard-mini-avatars">
+                <div className="dashboard-mini-team-list">
                   {quickMembersPreview.map((entry) => (
-                    <span key={`team-avatar-${entry.id}`} className="dashboard-mini-avatar">
-                      {entry.initials}
-                    </span>
-                  ))}
-                </div>
-                <div className="dashboard-mini-caption-row">
-                  {quickMembersPreview.map((entry) => (
-                    <div key={`team-caption-${entry.id}`} className="dashboard-mini-caption">
-                      <strong>{entry.name}</strong>
-                      <p>{entry.subtitle}</p>
+                    <div key={`team-member-${entry.id}`} className="dashboard-mini-team-item">
+                      <span className="dashboard-mini-avatar">{entry.initials}</span>
+                      <div className="dashboard-mini-caption">
+                        <strong>{entry.name}</strong>
+                        <p>{entry.subtitle}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
