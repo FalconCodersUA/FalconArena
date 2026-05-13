@@ -796,6 +796,7 @@ a {
   min-width: 0;
   padding: 2px 12px 14px;
   border-right: 1px solid #e6eff5;
+  border-radius: 0 0 24px 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -12612,6 +12613,7 @@ body[data-theme='blue'] .app-page.admin-users-page .admin-user-action--save:disa
     grid-template-columns: 1fr;
     gap: 10px;
     padding: 12px;
+    border-radius: 0 0 22px 22px;
   }
 
   .app-brand {
