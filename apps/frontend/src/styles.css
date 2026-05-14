@@ -5525,27 +5525,6 @@ body:not([data-theme='dark']):not([data-theme='blue']) .app-page .about-review-c
     opacity 220ms ease;
 }
 
-.dashboard-quick-actions .dashboard-action::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: linear-gradient(
-    110deg,
-    transparent 0%,
-    transparent 28%,
-    rgba(255, 255, 255, 0.22) 44%,
-    transparent 62%,
-    transparent 100%
-  );
-  opacity: 0;
-  transform: translateX(-120%);
-  transition:
-    opacity 240ms ease,
-    transform 620ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  pointer-events: none;
-}
-
 .dashboard-quick-actions .dashboard-action:hover:not(:disabled),
 .dashboard-quick-actions .dashboard-action:focus-visible {
   filter: saturate(1.08) brightness(1.02);
@@ -5561,12 +5540,6 @@ body:not([data-theme='dark']):not([data-theme='blue']) .app-page .about-review-c
   transform: scaleY(0.75);
   opacity: 0.98;
   box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.14);
-}
-
-.dashboard-quick-actions .dashboard-action:hover:not(:disabled)::after,
-.dashboard-quick-actions .dashboard-action:focus-visible::after {
-  opacity: 1;
-  transform: translateX(120%);
 }
 
 .dashboard-action {
@@ -5658,8 +5631,7 @@ body:not([data-theme='dark']):not([data-theme='blue']) .app-page .about-review-c
 
 @media (prefers-reduced-motion: reduce) {
   .dashboard-quick-actions .dashboard-action,
-  .dashboard-quick-actions .dashboard-action::before,
-  .dashboard-quick-actions .dashboard-action::after {
+  .dashboard-quick-actions .dashboard-action::before {
     transition: none;
   }
 
