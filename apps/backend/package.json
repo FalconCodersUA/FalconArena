@@ -20,8 +20,6 @@
     "prisma:seed": "node prisma/seed.js",
     "prisma:demo:dry-run": "node prisma/demo-curation.js --dry-run",
     "prisma:demo:apply": "node prisma/demo-curation.js --apply",
-    "prisma:star-for-life:dry-run": "node prisma/seed-star-for-life.js --dry-run",
-    "prisma:star-for-life:apply": "node prisma/seed-star-for-life.js --apply",
     "prisma:jury:dry-run": "node prisma/demo-curation.js --jury-dry-run",
     "prisma:jury:apply": "node prisma/demo-curation.js --jury-apply",
     "prisma:migrate:dev": "prisma migrate dev",
