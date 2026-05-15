@@ -150,6 +150,29 @@ infra/
 5. Будь-яка роль: використовує `Повідомлення` для оголошень, системних сповіщень та особистих діалогів.
 6. Авторизований користувач: може залишити відгук на сторінці `Про нас`; `ADMIN` перевіряє його в `Інтеграціях` перед публікацією.
 
+## Швидкий запуск за 5 хвилин
+
+Потрібно мати встановлені:
+
+- Node.js `>=20`
+- Docker
+- Docker Compose
+
+Запустіть локальне середовище трьома командами:
+
+```bash
+npm install
+npm run bootstrap:local
+docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docker-compose/.env up -d --build
+```
+
+Після запуску відкрийте:
+
+- `http://localhost` - застосунок
+- `http://localhost/health` - перевірка backend через proxy
+
+Production-розгортання на Ubuntu описане окремо в [`docs/deploy-quickstart.uk.md`](docs/deploy-quickstart.uk.md).
+
 ## Локальний запуск
 
 1. Встановіть залежності:

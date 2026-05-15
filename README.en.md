@@ -148,6 +148,29 @@ infra/
 5. Any role: uses `Messages` for announcements, system notifications, and direct dialogs.
 6. Signed-in users can leave a review on the `About` page; `ADMIN` moderates reviews from `Integrations`.
 
+## 5-Minute Quick Start
+
+Required locally:
+
+- Node.js `>=20`
+- Docker
+- Docker Compose
+
+Start the local environment with three commands:
+
+```bash
+npm install
+npm run bootstrap:local
+docker compose -f infra/docker-compose/docker-compose.yml --env-file infra/docker-compose/.env up -d --build
+```
+
+After startup, open:
+
+- `http://localhost` - application
+- `http://localhost/health` - backend health check through the proxy
+
+Production deployment on Ubuntu is documented separately in [`docs/deploy-quickstart.md`](docs/deploy-quickstart.md).
+
 ## Local Start
 
 1. Install dependencies:

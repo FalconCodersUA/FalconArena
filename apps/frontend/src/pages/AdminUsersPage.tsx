@@ -159,6 +159,16 @@ export default function AdminUsersPage() {
     () => users.filter((item) => item.isBlocked).length,
     [users],
   );
+  const usersByRoleSummary = useMemo(
+    () =>
+      MANAGEABLE_ROLES
+        .map((role) => ({
+          role,
+          count: users.filter((item) => item.role === role).length,
+        }))
+        .filter((item) => item.count > 0),
+    [users],
+  );
 
   async function exportUsersCsv() {
     setExportingCsv(true);
@@ -465,7 +475,13 @@ export default function AdminUsersPage() {
           <div className="dashboard-workspace-status admin-users-workspace-status">
             <span>{t('adminDashboard.adminUsers.workspaceStatusLabel')}</span>
             <strong>{users.length}</strong>
-            <p>{t('adminDashboard.adminUsers.workspaceStatusLead')}</p>
+            {usersByRoleSummary.length > 0 ? (
+              <p className="admin-users-role-breakdown">
+                {usersByRoleSummary
+                  .map((item) => `${t(`profile.role.${item.role}`)}: ${item.count}`)
+                  .join(' · ')}
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -560,7 +576,6 @@ export default function AdminUsersPage() {
         <div className="admin-users-list-head">
           <div className="admin-users-list-copy">
             <h2>{t('adminDashboard.adminUsers.listTitle')}</h2>
-            <p>{t('adminDashboard.adminUsers.listLead')}</p>
           </div>
           <button
             type="button"
@@ -632,7 +647,7 @@ export default function AdminUsersPage() {
                     </div>
                   ) : null}
 
-                  <div className="admin-user-card-actions">
+                  <div className={`admin-user-card-actions${canResetPasswords ? ' has-password-reset' : ''}`}>
                     <label className="field">
                       <span>{t('adminDashboard.adminUsers.fields.newRole')}</span>
                       <select

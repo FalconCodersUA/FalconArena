@@ -8915,15 +8915,19 @@ body:not([data-theme='dark']):not([data-theme='blue']) .app-page .dashboard-mini
 .admin-users-list-head {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 14px;
+  margin-bottom: 0;
 }
 
 .admin-users-list-copy {
   display: grid;
   gap: 6px;
+}
+
+.admin-users-list-copy h2 {
+  margin: 0;
 }
 
 .admin-users-list-head p {
@@ -9025,6 +9029,10 @@ body:not([data-theme='dark']):not([data-theme='blue']) .app-page .dashboard-mini
   gap: 12px;
   align-items: end;
   min-width: 0;
+}
+
+.admin-user-card-actions.has-password-reset {
+  grid-template-columns: minmax(220px, 1fr) repeat(3, minmax(0, 156px));
 }
 
 .admin-user-card-actions .field span {
@@ -12449,6 +12457,15 @@ body[data-theme='blue'] .app-page.admin-users-page .admin-user-action--save:disa
 .app-page.admin-users-page .admin-users-summary-grid .dashboard-tool-card p,
 .app-page.admin-users-page .admin-users-summary-grid .dashboard-tool-card em {
   color: rgba(255, 255, 255, 0.88) !important;
+}
+
+.app-page.admin-users-page .admin-users-summary-grid .admin-users-role-breakdown {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .register-flag {
